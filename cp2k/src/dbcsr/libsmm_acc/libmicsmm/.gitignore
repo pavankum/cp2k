@@ -1,0 +1,6 @@
+*.stackdump
+*.exe
+*.exp
+*.lib
+*.obj
+*.o

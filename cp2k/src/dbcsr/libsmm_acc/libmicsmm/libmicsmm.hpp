@@ -1,0 +1,23 @@
+/*****************************************************************************
+ *  CP2K: A general program to perform molecular dynamics simulations        *
+ *  Copyright (C) 2000 - 2015 the CP2K developers group                      *
+ *****************************************************************************/
+/* Hans Pabst (Intel Corp.)
+******************************************************************************/
+#ifndef LIBMICSMM_HPP
+#define LIBMICSMM_HPP
+
+#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)
+
+#include "libmicsmm.h"
+#include <complex>
+
+
+template<typename T> struct dbcsr_elem              { static const dbcsr_elem_type type = DBCSR_ELEM_UNKNOWN; };
+template<> struct dbcsr_elem<float>                 { static const dbcsr_elem_type type = DBCSR_ELEM_F32; };
+template<> struct dbcsr_elem<double>                { static const dbcsr_elem_type type = DBCSR_ELEM_F64; };
+template<> struct dbcsr_elem<std::complex<float> >  { static const dbcsr_elem_type type = DBCSR_ELEM_C32; };
+template<> struct dbcsr_elem<std::complex<double> > { static const dbcsr_elem_type type = DBCSR_ELEM_C64; };
+
+#endif // defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)
+#endif // LIBMICSMM_HPP
