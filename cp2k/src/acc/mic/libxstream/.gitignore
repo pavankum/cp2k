@@ -1,0 +1,13 @@
+My Amplifier*
+My Inspector*
+bin
+build
+*.user
+*.exe
+*.sdf
+*.pdb
+*.suo
+*.exp
+*.lib
+*.obj
+*.o
