@@ -137,39 +137,41 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     && 0 <= m && 0 <= n
     && data && stream);
 
-  LIBXSTREAM_OFFLOAD_BEGIN(stream, offset, nblocks, m, n, stack, data)
-  {
-    const U offset = val<const U,0>();
-    const U nblocks = val<const U,1>();
-    const U m = val<const U,2>();
-    const U n = val<const U,3>();
-    const U *const stack = ptr<const U,4>();
-    T* buffer = ptr<T,5>();
+  if (1 < m || 1 < n) {
+    LIBXSTREAM_OFFLOAD_BEGIN(stream, offset, nblocks, m, n, stack, data)
+    {
+      const U offset = val<const U,0>();
+      const U nblocks = val<const U,1>();
+      const U m = val<const U,2>();
+      const U n = val<const U,3>();
+      const U *const stack = ptr<const U,4>();
+      T* buffer = ptr<T,5>();
 
 #if defined(LIBXSTREAM_OFFLOAD)
-    if (0 <= LIBXSTREAM_OFFLOAD_DEVICE) {
-      if (LIBXSTREAM_OFFLOAD_READY) {
-#       pragma offload LIBXSTREAM_OFFLOAD_TARGET_SIGNAL \
-          in(offset, nblocks, m, n) \
-          in(stack: length(0) alloc_if(false) free_if(false)) \
-          inout(buffer: length(0) alloc_if(false) free_if(false))
-        kernel(stack, offset, nblocks, m, n, buffer);
+      if (0 <= LIBXSTREAM_OFFLOAD_DEVICE) {
+        if (LIBXSTREAM_OFFLOAD_READY) {
+#         pragma offload LIBXSTREAM_OFFLOAD_TARGET_SIGNAL \
+            in(offset, nblocks, m, n) \
+            in(stack: length(0) alloc_if(false) free_if(false)) \
+            inout(buffer: length(0) alloc_if(false) free_if(false))
+          kernel(stack, offset, nblocks, m, n, buffer);
+        }
+        else {
+#         pragma offload LIBXSTREAM_OFFLOAD_TARGET_WAIT \
+            in(offset, nblocks, m, n) \
+            in(stack: length(0) alloc_if(false) free_if(false)) \
+            inout(buffer: length(0) alloc_if(false) free_if(false))
+          kernel(stack, offset, nblocks, m, n, buffer);
+        }
       }
-      else {
-#       pragma offload LIBXSTREAM_OFFLOAD_TARGET_WAIT \
-          in(offset, nblocks, m, n) \
-          in(stack: length(0) alloc_if(false) free_if(false)) \
-          inout(buffer: length(0) alloc_if(false) free_if(false))
-        kernel(stack, offset, nblocks, m, n, buffer);
-      }
-    }
-    else
+      else
 #endif
-    {
-      kernel(stack, offset, nblocks, m, n, buffer);
+      {
+        kernel(stack, offset, nblocks, m, n, buffer);
+      }
     }
+    LIBXSTREAM_OFFLOAD_END(false)
   }
-  LIBXSTREAM_OFFLOAD_END(false)
 
   return LIBXSTREAM_ERROR_NONE;
 }
