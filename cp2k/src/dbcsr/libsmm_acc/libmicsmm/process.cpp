@@ -15,16 +15,8 @@
 # pragma offload_attribute(push,target(mic))
 #endif
 
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && defined(__MIC__)
-# if (2 != (LIBMICSMM_USE_LIBXSMM+1))
-#   include <libxsmm.h>
-# else // legacy binding without using LIBXSMM's header
-#   if !defined(LIBMICSMM_USE_LIBXSMM_PROTOTYPE)
-#     define LIBMICSMM_USE_LIBXSMM_PROTOTYPE
-#   endif
-extern "C" typedef void (*libxsmm_dmm_function)(const double*, const double*, double*);
-extern "C" LIBXSTREAM_EXPORT libxsmm_dmm_function libxsmm_dmm_dispatch(int m, int n, int k);
-# endif
+#if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__)
+# include <libxsmm.h>
 #endif
 
 #if defined(LIBMICSMM_USE_MKLSMM) && defined(__MKL)
@@ -53,15 +45,15 @@ namespace libmicsmm_process_private {
 template<typename T, typename U>
 class LIBXSTREAM_EXPORT smm_type {
   U M, N, K, LDC;
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && defined(__MIC__) && ((0 != LIBXSMM_COL_MAJOR) || defined(LIBMICSMM_USE_LIBXSMM_PROTOTYPE))
-  libxsmm_dmm_function dxsmm;
+#if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
+  libxsmm_mm_dispatch xsmm;
 #endif
 
 public:
   smm_type(U M_, U N_, U K_, U LDC_ = 0)
     : M(M_), N(N_), K(K_), LDC(0 == LDC_ ? M_ : LDC_)
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && defined(__MIC__) && ((0 != LIBXSMM_COL_MAJOR) || defined(LIBMICSMM_USE_LIBXSMM_PROTOTYPE))
-    , dxsmm(sizeof(double) == sizeof(T) ? libxsmm_dmm_dispatch(M_, N_, K_) : 0)
+#if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
+    , xsmm(LDC == M ? libxsmm_mm_dispatch(M_, N_, K_) : libxsmm_mm_dispatch())
 #endif
   {}
 
@@ -105,14 +97,14 @@ public:
   }
 
 #if defined(MKL_DIRECT_CALL_SEQ)
-  void gemm(const float* a, const float* b, float* c) const {
+  void blasmm(const float* a, const float* b, float* c) const {
     static float alpha = 1.f, beta = 1.f;
     static char trans = 'N';
     int m = M, n = N, k = K, ldc = LDC;
     sgemm(&trans, &trans, &m, &n, &k, &alpha, const_cast<float*>(a), &m, const_cast<float*>(b), &k, &beta, c, &ldc);
   }
 
-  void gemm(const double* a, const double* b, double* c) const {
+  void blasmm(const double* a, const double* b, double* c) const {
     static double alpha = 1.0, beta = 1.0;
     static char trans = 'N';
     int m = M, n = N, k = K, ldc = LDC;
@@ -120,9 +112,19 @@ public:
   }
 #endif
 
-  void smm(const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c) const {
-#if defined(MKL_DIRECT_CALL_SEQ)
-    gemm(a, b, c);
+  void operator()(const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c) const {
+#if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
+    if (0 != xsmm) {
+      (*xsmm)(a, b, c);
+    }
+    else if (LIBXSMM_MAX_MNK >= (M * N * K)) {
+      libxsmm_xmm(M, N, K, a, b, c);
+    }
+    else {
+      libxsmm_blasmm(M, N, K, a, b, c);
+    }
+#elif defined(MKL_DIRECT_CALL_SEQ)
+    blasmm(a, b, c);
 #else
 # if defined(__INTEL_COMPILER)
 #   if defined(LIBMICSMM_USE_LOOPHINTS)
@@ -152,22 +154,6 @@ public:
       }
     }
 #endif
-  }
-
-  void operator()(const float *LIBXSTREAM_RESTRICT a, const float *LIBXSTREAM_RESTRICT b, float *LIBXSTREAM_RESTRICT c) const {
-    smm(a, b, c);
-  }
-
-  void operator()(const double *LIBXSTREAM_RESTRICT a, const double *LIBXSTREAM_RESTRICT b, double *LIBXSTREAM_RESTRICT c) const {
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && defined(__MIC__) && ((0 != LIBXSMM_COL_MAJOR) || defined(LIBMICSMM_USE_LIBXSMM_PROTOTYPE))
-    if (0 != dxsmm && LDC == M) {
-      (*dxsmm)(a, b, c);
-    }
-    else
-#endif
-    {
-      smm(a, b, c);
-    }
   }
 };
 
