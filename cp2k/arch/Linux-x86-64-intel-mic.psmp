@@ -306,3 +306,6 @@ mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
 process.o: process.cpp
 	$(CXX) -c $(CXXFLAGS) -O1 $<
 
+transpose.o: transpose.cpp
+	$(CXX) -c $(CXXFLAGS) -O1 $<
+
