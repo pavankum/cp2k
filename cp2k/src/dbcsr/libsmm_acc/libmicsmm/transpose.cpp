@@ -136,6 +136,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     && LIBMICSMM_MAX_MNK >= n
     && 0 <= m && 0 <= n
     && data && stream);
+  const int result = stream->reset();
 
   if (1 < m || 1 < n) {
     LIBXSTREAM_OFFLOAD_BEGIN(stream, offset, nblocks, m, n, stack, data)
@@ -173,7 +174,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     LIBXSTREAM_OFFLOAD_END(false)
   }
 
-  return LIBXSTREAM_ERROR_NONE;
+  return result;
 }
 
 } // namespace libmicsmm_transpose_private
