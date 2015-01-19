@@ -170,11 +170,11 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, 
   U colspan[LIBMICSMM_MAX_BURST];
   const U n = stack_size * N;
 
-  for (U s = N; s < n;) {
+  for (U s = N; s <= n;) {
     int size = 0;
 
     colspan[0] = s - N;
-    for (; size < (LIBMICSMM_MAX_BURST - 1) && s < n; s += N) {
+    for (; size < (LIBMICSMM_MAX_BURST - 1) && s <= n; s += N) {
       for (U kc1 = stack[s+5-N], kc2 = stack[s+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[s+5]);
       colspan[++size] = s;
     }
