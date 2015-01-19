@@ -159,6 +159,9 @@ template<size_t N, typename T, typename U>
 LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, U max_m, U max_n, U max_k,
   const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
 {
+#if defined(LIBMICSMM_USE_PRETRANSPOSE)
+  LIBXSTREAM_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
+#endif
 #if defined(LIBXSTREAM_TEST) && (0 != (2*LIBXSTREAM_TEST+1)/2) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
@@ -314,8 +317,10 @@ int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, 
 extern "C" int libsmm_acc_process(void* param_stack, int stack_size, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
 {
 #if defined(LIBXSTREAM_DEBUG)
-  fprintf(stderr, "DBG libsmm_acc_process: stacksize=%i nparams=%i homogeneous=%s max_m=%i max_n=%i max_k=%i c_data=0x%lx stream=0x%lx\n",
-    stack_size, nparams, 1 == def_mnk ? "true" : "false", max_m, max_n, max_k,
+  fprintf(stderr, "DBG libsmm_acc_process: size=%i homogeneous=%s max_m=%i max_n=%i max_k=%i a=0x%lx b=0x%lx c=0x%lx stream=0x%lx\n",
+    stack_size, 1 == def_mnk ? "true" : "false", max_m, max_n, max_k,
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(a_data)),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(b_data)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(c_data)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
 #endif

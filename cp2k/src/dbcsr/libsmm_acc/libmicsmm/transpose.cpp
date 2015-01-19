@@ -181,7 +181,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
 extern "C" int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void* buffer, int datatype, int m, int n, void* stream)
 {
 #if defined(LIBXSTREAM_DEBUG)
-  fprintf(stderr, "DBG libsmm_acc_transpose: offset=%i nblocks=%i m=%i n=%i buffer=0x%lx stream=0x%lx\n", offset, nblks, m, n,
+  fprintf(stderr, "DBG libsmm_acc_transpose: offset=%i size=%i m=%i n=%i buffer=0x%lx stream=0x%lx\n", offset, nblks, m, n,
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(buffer)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
 #endif
@@ -190,10 +190,14 @@ extern "C" int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void
 
   switch(static_cast<dbcsr_elem_type>(datatype)) {
     case DBCSR_ELEM_F32: {
+#if defined(LIBMICSMM_USE_PRETRANSPOSE)
       result = libmicsmm_transpose_private::transpose<float>(stack, offset, nblks, m, n, buffer, stream);
+#endif
     } break;
     case DBCSR_ELEM_F64: {
+#if defined(LIBMICSMM_USE_PRETRANSPOSE)
       result = libmicsmm_transpose_private::transpose<double>(stack, offset, nblks, m, n, buffer, stream);
+#endif
     } break;
     case DBCSR_ELEM_C32: {
       result = LIBXSTREAM_ERROR_CONDITION;
