@@ -34,10 +34,7 @@
 # pragma offload_attribute(pop)
 #endif
 
-#define LIBMICSMM_MAX_MATRIX_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
-//#define LIBMICSMM_USE_TLS
-
-//#pragma optimize("g", off)
+#define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
 
 
 namespace libmicsmm_process_private {
@@ -61,7 +58,7 @@ public:
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSTREAM_MAX_SIMD);
 #if defined(__INTEL_COMPILER)
 # if defined(LIBMICSMM_USE_LOOPHINTS)
-#   pragma loop_count min(1), max(LIBMICSMM_MAX_MATRIX_SIZE), avg(23*23)
+#   pragma loop_count min(1), max(LIBMICSMM_MAX_RESULT_SIZE), avg(23*23)
 # endif
 #   pragma simd aligned(c:1)
 #elif defined(_OPENMP)
@@ -186,11 +183,7 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, 
       LIBXSTREAM_ASSERT(colspan[i] < n && max_m == stack[colspan[i]+0] && max_n == stack[colspan[i]+1] && max_k == stack[colspan[i]+2]);
       const U j0 = colspan[i], j1 = colspan[i+1], kc = stack[j0+5] - 1;
 
-#if defined(LIBMICSMM_USE_TLS)
-      LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_MATRIX_SIZE], LIBXSTREAM_MAX_SIMD);
-#else
-      LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_MATRIX_SIZE], LIBXSTREAM_MAX_SIMD);
-#endif
+      LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBXSTREAM_MAX_SIMD);
       smm.zero_c(tmp);
 
       for (U j = j0; j < j1; j += N) {

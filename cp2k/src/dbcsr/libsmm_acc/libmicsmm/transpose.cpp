@@ -71,7 +71,6 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset, U nb
 #if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
     mkl_imatcopy(static_cast<size_t>(m), static_cast<size_t>(n), mat);
 #else
-    //LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_MATRIX_SIZE], LIBXSTREAM_MAX_SIMD);
     LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_MATRIX_SIZE], LIBXSTREAM_MAX_SIMD);
 
 # if defined(LIBMICSMM_USE_LOOPHINTS) && defined(__INTEL_COMPILER)
@@ -132,8 +131,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
 {
   LIBXSTREAM_CHECK_CONDITION(
     stack && 0 <= offset && 0 <= nblocks
-    && LIBMICSMM_MAX_MNK >= m
-    && LIBMICSMM_MAX_MNK >= n
+    && LIBMICSMM_MAX_MATRIX_SIZE >= (m * n)
     && 0 <= m && 0 <= n
     && data && stream);
   const int result = static_cast<libxstream_stream*>(stream)->reset();
