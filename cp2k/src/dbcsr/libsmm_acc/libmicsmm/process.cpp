@@ -227,7 +227,7 @@ int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, 
     && a_data && b_data && c_data && stream
     && LIBMICSMM_NPARAMS == nparams
     && 1 == def_mnk);
-  const int result = stream->reset();
+  const int result = static_cast<libxstream_stream*>(stream)->reset();
 
 #if defined(LIBMICSMM_USE_DUMP)
   static size_t id = 0;
