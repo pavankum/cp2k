@@ -176,7 +176,7 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, 
     colspan[0] = s - N;
     for (; size < (LIBMICSMM_MAX_BURST - 1) && s <= n; s += N) {
       for (U kc1 = stack[s+5-N], kc2 = stack[s+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[s+5]);
-      colspan[++size] = s;
+      colspan[++size] = s < n ? s : n;
     }
 
 #if defined(_OPENMP)
