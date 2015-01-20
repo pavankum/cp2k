@@ -187,6 +187,7 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, 
       const U j0 = colspan[i], j1 = colspan[i+1], kc = stack[j0+5] - 1;
 
       LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBXSTREAM_MAX_SIMD);
+      LIBXSTREAM_ASSERT(0 == (reinterpret_cast<uintptr_t>(tmp) % LIBXSTREAM_MAX_SIMD));
       smm.zero_c(tmp);
 
       for (U j = j0; j < j1; j += N) {
