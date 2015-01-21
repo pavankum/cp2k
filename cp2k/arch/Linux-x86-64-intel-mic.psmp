@@ -9,12 +9,12 @@ AR       = xiar -r
 #
 # $ env \
 #   AR=xiar \
-#   FC=ifort F77=ifort F90=ifort FCFLAGS="-fPIC -O2 -fno-alias -ansi-alias -xHost -ipo" \
-#   CC=icc CFLAGS="-fPIC -O2 -fno-alias -ansi-alias -xHost -ipo" \
-#   CXX=icpc CXXFLAGS="-fPIC -O2 -fno-alias -ansi-alias -xHost -ipo" \
+#   FC=ifort F77=ifort F90=ifort FCFLAGS="-O2 -xHost -ipo" \
+#   CC=icc CFLAGS="-O2 -xHost -ipo" \
+#   CXX=icpc CXXFLAGS="-O2 -xHost -ipo" \
 #   ./configure --prefix=$HOME/libint \
-#     --with-cc-optflags="-fPIC -O2 -fno-alias -ansi-alias -xHost -ipo" \
-#     --with-cxx-optflags="-fPIC -O2 -fno-alias -ansi-alias -xHost -ipo"
+#     --with-cc-optflags="-O2 -xHost -ipo" \
+#     --with-cxx-optflags="-O2 -xHost -ipo"
 # $ make
 # $ make install
 # $ make realclean
@@ -26,9 +26,9 @@ AR       = xiar -r
 #
 # $ env \
 #   AR=xiar \
-#   FC=ifort F77=ifort F90=ifort FCFLAGS="-fPIC -O2 -fno-alias -ansi-alias -xHost -ipo" \
-#   CC=icc CFLAGS="-fPIC -O2 -fno-alias -ansi-alias -xHost -ipo" \
-#   CXX=icpc CXXFLAGS="-fPIC -O2 -fno-alias -ansi-alias -xHost -ipo" \
+#   FC=ifort F77=ifort F90=ifort FCFLAGS="-O2 -xHost -ipo" \
+#   CC=icc CFLAGS="-O2 -xHost -ipo" \
+#   CXX=icpc CXXFLAGS="-O2 -xHost -ipo" \
 #   ./configure --prefix=$HOME/libxc
 # $ make
 # $ make install
@@ -99,7 +99,7 @@ CXXFLAGS  := -diag-disable $(DIAG_DISABLE) -std=c++0x
 CFLAGS    := -diag-disable $(DIAG_DISABLE)
 FCFLAGS   := -diag-disable $(DIAG_DISABLE) -free -fpp
 LDFLAGS   := -diag-disable $(DIAG_DISABLE)
-OPTFLAGS  := -fPIC
+OPTFLAGS  := $(NULL)
 
 ifeq (0,$(DBG))
   OPTFLAGS  += -O2
