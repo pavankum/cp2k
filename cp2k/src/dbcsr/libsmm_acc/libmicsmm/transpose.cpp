@@ -200,10 +200,10 @@ extern "C" int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void
 #endif
     } break;
     case DBCSR_ELEM_C32: {
-      result = LIBXSTREAM_ERROR_CONDITION;
+      //result = LIBXSTREAM_ERROR_CONDITION;
     } break;
     case DBCSR_ELEM_C64: {
-      result = LIBXSTREAM_ERROR_CONDITION;
+      //result = LIBXSTREAM_ERROR_CONDITION;
     } break;
     default:
       result = LIBXSTREAM_ERROR_CONDITION;
