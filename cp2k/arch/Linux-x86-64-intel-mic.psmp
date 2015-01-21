@@ -99,14 +99,15 @@ CXXFLAGS  := -diag-disable $(DIAG_DISABLE) -std=c++0x
 CFLAGS    := -diag-disable $(DIAG_DISABLE)
 FCFLAGS   := -diag-disable $(DIAG_DISABLE) -free -fpp
 LDFLAGS   := -diag-disable $(DIAG_DISABLE)
+OPTFLAGS  := -fPIC
 
 ifeq (0,$(DBG))
-  OPTFLAGS  += -fPIC -O2
+  OPTFLAGS  += -O2
   OPTFLAGS  += -xHost
   DFLAGS    += -DNDEBUG
 
-  CXXFLAGS  += -fp-model precise -fno-alias -ansi-alias
-  CFLAGS    += -fp-model precise -fno-alias -ansi-alias
+  CXXFLAGS  += -fp-model precise #-fno-alias -ansi-alias
+  CFLAGS    += -fp-model precise #-fno-alias -ansi-alias
   FCFLAGS   += -fp-model source
   LDFLAGS   += #
 
@@ -114,7 +115,7 @@ ifeq (0,$(DBG))
     OPTFLAGS += -ipo-separate
   endif
 else
-  OPTFLAGS  += -fPIC -O0 -g
+  OPTFLAGS  += -O0 -g
 endif
 
 ifneq (0,$(PAR))
