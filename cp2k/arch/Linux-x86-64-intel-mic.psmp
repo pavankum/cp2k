@@ -94,13 +94,21 @@ ifeq (,$(DBG))
   DBG := 0
 endif
 
+CPPFLAGS  := $(NULL)
+CXXFLAGS  := -diag-disable $(DIAG_DISABLE) -std=c++0x
+CFLAGS    := -diag-disable $(DIAG_DISABLE)
+FCFLAGS   := -diag-disable $(DIAG_DISABLE) -free -fpp
+LDFLAGS   := -diag-disable $(DIAG_DISABLE)
+
 ifeq (0,$(DBG))
   OPTFLAGS  += -fPIC -O2
- #OPTFLAGS  += -fno-alias
-  OPTFLAGS  += -ansi-alias
- #OPTFLAGS  += -fp-model source
   OPTFLAGS  += -xHost
   DFLAGS    += -DNDEBUG
+
+  CXXFLAGS  += -fp-model precise -fno-alias -ansi-alias
+  CFLAGS    += -fp-model precise -fno-alias -ansi-alias
+  FCFLAGS   += -fp-model source
+  LDFLAGS   += #
 
   ifeq (1,$(IPO))
     OPTFLAGS += -ipo-separate
@@ -283,12 +291,12 @@ IFLAGS  += # general include paths
 
 # Define __INTEL_COMPILER in case of external preprocessing because some source (pw/fft/fftw3_lib.F)
 # toggles code using this symbol, but of course the cpp preprocessor is not defining this symbol.
-CPPFLAGS  := #-C $(IFLAGS) $(DFLAGS) -D__INTEL_COMPILER -P -traditional
+CPPFLAGS  += #-C $(IFLAGS) $(DFLAGS) -D__INTEL_COMPILER -P -traditional
 
-CXXFLAGS  := $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -diag-disable $(DIAG_DISABLE) -std=c++0x
-CFLAGS    := $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -diag-disable $(DIAG_DISABLE)
-FCFLAGS   := $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -free -fpp -diag-disable $(DIAG_DISABLE)
-LDFLAGS   := $(OPTFLAGS) -diag-disable $(DIAG_DISABLE)
+CXXFLAGS  += $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -diag-disable $(DIAG_DISABLE) -std=c++0x
+CFLAGS    += $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -diag-disable $(DIAG_DISABLE)
+FCFLAGS   += $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -free -fpp -diag-disable $(DIAG_DISABLE)
+LDFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE)
 
 LIBS += -lstdc++
 ifneq (0,$(ACC))
