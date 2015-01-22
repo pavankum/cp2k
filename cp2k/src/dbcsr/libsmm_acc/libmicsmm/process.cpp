@@ -43,14 +43,14 @@ template<typename T, typename U>
 class LIBXSTREAM_EXPORT smm_type {
   U M, N, K, LDC;
 #if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
-  libxsmm_mm_dispatch<T> xsmm;
+  libxsmm_mm_dispatch<T> xmm;
 #endif
 
 public:
   smm_type(U M_, U N_, U K_, U LDC_ = 0)
     : M(M_), N(N_), K(K_), LDC(0 == LDC_ ? M_ : LDC_)
 #if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
-    , xsmm(LDC == M ? libxsmm_mm_dispatch<T>(M_, N_, K_) : libxsmm_mm_dispatch<T>())
+    , xmm(LDC == M ? libxsmm_mm_dispatch<T>(M_, N_, K_) : libxsmm_mm_dispatch<T>())
 #endif
   {}
 
@@ -111,11 +111,11 @@ public:
 
   void operator()(const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c) const {
 #if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
-    if (0 != xsmm) {
-      (*xsmm)(a, b, c);
+    if (0 != xmm) {
+      (*xmm)(a, b, c);
     }
     else if (LIBXSMM_MAX_MNK >= (M * N * K)) {
-      libxsmm_xmm(M, N, K, a, b, c);
+      libxsmm_imm(M, N, K, a, b, c);
     }
     else {
       libxsmm_blasmm(M, N, K, a, b, c);
