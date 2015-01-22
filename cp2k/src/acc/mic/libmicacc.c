@@ -93,7 +93,7 @@ int acc_dev_mem_allocate(void** dev_mem, size_t n)
 {
   int device = -1, result = libxstream_get_active_device(&device);
   LIBXSTREAM_CHECK_ERROR(result);
-  result = libxstream_mem_allocate(device, (unsigned char**)dev_mem, n, 0);
+  result = libxstream_mem_allocate(device, dev_mem, n, 0);
   return result;
 }
 
@@ -111,44 +111,44 @@ int acc_dev_mem_deallocate(void* dev_mem)
     }
   }
 #endif
-  result = libxstream_mem_deallocate(device, (unsigned char*)dev_mem);
+  result = libxstream_mem_deallocate(device, dev_mem);
   return result;
 }
 
 
 int acc_host_mem_allocate(void** host_mem, size_t n, void* stream)
 {
-  return libxstream_mem_allocate(-1, (unsigned char**)host_mem, n, 0);
+  return libxstream_mem_allocate(-1, host_mem, n, 0);
 }
 
 
 int acc_host_mem_deallocate(void* host_mem, void* stream)
 {
-  return libxstream_mem_deallocate(-1, (unsigned char*)host_mem);
+  return libxstream_mem_deallocate(-1, host_mem);
 }
 
 
 int acc_memcpy_h2d(const void* host_mem, void* dev_mem, size_t count, void* stream)
 {
-  return libxstream_memcpy_h2d((const unsigned char*)host_mem, (unsigned char*)dev_mem, count, (libxstream_stream*)stream);
+  return libxstream_memcpy_h2d(host_mem, dev_mem, count, (libxstream_stream*)stream);
 }
 
 
 int acc_memcpy_d2h(const void* dev_mem, void* host_mem, size_t count, void* stream)
 {
-  return libxstream_memcpy_d2h((const unsigned char*)dev_mem, (unsigned char*)host_mem, count, (libxstream_stream*)stream);
+  return libxstream_memcpy_d2h(dev_mem, host_mem, count, (libxstream_stream*)stream);
 }
 
 
 int acc_memcpy_d2d(const void* devmem_src, void* devmem_dst, size_t count, void* stream)
 {
-  return libxstream_memcpy_d2d((const unsigned char*)devmem_src, (unsigned char*)devmem_dst, count, (libxstream_stream*)stream);
+  return libxstream_memcpy_d2d(devmem_src, devmem_dst, count, (libxstream_stream*)stream);
 }
 
 
 int acc_memset_zero(void* dev_mem, size_t offset, size_t length, void* stream)
 {
-  return libxstream_memset_zero((unsigned char*)dev_mem + offset, length, (libxstream_stream*)stream);
+  return libxstream_memset_zero((char*)dev_mem + offset, length, (libxstream_stream*)stream);
 }
 
 
