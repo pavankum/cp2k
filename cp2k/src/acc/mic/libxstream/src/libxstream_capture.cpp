@@ -39,7 +39,7 @@
 # include <pthread.h>
 #endif
 
-#if defined(LIBXSTREAM_TEST) && (0 != (2*LIBXSTREAM_TEST+1)/2) && defined(_OPENMP)
+#if defined(LIBXSTREAM_TEST) && (0 != (2*LIBXSTREAM_TEST+1)/2) || defined(LIBXSTREAM_DEBUG)
 # define LIBXSTREAM_OFFLOAD_STATS
 #endif
 
@@ -231,17 +231,15 @@ private:
 } // namespace libxstream_offload_internal
 
 
-libxstream_offload_region::libxstream_offload_region(const arg_type args[], size_t nargs)
-{
-  LIBXSTREAM_ASSERT(nargs <= LIBXSTREAM_MAX_NARGS);
-  for (size_t i = 0; i < nargs; ++i) m_args[i] = args[i];
-
+libxstream_offload_region::libxstream_offload_region(size_t argc, const arg_type argv[])
 #if defined(LIBXSTREAM_DEBUG)
-  for (size_t i = nargs; i < LIBXSTREAM_MAX_NARGS; ++i) {
-    m_args[i].value.p = 0;
-    m_args[i].value.d = 0;
-  }
+  : m_argc(argc)
 #endif
+{
+  LIBXSTREAM_ASSERT(argc <= LIBXSTREAM_MAX_NARGS);
+  for (size_t i = 0; i < argc; ++i) {
+    m_argv[i] = argv[i];
+  }
 }
 
 
