@@ -17,7 +17,7 @@ MODULE environment
   USE cp2k_info,                       ONLY: &
        compile_arch, compile_date, compile_host, compile_revision, cp2k_home, &
        cp2k_version, cp2k_year, get_runtime_info, id_cp2k_version, &
-       r_host_name, r_pid, r_user_name
+       r_host_name, r_pid, r_user_name, cp2k_flags
   USE cp_files,                        ONLY: close_file,&
                                              open_file
   USE cp_fm_diag,                      ONLY: diag_init
@@ -139,7 +139,7 @@ CONTAINS
     INTEGER                                  :: output_unit
     TYPE(global_environment_type), POINTER   :: globenv
     CHARACTER(LEN=*)                         :: input_file_name
-    CHARACTER(LEN=*), OPTIONAL :: wdir
+    CHARACTER(LEN=*), OPTIONAL               :: wdir
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp2k_init', &
       routineP = moduleN//':'//routineN
@@ -147,11 +147,9 @@ CONTAINS
     CHARACTER(LEN=default_string_length)     :: dev_flag
     INTEGER                                  :: my_output_unit
     TYPE(cp_logger_type), POINTER            :: logger
-#if defined(__HPM)
-#include "f_hpm.h"
-#endif
 
-    ! create a timer_env
+! create a timer_env
+
     CALL add_timer_env()
 
     ! message passing performance
@@ -195,6 +193,8 @@ CONTAINS
        WRITE (UNIT=my_output_unit,FMT="(T2,A,T41,A40)")&
             "CP2K| source code revision number:",&
             ADJUSTR(compile_revision)
+       WRITE (UNIT=my_output_unit,FMT="(T2,A)")&
+            "CP2K| ",TRIM(cp2k_flags())
        WRITE (UNIT=my_output_unit,FMT="(T2,A,T41,A40)")&
             "CP2K| is freely available from ",&
             ADJUSTR(TRIM(cp2k_home))
@@ -376,13 +376,7 @@ CONTAINS
 !   *** Read the input/output section ***
 
     logger => cp_get_default_logger()
-#if defined(__HPM)
-    IF (BTEST(cp_print_key_should_output(logger%iter_info,&
-         root_section,"GLOBAL%PRINT/HPM",error=error),cp_p_file)) THEN
-       CALL f_hpminit(para_env%mepos,"CP2K")
-       use_HPM = .TRUE.
-    ENDIF
-#endif
+
     ! try to use better names for the local log if it is not too late
     CALL section_vals_val_get(root_section,"GLOBAL%OUTPUT_FILE_NAME",&
          c_val=c_val,error=error)
@@ -1150,17 +1144,14 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'cp2k_finalize', &
       routineP = moduleN//':'//routineN
 
-    CHARACTER(LEN=default_string_length)     :: dev_flag
     CHARACTER(LEN=default_path_length)       :: cg_filename
-    INTEGER                                  :: iw, unit_exit, cg_mode
-    LOGICAL                                  :: delete_it,failure,&
+    CHARACTER(LEN=default_string_length)     :: dev_flag
+    INTEGER                                  :: cg_mode, iw, unit_exit
+    LOGICAL                                  :: delete_it, failure, &
                                                 sort_by_self_time
     REAL(KIND=dp)                            :: r_timings
     TYPE(cp_logger_type), POINTER            :: logger
 
-#if defined(__HPM)
-#include "f_hpm.h"
-#endif
 ! look if we inherited a failure, more care is needed if so
 ! i.e. the input is most likely not available
 
@@ -1190,14 +1181,6 @@ CONTAINS
        CALL cp_print_key_finished_output(iw,logger,root_section,&
             "GLOBAL%PROGRAM_RUN_INFO", error=error)
     ENDIF
-
-#if defined(__HPM)
-    IF (BTEST(cp_print_key_should_output(logger%iter_info,&
-         root_section,"GLOBAL%PRINT/HPM",error=error),cp_p_file)) THEN
-       CALL f_hpmterminate(para_env%group)
-       use_HPM=.FALSE.
-    ENDIF
-#endif
 
     IF (.NOT. failure) THEN
        CALL collect_citations_from_ranks(para_env)
