@@ -224,7 +224,6 @@ int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, 
     && a_data && b_data && c_data && stream
     && LIBMICSMM_NPARAMS == nparams
     && 1 == def_mnk);
-  const int result = static_cast<libxstream_stream*>(stream)->reset();
 
 #if defined(LIBMICSMM_USE_DUMP)
   static size_t id = 0;
@@ -300,16 +299,16 @@ int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, 
     }
   }
 #if !defined(LIBMICSMM_USE_DUMP)
-  LIBXSTREAM_OFFLOAD_END(false)
+  LIBXSTREAM_OFFLOAD_END(false);
 #else
-  LIBXSTREAM_OFFLOAD_END(true)
+  LIBXSTREAM_OFFLOAD_END(true);
   LIBXSTREAM_CHECK_CALL_THROW(acc_memcpy_d2h(c_data, &buffer[0], size_c * sizeof(T), stream));
   LIBXSTREAM_CHECK_CALL_THROW(acc_stream_sync(stream));
   LIBXSTREAM_CHECK_CALL_THROW(libsmm_acc_file_save(groupname, "cgold", id, &buffer[0], size_c * sizeof(T), 0, 0));
   ++id;
 #endif // LIBMICSMM_USE_DUMP
 
-  return result;
+  return LIBXSTREAM_ERROR_NONE;
 }
 
 } // namespace libmicsmm_process_private
