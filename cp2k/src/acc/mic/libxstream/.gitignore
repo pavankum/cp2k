@@ -2,6 +2,7 @@ My Amplifier*
 My Inspector*
 bin
 build
+*.opensdf
 *.user
 *.exe
 *.sdf
