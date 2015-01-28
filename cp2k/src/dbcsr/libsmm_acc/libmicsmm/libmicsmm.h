@@ -13,9 +13,9 @@
 #include "../../../acc/mic/libmicacc.h"
 
 /** Upper limits for the supported matrix sizes. */
-#define LIBMICSMM_MAX_M 256
-#define LIBMICSMM_MAX_N 256
-#define LIBMICSMM_MAX_K 256
+#define LIBMICSMM_MAX_M 368
+#define LIBMICSMM_MAX_N 368
+#define LIBMICSMM_MAX_K 368
 
 /** Number of parameters per stack entry. */
 #define LIBMICSMM_NPARAMS 7
