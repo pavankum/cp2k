@@ -18,6 +18,8 @@
 ! *****************************************************************************
 PROGRAM graph
 
+  USE cp_files,                        ONLY: close_file,&
+                                             open_file
   USE graph_methods,                   ONLY: fes_compute_low,&
                                              fes_cube_write,&
                                              fes_min,&
@@ -41,7 +43,7 @@ PROGRAM graph
                                               it, iw, ix, j, ncount, ndim, &
                                               ndw, nf, nfes, ngauss, nh, &
                                               nprd, nt, nt_p, nwr, p, q, &
-                                              stat
+                                              stat, unit_nr, unit_nr2
   INTEGER, POINTER                         :: i_map(:), idw(:), ind(:), &
                                               inds(:), iperd(:), iprd(:), &
                                               ngrid(:), nn(:,:), nn_max(:), &
@@ -372,11 +374,11 @@ PROGRAM graph
 
         ALLOCATE(mep_input_data%minima(ndw,mep_input_data%nreplica))
 
-        OPEN(87,file=path_file,status='old')
+        CALL open_file(unit_number=unit_nr,file_name=path_file,file_status='old')
         DO id=1, mep_input_data%nreplica
-         READ(87,*) j, mep_input_data%minima(:,id)
+         READ(unit_nr,*) j, mep_input_data%minima(:,id)
         END DO
-        CLOSE(87)
+        CALL close_file(unit_nr)
 
         DO id=1, mep_input_data%nreplica
          WRITE(*,*)  mep_input_data%minima(:,id)
@@ -428,20 +430,20 @@ PROGRAM graph
   WRITE(iw,'(/,70("*"))')
   WRITE(iw,'("FES|",T7,A,/)')"Parsing file:   <"//TRIM(file)//">"
 
-  OPEN(10,file=file,status='old')
+  CALL open_file(unit_number=unit_nr,file_name=file,file_status='old')
   IF      (l_cp2k)            THEN
-     CALL get_val_res(unit=10,section="&METADYN",keyword="NHILLS_START_VAL", i_val=nt)
+     CALL get_val_res(unit=unit_nr,section="&METADYN",keyword="NHILLS_START_VAL", i_val=nt)
      ! These sections may not necessarily be present.. if not the values will be HUGE and negative..
-     CALL get_val_res(unit=10,section="&METADYN",keyword="HILL_TAIL_CUTOFF", r_val=sc)
-     CALL get_val_res(unit=10,section="&METADYN",keyword="P_EXPONENT", i_val=p)
-     CALL get_val_res(unit=10,section="&METADYN",keyword="Q_EXPONENT", i_val=q)
+     CALL get_val_res(unit=unit_nr,section="&METADYN",keyword="HILL_TAIL_CUTOFF", r_val=sc)
+     CALL get_val_res(unit=unit_nr,section="&METADYN",keyword="P_EXPONENT", i_val=p)
+     CALL get_val_res(unit=unit_nr,section="&METADYN",keyword="Q_EXPONENT", i_val=q)
   ELSE IF (l_orac.OR.l_cpmd)  THEN
      nt=0
      DO WHILE (.TRUE.)
-        READ(10,*,END=100,ERR=100)dum
+        READ(unit_nr,*,END=100,ERR=100)dum
         nt=nt+1
      END DO
-100  REWIND(10)
+100  REWIND(unit_nr)
   END IF
   
   ALLOCATE( x0(ndim)         , stat=stat )
@@ -466,32 +468,32 @@ PROGRAM graph
   IF (stat/=0) STOP "Allocation Error"
 
   IF      (l_cp2k) THEN
-     CALL get_val_res(unit=10,section="&METADYN",subsection="&SPAWNED_HILLS_POS")
+     CALL get_val_res(unit=unit_nr,section="&METADYN",subsection="&SPAWNED_HILLS_POS")
      DO i = 1, nt
-        READ(10,*)(ss0(i_map(id),i),id=1,ndim)
+        READ(unit_nr,*)(ss0(i_map(id),i),id=1,ndim)
      END DO
-     CALL get_val_res(unit=10,section="&METADYN",subsection="&SPAWNED_HILLS_SCALE")
+     CALL get_val_res(unit=unit_nr,section="&METADYN",subsection="&SPAWNED_HILLS_SCALE")
      DO i = 1, nt
-        READ(10,*)(delta_s(i_map(id),i),id=1,ndim)
+        READ(unit_nr,*)(delta_s(i_map(id),i),id=1,ndim)
      END DO
-     CALL get_val_res(unit=10,section="&METADYN",subsection="&SPAWNED_HILLS_HEIGHT")
+     CALL get_val_res(unit=unit_nr,section="&METADYN",subsection="&SPAWNED_HILLS_HEIGHT")
      DO i = 1, nt
-        READ(10,*)ww(i)
+        READ(unit_nr,*)ww(i)
      END DO
   ELSE IF (l_orac) THEN
      DO i = 1, nt
-        READ(10,*)dum,(ss0(i_map(id),i),id=1,ndim),(delta_s(i_map(id),i),id=1,ndim),ww(i)
+        READ(unit_nr,*)dum,(ss0(i_map(id),i),id=1,ndim),(delta_s(i_map(id),i),id=1,ndim),ww(i)
      END DO
   ELSE IF (l_cpmd) THEN
-     OPEN(11,file="parvar_mtd",status='old')
+     CALL open_file(unit_number=unit_nr2,file_name="parvar_mtd",file_status='old')
      DO i = 1, nt
-        READ(10,*)dum,(ss0(i_map(id),i),id=1,ndim),(delta_s(id,i),id=1,ndim)
-        READ(11,*)dum,dum,delta_s_glob,ww(i)
+        READ(unit_nr,*)dum,(ss0(i_map(id),i),id=1,ndim),(delta_s(id,i),id=1,ndim)
+        READ(unit_nr2,*)dum,dum,delta_s_glob,ww(i)
         delta_s(1:ndim,i)=delta_s_glob*delta_s(1:ndim,i)
      END DO
-     CLOSE(11)
+     CLOSE(unit_nr2)
   END IF
-  CLOSE(10)
+  CLOSE(unit_nr)
 
   ! ORAC conversion factor
   IF(l_orac) ww = ww * 10000._dp / 4.187_dp
@@ -636,10 +638,10 @@ PROGRAM graph
         ELSE
            WRITE(out3_stride,'(A,i3)')TRIM(out3),ncount
         END IF
-        OPEN(123,file=out3_stride)
+        CALL open_file(unit_number=unit_nr,file_name=out3_stride)
         ind   = 1
-        CALL fes_only_write(ndim, fes,  ind,  ndim, ngrid, dp_grid, ndw, l_fes_int)
-        CLOSE(123)
+        CALL fes_only_write(ndim, fes,  ind,  ndim, ngrid, dp_grid, ndw, l_fes_int, unit_nr)
+        CALL close_file(unit_nr)
      END IF
 
      nh=nh+nt_p
@@ -654,17 +656,17 @@ PROGRAM graph
   END IF
  
   WRITE(iw,'("FES|",T7,A)') "Dumping FES structure in file: < "//TRIM(out3)//" >"
-  OPEN(123,file=out3)
+  CALL open_file(unit_number=unit_nr,file_name=out3)
   IF (l_cube) THEN
      ind   = 1 
      CALL fes_cube_write(ndim, fes, ind, ndim, ngrid, dp_grid, x0, ndw, l_fes_int, file)
   ELSE
      ix=0
-     IF (l_math) WRITE(123,'(10g12.5)')(ngrid(id),id=ndim,ndim-ndw+1,-1),ix
+     IF (l_math) WRITE(unit_nr,'(10g12.5)')(ngrid(id),id=ndim,ndim-ndw+1,-1),ix
      ind   = 1   
      CALL fes_write(ndim, fes, ind, ndim, ngrid, dp_grid, x0, ndw, l_fes_int)
   END IF
-  CLOSE(123)
+  CALL close_file(unit_nr)
 
   ! If requested find minima
   IF (l_fmin) CALL fes_min(fes, ndim, iperd, ngrid, dp_grid, x0, ndw)

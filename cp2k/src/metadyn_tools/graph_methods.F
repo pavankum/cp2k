@@ -18,6 +18,8 @@
 ! *****************************************************************************
 MODULE graph_methods
 
+  USE cp_files,                        ONLY: close_file,&
+                                             open_file
   USE graph_utils,                     ONLY: derivative,&
                                              get_val_res,&
                                              mep_input_data_type,&
@@ -198,12 +200,13 @@ CONTAINS
 !> \param dp_grid ...
 !> \param ndw ...
 !> \param l_fes_int ...
+!> \param unit_nr ...
 !> \par History
 !>      03.2006 created [tlaino]
 !>      teodoro.laino .at. gmail.com 
 !> \author Teodoro Laino
 ! *****************************************************************************
-  RECURSIVE SUBROUTINE fes_only_write(idim, fes,  pos,  ndim, ngrid, dp_grid, ndw, l_fes_int)
+  RECURSIVE SUBROUTINE fes_only_write(idim, fes,  pos,  ndim, ngrid, dp_grid, ndw, l_fes_int, unit_nr)
     INTEGER, INTENT(IN)                      :: idim
     REAL(KIND=dp), DIMENSION(:), POINTER     :: fes
     INTEGER, DIMENSION(:), POINTER           :: pos
@@ -212,6 +215,7 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(:), POINTER     :: dp_grid
     INTEGER, INTENT(IN)                      :: ndw
     LOGICAL, INTENT(IN)                      :: l_fes_int
+    INTEGER                                  :: unit_nr
 
     INTEGER                                  :: dimval, i, is, pnt
     REAL(KIND=dp)                            :: dvol, sum_fes
@@ -219,19 +223,19 @@ CONTAINS
     DO i = 1,ngrid(idim)
        pos(idim)=i
        IF(idim/=ndim-ndw+1) THEN
-          CALL fes_only_write(idim-1, fes,  pos,  ndim, ngrid, dp_grid, ndw, l_fes_int)
+          CALL fes_only_write(idim-1, fes,  pos,  ndim, ngrid, dp_grid, ndw, l_fes_int, unit_nr)
        ELSE        
           pnt=point_no_pbc(pos,ngrid,ndim)
           dimval = PRODUCT(ngrid(1:ndim-ndw))
           IF (l_fes_int) THEN
-             WRITE(123,'(1f12.5)')MINVAL(-fes(pnt:pnt+dimval-1))
+             WRITE(unit_nr,'(1f12.5)')MINVAL(-fes(pnt:pnt+dimval-1))
           ELSE
              sum_fes =0.0_dp
              dvol = PRODUCT(dp_grid(1:ndim-ndw))
              DO is = pnt,pnt+dimval-1
                 sum_fes = sum_fes + fes(is)*dvol
              END DO
-             WRITE(123,'(1f12.5)')-sum_fes
+             WRITE(unit_nr,'(1f12.5)')-sum_fes
           END IF
        END IF
     END DO
@@ -388,7 +392,7 @@ CONTAINS
     LOGICAL                                  :: l_int
 
     INTEGER                                  :: i, id, irep, iter, nf, &
-                                                nreplica, ns, pnt
+                                                nreplica, ns, pnt, unit_nr
     INTEGER, DIMENSION(:), POINTER           :: ipos
     LOGICAL                                  :: converged
     REAL(KIND=dp)                            :: avg1, avg2, diff, ene, &
@@ -545,15 +549,15 @@ CONTAINS
     END DO
 
     WRITE(*,*)"MEP saved on <mep.data> file."
-    OPEN(10,FILE="mep.data",STATUS='unknown',FORM='formatted')
+    CALL open_file(unit_number=unit_nr,file_name="mep.data",file_status='unknown',file_form='formatted')
     DO irep=1,nreplica
        ! compute energy and derivative for each single point of the replica
        ipos= FLOOR((pos(:,irep)-x0)/dp_grid)+1
        pnt = point_no_pbc(ipos,ngrid,ndim)
        fes_rep(irep) = -fes(pnt)
-       WRITE(10,*)irep, pos(:,nreplica-irep+1), fes_rep(nreplica-irep+1)
+       WRITE(unit_nr,*)irep, pos(:,nreplica-irep+1), fes_rep(nreplica-irep+1)
     END DO
-    CLOSE(10)
+    CALL close_file(unit_nr)
 
     DEALLOCATE(xx,dx,pos,fes_rep,ipos,pos_old,yy,dyy,dxx,davg1,tang,davg2)
   END SUBROUTINE fes_path

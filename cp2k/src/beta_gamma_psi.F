@@ -381,39 +381,49 @@ FUNCTION erfc1 (ind, x) RESULT(fn_val)
     REAL(dp)                                 :: ax, bot, e, t, top, w
 
 ax = ABS(x)
-IF (ax > 0.5e0_dp) GO TO 10
-t = x*x
-top = ((((a(1)*t + a(2))*t + a(3))*t + a(4))*t + a(5)) + 1.0e0_dp
-bot = ((b(1)*t + b(2))*t + b(3))*t + 1.0e0_dp
-fn_val = 0.5e0_dp + (0.5e0_dp - x*(top/bot))
-IF (ind /= 0) fn_val = EXP(t) * fn_val
-RETURN
+IF (ax <= 0.5e0_dp) THEN
+  t = x*x
+  top = ((((a(1)*t + a(2))*t + a(3))*t + a(4))*t + a(5)) + 1.0e0_dp
+  bot = ((b(1)*t + b(2))*t + b(3))*t + 1.0e0_dp
+  fn_val = 0.5e0_dp + (0.5e0_dp - x*(top/bot))
+  IF (ind /= 0) fn_val = EXP(t) * fn_val
+  RETURN
+ENDIF
 
 !                  0.5 < ABS(X) <= 4
 
-10 IF (ax > 4.0e0_dp) GO TO 20
+IF (ax <= 4.0e0_dp) THEN
 top = ((((((p(1)*ax + p(2))*ax + p(3))*ax + p(4))*ax + p(5))*ax  &
       + p(6))*ax + p(7))*ax + p(8)
 bot = ((((((q(1)*ax + q(2))*ax + q(3))*ax + q(4))*ax + q(5))*ax  &
       + q(6))*ax + q(7))*ax + q(8)
 fn_val = top/bot
-GO TO 40
+ELSE
 
 !                      ABS(X) > 4
 
-20 IF (x <= -5.6e0_dp) GO TO 50
-IF (ind /= 0) GO TO 30
-IF (x > 100.0e0_dp) GO TO 60
-IF (x*x > -dxparg(1)) GO TO 60
+IF (x <= -5.6e0_dp) THEN
+!             LIMIT VALUE FOR LARGE NEGATIVE X
+  fn_val = 2.0e0_dp
+  IF (ind /= 0) fn_val = 2.0e0_dp*EXP(x*x)
+  RETURN
+ENDIF
+IF (ind==0.AND.(x > 100.0e0_dp.OR.x*x > -dxparg(1))) THEN
+  !             LIMIT VALUE FOR LARGE POSITIVE X
+  !                       WHEN IND = 0
+  fn_val = 0.0e0_dp
+  RETURN
+ENDIF
 
-30 t = (1.0e0_dp/x)**2
+t = (1.0e0_dp/x)**2
 top = (((r(1)*t + r(2))*t + r(3))*t + r(4))*t + r(5)
 bot = (((s(1)*t + s(2))*t + s(3))*t + s(4))*t + 1.0e0_dp
 fn_val = (c - t*top/bot)/ax
+ENDIF
 
 !                      FINAL ASSEMBLY
 
-40 IF (ind /= 0) THEN
+IF (ind /= 0) THEN
   IF (x < 0.0e0_dp) fn_val = 2.0e0_dp*EXP(x*x) - fn_val
   RETURN
 END IF
@@ -422,18 +432,6 @@ t = w
 e = w - t
 fn_val = ((0.5e0_dp + (0.5e0_dp - e)) * EXP(-t)) * fn_val
 IF (x < 0.0e0_dp) fn_val = 2.0e0_dp - fn_val
-RETURN
-
-!             LIMIT VALUE FOR LARGE NEGATIVE X
-
-50 fn_val = 2.0e0_dp
-IF (ind /= 0) fn_val = 2.0e0_dp*EXP(x*x)
-RETURN
-
-!             LIMIT VALUE FOR LARGE POSITIVE X
-!                       WHEN IND = 0
-
-60 fn_val = 0.0e0_dp
 
 END FUNCTION erfc1
 
@@ -832,22 +830,23 @@ FUNCTION esum (mu, x) RESULT(fn_val)
 
     REAL(dp)                                 :: w
 
-IF (x > 0.0e0_dp) GO TO 10
-
-IF (mu < 0) GO TO 20
-w = mu + x
-IF (w > 0.0e0_dp) GO TO 20
-fn_val = EXP(w)
-RETURN
-
-10 IF (mu > 0) GO TO 20
-w = mu + x
-IF (w < 0.0e0_dp) GO TO 20
-fn_val = EXP(w)
-RETURN
-
-20 w = mu
-fn_val = EXP(w)*EXP(x)
+IF (x > 0.0e0_dp) THEN
+  IF (mu > 0.OR.mu+x<0.0_dp) THEN
+    w = mu
+    fn_val = EXP(w)*EXP(x)
+  ELSE
+    w=mu+x
+    fn_val = EXP(w)
+  ENDIF
+ELSE
+  IF (mu < 0.OR.mu+x<0.0_dp) THEN
+    w = mu
+    fn_val = EXP(w)*EXP(x)
+  ELSE
+    w=mu+x
+    fn_val = EXP(w)
+  ENDIF
+ENDIF
 
 END FUNCTION esum
 
@@ -1074,7 +1073,11 @@ IF (x >= 0.5e0_dp) GO TO 200
 !     PSI(1-X) = PSI(X) + PI * COTAN(PI*X)
 !---------------------------------------------------------------------
 IF (ABS(x) > xsmall) GO TO 100
-IF (x == 0.0e0_dp) GO TO 400
+IF (x == 0.0e0_dp) THEN
+  !     ERROR RETURN
+  fn_val = 0.0e0_dp
+  RETURN
+ENDIF
 !---------------------------------------------------------------------
 !     0 .LT. ABS(X) .LE. XSMALL.  USE 1/X AS A SUBSTITUTE
 !     FOR  PI*COTAN(PI*X)
@@ -1092,7 +1095,11 @@ sgn = -sgn
 !---------------------------------------------------------------------
 !     MAKE AN ERROR EXIT IF X .LE. -XMAX1
 !---------------------------------------------------------------------
-120 IF (w >= xmax1) GO TO 400
+120 IF (w >= xmax1) THEN
+  !     ERROR RETURN
+  fn_val = 0.0e0_dp
+  RETURN
+ENDIF
 nq = INT(w)
 w = w - nq
 nq = INT(w*4.0e0_dp)
@@ -1117,7 +1124,13 @@ IF (m /= n) GO TO 140
 !---------------------------------------------------------------------
 !     CHECK FOR SINGULARITY
 !---------------------------------------------------------------------
-IF (z == 0.0e0_dp) GO TO 400
+IF (z == 0.0e0_dp) THEN
+  !     ERROR RETURN
+  fn_val = 0.0e0_dp
+  RETURN
+ENDIF
+
+
 !---------------------------------------------------------------------
 !     USE COS/SIN AS A SUBSTITUTE FOR COTAN, AND
 !     SIN/COS AS A SUBSTITUTE FOR TAN
@@ -1160,11 +1173,6 @@ END DO
 
 aug = upper / (den + q2(4)) - 0.5e0_dp / x + aug
 350 fn_val = aug + LOG(x)
-RETURN
-!---------------------------------------------------------------------
-!     ERROR RETURN
-!---------------------------------------------------------------------
-400 fn_val = 0.0e0_dp
 
 END FUNCTION psi
 
@@ -1225,9 +1233,10 @@ DO i = 1, n
   w = w * (h/(1.0e0_dp + h))
 END DO
 w = LOG(w)
-IF (b < 8.0e0_dp) GO TO 40
-fn_val = w + gamln(a) + algdiv(a,b)
-RETURN
+IF (b >= 8.0e0_dp) THEN
+  fn_val = w + gamln(a) + algdiv(a,b)
+  RETURN
+ENDIF
 
 !                 REDUCTION OF B WHEN B .LT. 8
 
@@ -1430,14 +1439,15 @@ IF (MIN(a0, b0) > 1.0e0_dp) GO TO 30
 
 !             PROCEDURE FOR A0 .LE. 1 OR B0 .LE. 1
 
-IF (x <= 0.5e0_dp) GO TO 10
-ind = 1
-a0 = b
-b0 = a
-x0 = y
-y0 = x
+IF (x > 0.5e0_dp) THEN
+  ind = 1
+  a0 = b
+  b0 = a
+  x0 = y
+  y0 = x
+ENDIF
 
-10 IF (b0 < MIN(eps,eps*a0)) GO TO 80
+IF (b0 < MIN(eps,eps*a0)) GO TO 80
 IF (a0 < MIN(eps,eps*b0) .AND. b0*x0 <= 1.0e0_dp) GO TO 90
 IF (MAX(a0, b0) > 1.0e0_dp) GO TO 20
 IF (a0 >= MIN(0.2e0_dp, b0)) GO TO 100
@@ -1597,15 +1607,16 @@ FUNCTION fpser (a, b, x, eps) RESULT(fn_val)
 !                  SET  FPSER = X**A
 
 fn_val = 1.0e0_dp
-IF (a <= 1.e-3_dp*eps) GO TO 10
-fn_val = 0.0e0_dp
-t = a*LOG(x)
-IF (t < dxparg(1)) RETURN
-fn_val = EXP(t)
+IF (a > 1.e-3_dp*eps) THEN
+  fn_val = 0.0e0_dp
+  t = a*LOG(x)
+  IF (t < dxparg(1)) RETURN
+  fn_val = EXP(t)
+ENDIF
 
 !                NOTE THAT 1/B(A,B) = B
 
-10 fn_val = (b/a)*fn_val
+fn_val = (b/a)*fn_val
 tol = eps/a
 an = a + 1.0e0_dp
 t = x
@@ -1614,7 +1625,12 @@ s = t/an
 t = x*t
 c = t/an
 s = s + c
-IF (ABS(c) > tol) GO TO 20
+DO WHILE (ABS(c) > tol)
+  an = an + 1.0e0_dp
+  t = x*t
+  c = t/an
+  s = s + c
+ENDDO
 
 fn_val = fn_val*(1.0e0_dp + a*s)
 
@@ -1720,23 +1736,25 @@ GO TO 70
 
 40 u = gamln1(a0)
 m = INT(b0 - 1.0e0_dp)
-IF (m < 1) GO TO 50
-c = 1.0e0_dp
-DO i = 1, m
-  b0 = b0 - 1.0e0_dp
-  c = c*(b0/(a0 + b0))
-END DO
-u = LOG(c) + u
+IF (m >= 1) THEN
+  c = 1.0e0_dp
+  DO i = 1, m
+    b0 = b0 - 1.0e0_dp
+    c = c*(b0/(a0 + b0))
+  END DO
+  u = LOG(c) + u
+ENDIF
 
-50 z = a*LOG(x) - u
+z = a*LOG(x) - u
 b0 = b0 - 1.0e0_dp
 apb = a0 + b0
-IF (apb > 1.0e0_dp) GO TO 51
-t = 1.0e0_dp + gam1(apb)
-GO TO 52
-51 u = a0 + b0 - 1.e0_dp
-t = (1.0e0_dp + gam1(u))/apb
-52 fn_val = EXP(z)*(a0/a)*(1.0e0_dp + gam1(b0))/t
+IF (apb > 1.0e0_dp) THEN
+  u = a0 + b0 - 1.e0_dp
+  t = (1.0e0_dp + gam1(u))/apb
+ELSE
+  t = 1.0e0_dp + gam1(apb)
+ENDIF
+fn_val = EXP(z)*(a0/a)*(1.0e0_dp + gam1(b0))/t
 GO TO 70
 
 !            PROCEDURE FOR A0 .LT. 1 AND B0 .GE. 8
@@ -1752,11 +1770,16 @@ sum = 0.0e0_dp
 n = 0.0e0_dp
 c = 1.0e0_dp
 tol = eps/a
-100    n = n + 1.0e0_dp
+n = n + 1.0e0_dp
 c = c*(0.5e0_dp + (0.5e0_dp - b/n))*x
 w = c/(a + n)
 sum = sum + w
-IF (ABS(w) > tol) GO TO 100
+DO WHILE (ABS(w) > tol)
+  n = n + 1.0e0_dp
+  c = c*(0.5e0_dp + (0.5e0_dp - b/n))*x
+  w = c/(a + n)
+  sum = sum + w
+END DO
 fn_val = fn_val*(1.0e0_dp + a*sum)
 
 END FUNCTION bpser
@@ -1791,15 +1814,15 @@ apb = a + b
 ap1 = a + 1.0e0_dp
 mu = 0
 d = 1.0e0_dp
-IF (n == 1 .OR. a < 1.0e0_dp) GO TO 10
-IF (apb < 1.1e0_dp*ap1) GO TO 10
-mu = INT(ABS(dxparg(1)))
-k = INT(dxparg(0))
-IF (k < mu) mu = k
-t = mu
-d = EXP(-t)
+IF (.NOT.(n == 1 .OR. a < 1.0e0_dp.OR.apb < 1.1e0_dp*ap1)) THEN
+  mu = INT(ABS(dxparg(1)))
+  k = INT(dxparg(0))
+  IF (k < mu) mu = k
+  t = mu
+  d = EXP(-t)
+ENDIF
 
-10 fn_val = brcmp1(mu,a,b,x,y)/a
+fn_val = brcmp1(mu,a,b,x,y)/a
 IF (n == 1 .OR. fn_val == 0.0e0_dp) RETURN
 nm1 = n - 1
 w = d
@@ -1833,7 +1856,7 @@ DO i = kp1,nm1
   l = i - 1
   d = ((apb + l)/(ap1 + l))*x*d
   w = w + d
-  IF (d <= eps*w) GO TO 50
+  IF (d <= eps*w) EXIT
 END DO
 
 !               TERMINATE THE PROCEDURE
@@ -1883,12 +1906,17 @@ r = c1/c
 
 !        CONTINUED FRACTION CALCULATION
 
-10    n = n + 1.0e0_dp
+DO WHILE(.TRUE.)
+n = n + 1.0e0_dp
 t = n/a
 w = n*(b - n)*x
 e = a/s
 alpha = (p*(p + c0)*e*e)*(w*x)
-IF (alpha <= 0.0e0_dp) GO TO 20
+IF (alpha <= 0.0e0_dp) THEN
+!                 TERMINATION
+  fn_val = fn_val*r
+  RETURN
+ENDIF
 e = (1.0e0_dp + t)/(c1 + t + t)
 beta = n + w/s + e*(c + n*yp1)
 p = 1.0e0_dp + t
@@ -1904,7 +1932,11 @@ bn = bnp1
 bnp1 = t
 r0 = r
 r = anp1/bnp1
-IF (ABS(r - r0) <= eps*r) GO TO 20
+IF (ABS(r - r0) <= eps*r) THEN
+!                 TERMINATION
+  fn_val = fn_val*r
+  RETURN
+ENDIF
 
 !        RESCALE AN, BN, ANP1, AND BNP1
 
@@ -1912,11 +1944,7 @@ an = an/bnp1
 bn = bn/bnp1
 anp1 = r
 bnp1 = 1.0e0_dp
-GO TO 10
-
-!                 TERMINATION
-
-20 fn_val = fn_val*r
+ENDDO
 
 END FUNCTION bfrac
 
@@ -2166,12 +2194,13 @@ GO TO 120
 111 u = e - LOG(x/x0)
 
 120 e = lambda/b
-IF (ABS(e) > 0.6e0_dp) GO TO 121
-v = rlog1(e)
-GO TO 130
-121 v = e - LOG(y/y0)
+IF (ABS(e) <= 0.6e0_dp) THEN
+  v = rlog1(e)
+ELSE
+  v = e - LOG(y/y0)
+ENDIF
 
-130 z = esum(mu,-(a*u + b*v))
+z = esum(mu,-(a*u + b*v))
 fn_val = const*SQRT(b*x0)*z*EXP(-bcorr(a,b))
 
 END FUNCTION brcmp1
