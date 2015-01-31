@@ -32,10 +32,10 @@
 #include <algorithm>
 #include <atomic>
 
-#define LIBXSTREAM_OFFLOAD_PTHREAD
-#define LIBXSTREAM_OFFLOAD_QUEUE
+#define LIBXSTREAM_CAPTURE_USE_PTHREADS
+#define LIBXSTREAM_CAPTURE_USE_QUEUE
 
-#if (defined(LIBXSTREAM_OFFLOAD_PTHREAD) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
+#if (defined(LIBXSTREAM_CAPTURE_USE_PTHREADS) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
 # include <pthread.h>
 #endif
 
@@ -50,42 +50,47 @@ class queue_type {
 public:
   typedef const libxstream_offload_region* value_type;
   queue_type()
-    : m_terminated(false)
-    , m_index(0)
+    : m_index(0)
     , m_size(0)
 #if defined(LIBXSTREAM_OFFLOAD_STATS)
     , m_max_size(0)
+    , m_npush(0)
+    , m_npop(0)
 #endif
-    , m_lock()
-#if (defined(LIBXSTREAM_OFFLOAD_PTHREAD) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
+    , m_terminated(false)
+#if (defined(LIBXSTREAM_CAPTURE_USE_PTHREADS) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
     , m_thread(0)
 #else
     , m_thread(run, this)
 #endif
+    , m_lock()
   {
-#if (defined(LIBXSTREAM_OFFLOAD_PTHREAD) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
+    std::fill_n(m_buffer, LIBXSTREAM_MAX_QSIZE, static_cast<value_type>(0));
+#if (defined(LIBXSTREAM_CAPTURE_USE_PTHREADS) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
     pthread_mutex_init(&m_lock, 0);
+    start();
 #else
     m_lock = 0;
 #endif
-    std::fill_n(m_buffer, LIBXSTREAM_MAX_QSIZE, static_cast<value_type>(0));
-    start();
   }
 
   ~queue_type() {
     terminate();
-#if defined(LIBXSTREAM_OFFLOAD_STATS)
-    fprintf(stderr, "\tmaximum queue size: %lu\n", static_cast<unsigned long>(m_max_size));
-#endif
-#if (defined(LIBXSTREAM_OFFLOAD_PTHREAD) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
+#if (defined(LIBXSTREAM_CAPTURE_USE_PTHREADS) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
     pthread_mutex_destroy(&m_lock);
+#endif
+#if defined(LIBXSTREAM_OFFLOAD_STATS)
+    fprintf(stderr, "\tqueue: size=%lu pushes=%lu pops=%lu\n",
+      static_cast<unsigned long>(m_max_size),
+      static_cast<unsigned long>(m_npush),
+      static_cast<unsigned long>(m_npop));
 #endif
   }
 
 public:
   bool start() {
     if (!m_terminated) {
-#if (defined(LIBXSTREAM_OFFLOAD_PTHREAD) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
+#if (defined(LIBXSTREAM_CAPTURE_USE_PTHREADS) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
       if (0 == m_thread) {
         pthread_mutex_lock(&m_lock);
         if (0 == m_thread) {
@@ -95,9 +100,10 @@ public:
       }
 #else
       if (!m_thread.joinable()) {
-        ++m_lock;
-        while (1 < m_lock) {
-          yield();
+        if (1 < ++m_lock) {
+          while (1 < m_lock) {
+            std::this_thread::yield();
+          }
         }
         if (!m_thread.joinable()) {
           std::thread(run, this).swap(m_thread);
@@ -123,7 +129,7 @@ public:
       }
     }
 #endif
-#if (defined(LIBXSTREAM_OFFLOAD_PTHREAD) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
+#if (defined(LIBXSTREAM_CAPTURE_USE_PTHREADS) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
     if (0 != m_thread) {
       pthread_join(m_thread, 0);
       m_thread = 0;
@@ -140,11 +146,13 @@ public:
     return 0 == get();
   }
 
+#if defined(LIBXSTREAM_OFFLOAD_STATS)
   size_t size() const {
     const size_t offset = m_size, index = m_index;
     const storage_type& entry = m_buffer[offset%LIBXSTREAM_MAX_QSIZE];
     return 0 != static_cast<value_type>(entry) ? (offset - index) : (std::max<size_t>(offset - index, 1) - 1);
   }
+#endif
 
   void push(const libxstream_offload_region& offload_region, bool wait = true) {
     push(&offload_region, wait);
@@ -156,13 +164,16 @@ public:
 
   void pop() { // not thread-safe!
     LIBXSTREAM_ASSERT(!empty());
+#if defined(LIBXSTREAM_OFFLOAD_STATS)
+    ++m_npop;
+#endif
     m_buffer[m_index%LIBXSTREAM_MAX_QSIZE] = 0;
     ++m_index;
   }
 
 private:
   void yield() {
-#if (defined(LIBXSTREAM_OFFLOAD_PTHREAD) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
+#if (defined(LIBXSTREAM_CAPTURE_USE_PTHREADS) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
     pthread_yield();
 #else
     std::this_thread::yield();
@@ -173,15 +184,25 @@ private:
   }
 
   void push(const value_type& offload_region, bool wait) {
+#if defined(LIBXSTREAM_OFFLOAD_STATS)
+    ++m_npush;
+#endif
     LIBXSTREAM_ASSERT(0 != offload_region);
     storage_type& entry = m_buffer[m_size++%LIBXSTREAM_MAX_QSIZE];
 
+#if defined(LIBXSTREAM_DEBUG)
+    if (0 != static_cast<value_type>(entry)) {
+      fprintf(stderr, "\tqueuing work is stalled!\n");
+    }
+#endif
     // stall the push if LIBXSTREAM_MAX_QSIZE is exceeded
     while (0 != static_cast<value_type>(entry)) {
       yield();
     }
 
+    LIBXSTREAM_ASSERT(0 == static_cast<value_type>(entry));
     entry = terminator != offload_region ? offload_region->clone() : terminator;
+
     if (wait) {
       while (0 != static_cast<value_type>(entry)) {
         yield();
@@ -199,11 +220,14 @@ private:
       }
 
       if (terminator != offload_region) {
+        LIBXSTREAM_ASSERT(terminator != offload_region);
         (*offload_region)();
         delete offload_region;
+        LIBXSTREAM_ASSERT(terminator != offload_region);
         q.pop();
       }
       else {
+        LIBXSTREAM_ASSERT(terminator == offload_region);
         q.pop();
         break;
       }
@@ -214,26 +238,33 @@ private:
 
 private:
   static const value_type terminator;
-
-  //typedef std::atomic<value_type> storage_type;
+#if defined(LIBXSTREAM_DEBUG)
+  // avoid some false positives when detecting data races
+  typedef std::atomic<value_type> storage_type;
+  typedef std::atomic<size_t> counter_type;
+#else // certain items are not meant to be thread-safe
   typedef value_type storage_type;
+  typedef size_t counter_type;
+#endif
   storage_type m_buffer[LIBXSTREAM_MAX_QSIZE];
-  bool m_terminated;
-  size_t m_index; // pop is not meant to be thread-safe!
+  counter_type m_index;
   std::atomic<size_t> m_size;
 #if defined(LIBXSTREAM_OFFLOAD_STATS)
   std::atomic<size_t> m_max_size;
+  std::atomic<size_t> m_npush;
+  std::atomic<size_t> m_npop;
 #endif
-#if (defined(LIBXSTREAM_OFFLOAD_PTHREAD) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
+#if (defined(LIBXSTREAM_CAPTURE_USE_PTHREADS) || !defined(LIBXSTREAM_MIC_STDTHREAD)) && !defined(_MSC_VER)
   typedef pthread_t thread_type;
   typedef pthread_mutex_t lock_type;
 #else
   typedef std::thread thread_type;
   typedef std::atomic<int> lock_type;
 #endif
-  lock_type m_lock;
+  bool m_terminated;
   thread_type m_thread;
-#if defined(LIBXSTREAM_OFFLOAD_QUEUE)
+  lock_type m_lock;
+#if defined(LIBXSTREAM_CAPTURE_USE_QUEUE)
 } queue;
 #else
 };
@@ -257,7 +288,7 @@ libxstream_offload_region::libxstream_offload_region(size_t argc, const arg_type
 
 void libxstream_offload(const libxstream_offload_region& offload_region, bool wait)
 {
-#if defined(LIBXSTREAM_OFFLOAD_QUEUE)
+#if defined(LIBXSTREAM_CAPTURE_USE_QUEUE)
   if (libxstream_offload_internal::queue.start()) {
     libxstream_offload_internal::queue.push(offload_region, wait);
   }
@@ -269,7 +300,7 @@ void libxstream_offload(const libxstream_offload_region& offload_region, bool wa
 
 void libxstream_offload_shutdown()
 {
-#if defined(LIBXSTREAM_OFFLOAD_QUEUE)
+#if defined(LIBXSTREAM_CAPTURE_USE_QUEUE)
   libxstream_offload_internal::queue.terminate();
 #endif
 }

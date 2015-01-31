@@ -49,13 +49,14 @@ public:
     const double* adata() const;
     const double* bdata() const;
     double* cdata();
-    const size_t* index() const;
+    const size_t* idata() const;
+    size_t max_matrix_size() const;
     size_t bytes() const;
     size_t flops() const;
   private:
     int m_size;
     double *m_adata, *m_bdata, *m_cdata;
-    size_t *m_index, m_flops;
+    size_t *m_idata, m_flops;
   };
 
 public:
@@ -65,14 +66,14 @@ public:
 public:
   bool ready() const;
   int init(host_data_type& host_data, int device, int max_batch);
-  int operator()(libxstream_stream& stream, process_fn_type process_fn, int index, int size);
+  int operator()(process_fn_type process_fn, int index, int size);
 
 private:
+  libxstream_stream* m_stream;
   host_data_type* m_host_data;
-  int m_device;
 
   double *m_adata, *m_bdata, *m_cdata;
-  size_t *m_index;
+  size_t *m_idata;
 };
 
 #endif // MULTI_DGEMM_TYPE_HPP
