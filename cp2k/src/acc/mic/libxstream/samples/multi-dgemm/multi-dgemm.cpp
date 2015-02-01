@@ -58,7 +58,7 @@ LIBXSTREAM_EXPORT void process(int size, int nn, const size_t* idata,
   const double* adata, const double* bdata, double* cdata)
 {
   if (0 < size) {
-    static const double alpha = 1, beta = 0;
+    static const double alpha = 1, beta = 1;
     static const char trans = 'N';
     const size_t base = idata[0];
 
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 {
   try {
     const int nitems = std::max(1 < argc ? std::atoi(argv[1]) : 32, 0);
-    const int nbatch = std::max(2 < argc ? std::atoi(argv[2]) : 4, 1);
+    const int nbatch = std::max(2 < argc ? std::atoi(argv[2]) : 6, 1);
     const int nstreams = std::min(std::max(3 < argc ? std::atoi(argv[3]) : 2, 0), LIBXSTREAM_MAX_STREAMS);
 
     size_t ndevices = 0;
