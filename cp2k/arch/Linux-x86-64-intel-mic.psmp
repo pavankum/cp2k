@@ -14,7 +14,9 @@ AR       = xiar -r
 #   CXX=icpc CXXFLAGS="-O2 -xHost -ipo" \
 #   ./configure --prefix=$HOME/libint \
 #     --with-cc-optflags="-O2 -xHost -ipo" \
-#     --with-cxx-optflags="-O2 -xHost -ipo"
+#     --with-cxx-optflags="-O2 -xHost -ipo" \
+#     --with-libint-max-am=5 \
+#     --with-libderiv-max-am1=4
 # $ make
 # $ make install
 # $ make realclean
@@ -136,7 +138,7 @@ ifneq (0,$(SMP))
 endif
 
 ifneq (,$(LIBINTROOT))
-  DFLAGS  += -D__LIBINT
+  DFLAGS  += -D__LIBINT -D__LIBINT_MAX_AM=6 -D__LIBDERIV_MAX_AM1=5
   IFLAGS  += -I$(LIBINTROOT)/include
   LIBS    += $(LIBINTROOT)/lib/libderiv.a $(LIBINTROOT)/lib/libint.a
 endif
@@ -287,7 +289,7 @@ else # sequential
   LIBS += -lpthread -lm
 endif
 
-DFLAGS  += -D__INTEL -D__HAS_ISO_C_BINDING
+DFLAGS  += -D__INTEL -D__HAS_ISO_C_BINDING -D__USE_CP2K_TRACE
 IFLAGS  += # general include paths
 
 # Define __INTEL_COMPILER in case of external preprocessing because some source (pw/fft/fftw3_lib.F)
