@@ -104,10 +104,10 @@ int acc_dev_mem_deallocate(void* dev_mem)
 #if defined(LIBXSTREAM_DEBUG)
   if (LIBXSTREAM_ERROR_NONE != result) {
     if (-1 <= device) {
-      fprintf(stderr, "DBG acc_dev_mem_deallocate: device %i potentially mismatching\n", device);
+      fprintf(stderr, "DBG acc_dev_mem_deallocate: device %i is potentially mismatching\n", device);
     }
     else {
-      fprintf(stderr, "DBG acc_dev_mem_deallocate: device potentially mismatching\n");
+      fprintf(stderr, "DBG acc_dev_mem_deallocate: device is potentially mismatching\n");
     }
   }
 #endif

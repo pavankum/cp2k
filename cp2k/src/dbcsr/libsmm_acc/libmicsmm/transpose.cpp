@@ -57,7 +57,7 @@ LIBXSTREAM_EXPORT void mkl_imatcopy(size_t m, size_t n, double* matrix)
 template<typename T, typename U>
 LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset, U nblocks, U m, U n, T *LIBXSTREAM_RESTRICT matrix)
 {
-#if defined(LIBXSTREAM_TEST) && (0 != (2*LIBXSTREAM_TEST+1)/2) && defined(_OPENMP)
+#if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
   const U *const offsets = stack + offset;
@@ -112,7 +112,7 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset, U nb
 #endif
   }
 
-#if defined(LIBXSTREAM_TEST) && (0 != (2*LIBXSTREAM_TEST+1)/2) && defined(_OPENMP)
+#if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   static double duration = 0, problemsize = 0;
   const double stop = omp_get_wtime();
   if (start < stop) {

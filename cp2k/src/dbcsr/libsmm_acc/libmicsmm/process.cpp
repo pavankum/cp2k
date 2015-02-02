@@ -162,7 +162,7 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, 
 #if defined(LIBMICSMM_USE_PRETRANSPOSE)
   LIBXSTREAM_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
 #endif
-#if defined(LIBXSTREAM_TEST) && (0 != (2*LIBXSTREAM_TEST+1)/2) && defined(_OPENMP)
+#if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
 
@@ -200,7 +200,7 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, 
     }
   }
 
-#if defined(LIBXSTREAM_TEST) && (0 != (2*LIBXSTREAM_TEST+1)/2) && defined(_OPENMP)
+#if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   static double duration = 0, flops = 0;
   const double stop = omp_get_wtime();
   if (start < stop) {

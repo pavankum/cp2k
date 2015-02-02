@@ -10,7 +10,7 @@
 #if defined(__ACC) && defined(__ACC_MIC)
 
 #include "../include/acc.h"
-#include <libxstream_macros.h>
+#include <libxstream.h>
 
 #endif // defined(__ACC) && defined(__ACC_MIC)
 #endif // LIBMICACC_H
