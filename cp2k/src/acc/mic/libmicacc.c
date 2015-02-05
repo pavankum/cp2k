@@ -36,7 +36,7 @@ int acc_stream_create(void** stream_p, const char* name, int priority)
 {
   int device = -1, result = libxstream_get_active_device(&device);
   LIBXSTREAM_CHECK_ERROR(result);
-  result = libxstream_stream_create((libxstream_stream**)stream_p, device, priority, name);
+  result = libxstream_stream_create((libxstream_stream**)stream_p, device, 1/*demux*/, priority, name);
   return result;
 }
 
@@ -93,7 +93,7 @@ int acc_dev_mem_allocate(void** dev_mem, size_t n)
 {
   int device = -1, result = libxstream_get_active_device(&device);
   LIBXSTREAM_CHECK_ERROR(result);
-  result = libxstream_mem_allocate(device, dev_mem, n, 0);
+  result = libxstream_mem_allocate(device, dev_mem, n, 0/*automatic*/);
   return result;
 }
 
@@ -101,16 +101,7 @@ int acc_dev_mem_allocate(void** dev_mem, size_t n)
 int acc_dev_mem_deallocate(void* dev_mem)
 {
   int device = -1, result = libxstream_get_active_device(&device);
-#if defined(LIBXSTREAM_DEBUG)
-  if (LIBXSTREAM_ERROR_NONE != result) {
-    if (-1 <= device) {
-      fprintf(stderr, "DBG acc_dev_mem_deallocate: device %i is potentially mismatching\n", device);
-    }
-    else {
-      fprintf(stderr, "DBG acc_dev_mem_deallocate: device is potentially mismatching\n");
-    }
-  }
-#endif
+  LIBXSTREAM_CHECK_ERROR(result);
   result = libxstream_mem_deallocate(device, dev_mem);
   return result;
 }
