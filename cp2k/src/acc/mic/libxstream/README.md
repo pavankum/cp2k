@@ -52,14 +52,18 @@ int libxstream_memcpy_d2d(const void* src, void* dst, size_t size, libxstream_st
 ```C
 /** Query the range of valid priorities (inclusive). */
 int libxstream_stream_priority_range(int* least, int* greatest);
-/** Create a stream on a given device; priority shall be within the queried bounds. */
-int libxstream_stream_create(libxstream_stream**, int dev, int prio, const char* id);
+/** Create a stream on a given device with an optional automatic synchronization (demux). */
+int libxstream_stream_create(libxstream_stream**, int dev, int demux, int prio, const char*);
 /** Destroy a stream; pending work must be completed if results are needed. */
 int libxstream_stream_destroy(libxstream_stream* stream);
 /** Wait for a stream to complete pending work; NULL to synchronize all streams. */
 int libxstream_stream_sync(libxstream_stream* stream);
 /** Wait for an event recorded earlier. Passing NULL increases the match. */
 int libxstream_stream_wait_event(libxstream_stream* stream, libxstream_event* event);
+/** Locks a stream such that the caller thread can safely enqueue work. */
+int libxstream_stream_lock(libxstream_stream* stream);
+/** Unlocks a stream such that another thread can aquire the stream. */
+int libxstream_stream_unlock(libxstream_stream* stream);
 ```
 
 **Event Interface**: provides a more sophisticated mechanism allowing to wait for a specific work item to complete without the need to also wait for the completion of work queued after the item in question.
@@ -81,11 +85,22 @@ Implementation
 ==============
 The library's implementation allows queuing work from multiple host threads in a thread-safe manner and without oversubscribing the device. The actual implementation vehicle can be configured using a [configuration header](include/libxstream_config.h). Currently Intel's Language Extensions for Offload (LEO) are used to perform asynchronous execution and data transfers using signal/wait clauses. Other mechanisms can be implemented e.g., hStreams or COI (both are part of the Intel Manycore Platform Software Stack), or offload directives as specified by OpenMP 4.0.
 
+The current implementation is falling back to host execution in cases where no coprocessor is present, or when the executable was not built using the Intel Compiler. However, there is no attempt (yet) to exploit the parallelism available on the host system.
+
 Performance
 ===========
-The [multi-dgemm](samples/multi-dgemm) sample code is the implementation of a benchmark (beside of illustrating the use of LIBXSTREAM). The shown performance is not meant to be "the best case". Instead, the performance is reproduced by a program constructing a series of matrix-matrix multiplications of varying problem sizes with no attempt to avoid the implied performance penalties (see underneath the graph for more details).
+The [multi-dgemm](samples/multi-dgemm) sample code is the implementation of a benchmark (beside of illustrating the use of LIBXSTREAM). The shown performance is not meant to be "the best case". Instead, the performance is reproduced by a program constructing a series of matrix-matrix multiplications of varying problem sizes with no attempt to avoid the implied performance penalties (see underneath the graph for more details). A reasonable host system and benchmark implementation is likely able to outperform below results (no transfers, etc.).
 
-![performance graph](samples/multi-dgemm/plot.png)
-> This performance graph has been created for a single Intel Xeon Phi 7120 Coprocessor card by running the [benchmark.sh](samples/multi-dgemm/benchmark.sh) on the host system. The script varies the number of matrix-matrix multiplications queued at once. The program is rather a stress-test than a benchmark since there is no attempt to avoid the performance penalties as mentioned below. The plot shows ~155 GFLOPS/s even with a finer work granularity (smaller batch size).
+![performance graph](samples/multi-dgemm/plot-demux.png)
+> This performance graph has been created for a single Intel Xeon Phi 7120 Coprocessor card by running the [benchmark.sh](samples/multi-dgemm/benchmark.sh) on the host system. The script varies the number of matrix-matrix multiplications queued at once. The program is rather a stress-test than a benchmark since there is no attempt to avoid the performance penalties as mentioned below. The plot shows ~140 GFLOPS/s even with a finer work granularity (smaller batch size).
 
 Even the series of matrices with the largest problem size of the mix is not close to being able to reach the peak performance, and there is an insufficient amount of FLOPS available to hide the cost of transferring the data. The data needed for the computation moreover includes a set of indices describing the offsets of each of the matrix operands in the associated buffers. The latter implies unaligned memory accesses due to packing the matrix data without a favorable leading dimension. Transfers are performed as needed on a per-computation basis rather than aggregating a single copy-in and copy-out prior and past of the benchmark cycle. Moreover, there is no attempt to balance the mixture of different problem sizes when queuing the work into the streams.
+
+Tuning
+======
+The library supports a manual locking approach which can be requested at runtime on a per-stream basis instead of an automatic internal locking ("demux" mode). Manual locking also allows queuing work without the need for intermediate stream synchronization in case the effect of the work is not needed at this point in time. The locking approach effectively describes a logical group of work. In contrast, the automatic locking attempts to derive this information at the points where the stream synchronization function is called.
+
+![performance graph](samples/multi-dgemm/plot-manual.png)
+> In the above plot, the [multi-dgemm](samples/multi-dgemm) sample code illustrates the impact of manual locking in contrast to the "demux" mode of operation; otherwise the same conditions apply (see [Performance](#performance) section). The plot shows ~150 GFLOPS/s and therefore a minor impact of manual locking with tuning the batch size being a further key for performance.
+
+Please note that the manual locking approach does not contradict the thread-safety claimed by the library; each queuing operation is still atomic. Synchronization and locking in general avoids intermixing work from different logical groups of work. An example where this becomes a problem (data races) is when the work is buffered only for a subset (work group) of the total amount of work, and when multiple host threads are queuing work items into the same stream at the same time.

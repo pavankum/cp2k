@@ -43,7 +43,6 @@
 
 //#define MULTI_DGEMM_USE_NESTED
 #define MULTI_DGEMM_USE_CHECK
-#define MULTI_DGEMM_USE_ISYNC
 
 #define DGEMM dgemm_
 
@@ -90,9 +89,10 @@ LIBXSTREAM_EXPORT void process(int size, int nn, const size_t* idata,
 int main(int argc, char* argv[])
 {
   try {
-    const int nitems = std::max(1 < argc ? std::atoi(argv[1]) : 32, 0);
-    const int nbatch = std::max(2 < argc ? std::atoi(argv[2]) : 6, 1);
-    const int nstreams = std::min(std::max(3 < argc ? std::atoi(argv[3]) : 2, 0), LIBXSTREAM_MAX_STREAMS);
+    const int nitems = std::max(1 < argc ? std::atoi(argv[1]) : 60, 0);
+    const int nbatch = std::max(2 < argc ? std::atoi(argv[2]) : 5, 1);
+    const int nstreams = std::min(std::max(3 < argc ? std::atoi(argv[3]) : 2, 0), LIBXSTREAM_MAX_NSTREAMS);
+    const bool demux = 4 < argc ? (0 != std::atoi(argv[4])) : true;
 
     size_t ndevices = 0;
     if (LIBXSTREAM_ERROR_NONE != libxstream_get_ndevices(&ndevices) || 0 == ndevices) {
@@ -110,7 +110,9 @@ int main(int argc, char* argv[])
     fprintf(stdout, "Initializing %i stream%s per device...\n", nstreams, 1 < nstreams ? "s" : "");
     std::vector<multi_dgemm_type> multi_dgemm(ndevices * nstreams);
     for (size_t i = 0; i < multi_dgemm.size(); ++i) {
-      LIBXSTREAM_CHECK_CALL_THROW(multi_dgemm[i].init(host_data, i % ndevices, nbatch));
+      char name[128];
+      LIBXSTREAM_SNPRINTF(name, sizeof(name), "Stream %i", i + 1);
+      LIBXSTREAM_CHECK_CALL_THROW(multi_dgemm[i].init(name, host_data, i % ndevices, nbatch, demux));
     }
 
     const int nbatches = (nitems + nbatch - 1) / nbatch;
@@ -128,16 +130,13 @@ int main(int argc, char* argv[])
 #endif
     for (int i = 0; i < nitems; i += nbatch) {
       const int stream = i % multi_dgemm.size();
-#if defined(MULTI_DGEMM_USE_ISYNC)
-      if (0 < i && 0 == stream) {
-        LIBXSTREAM_CHECK_CALL_THROW(libxstream_stream_sync(0));
-      }
-#endif
       LIBXSTREAM_CHECK_CALL_THROW(multi_dgemm[stream](&process, i, std::min(nbatch, nitems - i)));
     }
 
-    // sync all streams to complete any pending work
-    LIBXSTREAM_CHECK_CALL_THROW(libxstream_stream_sync(0));
+    if (!demux) {
+      // sync all streams to complete any pending work
+      LIBXSTREAM_CHECK_CALL_THROW(libxstream_stream_sync(0));
+    }
 
 #if defined(_OPENMP)
     const double duration = omp_get_wtime() - start;

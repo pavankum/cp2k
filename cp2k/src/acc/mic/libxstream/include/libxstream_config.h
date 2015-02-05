@@ -49,6 +49,16 @@
 #define LIBXSTREAM_ERROR_CHECK
 
 /**
+ * Enables printing trace information.
+ * Valid selections:
+ * - #define LIBXSTREAM_TRACE: enables default (1) behavior
+ * - #define LIBXSTREAM_TRACE 0: disables trace information
+ * - #define LIBXSTREAM_TRACE 1: enabled for debug builds
+ * - #define LIBXSTREAM_TRACE 2: enabled
+ */
+#define LIBXSTREAM_TRACE
+
+/**
  * Enables asynchronous offloads.
  * Valid selections:
  * - #define LIBXSTREAM_ASYNC: enables default (1) behavior
@@ -58,15 +68,6 @@
  */
 #define LIBXSTREAM_ASYNC
 
-/**
- * Selects the API used to create the heler thread as well as some lock support.
- * Valid selections:
- * - #define LIBXSTREAM_THREAD_API: default API (1)
- * - #define LIBXSTREAM_THREAD_API 0: Unspecified (Pthreads or C++11)
- * - #define LIBXSTREAM_THREAD_API 1: OpenMP
- */
-#define LIBXSTREAM_THREAD_API
-
 /** SIMD width in Byte (actual alignment might be smaller). */
 #define LIBXSTREAM_MAX_SIMD 64
 
@@ -74,10 +75,10 @@
 #define LIBXSTREAM_MAX_ALIGN (2 * 1024 * 1024)
 
 /** Maximum number of devices. */
-#define LIBXSTREAM_MAX_DEVICES 8
+#define LIBXSTREAM_MAX_NDEVICES 8
 
 /** Maximum number of streams per device. */
-#define LIBXSTREAM_MAX_STREAMS 16
+#define LIBXSTREAM_MAX_NSTREAMS 16
 
 /** Maximum number of arguments in offload structure. */
 #define LIBXSTREAM_MAX_NARGS 16
@@ -85,6 +86,8 @@
 /** Maximum number of executions in the queue. */
 #define LIBXSTREAM_MAX_QSIZE 1024
 
+/** Enables non-recursive locks. */
+#define LIBXSTREAM_NONRECURSIVE_LOCKS
 
 /**
  * Below preprocessor symbols fixup some platform specifics.

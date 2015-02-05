@@ -45,13 +45,22 @@ public:
   static int sync();
 
 public:
-  libxstream_stream(int device, int priority, const char* name);
+  libxstream_stream(int device,
+    /**
+     * Enables "demuxing" threads and streams i.e., when multiple
+     * host threads attempt to queue into the same stream.
+     */
+    bool demux,
+    int priority, const char* name);
   ~libxstream_stream();
 
 public:
   void pending(libxstream_signal signal)  { m_pending = signal; }
   libxstream_signal pending() const       { return m_pending; }
 
+  bool demux() const      { return m_demux; }
+  void thread(int value)  { m_thread = value; }
+  int thread() const      { return m_thread; }
   int device() const      { return m_device; }
   int priority() const    { return m_priority; }
 
@@ -66,13 +75,15 @@ public:
   libxstream_signal signal() const;
   int wait(libxstream_signal signal) const;
 
+  void lock();
+  void unlock();
+
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (2 == (2*LIBXSTREAM_ASYNC+1)/2)
   _Offload_stream handle() const;
 #endif
 
 #if defined(LIBXSTREAM_DEBUG)
   const char* name() const;
-  uintptr_t thread_id() const;
 #endif
 
 private:
@@ -81,7 +92,12 @@ private:
 
 private:
   mutable libxstream_signal m_pending;
-  int m_device, m_priority, m_status;
+  libxstream_lock* m_lock;
+  bool m_demux;
+  int m_thread;
+  int m_device;
+  int m_priority;
+  int m_status;
 
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (2 == (2*LIBXSTREAM_ASYNC+1)/2)
   mutable _Offload_stream m_handle; // lazy creation
@@ -90,8 +106,6 @@ private:
 
 #if defined(LIBXSTREAM_DEBUG)
   char m_name[128];
-  mutable libxstream_lock* m_lock;
-  mutable uintptr_t m_thread_id;
 #endif
 };
 

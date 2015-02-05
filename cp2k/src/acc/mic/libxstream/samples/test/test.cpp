@@ -59,13 +59,13 @@ test_type::test_type(int device)
   : m_device(device), m_stream(0), m_event(0)
   , m_host_mem(0), m_dev_mem(0)
 {
-  fprintf(stdout, "TST entered by thread=0x%lx\n", static_cast<unsigned long>(this_thread_id()));
+  fprintf(stdout, "TST entered by thread=%i\n", this_thread_id());
 
   LIBXSTREAM_CHECK_CALL_RETURN(libxstream_get_active_device(&m_device));
 
   size_t mem_free = 0, mem_avail = 0;
   LIBXSTREAM_CHECK_CALL_RETURN(libxstream_mem_info(m_device, &mem_free, &mem_avail));
-  LIBXSTREAM_CHECK_CALL_RETURN(libxstream_stream_create(&m_stream, m_device, 0, 0));
+  LIBXSTREAM_CHECK_CALL_RETURN(libxstream_stream_create(&m_stream, m_device, 1, 0, 0));
 
   const size_t size = 4711u * 1024u;
   LIBXSTREAM_CHECK_CALL_RETURN(libxstream_mem_allocate(-1, &m_host_mem, size, 0));
@@ -163,7 +163,7 @@ test_type::~test_type()
   LIBXSTREAM_CHECK_CALL_RETURN(libxstream_mem_deallocate(-1, m_host_mem));
   LIBXSTREAM_CHECK_CALL_RETURN(libxstream_mem_deallocate(m_device, m_dev_mem));
   LIBXSTREAM_CHECK_CALL_RETURN(libxstream_stream_destroy(m_stream));
-  fprintf(stderr, "TST successfully completed.\n");
+  fprintf(stdout, "TST successfully completed.\n");
 }
 
 

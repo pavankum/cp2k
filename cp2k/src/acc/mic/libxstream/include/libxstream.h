@@ -87,14 +87,18 @@ int libxstream_memcpy_d2d(const void* src, void* dst, size_t size, libxstream_st
 
 /** Query the range of valid priorities (inclusive). */
 int libxstream_stream_priority_range(int* least, int* greatest);
-/** Create a stream on a given device. The given priority shall be within the queried bounds. */
-int libxstream_stream_create(libxstream_stream** stream, int device, int priority, const char* name);
+/** Create a stream on a given device with an optional automatic synchronization (demux != 0). */
+int libxstream_stream_create(libxstream_stream** stream, int device, int demux, int priority, const char* name);
 /** Destroy a stream. Any pending work with results needed must be completed explicitly (prior). */
 int libxstream_stream_destroy(libxstream_stream* stream);
 /** Wait for a stream to complete pending work. A NULL-stream synchronizes all streams. */
 int libxstream_stream_sync(libxstream_stream* stream);
 /** Wait for an event recorded earlier. Passing NULL increases the match accordingly. */
 int libxstream_stream_wait_event(libxstream_stream* stream, libxstream_event* event);
+/** Locks a stream such that the caller thread can safely enqueue work. */
+int libxstream_stream_lock(libxstream_stream* stream);
+/** Unlocks a stream such that another thread can aquire the stream. */
+int libxstream_stream_unlock(libxstream_stream* stream);
 
 /** Create an event; can be re-used multiple times by re-recording the event. */
 int libxstream_event_create(libxstream_event** event);
