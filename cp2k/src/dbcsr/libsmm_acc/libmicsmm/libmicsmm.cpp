@@ -27,7 +27,7 @@ void libsmm_acc_file_diff(double& a, double b, int position)
 {
 #if defined(LIBXSTREAM_DEBUG)
   if (a < b) {
-    fprintf(stderr, "DBG libsmm_acc_file_diff: %f @ %i\n", b, position);
+    LIBXSTREAM_PRINT_INFOCTX("%f @ %i", b, position);
     a = b;
   }
 #else
@@ -40,9 +40,7 @@ void libsmm_acc_file_diff(double& a, double b, int position)
 
 LIBXSTREAM_EXTERN_C int libsmm_acc_file_save(const char groupname[], const char name[], size_t id, const void* data, size_t data_size, const void* header, size_t header_size)
 {
-#if defined(LIBXSTREAM_DEBUG)
-  fprintf(stderr, "DBG libsmm_acc_file_save: name=\"%s\" id=%lu\n", (name && *name) ? name : "<invalid>", static_cast<unsigned long>(id));
-#endif
+  LIBXSTREAM_PRINT_INFOCTX("name=\"%s\" id=%lu", (name && *name) ? name : "<invalid>", static_cast<unsigned long>(id));
   LIBXSTREAM_CHECK_CONDITION(name && *name && (0 == header_size || header));
   char buffer[1024];
   LIBXSTREAM_SNPRINTF(buffer, sizeof(buffer), "%s%s%s-%d.bin",
@@ -59,9 +57,7 @@ LIBXSTREAM_EXTERN_C int libsmm_acc_file_save(const char groupname[], const char 
 
 LIBXSTREAM_EXTERN_C int libsmm_acc_file_load(const char groupname[], const char name[], size_t id, void* data, size_t* data_size, void* header)
 {
-#if defined(LIBXSTREAM_DEBUG)
-  fprintf(stderr, "DBG libsmm_acc_file_load: name=\"%s\" id=%lu\n", (name && *name) ? name : "<invalid>", static_cast<unsigned long>(id));
-#endif
+  LIBXSTREAM_PRINT_INFOCTX("name=\"%s\" id=%lu", (name && *name) ? name : "<invalid>", static_cast<unsigned long>(id));
   LIBXSTREAM_CHECK_CONDITION(name && *name);
   char buffer[1024];
   LIBXSTREAM_SNPRINTF(buffer, sizeof(buffer), "%s%s%s-%d.bin",
@@ -84,9 +80,7 @@ LIBXSTREAM_EXTERN_C int libsmm_acc_file_load(const char groupname[], const char 
 
 LIBXSTREAM_EXTERN_C int libsmm_acc_file_diff(const char groupname[], const char name[], size_t id, const void* data, dbcsr_elem_type elem_type, double* max_diff)
 {
-#if defined(LIBXSTREAM_DEBUG)
-  fprintf(stderr, "DBG libsmm_acc_file_diff: name=\"%s\" id=%lu\n", (name && *name) ? name : "<invalid>", static_cast<unsigned long>(id));
-#endif
+  LIBXSTREAM_PRINT_INFOCTX("name=\"%s\" id=%lu", (name && *name) ? name : "<invalid>", static_cast<unsigned long>(id));
   LIBXSTREAM_CHECK_CONDITION(name && *name && data);
   size_t data_size = 0, read_size = 0;
 
@@ -299,7 +293,7 @@ int main(int argc, char* argv[])
     LIBXSTREAM_CHECK_ERROR(acc_get_ndevices(&ndevices));
     LIBXSTREAM_CHECK_CONDITION(0 < ndevices);
 
-    stream_type stream[LIBXSTREAM_MAX_STREAMS];
+    stream_type stream[LIBXSTREAM_MAX_NSTREAMS];
     double max_diff = 0;
     size_t size = 0;
 
@@ -314,7 +308,7 @@ int main(int argc, char* argv[])
 #if defined(_OPENMP) && (200203 < _OPENMP)
 #       pragma omp task
         {
-          const size_t sid = omp_get_thread_num() % LIBXSTREAM_MAX_STREAMS;
+          const size_t sid = omp_get_thread_num() % LIBXSTREAM_MAX_NSTREAMS;
 #else
           const size_t sid = 0;
 #endif

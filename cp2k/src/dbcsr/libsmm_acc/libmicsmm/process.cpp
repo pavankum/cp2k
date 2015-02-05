@@ -208,7 +208,7 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, 
     duration += stop - start;
 #   pragma omp atomic
     flops += 2ul * max_m * max_n * max_k * stack_size;
-    fprintf(stderr, "PRF libsmm_acc_process: %.f GFLOP/s\n", flops / (1E9 * duration));
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_process: %.f GFLOP/s", flops / (1E9 * duration));
   }
 #endif
 }
@@ -316,14 +316,12 @@ int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, 
 
 extern "C" int libsmm_acc_process(void* param_stack, int stack_size, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
 {
-#if defined(LIBXSTREAM_DEBUG)
-  fprintf(stderr, "DBG libsmm_acc_process: size=%i homogeneous=%s max_m=%i max_n=%i max_k=%i a=0x%lx b=0x%lx c=0x%lx stream=0x%lx\n",
+  LIBXSTREAM_PRINT_INFOCTX("size=%i homogeneous=%s max_m=%i max_n=%i max_k=%i a=0x%lx b=0x%lx c=0x%lx stream=0x%lx",
     stack_size, 1 == def_mnk ? "true" : "false", max_m, max_n, max_k,
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(a_data)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(b_data)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(c_data)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
-#endif
   const int *const stack = static_cast<const int*>(param_stack);
   int result = LIBXSTREAM_ERROR_NONE;
 

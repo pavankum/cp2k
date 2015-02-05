@@ -120,7 +120,7 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset, U nb
     duration += stop - start;
 #   pragma omp atomic
     problemsize += 2ul * m * n * sizeof(T) * nblocks;
-    fprintf(stderr, "PRF libsmm_acc_transpose: %.f GB/s\n", problemsize / (1E9 * duration));
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose: %.f GB/s", problemsize / (1E9 * duration));
   }
 #endif
 }
@@ -179,8 +179,8 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
 
 extern "C" int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void* buffer, int datatype, int m, int n, void* stream)
 {
-#if defined(LIBXSTREAM_DEBUG) && defined(LIBMICSMM_USE_PRETRANSPOSE)
-  fprintf(stderr, "DBG libsmm_acc_transpose: offset=%i size=%i m=%i n=%i buffer=0x%lx stream=0x%lx\n", offset, nblks, m, n,
+#if defined(LIBMICSMM_USE_PRETRANSPOSE)
+  LIBXSTREAM_PRINT_INFOCTX("offset=%i size=%i m=%i n=%i buffer=0x%lx stream=0x%lx", offset, nblks, m, n,
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(buffer)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
 #endif
