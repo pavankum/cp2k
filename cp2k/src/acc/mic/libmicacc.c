@@ -36,7 +36,7 @@ int acc_stream_create(void** stream_p, const char* name, int priority)
 {
   int device = -1, result = libxstream_get_active_device(&device);
   LIBXSTREAM_CHECK_ERROR(result);
-  result = libxstream_stream_create((libxstream_stream**)stream_p, device, 1/*demux*/, priority, name);
+  result = libxstream_stream_create((libxstream_stream**)stream_p, device, 0/*demux*/, priority, name);
   return result;
 }
 

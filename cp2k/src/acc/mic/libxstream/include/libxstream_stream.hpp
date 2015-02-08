@@ -47,20 +47,17 @@ public:
 public:
   libxstream_stream(int device,
     /**
-     * Enables "demuxing" threads and streams i.e., when multiple
-     * host threads attempt to queue into the same stream.
+     * Controls "demuxing" threads and streams i.e., when multiple threads are queuing into the same stream.
+     * demux<0: automatic (LIBXSTREAM guesses locks incl. deadlock resolution using LIBXSTREAM_LOCK_RETRY)
+     * demux=0: disabled  (application is supposed to call libxstream_stream_lock/libxstream_stream_unlock)
+     * demux>0: enabled   (application is supposed to use correct stream synchronization)
      */
-    bool demux,
+    int demux,
     int priority, const char* name);
   ~libxstream_stream();
 
 public:
-  void pending(libxstream_signal signal)  { m_pending = signal; }
-  libxstream_signal pending() const       { return m_pending; }
-
-  bool demux() const      { return m_demux; }
-  void thread(int value)  { m_thread = value; }
-  int thread() const      { return m_thread; }
+  int demux() const       { return m_demux; }
   int device() const      { return m_device; }
   int priority() const    { return m_priority; }
 
@@ -75,14 +72,21 @@ public:
   libxstream_signal signal() const;
   int wait(libxstream_signal signal) const;
 
-  void lock();
+  void pending(libxstream_signal signal);
+  libxstream_signal pending() const;
+
+  int thread() const;
+  void begin();
+  void end();
+
+  void lock(bool retry);
   void unlock();
 
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (2 == (2*LIBXSTREAM_ASYNC+1)/2)
   _Offload_stream handle() const;
 #endif
 
-#if defined(LIBXSTREAM_DEBUG)
+#if defined(LIBXSTREAM_PRINT)
   const char* name() const;
 #endif
 
@@ -91,10 +95,15 @@ private:
   libxstream_stream& operator=(const libxstream_stream& other);
 
 private:
-  mutable libxstream_signal m_pending;
-  libxstream_lock* m_lock;
-  bool m_demux;
-  int m_thread;
+  libxstream_signal m_pending[LIBXSTREAM_MAX_NTHREADS];
+#if defined(LIBXSTREAM_PRINT)
+  char m_name[128];
+#endif
+  void* m_thread;
+#if defined(LIBXSTREAM_LOCK_RETRY) && (0 < (LIBXSTREAM_LOCK_RETRY))
+  size_t m_begin, m_end;
+#endif
+  int m_demux;
   int m_device;
   int m_priority;
   int m_status;
@@ -102,10 +111,6 @@ private:
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (2 == (2*LIBXSTREAM_ASYNC+1)/2)
   mutable _Offload_stream m_handle; // lazy creation
   mutable size_t m_npartitions;
-#endif
-
-#if defined(LIBXSTREAM_DEBUG)
-  char m_name[128];
 #endif
 };
 

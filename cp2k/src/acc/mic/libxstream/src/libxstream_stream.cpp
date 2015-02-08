@@ -38,17 +38,11 @@
 
 // allows to wait for an event issued prior to the pending signal
 //#define LIBXSTREAM_STREAM_WAIT_PAST
+// unlocking the stream is only allowed for the thread that locked
+//#define LIBXSTREAM_STREAM_UNLOCK_ANY
 
 
 namespace libxstream_stream_internal {
-
-#if defined(LIBXSTREAM_LOCK_RETRY)
-# if defined(LIBXSTREAM_STDFEATURES)
-std::atomic<size_t> lock_alive(0);
-# else
-size_t lock_alive = 0;
-# endif
-#endif
 
 class registry_type {
 public:
@@ -158,10 +152,8 @@ public:
     return LIBXSTREAM_ERROR_NONE;
   }
 
-#if defined(LIBXSTREAM_LOCK_RETRY) && !defined(LIBXSTREAM_STDFEATURES) && !defined(_OPENMP)
-  libxstream_lock* lock() {
-    return m_lock;
-  }
+#if !defined(LIBXSTREAM_STDFEATURES)
+  libxstream_lock* lock() { return m_lock; }
 #endif
 
 private:
@@ -175,6 +167,61 @@ private:
   libxstream_lock* m_lock;
 #endif
 } registry;
+
+
+template<typename A, typename E, typename D>
+bool atomic_compare_exchange(A& atomic, E& expected, D desired)
+{
+#if defined(LIBXSTREAM_STDFEATURES)
+  const bool result = std::atomic_compare_exchange_weak(&atomic, &expected, desired);
+#elif defined(_OPENMP)
+  bool result = false;
+# pragma omp critical
+  {
+    result = atomic == expected;
+    if (result) {
+      atomic = desired;
+    }
+    else {
+      expected = atomic;
+    }
+  }
+#else // generic
+  bool result = false;
+  libxstream_lock_acquire(registry.lock());
+  result = atomic == expected;
+  if (result) {
+    atomic = desired;
+  }
+  else {
+    expected = atomic;
+  }
+  libxstream_lock_release(registry.lock());
+#endif
+  return result;
+}
+
+
+template<typename A, typename T>
+T atomic_store(A& atomic, T value)
+{
+  T result = value;
+#if defined(LIBXSTREAM_STDFEATURES)
+  result = std::atomic_exchange(&atomic, value);
+#elif defined(_OPENMP)
+# pragma omp critical
+  {
+    result = atomic;
+    atomic = value;
+  }
+#else // generic
+  libxstream_lock_acquire(registry.lock());
+  result = atomic;
+  atomic = value;
+  libxstream_lock_release(registry.lock());
+#endif
+  return result;
+}
 
 } // namespace libxstream_stream_internal
 
@@ -197,19 +244,25 @@ private:
 }
 
 
-libxstream_stream::libxstream_stream(int device, bool demux, int priority, const char* name)
-  : m_pending(0), m_lock(libxstream_lock_create()), m_demux(0 != demux), m_thread(-1)
+libxstream_stream::libxstream_stream(int device, int demux, int priority, const char* name)
+#if defined(LIBXSTREAM_STDFEATURES)
+  : m_thread(new std::atomic<int>(-1))
+#else
+  : m_thread(new int(-1))
+#endif
+#if defined(LIBXSTREAM_LOCK_RETRY) && (0 < (LIBXSTREAM_LOCK_RETRY))
+  , m_begin(0), m_end(0)
+#endif
+  , m_demux(demux)
   , m_device(device), m_priority(priority), m_status(LIBXSTREAM_ERROR_NONE)
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (2 == (2*LIBXSTREAM_ASYNC+1)/2)
   , m_handle(0) // lazy creation
   , m_npartitions(0)
 #endif
 {
-  using namespace libxstream_stream_internal;
-  libxstream_stream* *const slot = libxstream_stream_internal::registry.allocate();
-  *slot = this;
+  std::fill_n(m_pending, LIBXSTREAM_MAX_NTHREADS, static_cast<libxstream_signal>(0));
 
-#if defined(LIBXSTREAM_DEBUG)
+#if defined(LIBXSTREAM_PRINT)
   if (name && 0 != *name) {
     const size_t length = std::min(std::char_traits<char>::length(name), sizeof(m_name) - 1);
     std::copy(name, name + length, m_name);
@@ -219,6 +272,10 @@ libxstream_stream::libxstream_stream(int device, bool demux, int priority, const
     m_name[0] = 0;
   }
 #endif
+
+  using namespace libxstream_stream_internal;
+  libxstream_stream* *const slot = libxstream_stream_internal::registry.allocate();
+  *slot = this;
 }
 
 
@@ -235,7 +292,11 @@ libxstream_stream::~libxstream_stream()
     libxstream_offload_shutdown();
   }
 
-  libxstream_lock_destroy(m_lock);
+#if defined(LIBXSTREAM_STDFEATURES)
+  delete static_cast<std::atomic<int>*>(m_thread);
+#else
+  delete static_cast<int*>(m_thread);
+#endif
 
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (2 == (2*LIBXSTREAM_ASYNC+1)/2)
   if (0 != m_handle) {
@@ -285,61 +346,125 @@ int libxstream_stream::wait(libxstream_signal signal) const
 }
 
 
-void libxstream_stream::lock()
+void libxstream_stream::pending(libxstream_signal signal)
 {
   const int this_thread = this_thread_id();
-  if (m_thread != this_thread) {
-#if defined(LIBXSTREAM_LOCK_RETRY) && (0 < LIBXSTREAM_LOCK_RETRY)
-    const size_t lock_alive = libxstream_stream_internal::lock_alive;
-    size_t retry = 0;
-    while (!libxstream_lock_try(m_lock)) {
-      this_thread_yield();
+  m_pending[this_thread] = signal;
+}
 
-      if ((LIBXSTREAM_LOCK_RETRY) > retry) {
-        retry += lock_alive == libxstream_stream_internal::lock_alive;
+
+libxstream_signal libxstream_stream::pending() const
+{
+  const int this_thread = this_thread_id();
+  return m_pending[this_thread];
+}
+
+
+int libxstream_stream::thread() const
+{
+  LIBXSTREAM_ASSERT(m_thread);
+#if defined(LIBXSTREAM_STDFEATURES)
+  return *static_cast<std::atomic<int>*>(m_thread);
+#else
+  return *static_cast<int*>(m_thread);
+#endif
+}
+
+
+void libxstream_stream::begin()
+{
+#if defined(LIBXSTREAM_LOCK_RETRY) && (0 < (LIBXSTREAM_LOCK_RETRY))
+  if (thread() == this_thread_id()) {
+    ++m_begin;
+  }
+#endif
+}
+
+
+void libxstream_stream::end()
+{
+#if defined(LIBXSTREAM_LOCK_RETRY) && (0 < (LIBXSTREAM_LOCK_RETRY))
+  if (thread() == this_thread_id()) {
+    ++m_end;
+  }
+#endif
+}
+
+
+void libxstream_stream::lock(bool retry)
+{
+  const int this_thread = this_thread_id();
+#if defined(LIBXSTREAM_STDFEATURES)
+  std::atomic<int> *const stream_thread = static_cast<std::atomic<int>*>(m_thread);
+#else
+  volatile int *const stream_thread = static_cast<volatile int*>(m_thread);
+#endif
+
+  if (this_thread != *stream_thread) {
+#if defined(LIBXSTREAM_LOCK_RETRY) && (0 < (LIBXSTREAM_LOCK_RETRY))
+    size_t thread_begin = m_begin, thread_end = m_end;
+    size_t nretry = 0;
+#endif
+
+    int unlocked = -1;
+    while (!libxstream_stream_internal::atomic_compare_exchange(*stream_thread, unlocked, this_thread)) {
+#if defined(LIBXSTREAM_LOCK_RETRY) && (0 < (LIBXSTREAM_LOCK_RETRY))
+      if (retry) {
+        static const size_t sleep_ms = std::max((LIBXSTREAM_LOCK_WAIT_MS) / (LIBXSTREAM_LOCK_RETRY), 20);
+
+        if ((LIBXSTREAM_LOCK_RETRY) > nretry) {
+          nretry += (thread_begin == m_begin && thread_end == m_end) ? 1 : 0;
+          this_thread_sleep(sleep_ms);
+          thread_begin = m_begin;
+          thread_end = m_end;
+          unlocked = -1;
+        }
+        else if (m_begin == m_end) {
+          LIBXSTREAM_PRINT_WARNING("libxstream_stream_lock: stream=0x%lx unlocked!",
+            static_cast<unsigned long>(reinterpret_cast<uintptr_t>(this)));
+        }
+        else if (libxstream_offload_busy()) {
+          wait(0);
+        }
       }
-      else {
-        LIBXSTREAM_PRINT_WARNING("libxstream_stream_lock: stream=0x%lx seems to be dead-locked!",
-          static_cast<unsigned long>(reinterpret_cast<uintptr_t>(this)));
-        wait(0);
-        retry = 0;
+      else
+#endif
+      {
+        this_thread_yield();
+        unlocked = -1;
       }
     }
-#else
-    libxstream_lock_acquire(m_lock);
+
+#if defined(LIBXSTREAM_LOCK_RETRY) && (0 < (LIBXSTREAM_LOCK_RETRY))
+    m_begin = 0;
+    m_end = 0;
 #endif
-    m_thread = this_thread; // locked
+
     LIBXSTREAM_PRINT_INFO("libxstream_stream_lock: stream=0x%lx acquired by thread=%i",
       static_cast<unsigned long>(reinterpret_cast<uintptr_t>(this)),
       this_thread);
   }
-
-#if defined(LIBXSTREAM_LOCK_RETRY)
-# if defined(LIBXSTREAM_STDFEATURES)
-  ++libxstream_stream_internal::lock_alive;
-# elif defined(_OPENMP)
-# pragma omp atomic
-  ++libxstream_stream_internal::lock_alive;
-# else // generic
-  libxstream_lock_acquire(libxstream_stream_internal::registry.lock());
-  ++libxstream_stream_internal::lock_alive;
-  libxstream_lock_release(libxstream_stream_internal::registry.lock());
-# endif
-#endif
-
-  LIBXSTREAM_ASSERT(m_thread == this_thread);
 }
 
 
 void libxstream_stream::unlock()
 {
   const int this_thread = this_thread_id();
-  if (m_thread == this_thread) { // locked
+#if defined(LIBXSTREAM_STDFEATURES)
+  std::atomic<int> *const stream_thread = static_cast<std::atomic<int>*>(m_thread);
+#else
+  volatile int *const stream_thread = static_cast<volatile int*>(m_thread);
+#endif
+
+#if defined(LIBXSTREAM_STREAM_UNLOCK_ANY)
+  if (libxstream_stream_internal::atomic_store(*stream_thread, -1)) {
+#else
+  int locked = this_thread;
+  if (libxstream_stream_internal::atomic_compare_exchange(*stream_thread, locked, -1)) {
+#endif
     LIBXSTREAM_PRINT_INFO("libxstream_stream_unlock: stream=0x%lx released by thread=%i",
       static_cast<unsigned long>(reinterpret_cast<uintptr_t>(this)),
       this_thread);
-    m_thread = -1; // unlock
-    libxstream_lock_release(m_lock);
   }
 }
 
@@ -366,7 +491,7 @@ _Offload_stream libxstream_stream::handle() const
 #endif
 
 
-#if defined(LIBXSTREAM_DEBUG)
+#if defined(LIBXSTREAM_PRINT)
 const char* libxstream_stream::name() const
 {
   return m_name;

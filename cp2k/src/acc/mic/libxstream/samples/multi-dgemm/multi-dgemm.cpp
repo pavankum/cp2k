@@ -91,15 +91,15 @@ int main(int argc, char* argv[])
   try {
     const int nitems = std::max(1 < argc ? std::atoi(argv[1]) : 60, 0);
     const int nbatch = std::max(2 < argc ? std::atoi(argv[2]) : 5, 1);
-    const int nstreams = std::min(std::max(3 < argc ? std::atoi(argv[3]) : 2, 0), LIBXSTREAM_MAX_NSTREAMS);
-    const bool demux = 4 < argc ? (0 != std::atoi(argv[4])) : true;
+    const int nstreams = std::min(std::max(3 < argc ? std::atoi(argv[3]) : 2, 1), LIBXSTREAM_MAX_NSTREAMS);
+    const int demux = 4 < argc ? std::atoi(argv[4]) : 0;
 
     size_t ndevices = 0;
     if (LIBXSTREAM_ERROR_NONE != libxstream_get_ndevices(&ndevices) || 0 == ndevices) {
       throw std::runtime_error("no device found!");
     }
 #if !defined(_OPENMP)
-    fprintf(stdout, "Warning: OpenMP support needed for timing results.\n");
+    fprintf(stderr, "Warning: OpenMP support needed for performance results.\n");
 #endif
 
     fprintf(stdout, "Initializing %i device%s and host data...", static_cast<int>(ndevices), 1 == ndevices ? "" : "s");
@@ -107,12 +107,15 @@ int main(int argc, char* argv[])
     multi_dgemm_type::host_data_type host_data(nitems, split);
     fprintf(stdout, " %.1f MB\n", host_data.bytes() * 1E-6);
 
-    fprintf(stdout, "Initializing %i stream%s per device...\n", nstreams, 1 < nstreams ? "s" : "");
+    fprintf(stdout, "Initializing %i stream%s per device...", nstreams, 1 < nstreams ? "s" : "");
     std::vector<multi_dgemm_type> multi_dgemm(ndevices * nstreams);
     for (size_t i = 0; i < multi_dgemm.size(); ++i) {
       char name[128];
       LIBXSTREAM_SNPRINTF(name, sizeof(name), "Stream %i", i + 1);
       LIBXSTREAM_CHECK_CALL_THROW(multi_dgemm[i].init(name, host_data, i % ndevices, nbatch, demux));
+    }
+    if (!multi_dgemm.empty()) {
+      fprintf(stdout, " %.1f MB\n", nstreams * multi_dgemm[0].bytes() * 1E-6);
     }
 
     const int nbatches = (nitems + nbatch - 1) / nbatch;
@@ -133,7 +136,7 @@ int main(int argc, char* argv[])
       LIBXSTREAM_CHECK_CALL_THROW(multi_dgemm[stream](&process, i, std::min(nbatch, nitems - i)));
     }
 
-    if (!demux) {
+    if (1 > demux) {
       // sync all streams to complete any pending work
       LIBXSTREAM_CHECK_CALL_THROW(libxstream_stream_sync(0));
     }
