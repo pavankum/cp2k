@@ -42,7 +42,7 @@ private:
     mutable libxstream_signal m_pending;
   public:
     slot_type(): m_stream(0), m_pending(0) {}
-    explicit slot_type(libxstream_stream& stream);
+    slot_type(int thread, libxstream_stream& stream);
     libxstream_stream& stream() { return *m_stream; }
     libxstream_signal pending() const { return m_pending; }
     void pending(libxstream_signal signal) { m_pending = signal; }
@@ -51,8 +51,8 @@ private:
     }
   };
 
-  static void enqueue(libxstream_stream& stream, libxstream_event::slot_type slots[], size_t& expected, bool reset);
-  static void update(libxstream_event::slot_type& slot);
+  static void enqueue(int thread, libxstream_stream& stream, libxstream_event::slot_type slots[], size_t& expected, bool reset);
+  static void update(int thread, libxstream_event::slot_type& slot);
 
 public:
   libxstream_event();

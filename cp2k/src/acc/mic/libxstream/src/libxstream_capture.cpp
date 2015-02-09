@@ -42,7 +42,7 @@
 # endif
 #endif
 
-#define LIBXSTREAM_CAPTURE_USE_QUEUE
+//#define LIBXSTREAM_CAPTURE_USE_DEBUG
 
 
 namespace libxstream_offload_internal {
@@ -147,7 +147,7 @@ public:
     return 0 != entry ? (offset - index) : (std::max<size_t>(offset - index, 1) - 1);
   }
 
-  void push(const libxstream_offload_region& offload_region, bool wait = true) {
+  void push(const libxstream_offload_region& offload_region, bool wait) {
     push(&offload_region, wait);
   }
 
@@ -168,8 +168,14 @@ private:
 #if defined(LIBXSTREAM_STDFEATURES)
     entry = m_buffer + (m_size++ % LIBXSTREAM_MAX_QSIZE);
 #elif defined(_OPENMP)
+    size_t size1 = 0;
+# if (201107 <= _OPENMP)
+#   pragma omp atomic capture
+# else
 #   pragma omp critical
-    entry = m_buffer + (m_size++ % LIBXSTREAM_MAX_QSIZE);
+# endif
+    size1 = ++m_size;
+    entry = m_buffer + ((size1 - 1) % LIBXSTREAM_MAX_QSIZE);
 #else // generic
     libxstream_lock_acquire(m_lock);
     entry = m_buffer + (m_size++ % LIBXSTREAM_MAX_QSIZE);
@@ -206,20 +212,21 @@ private:
     queue_type& q = *static_cast<queue_type*>(queue);
     value_type offload_region = 0;
 
+#if defined(LIBXSTREAM_ASYNCHOST) && defined(_OPENMP) && !defined(LIBXSTREAM_OFFLOAD)
+#   pragma omp parallel
+#   pragma omp master
+#endif
     for (;;) {
       while (0 == (offload_region = q.get())) {
         this_thread_yield();
       }
 
       if (terminator != offload_region) {
-        LIBXSTREAM_ASSERT(terminator != offload_region);
         (*offload_region)();
         delete offload_region;
-        LIBXSTREAM_ASSERT(terminator != offload_region);
         q.pop();
       }
       else {
-        LIBXSTREAM_ASSERT(terminator == offload_region);
         q.pop();
         break;
       }
@@ -248,32 +255,76 @@ private:
   HANDLE m_thread;
   size_t m_size;
 #endif
-#if defined(LIBXSTREAM_CAPTURE_USE_QUEUE)
-} queue;
-#else
+#if defined(LIBXSTREAM_CAPTURE_USE_DEBUG)
 };
+#else
+} queue;
 #endif
 /*static*/ const queue_type::value_type queue_type::terminator = reinterpret_cast<queue_type::value_type>(-1);
 
 } // namespace libxstream_offload_internal
 
 
-libxstream_offload_region::libxstream_offload_region(libxstream_stream* stream, size_t argc, const arg_type argv[])
-  : m_stream(stream)
+libxstream_offload_region::libxstream_offload_region(size_t argc, const arg_type argv[], libxstream_stream* stream, bool wait)
 #if defined(LIBXSTREAM_DEBUG)
-  , m_argc(argc)
+  : m_argc(argc)
+  , m_destruct(true)
+#else
+  : m_destruct(true)
 #endif
+  , m_wait(wait)
+#if defined(LIBXSTREAM_THREADLOCAL_SIGNALS)
+  , m_thread(this_thread_id())
+#else
+  , m_thread(-1)
+#endif
+  , m_stream(stream)
 {
   LIBXSTREAM_ASSERT(argc <= LIBXSTREAM_MAX_NARGS);
   for (size_t i = 0; i < argc; ++i) {
     m_argv[i] = argv[i];
   }
+
+  if (stream) {
+    if (!wait && 0 != stream->demux()) {
+      stream->lock(0 > stream->demux());
+    }
+    stream->begin();
+  }
+}
+
+
+libxstream_offload_region::~libxstream_offload_region()
+{
+  if (m_destruct && m_stream) {
+    m_stream->end();
+    if (m_wait && 0 != m_stream->demux()) {
+      m_stream->unlock();
+    }
+  }
+}
+
+
+libxstream_offload_region* libxstream_offload_region::clone() const
+{
+  libxstream_offload_region *const result = virtual_clone();
+  result->m_destruct = false;
+  return result;
+}
+
+
+void libxstream_offload_region::operator()() const
+{
+#if !defined(LIBXSTREAM_THREADLOCAL_SIGNALS)
+  m_thread = this_thread_id();
+#endif
+  virtual_run();
 }
 
 
 void libxstream_offload(const libxstream_offload_region& offload_region, bool wait)
 {
-#if defined(LIBXSTREAM_CAPTURE_USE_QUEUE)
+#if !defined(LIBXSTREAM_CAPTURE_USE_DEBUG)
   if (libxstream_offload_internal::queue.start()) {
     libxstream_offload_internal::queue.push(offload_region, wait);
   }
@@ -285,7 +336,7 @@ void libxstream_offload(const libxstream_offload_region& offload_region, bool wa
 
 void libxstream_offload_shutdown()
 {
-#if defined(LIBXSTREAM_CAPTURE_USE_QUEUE)
+#if !defined(LIBXSTREAM_CAPTURE_USE_DEBUG)
   libxstream_offload_internal::queue.terminate();
 #endif
 }
@@ -293,7 +344,7 @@ void libxstream_offload_shutdown()
 
 bool libxstream_offload_busy()
 {
-#if defined(LIBXSTREAM_CAPTURE_USE_QUEUE)
+#if !defined(LIBXSTREAM_CAPTURE_USE_DEBUG)
   //return 0 < libxstream_offload_internal::queue.size();
   return !libxstream_offload_internal::queue.empty();
 #else

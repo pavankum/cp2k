@@ -298,8 +298,16 @@ int deallocate_virtual(const void* memory)
 
 class context_type {
 public:
+#if defined(LIBXSTREAM_STDFEATURES)
+  typedef std::atomic<size_t> counter_type;
+#else
+  typedef size_t counter_type;
+#endif
+
+public:
   context_type()
     : m_lock(libxstream_lock_create())
+    , m_nthreads_active(0)
     , m_device(-2)
   {}
 
@@ -310,6 +318,10 @@ public:
 public:
   libxstream_lock* lock() { return m_lock; }
   int global_device() const { return m_device; }
+  
+  counter_type& nthreads_active() {
+    return m_nthreads_active;
+  }
 
   void global_device(int device) {
     libxstream_lock_acquire(m_lock);
@@ -327,6 +339,7 @@ public:
 
 private:
   libxstream_lock* m_lock;
+  counter_type m_nthreads_active;
   int m_device;
 } context;
 
@@ -525,26 +538,34 @@ bool libxstream_lock_try(libxstream_lock* lock)
 }
 
 
+size_t nthreads_active()
+{
+  const size_t result = libxstream_internal::context.nthreads_active();
+  LIBXSTREAM_ASSERT(result <= LIBXSTREAM_MAX_NTHREADS);
+  return result;
+}
+
+
 int this_thread_id()
 {
   static LIBXSTREAM_TLS int id = -1;
   if (0 > id) {
+    libxstream_internal::context_type::counter_type& nthreads_active = libxstream_internal::context.nthreads_active();
 #if defined(LIBXSTREAM_STDFEATURES)
-    static std::atomic<int> num_threads(0);
-    id = num_threads++;
+    id = static_cast<int>(nthreads_active++);
 #elif defined(_OPENMP)
-    static int num_threads = 0;
+    size_t nthreads = 0;
 # if (201107 <= _OPENMP)
 #   pragma omp atomic capture
 # else
 #   pragma omp critical
 # endif
-    id = num_threads++;
+    nthreads = ++nthreads_active;
+    id = static_cast<int>(nthreads - 1);
 #else // generic
-    static int num_threads = 0;
     libxstream_lock *const lock = libxstream_internal::context.lock();
     libxstream_lock_acquire(lock);
-    id = num_threads++;
+    id = static_cast<int>(nthreads_active++);
     libxstream_lock_release(lock);
 #endif
   }
@@ -564,7 +585,7 @@ void this_thread_yield()
 
 void this_thread_sleep(size_t ms)
 {
-#if defined(LIBXSTREAM_STDFEATURES) && !defined(__MIC__)
+#if defined(LIBXSTREAM_STDFEATURES) && defined(LIBXSTREAM_STDFEATURES_THREADX)
   typedef std::chrono::milliseconds milliseconds;
   LIBXSTREAM_ASSERT(ms <= static_cast<size_t>(std::numeric_limits<milliseconds::rep>::max() / 1000));
   const milliseconds interval(static_cast<milliseconds::rep>(ms));
@@ -766,16 +787,15 @@ extern "C" int libxstream_mem_deallocate(int device, const void* memory)
 
 extern "C" int libxstream_memset_zero(void* memory, size_t size, libxstream_stream* stream)
 {
+  LIBXSTREAM_PRINT_INFO("libxstream_memset_zero: buffer=0x%lx size=%lu stream=0x%lx",
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(memory)), static_cast<unsigned long>(size),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   LIBXSTREAM_CHECK_CONDITION(memory && stream);
 
   LIBXSTREAM_OFFLOAD_BEGIN(stream, memory, size)
   {
     char* dst = ptr<char,0>();
     const size_t size = val<const size_t,1>();
-
-    LIBXSTREAM_PRINT_INFO("libxstream_memset_zero: buffer=0x%lx size=%lu stream=0x%lx",
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(dst)), static_cast<unsigned long>(size),
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(LIBXSTREAM_OFFLOAD_STREAM)));
 
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_OFFLOAD_DEVICE) {
@@ -808,6 +828,10 @@ extern "C" int libxstream_memset_zero(void* memory, size_t size, libxstream_stre
 
 extern "C" int libxstream_memcpy_h2d(const void* host_mem, void* dev_mem, size_t size, libxstream_stream* stream)
 {
+  LIBXSTREAM_PRINT_INFO("libxstream_memcpy_h2d: 0x%lx->0x%lx size=%lu stream=0x%lx",
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(host_mem)),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(dev_mem)), static_cast<unsigned long>(size),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   LIBXSTREAM_CHECK_CONDITION(host_mem && dev_mem && stream);
 
   LIBXSTREAM_OFFLOAD_BEGIN(stream, host_mem, dev_mem, size)
@@ -815,11 +839,6 @@ extern "C" int libxstream_memcpy_h2d(const void* host_mem, void* dev_mem, size_t
     const char *const src = ptr<const char,0>();
     char *const dst = ptr<char,1>();
     const size_t size = val<const size_t,2>();
-
-    LIBXSTREAM_PRINT_INFO("libxstream_memcpy_h2d: 0x%lx->0x%lx size=%lu stream=0x%lx",
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(src)),
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(dst)), static_cast<unsigned long>(size),
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(LIBXSTREAM_OFFLOAD_STREAM)));
 
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_OFFLOAD_DEVICE) {
@@ -835,7 +854,19 @@ extern "C" int libxstream_memcpy_h2d(const void* host_mem, void* dev_mem, size_t
     else
 #endif
     {
+#if defined(LIBXSTREAM_ASYNCHOST)
+      if (LIBXSTREAM_OFFLOAD_READY) {
+#       pragma omp task depend(out:offload_region_signal) depend(in:LIBXSTREAM_OFFLOAD_PENDING)
+        std::copy(src, src + size, dst);
+      }
+      else {
+#       pragma omp task depend(out:offload_region_signal)
+        std::copy(src, src + size, dst);
+        ++offload_region_signal_consumed;
+      }
+#else
       std::copy(src, src + size, dst);
+#endif
     }
   }
   LIBXSTREAM_OFFLOAD_END(false);
@@ -846,6 +877,10 @@ extern "C" int libxstream_memcpy_h2d(const void* host_mem, void* dev_mem, size_t
 
 extern "C" int libxstream_memcpy_d2h(const void* dev_mem, void* host_mem, size_t size, libxstream_stream* stream)
 {
+  LIBXSTREAM_PRINT_INFO("libxstream_memcpy_d2h: 0x%lx->0x%lx size=%lu stream=0x%lx",
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(dev_mem)),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(host_mem)), static_cast<unsigned long>(size),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   LIBXSTREAM_CHECK_CONDITION(dev_mem && host_mem && stream);
 
   LIBXSTREAM_OFFLOAD_BEGIN(stream, dev_mem, host_mem, size)
@@ -853,11 +888,6 @@ extern "C" int libxstream_memcpy_d2h(const void* dev_mem, void* host_mem, size_t
     const char* src = ptr<const char,0>();
     char *const dst = ptr<char,1>();
     const size_t size = val<const size_t,2>();
-
-    LIBXSTREAM_PRINT_INFO("libxstream_memcpy_d2h: 0x%lx->0x%lx size=%lu stream=0x%lx",
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(src)),
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(dst)), static_cast<unsigned long>(size),
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(LIBXSTREAM_OFFLOAD_STREAM)));
 
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_OFFLOAD_DEVICE) {
@@ -884,6 +914,10 @@ extern "C" int libxstream_memcpy_d2h(const void* dev_mem, void* host_mem, size_t
 
 extern "C" int libxstream_memcpy_d2d(const void* src, void* dst, size_t size, libxstream_stream* stream)
 {
+  LIBXSTREAM_PRINT_INFO("libxstream_memcpy_d2d: 0x%lx->0x%lx size=%lu stream=0x%lx",
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(src)),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(dst)), static_cast<unsigned long>(size),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   LIBXSTREAM_CHECK_CONDITION(src && dst && stream);
 
   LIBXSTREAM_OFFLOAD_BEGIN(stream, src, dst, size)
@@ -891,11 +925,6 @@ extern "C" int libxstream_memcpy_d2d(const void* src, void* dst, size_t size, li
     const uint64_t *const src = ptr<const uint64_t,0>();
     uint64_t* dst = ptr<uint64_t,1>();
     const size_t size = val<const size_t,2>();
-
-    LIBXSTREAM_PRINT_INFO("libxstream_memcpy_d2d: 0x%lx->0x%lx size=%lu stream=0x%lx",
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(src)),
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(dst)), static_cast<unsigned long>(size),
-      static_cast<unsigned long>(reinterpret_cast<uintptr_t>(LIBXSTREAM_OFFLOAD_STREAM)));
 
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_OFFLOAD_DEVICE) {
@@ -1027,12 +1056,14 @@ extern "C" int libxstream_event_create(libxstream_event** event)
 {
   LIBXSTREAM_CHECK_CONDITION(event);
   *event = new libxstream_event;
+  LIBXSTREAM_PRINT_INFOCTX("event=0x%lx", static_cast<unsigned long>(reinterpret_cast<uintptr_t>(*event)));
   return LIBXSTREAM_ERROR_NONE;
 }
 
 
 extern "C" int libxstream_event_destroy(libxstream_event* event)
 {
+  LIBXSTREAM_PRINT_INFOCTX("event=0x%lx", static_cast<unsigned long>(reinterpret_cast<uintptr_t>(event)));
   delete event;
   return LIBXSTREAM_ERROR_NONE;
 }

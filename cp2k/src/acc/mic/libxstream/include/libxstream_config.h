@@ -68,6 +68,9 @@
  */
 #define LIBXSTREAM_ASYNC
 
+/** Not implemented yet. Must be disabled. */
+//#define LIBXSTREAM_ASYNCHOST
+
 /** SIMD width in Byte (actual alignment might be smaller). */
 #define LIBXSTREAM_MAX_SIMD 64
 
@@ -100,6 +103,12 @@
 
 /** Enables non-recursive locks. */
 #define LIBXSTREAM_LOCK_NONRECURSIVE
+
+/** Prefers OpenMP based locking primitives. */
+//#define LIBXSTREAM_PREFER_OPENMP
+
+/** Not implemented yet. Must be disabled. */
+//#define LIBXSTREAM_THREADLOCAL_SIGNALS
 
 /**
  * Below preprocessor symbols fixup some platform specifics.
