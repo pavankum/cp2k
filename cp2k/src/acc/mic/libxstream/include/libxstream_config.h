@@ -93,22 +93,22 @@
 #define LIBXSTREAM_MAX_NTHREADS 1024
 
 /** Number of milliseconds a lock can stall. */
-#define LIBXSTREAM_LOCK_WAIT_MS 1000
+#define LIBXSTREAM_LOCK_WAIT_MS 30
 
 /**
  * Number of times a locked stream must be discovered to be
  * "not alive" before unlocking the stream in question.
  */
-#define LIBXSTREAM_LOCK_RETRY 50
+#define LIBXSTREAM_LOCK_RETRY 1
 
 /** Enables non-recursive locks. */
 #define LIBXSTREAM_LOCK_NONRECURSIVE
 
-/** Prefers OpenMP based locking primitives. */
-//#define LIBXSTREAM_PREFER_OPENMP
-
 /** Not implemented yet. Must be disabled. */
 //#define LIBXSTREAM_THREADLOCAL_SIGNALS
+
+/** Prefers OpenMP based locking primitives. */
+//#define LIBXSTREAM_PREFER_OPENMP
 
 /**
  * Below preprocessor symbols fixup some platform specifics.
