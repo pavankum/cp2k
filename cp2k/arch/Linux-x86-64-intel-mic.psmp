@@ -117,7 +117,7 @@ ifeq (0,$(DBG))
     OPTFLAGS += -ipo-separate
   endif
 else
-  OPTFLAGS  += -O0 -g
+  OPTFLAGS  += -O0 -g -traceback
 endif
 
 ifneq (0,$(PAR))
