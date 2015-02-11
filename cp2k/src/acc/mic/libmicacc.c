@@ -36,8 +36,12 @@ int acc_stream_create(void** stream_p, const char* name, int priority)
 {
   int device = -1, result = libxstream_get_active_device(&device);
   LIBXSTREAM_CHECK_ERROR(result);
+#if defined(_OPENMP)
   const char *const demux_env = getenv("LIBXSTREAM_DEMUX");
-  const int demux = (demux_env && *demux_env) ? atoi(demux_env) : 0/*default*/;
+  const int demux = (demux_env && *demux_env) ? atoi(demux_env) : 0;
+#else
+  const int demux = 0;
+#endif
   result = libxstream_stream_create((libxstream_stream**)stream_p, device, demux, priority, name);
   return result;
 }
