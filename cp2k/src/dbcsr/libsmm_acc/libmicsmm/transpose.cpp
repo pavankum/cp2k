@@ -129,6 +129,10 @@ LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset, U nb
 template<typename T, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
 {
+  LIBXSTREAM_PRINT_INFOCTX("type=%s offset=%i size=%i m=%i n=%i buffer=0x%lx stream=0x%lx",
+    dbcsr_elem<T>::name(), offset, nblks, m, n,
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(buffer)),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   LIBXSTREAM_CHECK_CONDITION(
     stack && 0 <= offset && 0 <= nblocks
     && LIBMICSMM_MAX_MATRIX_SIZE >= (m * n)
@@ -179,11 +183,6 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
 
 extern "C" int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void* buffer, int datatype, int m, int n, void* stream)
 {
-#if defined(LIBMICSMM_USE_PRETRANSPOSE)
-  LIBXSTREAM_PRINT_INFOCTX("offset=%i size=%i m=%i n=%i buffer=0x%lx stream=0x%lx", offset, nblks, m, n,
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(buffer)),
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
-#endif
   const int *const stack = static_cast<const int*>(trs_stack);
   int result = LIBXSTREAM_ERROR_NONE;
 

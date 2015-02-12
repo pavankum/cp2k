@@ -13,11 +13,16 @@
 #include <complex>
 
 
-template<typename T> struct dbcsr_elem              { static const dbcsr_elem_type type = DBCSR_ELEM_UNKNOWN; };
-template<> struct dbcsr_elem<float>                 { static const dbcsr_elem_type type = DBCSR_ELEM_F32; };
-template<> struct dbcsr_elem<double>                { static const dbcsr_elem_type type = DBCSR_ELEM_F64; };
-template<> struct dbcsr_elem<std::complex<float> >  { static const dbcsr_elem_type type = DBCSR_ELEM_C32; };
-template<> struct dbcsr_elem<std::complex<double> > { static const dbcsr_elem_type type = DBCSR_ELEM_C64; };
+template<typename T> struct dbcsr_elem              { static const dbcsr_elem_type type = DBCSR_ELEM_UNKNOWN;
+                                                      static const char* name() { return "unknown"; } };
+template<> struct dbcsr_elem<float>                 { static const dbcsr_elem_type type = DBCSR_ELEM_F32;
+                                                      static const char* name() { return "f32"; } };
+template<> struct dbcsr_elem<double>                { static const dbcsr_elem_type type = DBCSR_ELEM_F64;
+                                                      static const char* name() { return "f64"; } };
+template<> struct dbcsr_elem<std::complex<float> >  { static const dbcsr_elem_type type = DBCSR_ELEM_C32;
+                                                      static const char* name() { return "c32"; } };
+template<> struct dbcsr_elem<std::complex<double> > { static const dbcsr_elem_type type = DBCSR_ELEM_C64;
+                                                      static const char* name() { return "c64"; } };
 
 #endif // defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)
 #endif // LIBMICSMM_HPP

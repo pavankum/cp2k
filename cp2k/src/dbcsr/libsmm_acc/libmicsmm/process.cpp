@@ -218,6 +218,12 @@ template<typename T, typename U>
 int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
   U def_mnk, void* stream)
 {
+  LIBXSTREAM_PRINT_INFOCTX("type=%s size=%i homogeneous=%s max_m=%i max_n=%i max_k=%i a=0x%lx b=0x%lx c=0x%lx stream=0x%lx",
+    dbcsr_elem<T>::name(), stack_size, 1 == def_mnk ? "true" : "false", max_m, max_n, max_k,
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(a_data)),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(b_data)),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(c_data)),
+    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   LIBXSTREAM_CHECK_CONDITION(
     stack && 0 <= stack_size && 0 <= nparams
     && 0 <= max_m && 0 <= max_n && 0 <= max_k
@@ -316,12 +322,6 @@ int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, 
 
 extern "C" int libsmm_acc_process(void* param_stack, int stack_size, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
 {
-  LIBXSTREAM_PRINT_INFOCTX("size=%i homogeneous=%s max_m=%i max_n=%i max_k=%i a=0x%lx b=0x%lx c=0x%lx stream=0x%lx",
-    stack_size, 1 == def_mnk ? "true" : "false", max_m, max_n, max_k,
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(a_data)),
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(b_data)),
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(c_data)),
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   const int *const stack = static_cast<const int*>(param_stack);
   int result = LIBXSTREAM_ERROR_NONE;
 
