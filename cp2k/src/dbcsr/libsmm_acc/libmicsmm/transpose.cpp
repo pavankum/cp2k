@@ -183,29 +183,29 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
 
 extern "C" int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void* buffer, int datatype, int m, int n, void* stream)
 {
-  const int *const stack = static_cast<const int*>(trs_stack);
   int result = LIBXSTREAM_ERROR_NONE;
 
+#if defined(LIBMICSMM_USE_PRETRANSPOSE)
+  const int *const stack = static_cast<const int*>(trs_stack);
   switch(static_cast<dbcsr_elem_type>(datatype)) {
     case DBCSR_ELEM_F32: {
-#if defined(LIBMICSMM_USE_PRETRANSPOSE)
       result = libmicsmm_transpose_private::transpose<float>(stack, offset, nblks, m, n, buffer, stream);
-#endif
     } break;
     case DBCSR_ELEM_F64: {
-#if defined(LIBMICSMM_USE_PRETRANSPOSE)
       result = libmicsmm_transpose_private::transpose<double>(stack, offset, nblks, m, n, buffer, stream);
-#endif
     } break;
     case DBCSR_ELEM_C32: {
-      //result = LIBXSTREAM_ERROR_CONDITION;
+      LIBXSTREAM_ASSERT(false/*TODO: not implemented yet*/);
+      result = LIBXSTREAM_ERROR_CONDITION;
     } break;
     case DBCSR_ELEM_C64: {
-      //result = LIBXSTREAM_ERROR_CONDITION;
+      LIBXSTREAM_ASSERT(false/*TODO: not implemented yet*/);
+      result = LIBXSTREAM_ERROR_CONDITION;
     } break;
     default:
       result = LIBXSTREAM_ERROR_CONDITION;
   }
+#endif
 
   return result;
 }
