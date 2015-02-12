@@ -327,7 +327,8 @@ extern "C" int libsmm_acc_process(void* param_stack, int stack_size, int nparams
 
   switch(static_cast<dbcsr_elem_type>(datatype)) {
     case DBCSR_ELEM_F32: {
-      result = libmicsmm_process_private::process<float>(stack, stack_size, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
+      //result = libmicsmm_process_private::process<float>(stack, stack_size, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
+      result = LIBXSTREAM_ERROR_CONDITION;
     } break;
     case DBCSR_ELEM_F64: {
       result = libmicsmm_process_private::process<double>(stack, stack_size, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
