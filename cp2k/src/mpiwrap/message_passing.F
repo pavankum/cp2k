@@ -981,14 +981,14 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief returns number of tasks and task id for a given mpi group
-!>       simple and cartesian version
+!>       simple and cartesian version.. recursive needed in case of failing mpi_comm_rank.
 !> \param numtask ...
 !> \param taskid ...
 !> \param groupid mpi communicator
 !> \note
 !>         ..mp_world_setup is gone, use mp_environ instead (i.e. give a groupid explicitly)
 ! *****************************************************************************
-  SUBROUTINE mp_environ_l ( numtask, taskid, groupid )
+  RECURSIVE SUBROUTINE mp_environ_l ( numtask, taskid, groupid )
 
     INTEGER, INTENT(OUT)                     :: numtask, taskid
     INTEGER, INTENT(IN)                      :: groupid
