@@ -2047,21 +2047,12 @@ CONTAINS
 !> \param a0 ...
 !> \param a1 ...
 !> \param a2 ...
-!> \param a3 ...
-!> \param a4 ...
-!> \param a5 ...
-!> \param a6 ...
-!> \param a7 ...
-!> \param a8 ...
-!> \param a9 ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_dbcsr_function_of_elements(matrix_a, func, a0, a1, a2, a3, a4,& 
-    a5, a6, a7, a8, a9, error) 
+  SUBROUTINE cp_dbcsr_function_of_elements(matrix_a, func, a0, a1, a2, error) 
     TYPE(cp_dbcsr_type), INTENT(INOUT)       :: matrix_a
     INTEGER, INTENT(IN)                      :: func
-    REAL(kind=dp), INTENT(IN), OPTIONAL      :: a0, a1, a2, a3, a4, a5, a6, &
-                                                a7, a8, a9
+    REAL(kind=dp), INTENT(IN), OPTIONAL      :: a0, a1, a2
     TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: &
@@ -2070,8 +2061,7 @@ CONTAINS
 
     TYPE(dbcsr_error_type)                   :: dbcsr_error
 
-    CALL dbcsr_function_of_elements(matrix_a%matrix,func,a0,a1,a2,a3,a4,a5,a6,& 
-            a7,a8,a9,dbcsr_error) 
+    CALL dbcsr_function_of_elements(matrix_a%matrix,func,a0,a1,a2,dbcsr_error) 
   END SUBROUTINE cp_dbcsr_function_of_elements 
  
 ! *****************************************************************************
@@ -2651,16 +2641,18 @@ CONTAINS
 !> \param nze_total ...
 !> \param nze_local ...
 !> \param nrows_local ...
+!> \param mp_group ...
 !> \param data_type ...
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_csr_create_new(csr_mat, nrows_total, ncols_total, nze_total,&
-                            nze_local, nrows_local, data_type, error)
+                               nze_local, nrows_local, mp_group, data_type, error)
 
     TYPE(csr_type), INTENT(OUT)              :: csr_mat
     INTEGER, INTENT(IN)                      :: nrows_total, ncols_total
     INTEGER(KIND=int_8)                      :: nze_total
-    INTEGER, INTENT(IN)                      :: nze_local, nrows_local
+    INTEGER, INTENT(IN)                      :: nze_local, nrows_local, &
+                                                mp_group
     INTEGER, INTENT(IN), OPTIONAL            :: data_type
     TYPE(cp_error_type), INTENT(INOUT)       :: error
 
@@ -2670,7 +2662,7 @@ CONTAINS
     TYPE(dbcsr_error_type)                   :: dbcsr_error
 
     CALL csr_create_new(csr_mat, nrows_total, ncols_total, nze_total,&
-                            nze_local, nrows_local, data_type, dbcsr_error)
+                        nze_local, nrows_local, mp_group, data_type, dbcsr_error)
   END SUBROUTINE
 
 ! *****************************************************************************
