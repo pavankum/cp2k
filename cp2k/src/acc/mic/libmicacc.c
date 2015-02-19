@@ -8,6 +8,7 @@
 
 #include "libmicacc.h"
 #include <libxstream.h>
+#include <stdlib.h>
 
 
 int acc_get_ndevices(int* n_devices)
