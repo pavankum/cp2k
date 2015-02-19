@@ -28,8 +28,22 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#include "libxstream.h"
+#ifndef LIBXSTREAM_CONTEXT_HPP
+#define LIBXSTREAM_CONTEXT_HPP
 
-#if defined(LIBXSTREAM_OFFLOAD)
-# pragma offload_attribute(push,target(mic))
-#endif
+#include <libxstream_argument.hpp>
+
+#if defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+
+
+struct LIBXSTREAM_TARGET(mic) libxstream_context {
+  static libxstream_context& instance();
+  static libxstream_context& instance(const libxstream_argument arguments[], size_t arity);
+  libxstream_argument signature[(LIBXSTREAM_MAX_NARGS)+1];
+};
+
+
+LIBXSTREAM_TARGET(mic) const libxstream_argument* libxstream_find(const libxstream_context& context, const void* variable);
+
+#endif // defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+#endif // LIBXSTREAM_CONTEXT_HPP

@@ -4,7 +4,7 @@ CXX=$(which icpc 2> /dev/null)
 
 ICCOPT="-O2 -xHost -ansi-alias -DNDEBUG"
 GCCOPT="-O2 -march=native -DNDEBUG"
-ROOT="../.."
+LIBXSTREAM_ROOT="../.."
 
 if [ "" = "$CXX" ] ; then
   OPT=$GCCOPT
@@ -18,7 +18,7 @@ if [ "-g" = "$1" ] ; then
   shift
 fi
 
-$CXX -std=c++0x $OPT $* -lpthread \
-  -D__ACC -D__ACC_MIC \
-  -I$ROOT/include -I. $ROOT/src/*.cpp test.cpp \
+$CXX -Wall -std=c++0x $OPT $* -lpthread \
+  -I$LIBXSTREAM_ROOT/include -I$LIBXSTREAM_ROOT/src -DLIBXSTREAM_EXPORTED \
+  $LIBXSTREAM_ROOT/src/*.cpp test.cpp \
   -o test

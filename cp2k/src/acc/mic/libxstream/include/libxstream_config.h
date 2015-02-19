@@ -69,7 +69,7 @@
 #define LIBXSTREAM_ASYNC
 
 /** Not implemented yet. Must be disabled. */
-//#define LIBXSTREAM_ASYNCHOST
+/*#define LIBXSTREAM_ASYNCHOST*/
 
 /** SIMD width in Byte (actual alignment might be smaller). */
 #define LIBXSTREAM_MAX_SIMD 64
@@ -83,6 +83,9 @@
 /** Maximum number of streams per device. */
 #define LIBXSTREAM_MAX_NSTREAMS 16
 
+/** Maximum dimensionality of arrays. */
+#define LIBXSTREAM_MAX_NDIMS 4
+
 /** Maximum number of arguments in offload structure. */
 #define LIBXSTREAM_MAX_NARGS 16
 
@@ -93,13 +96,13 @@
 #define LIBXSTREAM_MAX_NTHREADS 1024
 
 /** Number of milliseconds a lock can stall. */
-#define LIBXSTREAM_LOCK_WAIT_MS 30
+#define LIBXSTREAM_LOCK_WAIT_MS 200
 
 /**
  * Number of times a locked stream must be discovered to be
  * "not alive" before unlocking the stream in question.
  */
-#define LIBXSTREAM_LOCK_RETRY 1
+#define LIBXSTREAM_LOCK_RETRY 3
 
 /** Enables non-recursive locks. */
 #define LIBXSTREAM_LOCK_NONRECURSIVE
@@ -110,8 +113,17 @@
  */
 #define LIBXSTREAM_THREADLOCAL_SIGNALS
 
+/**
+ * Impacts the expected signature of the user's function. Passing arguments by value
+ * requires to use the VALUE attribute available with Fortran's ISO_C_BINDING module.
+ */
+/*#define LIBXSTREAM_PASS_BY_VALUE*/
+
 /** Prefers OpenMP based locking primitives. */
-//#define LIBXSTREAM_PREFER_OPENMP
+/*#define LIBXSTREAM_PREFER_OPENMP*/
+
+/** Enable exporting internal C++ interfaces (legacy). */
+/*#define LIBXSTREAM_INTERNAL*/
 
 /**
  * Below preprocessor symbols fixup some platform specifics.
@@ -132,4 +144,4 @@
 # define NOMINMAX 1
 #endif
 
-#endif // LIBXSTREAM_CONFIG_H
+#endif /*LIBXSTREAM_CONFIG_H*/

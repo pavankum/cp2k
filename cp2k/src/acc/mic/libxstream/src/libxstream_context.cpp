@@ -28,81 +28,37 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#ifndef LIBXSTREAM_CAPTURE_HPP
-#define LIBXSTREAM_CAPTURE_HPP
+#include "libxstream_context.hpp"
 
 
-struct libxstream_stream;
+libxstream_context& libxstream_context::instance()
+{
+  static LIBXSTREAM_TLS libxstream_context context;
+  return context;
+}
 
 
-struct libxstream_offload_region {
-public:
-  struct arg_type {
-    union { void* p; double d; } value;
-#if defined(LIBXSTREAM_DEBUG)
-    size_t size;
-#endif
-
-    arg_type()
-#if defined(LIBXSTREAM_DEBUG)
-      : size(0)
-#endif
-    {
-      value.p = 0; value.d = 0;
-    }
-
-    template<typename T> arg_type(T arg)
-#if defined(LIBXSTREAM_DEBUG)
-      : size(sizeof(T))
-#endif
-    {
-      const unsigned char *const src = reinterpret_cast<const unsigned char*>(&arg);
-      unsigned char *const dst = reinterpret_cast<unsigned char*>(&value);
-      for (size_t i = 0; i < sizeof(T); ++i) dst[i] = src[i];
-      for (size_t i = sizeof(T); i < sizeof(value); ++i) dst[i] = 0;
-    }
-  };
-
-public:
-  libxstream_offload_region(size_t argc, const arg_type argv[], libxstream_stream* stream, bool wait, bool sync);
-  virtual ~libxstream_offload_region();
-
-public:
-  template<typename T,size_t i> T* ptr() const {
-    LIBXSTREAM_ASSERT(i < m_argc && sizeof(T*) <= m_argv[i].size);
-    return static_cast<T*>(m_argv[i].value.p);
+libxstream_context& libxstream_context::instance(const libxstream_argument arguments[], size_t arity)
+{
+  libxstream_context& context = instance();
+  for (size_t i = 0; i <= arity; ++i) {
+    context.signature[i] = arguments[i];
   }
+  return context;
+}
 
-  template<typename T,size_t i> T val() const {
-    LIBXSTREAM_ASSERT(i < m_argc && sizeof(T) <= m_argv[i].size);
-    return *reinterpret_cast<const T*>(m_argv + i);
+
+LIBXSTREAM_TARGET(mic) const libxstream_argument* libxstream_find(const libxstream_context& context, const void* variable)
+{
+  const libxstream_argument* argument = 0;
+  if (context.signature) {
+    for (const libxstream_argument* argi = context.signature; LIBXSTREAM_TYPE_VOID != argi->type; ++argi) {
+      LIBXSTREAM_ASSERT(libxstream_argument::kind_invalid != argi->kind);
+      if (variable == libxstream_get_data(*argi)) {
+        argument = argi;
+        break;
+      }
+    }
   }
-
-  libxstream_offload_region* clone() const;
-  void operator()() const;
-  int thread() const;
-
-private:
-  virtual libxstream_offload_region* virtual_clone() const = 0;
-  virtual void virtual_run() const = 0;
-
-private:
-  arg_type m_argv[LIBXSTREAM_MAX_NARGS];
-#if defined(LIBXSTREAM_DEBUG)
-  size_t m_argc;
-#endif
-  bool m_destruct, m_sync;
-#if defined(LIBXSTREAM_THREADLOCAL_SIGNALS)
-  int m_thread;
-#endif
-
-protected:
-  libxstream_stream* m_stream;
-};
-
-
-void libxstream_offload(const libxstream_offload_region& offload_region, bool wait);
-void libxstream_offload_shutdown();
-bool libxstream_offload_busy();
-
-#endif // LIBXSTREAM_CAPTURE_HPP
+  return argument;
+}

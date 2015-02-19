@@ -28,25 +28,33 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#ifndef LIBXSTREAM_HPP
-#define LIBXSTREAM_HPP
+#ifndef LIBXSTREAM_ALLOC_HPP
+#define LIBXSTREAM_ALLOC_HPP
 
-#include "libxstream.h"
+#include <libxstream_macros.h>
+#include <cstddef>
 
-typedef void libxstream_lock;
-libxstream_lock* libxstream_lock_create();
-void libxstream_lock_destroy(libxstream_lock* lock);
-void libxstream_lock_acquire(libxstream_lock* lock);
-void libxstream_lock_release(libxstream_lock* lock);
-bool libxstream_lock_try(libxstream_lock* lock);
+#if defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
 
-size_t nthreads_active();
-int this_thread_id();
-void this_thread_yield();
-void this_thread_sleep(size_t ms);
 
-#include "libxstream_capture.hpp"
-#include "libxstream_stream.hpp"
-#include "libxstream_event.hpp"
+LIBXSTREAM_TARGET(mic) size_t libxstream_gcd(size_t a, size_t b);
+LIBXSTREAM_TARGET(mic) size_t libxstream_lcm(size_t a, size_t b);
 
-#endif // LIBXSTREAM_HPP
+LIBXSTREAM_TARGET(mic) size_t libxstream_alignment(size_t size, size_t alignment);
+LIBXSTREAM_TARGET(mic) size_t libxstream_align(size_t size, size_t alignment);
+
+LIBXSTREAM_TARGET(mic) size_t libxstream_linear_size(size_t dims, const size_t shape[], size_t initial_size = 1);
+LIBXSTREAM_TARGET(mic) int libxstream_linear_offset(size_t dims, const int offset[], const size_t shape[]);
+LIBXSTREAM_TARGET(mic) size_t libxstream_linear_address(size_t dims, const int offset[], const size_t shape[], const size_t pitch[]);
+
+int libxstream_real_allocate(void** memory, size_t size, size_t alignment);
+int libxstream_real_deallocate(const void* memory);
+
+int libxstream_virt_allocate(void** memory, size_t size, size_t alignment, const void* data = 0, size_t data_size = 0);
+int libxstream_virt_deallocate(const void* memory);
+
+void* libxstream_virt_data(void* memory);
+const void* libxstream_virt_data(const void* memory);
+
+#endif // defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+#endif // LIBXSTREAM_ALLOC_HPP

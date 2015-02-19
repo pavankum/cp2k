@@ -28,8 +28,36 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#include "libxstream.h"
+#ifndef LIBXSTREAM_HPP
+#define LIBXSTREAM_HPP
 
-#if defined(LIBXSTREAM_OFFLOAD)
-# pragma offload_attribute(push,target(mic))
-#endif
+#include <libxstream.h>
+
+#if defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+
+
+/** Data type representing a signal. */
+typedef uintptr_t libxstream_signal;
+
+typedef void libxstream_lock;
+libxstream_lock* libxstream_lock_create();
+void libxstream_lock_destroy(libxstream_lock* lock);
+void libxstream_lock_acquire(libxstream_lock* lock);
+void libxstream_lock_release(libxstream_lock* lock);
+bool libxstream_lock_try(libxstream_lock* lock);
+
+size_t nthreads_active();
+int this_thread_id();
+void this_thread_yield();
+void this_thread_sleep(size_t ms);
+
+#include "libxstream_alloc.hpp"
+#include "libxstream_argument.hpp"
+#include "libxstream_capture.hpp"
+#include "libxstream_context.hpp"
+#include "libxstream_event.hpp"
+#include "libxstream_offload.hpp"
+#include "libxstream_stream.hpp"
+
+#endif // defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+#endif // LIBXSTREAM_HPP

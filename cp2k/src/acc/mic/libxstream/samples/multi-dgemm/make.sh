@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOT="../.."
+LIBXSTREAM_ROOT="../.."
 
 CXX=$(which icpc 2> /dev/null)
 
@@ -26,7 +26,7 @@ else
   OPT+=" -DNDEBUG"
 fi
 
-$CXX -std=c++0x $OPT $* -lpthread \
-  -D__ACC -D__ACC_MIC -I$ROOT/include \
-  $ROOT/src/*.cpp multi-dgemm-type.cpp multi-dgemm.cpp \
+$CXX -Wall -std=c++0x $OPT $* -lpthread \
+  -I$LIBXSTREAM_ROOT/include -I$LIBXSTREAM_ROOT/src -DLIBXSTREAM_EXPORTED \
+  $LIBXSTREAM_ROOT/src/*.cpp multi-dgemm-type.cpp multi-dgemm.cpp \
   $LNK -o multi-dgemm

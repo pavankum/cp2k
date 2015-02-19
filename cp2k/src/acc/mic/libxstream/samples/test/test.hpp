@@ -31,7 +31,7 @@
 #ifndef TEST_HPP
 #define TEST_HPP
 
-#include <libxstream.hpp>
+#include <libxstream.h>
 
 
 class test_type {
@@ -41,6 +41,7 @@ public:
 
 private:
   int m_device;
+  libxstream_argument* m_signature;
   libxstream_stream* m_stream;
   libxstream_event* m_event;
   void* m_host_mem;

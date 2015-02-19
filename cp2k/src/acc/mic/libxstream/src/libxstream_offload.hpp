@@ -28,4 +28,15 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#include <libxstream_end.h>
+#ifndef LIBXSTREAM_OFFLOAD_HPP
+#define LIBXSTREAM_OFFLOAD_HPP
+
+#include <libxstream.h>
+
+#if defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+
+
+int libxstream_offload(libxstream_function function, const libxstream_argument* signature, libxstream_stream* stream, bool wait);
+
+#endif // defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+#endif // LIBXSTREAM_OFFLOAD_HPP

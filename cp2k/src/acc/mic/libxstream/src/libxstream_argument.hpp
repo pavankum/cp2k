@@ -28,44 +28,61 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#ifndef LIBXSTREAM_EVENT_HPP
-#define LIBXSTREAM_EVENT_HPP
+#ifndef LIBXSTREAM_ARGUMENT_HPP
+#define LIBXSTREAM_ARGUMENT_HPP
+
+#include <libxstream.h>
+
+#if defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
 
 
-struct libxstream_stream;
-
-
-struct libxstream_event {
-private:
-  class slot_type {
-    libxstream_stream* m_stream;
-    mutable libxstream_signal m_pending;
-  public:
-    slot_type(): m_stream(0), m_pending(0) {}
-    slot_type(int thread, libxstream_stream& stream);
-    libxstream_stream& stream() { return *m_stream; }
-    libxstream_signal pending() const { return m_pending; }
-    void pending(libxstream_signal signal) { m_pending = signal; }
-    bool match(const libxstream_stream* stream) const {
-      return !stream || stream == m_stream;
-    }
+extern "C" struct LIBXSTREAM_TARGET(mic) libxstream_argument {
+  enum kind_type {
+    kind_invalid  = 0,
+    kind_input    = 1,
+    kind_output   = 2,
+    kind_inout    = kind_output | kind_input,
   };
 
-  static void enqueue(int thread, libxstream_stream& stream, libxstream_event::slot_type slots[], size_t& expected, bool reset);
-  static void update(int thread, libxstream_event::slot_type& slot);
+  // This data member *must* be the first!
+  union element_union {
+    char data[sizeof(void*)];
+    void* pointer;
+    signed char i8;
+    unsigned char u8;
+    short i16;
+    unsigned u16;
+    int i32;
+    unsigned int u32;
+    long long i64;
+    unsigned long long u64;
+    float f32;
+    double f64;
+    float c32[2];
+    double c64[2];
+    char c;
+  } data;
 
-public:
-  libxstream_event();
-
-public:
-  size_t expected() const;
-  void enqueue(libxstream_stream& stream, bool reset);
-  int query(bool& occurred, libxstream_stream* stream) const;
-  int wait(libxstream_stream* stream);
-
-private:
-  size_t m_expected;
-  mutable slot_type m_slots[LIBXSTREAM_MAX_NDEVICES*LIBXSTREAM_MAX_NSTREAMS];
+  size_t shape[LIBXSTREAM_MAX_NDIMS];
+  kind_type kind;
+  libxstream_type type;
+  size_t dims;
 };
 
-#endif // LIBXSTREAM_EVENT_HPP
+
+LIBXSTREAM_EXPORT_INTERNAL int libxstream_construct(libxstream_argument& arg, libxstream_argument::kind_type kind, const void* value, libxstream_type type, size_t dims, const size_t shape[]);
+int libxstream_construct(libxstream_argument* signature, size_t nargs);
+
+LIBXSTREAM_EXPORT_INTERNAL LIBXSTREAM_TARGET(mic) char* libxstream_get_data(const libxstream_argument& arg);
+LIBXSTREAM_TARGET(mic) int libxstream_set_data(libxstream_argument& arg, const void* data);
+
+LIBXSTREAM_TARGET(mic) inline char* libxstream_address(libxstream_argument& arg) {
+  return reinterpret_cast<char*>(&arg);
+}
+
+LIBXSTREAM_TARGET(mic) inline const char* libxstream_address(const libxstream_argument& arg) {
+  return reinterpret_cast<const char*>(&arg);
+}
+
+#endif // defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+#endif // LIBXSTREAM_ARGUMENT_HPP

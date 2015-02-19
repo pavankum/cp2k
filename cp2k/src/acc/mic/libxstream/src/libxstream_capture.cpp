@@ -28,8 +28,10 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#include <libxstream.hpp>
+#include "libxstream_capture.hpp"
 #include <algorithm>
+#include <stdexcept>
+#include <cstdio>
 
 #if defined(LIBXSTREAM_STDFEATURES)
 # include <thread>
@@ -42,29 +44,27 @@
 # endif
 #endif
 
-//#define LIBXSTREAM_CAPTURE_USE_DEBUG
+//#define LIBXSTREAM_CAPTURE_DEBUG
+//#define LIBXSTREAM_CAPTURE_UNLOCK_EARLY
 
 
-namespace libxstream_offload_internal {
+namespace libxstream_capture_internal {
 
 class queue_type {
 public:
-  typedef const libxstream_offload_region* value_type;
+  typedef const libxstream_capture_base* value_type;
   queue_type()
     : m_lock(libxstream_lock_create())
     , m_terminated(false)
     , m_index(0)
 #if defined(LIBXSTREAM_STDFEATURES)
-    , m_thread(run, this)
+    , m_thread() // do not start here
 #else
     , m_thread(0)
 #endif
     , m_size(0)
   {
     std::fill_n(m_buffer, LIBXSTREAM_MAX_QSIZE, static_cast<value_type>(0));
-#if !defined(LIBXSTREAM_STDFEATURES)
-    start();
-#endif
   }
 
   ~queue_type() {
@@ -147,8 +147,8 @@ public:
     return 0 != entry ? (offset - index) : (std::max<size_t>(offset - index, 1) - 1);
   }
 
-  void push(const libxstream_offload_region& offload_region, bool wait) {
-    push(&offload_region, wait);
+  void push(const libxstream_capture_base& capture_region, bool wait) {
+    push(&capture_region, wait);
   }
 
   value_type get() const { // not thread-safe!
@@ -162,8 +162,8 @@ public:
   }
 
 private:
-  void push(const value_type& offload_region, bool wait) {
-    LIBXSTREAM_ASSERT(0 != offload_region);
+  void push(const value_type& capture_region, bool wait) {
+    LIBXSTREAM_ASSERT(0 != capture_region);
     value_type* entry = 0;
 #if defined(LIBXSTREAM_STDFEATURES)
     entry = m_buffer + (m_size++ % LIBXSTREAM_MAX_QSIZE);
@@ -194,10 +194,11 @@ private:
     }
 
     LIBXSTREAM_ASSERT(0 == *entry);
-    *entry = terminator != offload_region ? offload_region->clone() : terminator;
+    const value_type new_entry = terminator != capture_region ? capture_region->clone() : terminator;
+    *entry = new_entry;
 
     if (wait) {
-      while (0 != *entry) {
+      while (new_entry == *entry) {
         this_thread_yield();
       }
     }
@@ -210,20 +211,20 @@ private:
 #endif
   {
     queue_type& q = *static_cast<queue_type*>(queue);
-    value_type offload_region = 0;
+    value_type capture_region = 0;
 
 #if defined(LIBXSTREAM_ASYNCHOST) && defined(_OPENMP) && !defined(LIBXSTREAM_OFFLOAD)
 #   pragma omp parallel
 #   pragma omp master
 #endif
     for (;;) {
-      while (0 == (offload_region = q.get())) {
+      while (0 == (capture_region = q.get())) {
         this_thread_yield();
       }
 
-      if (terminator != offload_region) {
-        (*offload_region)();
-        delete offload_region;
+      if (terminator != capture_region) {
+        (*capture_region)();
+        delete capture_region;
         q.pop();
       }
       else {
@@ -255,22 +256,22 @@ private:
   HANDLE m_thread;
   size_t m_size;
 #endif
-#if defined(LIBXSTREAM_CAPTURE_USE_DEBUG)
+#if defined(LIBXSTREAM_CAPTURE_DEBUG)
 };
 #else
 } queue;
 #endif
 /*static*/ const queue_type::value_type queue_type::terminator = reinterpret_cast<queue_type::value_type>(-1);
 
-} // namespace libxstream_offload_internal
+} // namespace libxstream_capture_internal
 
 
-libxstream_offload_region::libxstream_offload_region(size_t argc, const arg_type argv[], libxstream_stream* stream, bool wait, bool sync)
-#if defined(LIBXSTREAM_DEBUG)
-  : m_argc(argc)
-  , m_destruct(true)
+libxstream_capture_base::libxstream_capture_base(size_t argc, const arg_type argv[], libxstream_stream* stream, bool wait, bool sync)
+  : m_function(0)
+#if defined(LIBXSTREAM_CAPTURE_UNLOCK_EARLY)
+  , m_unlock(true)
 #else
-  : m_destruct(true)
+  , m_unlock(false)
 #endif
   , m_sync(sync)
 #if defined(LIBXSTREAM_THREADLOCAL_SIGNALS)
@@ -279,9 +280,29 @@ libxstream_offload_region::libxstream_offload_region(size_t argc, const arg_type
 #endif
   , m_stream(stream)
 {
-  LIBXSTREAM_ASSERT(argc <= LIBXSTREAM_MAX_NARGS);
-  for (size_t i = 0; i < argc; ++i) {
-    m_argv[i] = argv[i];
+  if (2 == argc && (argv[0].signature() || argv[1].signature())) {
+    const libxstream_argument* signature = 0;
+    if (argv[1].signature()) {
+      m_function = *reinterpret_cast<const libxstream_function*>(libxstream_address(argv[0]));
+      signature = reinterpret_cast<const libxstream_argument*>(libxstream_get_data(argv[1]));
+    }
+    else {
+      LIBXSTREAM_ASSERT(argv[0].signature());
+      m_function = *reinterpret_cast<const libxstream_function*>(libxstream_address(argv[1]));
+      signature = reinterpret_cast<const libxstream_argument*>(libxstream_get_data(argv[0]));
+    }
+
+    size_t arity = 0;
+    libxstream_fn_arity(signature, &arity);
+    for (size_t i = 0; i <= arity; ++i) m_signature[i] = signature[i];
+  }
+  else {
+    for (size_t i = 0; i < argc; ++i) m_signature[i] = argv[i];
+    libxstream_construct(m_signature[argc], libxstream_argument::kind_invalid, 0, LIBXSTREAM_TYPE_VOID, 0, 0);
+#if defined(LIBXSTREAM_DEBUG)
+    size_t arity = 0;
+    LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_arity(m_signature, &arity) && arity == argc);
+#endif
   }
 
   if (stream) {
@@ -293,9 +314,9 @@ libxstream_offload_region::libxstream_offload_region(size_t argc, const arg_type
 }
 
 
-libxstream_offload_region::~libxstream_offload_region()
+libxstream_capture_base::~libxstream_capture_base()
 {
-  if (m_destruct && m_stream) {
+  if (m_unlock && m_stream) {
     m_stream->end();
     if (m_sync && 0 != m_stream->demux()) {
       m_stream->unlock();
@@ -304,21 +325,25 @@ libxstream_offload_region::~libxstream_offload_region()
 }
 
 
-libxstream_offload_region* libxstream_offload_region::clone() const
+libxstream_capture_base* libxstream_capture_base::clone() const
 {
-  libxstream_offload_region *const result = virtual_clone();
-  result->m_destruct = false;
-  return result;
+  libxstream_capture_base *const instance = virtual_clone();
+#if defined(LIBXSTREAM_CAPTURE_UNLOCK_EARLY)
+  instance->m_unlock = false;
+#else
+  instance->m_unlock = true;
+#endif
+  return instance;
 }
 
 
-void libxstream_offload_region::operator()() const
+void libxstream_capture_base::operator()() const
 {
   virtual_run();
 }
 
 
-int libxstream_offload_region::thread() const
+int libxstream_capture_base::thread() const
 {
 #if defined(LIBXSTREAM_THREADLOCAL_SIGNALS)
   return m_thread;
@@ -328,32 +353,21 @@ int libxstream_offload_region::thread() const
 }
 
 
-void libxstream_offload(const libxstream_offload_region& offload_region, bool wait)
+LIBXSTREAM_EXPORT_INTERNAL void libxstream_offload(const libxstream_capture_base& capture_region, bool wait)
 {
-#if !defined(LIBXSTREAM_CAPTURE_USE_DEBUG)
-  if (libxstream_offload_internal::queue.start()) {
-    libxstream_offload_internal::queue.push(offload_region, wait);
+#if !defined(LIBXSTREAM_CAPTURE_DEBUG)
+  if (libxstream_capture_internal::queue.start()) {
+    libxstream_capture_internal::queue.push(capture_region, wait);
   }
 #else
-  offload_region();
+  capture_region();
 #endif
 }
 
 
-void libxstream_offload_shutdown()
+void libxstream_capture_shutdown()
 {
-#if !defined(LIBXSTREAM_CAPTURE_USE_DEBUG)
-  libxstream_offload_internal::queue.terminate();
-#endif
-}
-
-
-bool libxstream_offload_busy()
-{
-#if !defined(LIBXSTREAM_CAPTURE_USE_DEBUG)
-  //return 0 < libxstream_offload_internal::queue.size();
-  return !libxstream_offload_internal::queue.empty();
-#else
-  return false;
+#if !defined(LIBXSTREAM_CAPTURE_DEBUG)
+  libxstream_capture_internal::queue.terminate();
 #endif
 }

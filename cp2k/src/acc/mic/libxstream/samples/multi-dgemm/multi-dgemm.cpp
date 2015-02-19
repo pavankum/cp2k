@@ -29,37 +29,40 @@
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
 #include "multi-dgemm-type.hpp"
-#include <libxstream.hpp>
 #include <stdexcept>
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <vector>
-#include <cmath>
 
+#include <libxstream_begin.h>
+#include <cmath>
 #if defined(_OPENMP)
 # include <omp.h>
 #endif
+#include <libxstream_end.h>
 
 //#define MULTI_DGEMM_USE_NESTED
-#define MULTI_DGEMM_USE_EVENTS
+#define MULTI_DGEMM_USE_SYNC 1
 #define MULTI_DGEMM_USE_CHECK
 
 #define DGEMM dgemm_
 
 
-LIBXSTREAM_EXTERN_C LIBXSTREAM_EXPORT void DGEMM(
+LIBXSTREAM_IMPORT_C LIBXSTREAM_TARGET(mic) void DGEMM(
   const char*, const char*, const int*, const int*, const int*,
   const double*, const double*, const int*, const double*, const int*,
   const double*, double*, const int*);
 
 
-LIBXSTREAM_EXPORT void process(int size, int nn, const size_t* idata,
+LIBXSTREAM_TARGET(mic) void process(size_t size, size_t nn, const size_t* idata,
   const double* adata, const double* bdata, double* cdata)
 {
   if (0 < size) {
     static const double alpha = 1, beta = 1;
     static const char trans = 'N';
+    const int isize = static_cast<int>(size);
     const size_t base = idata[0];
 
 #if defined(_OPENMP) && defined(MULTI_DGEMM_USE_NESTED)
@@ -69,12 +72,12 @@ LIBXSTREAM_EXPORT void process(int size, int nn, const size_t* idata,
     omp_set_nested(1);
 #   pragma omp parallel for schedule(dynamic,1) num_threads(size)
 #endif
-    for (int i = 0; i < size; ++i) {
+    for (int i = 0; i < isize; ++i) {
 #if defined(_OPENMP) && defined(MULTI_DGEMM_USE_NESTED)
       omp_set_num_threads(nthreads);
 #endif
       LIBXSTREAM_ASSERT(base <= idata[i]);
-      const size_t i0 = idata[i], i1 = (i + 1) < size ? idata[i+1] : (i0 + nn), n2 = i1 - i0, offset = i0 - base;
+      const size_t i0 = idata[i], i1 = (i + 1) < isize ? idata[i+1] : (i0 + nn), n2 = i1 - i0, offset = i0 - base;
       const int n = static_cast<int>(std::sqrt(static_cast<double>(n2)) + 0.5);
       DGEMM(&trans, &trans, &n, &n, &n, &alpha, adata + offset, &n, bdata + offset, &n, &beta, cdata + offset, &n);
     }
@@ -93,8 +96,11 @@ int main(int argc, char* argv[])
     const int nitems = std::max(1 < argc ? std::atoi(argv[1]) : 60, 0);
     const int nbatch = std::max(2 < argc ? std::atoi(argv[2]) : 10, 1);
     const int nstreams = std::min(std::max(3 < argc ? std::atoi(argv[3]) : 2, 1), LIBXSTREAM_MAX_NSTREAMS);
+#if defined(MULTI_DGEMM_USE_SYNC)
     const int demux = 4 < argc ? std::atoi(argv[4]) : 1;
-
+#else
+    const int demux = -1;
+#endif
     size_t ndevices = 0;
     if (LIBXSTREAM_ERROR_NONE != libxstream_get_ndevices(&ndevices) || 0 == ndevices) {
       throw std::runtime_error("no device found!");
@@ -104,8 +110,8 @@ int main(int argc, char* argv[])
 #endif
 
     fprintf(stdout, "Initializing %i device%s and host data...", static_cast<int>(ndevices), 1 == ndevices ? "" : "s");
-    const int split[] = { int(nitems * 18.0 / 250.0 + 0.5), int(nitems * 74.0 / 250.0 + 0.5) };
-    multi_dgemm_type::host_data_type host_data(nitems, split);
+    const size_t split[] = { size_t(nitems * 18.0 / 250.0 + 0.5), size_t(nitems * 74.0 / 250.0 + 0.5) };
+    multi_dgemm_type::host_data_type host_data(reinterpret_cast<libxstream_function>(&process), nitems, split);
     fprintf(stdout, " %.1f MB\n", host_data.bytes() * 1E-6);
 
     fprintf(stdout, "Initializing %i stream%s per device...", nstreams, 1 < nstreams ? "s" : "");
@@ -113,7 +119,7 @@ int main(int argc, char* argv[])
     std::vector<multi_dgemm_type> multi_dgemm(nstreams_total);
     for (size_t i = 0; i < multi_dgemm.size(); ++i) {
       char name[128];
-      LIBXSTREAM_SNPRINTF(name, sizeof(name), "Stream %i", i + 1);
+      LIBXSTREAM_SNPRINTF(name, sizeof(name), "Stream %i", static_cast<int>(i + 1));
       LIBXSTREAM_CHECK_CALL_THROW(multi_dgemm[i].init(name, host_data, static_cast<int>(i % ndevices), demux, static_cast<size_t>(nbatch)));
     }
     if (0 < nstreams_total) {
@@ -134,21 +140,26 @@ int main(int argc, char* argv[])
 #   pragma omp parallel for schedule(dynamic)
 #endif
     for (int i = 0; i < nitems; i += nbatch) {
-      const size_t j = i % nstreams_total;
-      multi_dgemm_type& call = multi_dgemm[j];
-      LIBXSTREAM_CHECK_CALL_THROW(call(&process, i, std::min(nbatch, nitems - i)));
-
-#if defined(MULTI_DGEMM_USE_EVENTS)
+      const size_t j = i / nbatch, n = j % nstreams_total;
+      multi_dgemm_type& call = multi_dgemm[n];
+      LIBXSTREAM_CHECK_CALL_THROW(call(i, std::min(nbatch, nitems - i)));
+#if defined(MULTI_DGEMM_USE_SYNC) && (1 <= MULTI_DGEMM_USE_SYNC)
       LIBXSTREAM_CHECK_CALL_THROW(libxstream_event_record(call.event(), call.stream()));
 #endif
-
       // synchronize every Nth iteration with N being the total number of streams
-      if (j == (nstreams_total - 1)) {
+      if (n == (nstreams_total - 1)) {
         for (size_t k = 0; k < nstreams_total; ++k) {
-#if defined(MULTI_DGEMM_USE_EVENTS)
+#if defined(MULTI_DGEMM_USE_SYNC)
+# if (2 <= (MULTI_DGEMM_USE_SYNC))
+          // wait for an event within a stream
+          LIBXSTREAM_CHECK_CALL_THROW(libxstream_stream_wait_event(multi_dgemm[0].stream(), multi_dgemm[k].event()));
+# elif (1 <= (MULTI_DGEMM_USE_SYNC))
+          // wait for an event on the host
           LIBXSTREAM_CHECK_CALL_THROW(libxstream_event_synchronize(multi_dgemm[k].event()));
-#else
+# else
+          // wait for all work in a stream
           LIBXSTREAM_CHECK_CALL_THROW(libxstream_stream_sync(multi_dgemm[k].stream()));
+# endif
 #endif
         }
       }

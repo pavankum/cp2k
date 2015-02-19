@@ -31,32 +31,30 @@
 #ifndef MULTI_DGEMM_TYPE_HPP
 #define MULTI_DGEMM_TYPE_HPP
 
-#include <libxstream.hpp>
+#include <libxstream.h>
 
 
 class multi_dgemm_type {
 public:
-  typedef LIBXSTREAM_EXPORT void (*process_fn_type)(int, int,
-    const size_t*, const double*, const double*, double*);
-
   class host_data_type {
   public:
-    host_data_type(int size, const int split[]);
+    host_data_type(libxstream_function process, size_t size, const size_t split[]);
     ~host_data_type();
   public:
-    bool ready() const;
-    int size() const;
-    const double* adata() const;
-    const double* bdata() const;
-    double* cdata();
-    const size_t* idata() const;
+    libxstream_function process()   { return m_process; }
+    const double* adata() const     { return m_adata; }
+    const double* bdata() const     { return m_bdata; }
+    double* cdata()                 { return m_cdata; }
+    const size_t* idata() const     { return m_idata; }
+    size_t size() const             { return m_size; }
+    size_t flops() const            { return m_flops; }
     size_t max_matrix_size() const;
     size_t bytes() const;
-    size_t flops() const;
+    bool ready() const;
   private:
-    int m_size;
+    libxstream_function m_process;
     double *m_adata, *m_bdata, *m_cdata;
-    size_t *m_idata, m_flops;
+    size_t *m_idata, m_size, m_flops;
   };
 
 public:
@@ -68,7 +66,7 @@ private:
 
 public:
   int init(const char* name, host_data_type& host_data, int device, int demux, size_t max_batch);
-  int operator()(process_fn_type process_fn, int index, int size);
+  int operator()(size_t index, size_t size);
 
   libxstream_stream* stream() { return m_stream; }
   libxstream_event* event();
@@ -78,6 +76,7 @@ public:
 
 private:
   host_data_type* m_host_data;
+  libxstream_argument* m_signature;
   libxstream_stream* m_stream;
   libxstream_event* m_event;
 
