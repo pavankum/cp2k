@@ -7,32 +7,23 @@
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)
 
 #include "libmicsmm.hpp"
-#include <libxstream.hpp>
 #include <cstdlib>
 #include <vector>
 
-#if defined(LIBXSTREAM_OFFLOAD)
-# pragma offload_attribute(push,target(mic))
-#endif
-
+#include <libxstream_begin.h>
 #if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__)
 # include <libxsmm.h>
 #endif
-
 #if defined(LIBMICSMM_USE_MKLSMM) && defined(__MKL)
 # if !defined(MKL_DIRECT_CALL_SEQ) && !defined(MKL_DIRECT_CALL)
 #   define MKL_DIRECT_CALL_SEQ
 # endif
 # include <mkl.h>
 #endif
-
 #if defined(_OPENMP)
 # include <omp.h>
 #endif
-
-#if defined(LIBXSTREAM_OFFLOAD)
-# pragma offload_attribute(pop)
-#endif
+#include <libxstream_end.h>
 
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
 
@@ -40,7 +31,7 @@
 namespace libmicsmm_process_private {
 
 template<typename T, typename U>
-class LIBXSTREAM_EXPORT smm_type {
+class LIBXSTREAM_TARGET(mic) smm_type {
   U M, N, K, LDC;
 #if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
   libxsmm_mm_dispatch<T> xmm;
@@ -156,7 +147,7 @@ public:
 
 
 template<size_t N, typename T, typename U>
-LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, U max_m, U max_n, U max_k,
+LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, U max_m, U max_n, U max_k,
   const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
 {
 #if defined(LIBMICSMM_USE_PRETRANSPOSE)

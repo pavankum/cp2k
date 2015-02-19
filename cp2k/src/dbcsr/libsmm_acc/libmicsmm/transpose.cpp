@@ -7,19 +7,12 @@
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)
 
 #include "libmicsmm.hpp"
-#include <libxstream.hpp>
 
-#if defined(LIBXSTREAM_OFFLOAD)
-# pragma offload_attribute(push,target(mic))
-#endif
-
+#include <libxstream_begin.h>
 #if defined(_OPENMP)
 # include <omp.h>
 #endif
-
-#if defined(LIBXSTREAM_OFFLOAD)
-# pragma offload_attribute(pop)
-#endif
+#include <libxstream_end.h>
 
 #define LIBMICSMM_MAX_MATRIX_SIZE LIBXSTREAM_MAX(LIBXSTREAM_MAX( \
   LIBMICSMM_MAX_M * LIBMICSMM_MAX_K,  \
@@ -31,14 +24,14 @@
   LIBMICSMM_MAX_K)
 
 #if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
-extern "C" LIBXSTREAM_EXPORT void MKL_Simatcopy(const char, const char, size_t, size_t, float, float*, size_t, size_t);
-extern "C" LIBXSTREAM_EXPORT void MKL_Dimatcopy(const char, const char, size_t, size_t, double, double*, size_t, size_t);
+LIBXSTREAM_EXTERN_C void MKL_Simatcopy(const char, const char, size_t, size_t, float, float*, size_t, size_t);
+LIBXSTREAM_EXTERN_C void MKL_Dimatcopy(const char, const char, size_t, size_t, double, double*, size_t, size_t);
 #endif
 
 
 namespace libmicsmm_transpose_private {
 
-LIBXSTREAM_EXPORT void mkl_imatcopy(size_t m, size_t n, float* matrix)
+LIBXSTREAM_TARGET(mic) void mkl_imatcopy(size_t m, size_t n, float* matrix)
 {
 #if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
   MKL_Simatcopy('R', 'T', m, n, 1.f, matrix, n, m);
@@ -46,7 +39,7 @@ LIBXSTREAM_EXPORT void mkl_imatcopy(size_t m, size_t n, float* matrix)
 }
 
 
-LIBXSTREAM_EXPORT void mkl_imatcopy(size_t m, size_t n, double* matrix)
+LIBXSTREAM_TARGET(mic) void mkl_imatcopy(size_t m, size_t n, double* matrix)
 {
 #if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
   MKL_Dimatcopy('R', 'T', m, n, 1.0, matrix, n, m);
@@ -55,7 +48,7 @@ LIBXSTREAM_EXPORT void mkl_imatcopy(size_t m, size_t n, double* matrix)
 
 
 template<typename T, typename U>
-LIBXSTREAM_EXPORT void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset, U nblocks, U m, U n, T *LIBXSTREAM_RESTRICT matrix)
+LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset, U nblocks, U m, U n, T *LIBXSTREAM_RESTRICT matrix)
 {
 #if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   const double start = omp_get_wtime();
@@ -181,7 +174,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
 } // namespace libmicsmm_transpose_private
 
 
-extern "C" int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void* buffer, int datatype, int m, int n, void* stream)
+LIBXSTREAM_EXTERN_C int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void* buffer, int datatype, int m, int n, void* stream)
 {
   int result = LIBXSTREAM_ERROR_NONE;
 
