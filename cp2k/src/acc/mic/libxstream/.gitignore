@@ -2,9 +2,14 @@ My Amplifier*
 My Inspector*
 bin
 build
+tmp
+*.stackdump
 *.opensdf
 *.user
+*.log
 *.exe
+*.dll
+*.ilk
 *.sdf
 *.pdb
 *.suo
