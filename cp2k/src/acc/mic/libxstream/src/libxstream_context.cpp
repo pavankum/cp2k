@@ -33,23 +33,17 @@
 
 libxstream_context& libxstream_context::instance()
 {
-  static LIBXSTREAM_TLS libxstream_context context;
+  LIBXSTREAM_TARGET(mic) static LIBXSTREAM_TLS libxstream_context context;
   return context;
 }
 
 
-libxstream_context& libxstream_context::instance(libxstream_function function, const libxstream_argument arguments[], size_t arity, int flags_)
+libxstream_context& libxstream_context::instance(const libxstream_argument arguments[], size_t arity, int flags_)
 {
   libxstream_context& context = instance();
 
   for (size_t i = 0; i <= arity; ++i) {
     context.signature[i] = arguments[i];
-  }
-  if (0 == (flags_ & LIBXSTREAM_CALL_NATIVE)) {
-    context.fhybrid = function;
-  }
-  else {
-    context.fnative = reinterpret_cast<const void*>(function);
   }
   context.flags = flags_;
 
