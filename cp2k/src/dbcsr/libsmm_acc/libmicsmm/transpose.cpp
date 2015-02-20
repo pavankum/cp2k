@@ -9,6 +9,7 @@
 #include "libmicsmm.hpp"
 
 #include <libxstream_begin.h>
+#include <cstdio>
 #if defined(_OPENMP)
 # include <omp.h>
 #endif
@@ -48,18 +49,21 @@ LIBXSTREAM_TARGET(mic) void mkl_imatcopy(size_t m, size_t n, double* matrix)
 
 
 template<typename T, typename U>
-LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset, U nblocks, U m, U n, T *LIBXSTREAM_RESTRICT matrix)
+LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U m, U n, T *LIBXSTREAM_RESTRICT matrix)
 {
 #if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
-  const U *const offsets = stack + offset;
+  const libxstream_argument* arg = 0;
+  size_t stacksize = 0;
+  LIBXSTREAM_CHECK_CALL_RETURN(libxstream_get_argument(stack, &arg));
+  LIBXSTREAM_CHECK_CALL_RETURN(libxstream_get_shape(arg, &stacksize));
 
 #if defined(_OPENMP)
 # pragma omp parallel for
 #endif
-  for (U s = 0; s < nblocks; ++s) {
-    T *const mat = matrix + offsets[s];
+  for (U s = 0; s < stacksize; ++s) {
+    T *const mat = matrix + stack[s];
 
 #if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
     mkl_imatcopy(static_cast<size_t>(m), static_cast<size_t>(n), mat);
@@ -112,18 +116,18 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U offset,
 #   pragma omp atomic
     duration += stop - start;
 #   pragma omp atomic
-    problemsize += 2ul * m * n * sizeof(T) * nblocks;
+    problemsize += 2ul * m * n * sizeof(T) * stacksize;
     LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose: %.f GB/s", problemsize / (1E9 * duration));
   }
 #endif
 }
 
 
-template<typename T, typename U>
+template<typename T, bool Complex, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
 {
   LIBXSTREAM_PRINT_INFOCTX("type=%s offset=%i size=%i m=%i n=%i buffer=0x%lx stream=0x%lx",
-    dbcsr_elem<T>::name(), offset, nblks, m, n,
+    dbcsr_elem<T,COmplex>::name(), offset, nblks, m, n,
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(buffer)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   LIBXSTREAM_CHECK_CONDITION(
@@ -133,39 +137,16 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     && data && stream);
 
   if (1 < m || 1 < n) {
-    LIBXSTREAM_OFFLOAD_BEGIN(stream, offset, nblocks, m, n, stack, data)
-    {
-      const U offset = val<const U,0>();
-      const U nblocks = val<const U,1>();
-      const U m = val<const U,2>();
-      const U n = val<const U,3>();
-      const U *const stack = ptr<const U,4>();
-      T* buffer = ptr<T,5>();
-
-#if defined(LIBXSTREAM_OFFLOAD)
-      if (0 <= LIBXSTREAM_OFFLOAD_DEVICE) {
-        if (LIBXSTREAM_OFFLOAD_READY) {
-#         pragma offload LIBXSTREAM_OFFLOAD_TARGET_SIGNAL \
-            in(offset, nblocks, m, n) \
-            in(stack: length(0) alloc_if(false) free_if(false)) \
-            inout(buffer: length(0) alloc_if(false) free_if(false))
-          kernel(stack, offset, nblocks, m, n, buffer);
-        }
-        else {
-#         pragma offload LIBXSTREAM_OFFLOAD_TARGET_WAIT \
-            in(offset, nblocks, m, n) \
-            in(stack: length(0) alloc_if(false) free_if(false)) \
-            inout(buffer: length(0) alloc_if(false) free_if(false))
-          kernel(stack, offset, nblocks, m, n, buffer);
-        }
-      }
-      else
-#endif
-      {
-        kernel(stack, offset, nblocks, m, n, buffer);
-      }
-    }
-    LIBXSTREAM_OFFLOAD_END(false);
+    /*const*/ libxstream_function function = reinterpret_cast<libxstream_function>(kernel<T,U>);
+    const size_t stacksize = nblocks;
+    libxstream_argument* signature = 0;
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_create_signature(&signature, 4));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 0, stack + offset, libxstream_type2value<U>::value, 1, &stacksize));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 1, &m, libxstream_type2value<U>::value, 0, 0));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 2, &n, libxstream_type2value<U>::value, 0, 0));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_inout(signature, 3, data, libxstream_type2value<T>::value, 1, 0/*unknown*/));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_call(function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_destroy_signature(signature));
   }
 
   return LIBXSTREAM_ERROR_NONE;
@@ -182,10 +163,10 @@ LIBXSTREAM_EXTERN_C int libsmm_acc_transpose(void* trs_stack, int offset, int nb
   const int *const stack = static_cast<const int*>(trs_stack);
   switch(static_cast<dbcsr_elem_type>(datatype)) {
     case DBCSR_ELEM_F32: {
-      result = libmicsmm_transpose_private::transpose<float>(stack, offset, nblks, m, n, buffer, stream);
+      result = libmicsmm_transpose_private::transpose<float,false>(stack, offset, nblks, m, n, buffer, stream);
     } break;
     case DBCSR_ELEM_F64: {
-      result = libmicsmm_transpose_private::transpose<double>(stack, offset, nblks, m, n, buffer, stream);
+      result = libmicsmm_transpose_private::transpose<double,false>(stack, offset, nblks, m, n, buffer, stream);
     } break;
     case DBCSR_ELEM_C32: {
       LIBXSTREAM_ASSERT(false/*TODO: not implemented yet*/);

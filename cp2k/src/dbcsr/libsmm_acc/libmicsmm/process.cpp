@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <libxstream_begin.h>
+#include <cstdio>
 #if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__)
 # include <libxsmm.h>
 #endif
@@ -147,7 +148,7 @@ public:
 
 
 template<size_t N, typename T, typename U>
-LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_size, U max_m, U max_n, U max_k,
+LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U stacksize, U max_m, U max_n, U max_k,
   const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
 {
 #if defined(LIBMICSMM_USE_PRETRANSPOSE)
@@ -159,7 +160,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_s
 
   const smm_type<T,U> smm(max_m, max_n, max_k/*, LIBMICSMM_MAX_M*/);
   U colspan[LIBMICSMM_MAX_BURST];
-  const U n = stack_size * N;
+  const U n = stacksize * N;
 
   for (U s = N; s <= n;) {
     int size = 0;
@@ -198,39 +199,36 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U stack_s
 #   pragma omp atomic
     duration += stop - start;
 #   pragma omp atomic
-    flops += 2ul * max_m * max_n * max_k * stack_size;
+    flops += 2ul * max_m * max_n * max_k * stacksize;
     LIBXSTREAM_PRINT_INFO("libsmm_acc_process: %.f GFLOP/s", flops / (1E9 * duration));
   }
 #endif
 }
 
 
-template<typename T, typename U>
-int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
+template<typename T, bool Complex, typename U>
+int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
   U def_mnk, void* stream)
 {
   LIBXSTREAM_PRINT_INFOCTX("type=%s size=%i homogeneous=%s max_m=%i max_n=%i max_k=%i a=0x%lx b=0x%lx c=0x%lx stream=0x%lx",
-    dbcsr_elem<T>::name(), stack_size, 1 == def_mnk ? "true" : "false", max_m, max_n, max_k,
+    dbcsr_elem<T,Complex>::name(), stacksize, 1 == def_mnk ? "true" : "false", max_m, max_n, max_k,
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(a_data)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(b_data)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(c_data)),
     static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
   LIBXSTREAM_CHECK_CONDITION(
-    stack && 0 <= stack_size && 0 <= nparams
+    stack && 0 <= stacksize && 0 <= nparams
     && 0 <= max_m && 0 <= max_n && 0 <= max_k
     && a_data && b_data && c_data && stream
     && LIBMICSMM_NPARAMS == nparams
     && 1 == def_mnk);
-
 #if defined(LIBMICSMM_USE_DUMP)
   static size_t id = 0;
   static const char *const groupname = getenv("LIBMICSMM_DUMP");
-
-  std::vector<U> stack_buffer(stack_size * LIBMICSMM_NPARAMS);
-  LIBXSTREAM_CHECK_CALL_THROW(acc_memcpy_d2h(stack, &stack_buffer[0], stack_buffer.size() * sizeof(U), stream));
-  LIBXSTREAM_CHECK_CALL_THROW(acc_stream_sync(stream));
-  LIBXSTREAM_CHECK_CALL_THROW(libsmm_acc_file_save(groupname, "stack", id, &stack_buffer[0], stack_buffer.size() * sizeof(U), &def_mnk, sizeof(def_mnk)));
-
+  std::vector<U> stack_buffer(stacksize * LIBMICSMM_NPARAMS);
+  LIBXSTREAM_CHECK_CALL(acc_memcpy_d2h(stack, &stack_buffer[0], stack_buffer.size() * sizeof(U), stream));
+  LIBXSTREAM_CHECK_CALL(acc_stream_sync(stream));
+  LIBXSTREAM_CHECK_CALL(libsmm_acc_file_save(groupname, "stack", id, &stack_buffer[0], stack_buffer.size() * sizeof(U), &def_mnk, sizeof(def_mnk)));
   U size_a = 0, size_b = 0, size_c = 0;
   for (U i = 0; i < stack_buffer.size(); i += LIBMICSMM_NPARAMS) {
     const U ka1 = stack_buffer[i+3], kb1 = stack_buffer[i+4], kc1 = stack_buffer[i+5];
@@ -241,67 +239,38 @@ int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, 
   size_a += max_m * max_k - 1;
   size_b += max_k * max_n - 1;
   size_c += max_m * max_n - 1;
-
   std::vector<T> buffer(size_a);
-  LIBXSTREAM_CHECK_CALL_THROW(acc_memcpy_d2h(a_data, &buffer[0], size_a * sizeof(T), stream));
-  LIBXSTREAM_CHECK_CALL_THROW(acc_stream_sync(stream));
-  LIBXSTREAM_CHECK_CALL_THROW(libsmm_acc_file_save(groupname, "adata", id, &buffer[0], size_a * sizeof(T), &max_m, sizeof(max_m)));
-
+  LIBXSTREAM_CHECK_CALL(acc_memcpy_d2h(a_data, &buffer[0], size_a * sizeof(T), stream));
+  LIBXSTREAM_CHECK_CALL(acc_stream_sync(stream));
+  LIBXSTREAM_CHECK_CALL(libsmm_acc_file_save(groupname, "adata", id, &buffer[0], size_a * sizeof(T), &max_m, sizeof(max_m)));
   buffer.resize(size_b);
-  LIBXSTREAM_CHECK_CALL_THROW(acc_memcpy_d2h(b_data, &buffer[0], size_b * sizeof(T), stream));
-  LIBXSTREAM_CHECK_CALL_THROW(acc_stream_sync(stream));
-  LIBXSTREAM_CHECK_CALL_THROW(libsmm_acc_file_save(groupname, "bdata", id, &buffer[0], size_b * sizeof(T), &max_k, sizeof(max_k)));
-
+  LIBXSTREAM_CHECK_CALL(acc_memcpy_d2h(b_data, &buffer[0], size_b * sizeof(T), stream));
+  LIBXSTREAM_CHECK_CALL(acc_stream_sync(stream));
+  LIBXSTREAM_CHECK_CALL(libsmm_acc_file_save(groupname, "bdata", id, &buffer[0], size_b * sizeof(T), &max_k, sizeof(max_k)));
   buffer.resize(size_c);
-  LIBXSTREAM_CHECK_CALL_THROW(acc_memcpy_d2h(c_data, &buffer[0], size_c * sizeof(T), stream));
-  LIBXSTREAM_CHECK_CALL_THROW(acc_stream_sync(stream));
-  LIBXSTREAM_CHECK_CALL_THROW(libsmm_acc_file_save(groupname, "cdata", id, &buffer[0], size_c * sizeof(T), &max_n, sizeof(max_n)));
+  LIBXSTREAM_CHECK_CALL(acc_memcpy_d2h(c_data, &buffer[0], size_c * sizeof(T), stream));
+  LIBXSTREAM_CHECK_CALL(acc_stream_sync(stream));
+  LIBXSTREAM_CHECK_CALL(libsmm_acc_file_save(groupname, "cdata", id, &buffer[0], size_c * sizeof(T), &max_n, sizeof(max_n)));
 #endif
 
-  LIBXSTREAM_OFFLOAD_BEGIN(stream, def_mnk, stack_size, max_m, max_n, max_k, stack, a_data, b_data, c_data)
-  {
-    const U def_mnk = val<const U,0>();
-    const U stack_size = val<const U,1>();
-    const U max_m = val<const U,2>();
-    const U max_n = val<const U,3>();
-    const U max_k = val<const U,4>();
-    const U *const stack = ptr<const U,5>();
-    const T *const a = ptr<const T,6>();
-    const T *const b = ptr<const T,7>();
-    T* c = ptr<T,8>();
+  /*const*/ libxstream_function function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
+  const size_t shape = stacksize;
+  libxstream_argument* signature = 0;
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_create_signature(&signature, 8));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 0, stack, libxstream_type2value<U>::value, 1, &shape));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 1, &max_m, libxstream_type2value<U>::value, 0, 0));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 2, &max_n, libxstream_type2value<U>::value, 0, 0));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 3, &max_m, libxstream_type2value<U>::value, 0, 0));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 4, a_data, libxstream_type2value<T>::value, 1, 0/*unknown*/));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 5, b_data, libxstream_type2value<T>::value, 1, 0/*unknown*/));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_inout(signature, 6, c_data, libxstream_type2value<T>::value, 1, 0/*unknown*/));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_call(function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_destroy_signature(signature));
 
-#if defined(LIBXSTREAM_OFFLOAD)
-    if (0 <= LIBXSTREAM_OFFLOAD_DEVICE) {
-      if (LIBXSTREAM_OFFLOAD_READY) {
-#       pragma offload LIBXSTREAM_OFFLOAD_TARGET_SIGNAL \
-          in(stack_size, max_m, max_n, max_k) \
-          in(stack: length(0) alloc_if(false) free_if(false)) \
-          in(a, b: length(0) alloc_if(false) free_if(false)) \
-          inout(c: length(0) alloc_if(false) free_if(false))
-        kernel<LIBMICSMM_NPARAMS>(stack, stack_size, max_m, max_n, max_k, a, b, c);
-      }
-      else {
-#       pragma offload LIBXSTREAM_OFFLOAD_TARGET_WAIT \
-          in(stack_size, max_m, max_n, max_k) \
-          in(stack: length(0) alloc_if(false) free_if(false)) \
-          in(a, b: length(0) alloc_if(false) free_if(false)) \
-          inout(c: length(0) alloc_if(false) free_if(false))
-        kernel<LIBMICSMM_NPARAMS>(stack, stack_size, max_m, max_n, max_k, a, b, c);
-      }
-    }
-    else
-#endif
-    {
-      kernel<LIBMICSMM_NPARAMS>(stack, stack_size, max_m, max_n, max_k, a, b, c);
-    }
-  }
-#if !defined(LIBMICSMM_USE_DUMP)
-  LIBXSTREAM_OFFLOAD_END(false);
-#else
-  LIBXSTREAM_OFFLOAD_END(true);
-  LIBXSTREAM_CHECK_CALL_THROW(acc_memcpy_d2h(c_data, &buffer[0], size_c * sizeof(T), stream));
-  LIBXSTREAM_CHECK_CALL_THROW(acc_stream_sync(stream));
-  LIBXSTREAM_CHECK_CALL_THROW(libsmm_acc_file_save(groupname, "cgold", id, &buffer[0], size_c * sizeof(T), 0, 0));
+#if defined(LIBMICSMM_USE_DUMP)
+  LIBXSTREAM_CHECK_CALL(acc_memcpy_d2h(c_data, &buffer[0], size_c * sizeof(T), stream));
+  LIBXSTREAM_CHECK_CALL(acc_stream_sync(stream));
+  LIBXSTREAM_CHECK_CALL(libsmm_acc_file_save(groupname, "cgold", id, &buffer[0], size_c * sizeof(T), 0, 0));
   ++id;
 #endif // LIBMICSMM_USE_DUMP
 
@@ -311,18 +280,18 @@ int process(const U* stack, U stack_size, U nparams, U max_m, U max_n, U max_k, 
 } // namespace libmicsmm_process_private
 
 
-extern "C" int libsmm_acc_process(void* param_stack, int stack_size, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
+extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
 {
   const int *const stack = static_cast<const int*>(param_stack);
   int result = LIBXSTREAM_ERROR_NONE;
 
   switch(static_cast<dbcsr_elem_type>(datatype)) {
     case DBCSR_ELEM_F32: {
-      //result = libmicsmm_process_private::process<float>(stack, stack_size, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
+      //result = libmicsmm_process_private::process<float,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
       result = LIBXSTREAM_ERROR_CONDITION;
     } break;
     case DBCSR_ELEM_F64: {
-      result = libmicsmm_process_private::process<double>(stack, stack_size, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
+      result = libmicsmm_process_private::process<double,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
     } break;
     case DBCSR_ELEM_C32: {
       result = LIBXSTREAM_ERROR_CONDITION;

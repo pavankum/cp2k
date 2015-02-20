@@ -148,7 +148,7 @@ struct params_type {
 };
 
 
-template<typename T>
+template<typename T, bool Complex>
 class stream_t {
 public:
   stream_t()
@@ -222,13 +222,13 @@ public:
     LIBXSTREAM_CHECK_CALL(acc_memcpy_h2d(&m_hst_c[0], m_dev_c, size_c, m_stream));
 
     LIBXSTREAM_CHECK_CALL(libsmm_acc_process(m_dev_params, m_hst_params.size(), LIBMICSMM_NPARAMS,
-      dbcsr_elem<T>::type, m_dev_a, m_dev_b, m_dev_c, max_m, max_n, max_k, homogeneous, m_stream));
+      dbcsr_elem<T,Complex>::type, m_dev_a, m_dev_b, m_dev_c, max_m, max_n, max_k, homogeneous, m_stream));
     LIBXSTREAM_CHECK_CALL(acc_memcpy_d2h(m_dev_c, &m_hst_c[0], size_c, m_stream));
 
     // synchronize stream in order to materialize the result
     LIBXSTREAM_CHECK_CALL(acc_stream_sync(m_stream));
 
-    return libsmm_acc_file_diff(groupname, "cgold", id, &m_hst_c[0], dbcsr_elem<T>::type, &max_diff);
+    return libsmm_acc_file_diff(groupname, "cgold", id, &m_hst_c[0], dbcsr_elem<T,Complex>::type, &max_diff);
   }
 
 private:
@@ -283,7 +283,7 @@ private:
 int main(int argc, char* argv[])
 {
   typedef double T;
-  typedef stream_t<T> stream_type;
+  typedef stream_t<T,false> stream_type;
 
   try {
     const char *const groupname = 1 < argc ? argv[1] : getenv("LIBMICSMM_DUMP");
