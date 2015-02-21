@@ -263,16 +263,14 @@ CONTAINS
 !> \param qs_env ...
 !> \param scf_env ...
 !> \param scf_control ...
-!> \param scf_section ...
 !> \param diis_step ...
 !> \param energy_only ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE qs_scf_new_mos_kp(qs_env,scf_env,scf_control,scf_section,diis_step,energy_only,error)
+  SUBROUTINE qs_scf_new_mos_kp(qs_env,scf_env,scf_control,diis_step,energy_only,error)
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(qs_scf_env_type), POINTER           :: scf_env
     TYPE(scf_control_type), POINTER          :: scf_control
-    TYPE(section_vals_type), POINTER         :: scf_section
     LOGICAL                                  :: diis_step, energy_only
     TYPE(cp_error_type), INTENT(inout)       :: error
 
@@ -305,7 +303,7 @@ CONTAINS
           ! Diagonlization in non orthonormal case
           CALL get_qs_env(qs_env,matrix_ks_kp=matrix_ks,matrix_s_kp=matrix_s,error=error)
           CALL do_general_diag_kp(scf_env,matrix_ks,matrix_s,kpoints,&
-               scf_control,scf_section,diis_step,error=error)
+               scf_control,diis_step,error=error)
        CASE(special_diag_method_nr)
           CALL get_qs_env(qs_env=qs_env,has_unit_metric=has_unit_metric,error=error)
           CPPrecondition(has_unit_metric,cp_failure_level,routineP,error,failure)
