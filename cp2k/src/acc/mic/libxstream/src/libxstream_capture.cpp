@@ -115,7 +115,7 @@ public:
       }
     }
     if (0 < dangling) {
-      LIBXSTREAM_PRINT_WARNING("%lu work item%s dangling!", static_cast<unsigned long>(dangling), 1 < dangling ? "s are" : " is");
+      LIBXSTREAM_PRINT_WARN("%lu work item%s dangling!", static_cast<unsigned long>(dangling), 1 < dangling ? "s are" : " is");
     }
 #endif
 
@@ -185,7 +185,7 @@ private:
 
 #if defined(LIBXSTREAM_DEBUG)
     if (0 != *entry) {
-      LIBXSTREAM_PRINT_WARNING0("queuing work is stalled!");
+      LIBXSTREAM_PRINT_WARN0("queuing work is stalled!");
     }
 #endif
     // stall the push if LIBXSTREAM_MAX_QSIZE is exceeded
@@ -298,7 +298,7 @@ libxstream_capture_base::libxstream_capture_base(size_t argc, const arg_type arg
   }
   else {
     for (size_t i = 0; i < argc; ++i) m_signature[i] = argv[i];
-    libxstream_construct(m_signature[argc], libxstream_argument::kind_invalid, 0, LIBXSTREAM_TYPE_VOID, 0, 0);
+    libxstream_construct(m_signature[argc], libxstream_argument::kind_invalid, 0, LIBXSTREAM_TYPE_INVALID, 0, 0);
 #if defined(LIBXSTREAM_DEBUG)
     size_t arity = 0;
     LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_arity(m_signature, &arity) && arity == argc);

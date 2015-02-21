@@ -558,7 +558,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_deallocate(int device, const void* memory
 # if defined(LIBXSTREAM_CHECK)
         const int memory_device = *static_cast<const int*>(libxstream_virt_data(memory));
         if (memory_device != LIBXSTREAM_ASYNC_DEVICE) {
-          LIBXSTREAM_PRINT_WARNING("device %i does not match allocating device %i!", LIBXSTREAM_ASYNC_DEVICE, memory_device);
+          LIBXSTREAM_PRINT_WARN("device %i does not match allocating device %i!", LIBXSTREAM_ASYNC_DEVICE, memory_device);
           LIBXSTREAM_ASYNC_DEVICE_UPDATE(memory_device);
         }
 # endif
@@ -936,6 +936,11 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_input(libxstream_argument* signature, size
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
 #endif
+#if defined(LIBXSTREAM_PRINT)
+  if (0 != dims && 0 == shape) {
+    LIBXSTREAM_PRINT_WARNCTX0("weak type information!");
+  }
+#endif
   return libxstream_construct(signature[arg], libxstream_argument::kind_input, in, type, dims, shape);
 }
 
@@ -947,6 +952,11 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_output(libxstream_argument* signature, siz
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
 #endif
+#if defined(LIBXSTREAM_PRINT)
+  if (0 != dims && 0 == shape) {
+    LIBXSTREAM_PRINT_WARNCTX0("weak type information!");
+  }
+#endif
   return libxstream_construct(signature[arg], libxstream_argument::kind_output, out, type, dims, shape);
 }
 
@@ -957,6 +967,11 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_inout(libxstream_argument* signature, size
 #if defined(LIBXSTREAM_DEBUG)
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
+#endif
+#if defined(LIBXSTREAM_PRINT)
+  if (0 != dims && 0 == shape) {
+    LIBXSTREAM_PRINT_WARNCTX0("weak type information!");
+  }
 #endif
   return libxstream_construct(signature[arg], libxstream_argument::kind_inout, inout, type, dims, shape);
 }
@@ -982,7 +997,7 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_arity(const libxstream_argument* signature
   LIBXSTREAM_CHECK_CONDITION(0 != arity);
   size_t n = 0;
   if (signature) {
-    while (LIBXSTREAM_TYPE_VOID != signature[n].type) {
+    while (LIBXSTREAM_TYPE_INVALID != signature[n].type) {
       LIBXSTREAM_ASSERT(n < (LIBXSTREAM_MAX_NARGS));
       LIBXSTREAM_ASSERT(libxstream_argument::kind_invalid != signature[n].kind);
       ++n;
@@ -1058,14 +1073,15 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_typename(libxstrea
 
 LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_argument(const void* variable, const libxstream_argument** arg)
 {
-  LIBXSTREAM_CHECK_CONDITION(0 != arg);
-  int result = LIBXSTREAM_ERROR_NONE;
-  if (const libxstream_argument *const hit = libxstream_find(libxstream_context::instance(), variable)) {
+  const libxstream_context& context = libxstream_context::instance();
+  LIBXSTREAM_CHECK_CONDITION(0 != arg && LIBXSTREAM_CALL_INVALID != context.flags);
+  int result = LIBXSTREAM_ERROR_CONDITION;
+
+  if (const libxstream_argument *const hit = libxstream_find(context, variable)) {
+    result = LIBXSTREAM_ERROR_NONE;
     *arg = hit;
   }
-  else {
-    result = LIBXSTREAM_ERROR_CONDITION;
-  }
+
   return result;
 }
 
