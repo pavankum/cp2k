@@ -253,10 +253,10 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
   LIBXSTREAM_CHECK_CALL(libsmm_acc_file_save(groupname, "cdata", id, &buffer[0], size_c * sizeof(T), &max_n, sizeof(max_n)));
 #endif
 
-  /*const*/ libxstream_function function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
+  const libxstream_function function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
   const size_t shape = stacksize;
   libxstream_argument* signature = 0;
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_create_signature(&signature, 8));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_create_signature(&signature, 7));
   LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 0, stack, libxstream_type2value<U>::value, 1, &shape));
   LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 1, &max_m, libxstream_type2value<U>::value, 0, 0));
   LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 2, &max_n, libxstream_type2value<U>::value, 0, 0));

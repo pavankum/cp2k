@@ -137,7 +137,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     && data && stream);
 
   if (1 < m || 1 < n) {
-    /*const*/ libxstream_function function = reinterpret_cast<libxstream_function>(kernel<T,U>);
+    const libxstream_function function = reinterpret_cast<libxstream_function>(kernel<T,U>);
     const size_t stacksize = nblocks;
     libxstream_argument* signature = 0;
     LIBXSTREAM_CHECK_CALL(libxstream_fn_create_signature(&signature, 4));
