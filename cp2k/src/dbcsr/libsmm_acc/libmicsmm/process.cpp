@@ -148,7 +148,7 @@ public:
 
 
 template<size_t N, typename T, typename U>
-LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U stacksize, U max_m, U max_n, U max_k,
+LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U max_m, U max_n, U max_k,
   const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
 {
 #if defined(LIBMICSMM_USE_PRETRANSPOSE)
@@ -160,7 +160,14 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U stacksi
 
   const smm_type<T,U> smm(max_m, max_n, max_k/*, LIBMICSMM_MAX_M*/);
   U colspan[LIBMICSMM_MAX_BURST];
-  const U n = stacksize * N;
+
+  const libxstream_argument* arg = 0;
+  libxstream_get_argument(stack, &arg);
+  LIBXSTREAM_ASSERT(0 != arg);
+
+  size_t stacksize = 0;
+  libxstream_get_shape(arg, &stacksize);
+  const U n = static_cast<U>(stacksize * N);
 
   for (U s = N; s <= n;) {
     int size = 0;
@@ -199,7 +206,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U stacksi
 #   pragma omp atomic
     duration += stop - start;
 #   pragma omp atomic
-    flops += 2ul * max_m * max_n * max_k * stacksize;
+    flops += static_cast<double>(2ul * max_m * max_n * max_k * stacksize);
     LIBXSTREAM_PRINT_INFO("libsmm_acc_process: %.f GFLOP/s", flops / (1E9 * duration));
   }
 #endif
