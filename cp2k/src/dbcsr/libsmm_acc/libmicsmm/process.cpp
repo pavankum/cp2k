@@ -267,7 +267,7 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
   LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 0, stack, libxstream_type2value<U>::value, 1, &shape));
   LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 1, &max_m, libxstream_type2value<U>::value, 0, 0));
   LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 2, &max_n, libxstream_type2value<U>::value, 0, 0));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 3, &max_m, libxstream_type2value<U>::value, 0, 0));
+  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 3, &max_k, libxstream_type2value<U>::value, 0, 0));
   LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 4, a_data, libxstream_type2value<T>::value, 1, 0/*unknown*/));
   LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 5, b_data, libxstream_type2value<T>::value, 1, 0/*unknown*/));
   LIBXSTREAM_CHECK_CALL(libxstream_fn_inout(signature, 6, c_data, libxstream_type2value<T>::value, 1, 0/*unknown*/));
