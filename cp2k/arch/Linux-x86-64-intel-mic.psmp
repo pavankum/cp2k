@@ -183,6 +183,11 @@ ifneq (0,$(ACC))
       MIC_CCFLAGS += -offload-option,mic,compiler,"-openmp"
       MIC_FCFLAGS += -offload-option,mic,compiler,"-openmp"
       MIC_LDFLAGS += -offload-option,mic,ld,"--no-undefined"
+      ifneq (,$(ATTR))
+        MIC_CXFLAGS += -offload-attribute-target=$(ATTR)
+        MIC_CCFLAGS += -offload-attribute-target=$(ATTR)
+        #MIC_FCFLAGS += -offload-attribute-target=$(ATTR)
+      endif
     endif
   else
     DFLAGS  += -D__OPENCL -D__USE_INTEL_CL
