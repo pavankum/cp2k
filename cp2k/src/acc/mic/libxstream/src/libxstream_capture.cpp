@@ -30,7 +30,6 @@
 ******************************************************************************/
 #include "libxstream_capture.hpp"
 #include <algorithm>
-#include <stdexcept>
 #include <cstdio>
 
 #if defined(LIBXSTREAM_STDFEATURES)
@@ -298,7 +297,7 @@ libxstream_capture_base::libxstream_capture_base(size_t argc, const arg_type arg
   }
   else {
     for (size_t i = 0; i < argc; ++i) m_signature[i] = argv[i];
-    libxstream_construct(m_signature[argc], libxstream_argument::kind_invalid, 0, LIBXSTREAM_TYPE_INVALID, 0, 0);
+    libxstream_construct(m_signature, argc, libxstream_argument::kind_invalid, 0, LIBXSTREAM_TYPE_INVALID, 0, 0);
 #if defined(LIBXSTREAM_DEBUG)
     size_t arity = 0;
     LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_arity(m_signature, &arity) && arity == argc);
@@ -318,7 +317,7 @@ libxstream_capture_base::~libxstream_capture_base()
 {
   if (m_unlock && m_stream) {
     m_stream->end();
-    if (0 != (m_flags & (2 * (LIBXSTREAM_CALL_INVALID - 1))) && 0 != m_stream->demux()) {
+    if (0 != (m_flags & LIBXSTREAM_CALL_UNLOCK) && 0 != m_stream->demux()) {
       m_stream->unlock();
     }
   }
@@ -357,7 +356,12 @@ LIBXSTREAM_EXPORT_INTERNAL void libxstream_enqueue(const libxstream_capture_base
 {
 #if !defined(LIBXSTREAM_CAPTURE_DEBUG)
   if (libxstream_capture_internal::queue.start()) {
+# if defined(LIBXSTREAM_SYNCHRONOUS)
+    libxstream_use_sink(&wait);
+    libxstream_capture_internal::queue.push(capture_region, true);
+# else
     libxstream_capture_internal::queue.push(capture_region, wait);
+# endif
   }
 #else
   capture_region();
