@@ -78,6 +78,9 @@ endif
 ifeq (,$(MIC))
   MIC := 1
 endif
+ifeq (,$(ATTRIBUTE))
+  ATTRIBUTE := mic
+endif
 ifeq (,$(MKL))
   MKL := 2
 endif
@@ -183,10 +186,10 @@ ifneq (0,$(ACC))
       MIC_CCFLAGS += -offload-option,mic,compiler,"-openmp"
       MIC_FCFLAGS += -offload-option,mic,compiler,"-openmp"
       MIC_LDFLAGS += -offload-option,mic,ld,"--no-undefined"
-      ifneq (,$(ATTR))
-        MIC_CXFLAGS += -offload-attribute-target=$(ATTR)
-        MIC_CCFLAGS += -offload-attribute-target=$(ATTR)
-        #MIC_FCFLAGS += -offload-attribute-target=$(ATTR)
+      ifneq (,$(ATTRIBUTE))
+        MIC_CXFLAGS += -offload-attribute-target=$(ATTRIBUTE)
+        MIC_CCFLAGS += -offload-attribute-target=$(ATTRIBUTE)
+        #MIC_FCFLAGS += -offload-attribute-target=$(ATTRIBUTE)
       endif
     endif
   else
