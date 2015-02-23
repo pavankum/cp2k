@@ -307,10 +307,10 @@ IFLAGS  += # general include paths
 # toggles code using this symbol, but of course the cpp preprocessor is not defining this symbol.
 CPPFLAGS  += #-C $(IFLAGS) $(DFLAGS) -D__INTEL_COMPILER -P -traditional
 
-CXXFLAGS  += $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -diag-disable $(DIAG_DISABLE) -std=c++0x
-CFLAGS    += $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -diag-disable $(DIAG_DISABLE)
-FCFLAGS   += $(OPTFLAGS) $(DFLAGS) $(IFLAGS) -free -fpp -diag-disable $(DIAG_DISABLE)
-LDFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE)
+CXXFLAGS  += $(OPTFLAGS) $(DFLAGS) $(IFLAGS)
+CFLAGS    += $(OPTFLAGS) $(DFLAGS) $(IFLAGS)
+FCFLAGS   += $(OPTFLAGS) $(DFLAGS) $(IFLAGS)
+LDFLAGS   += $(OPTFLAGS)
 
 LIBS += -lstdc++
 ifneq (0,$(ACC))
