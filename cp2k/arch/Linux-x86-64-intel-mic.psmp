@@ -132,6 +132,9 @@ ifneq (0,$(PAR))
   FC  = mpiifort
   LD  = mpiifort
   DFLAGS += -D__parallel -D__BLACS -D__SCALAPACK
+  ifneq (1,$(PAR))
+    DFLAGS += -D__SCALAPACK2
+  endif
 else
   CXX = icpc
   CC  = icc
