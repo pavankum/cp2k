@@ -40,12 +40,12 @@ public:
   ~test_type();
 
 private:
-  int m_device;
   libxstream_argument* m_signature;
   libxstream_stream* m_stream;
   libxstream_event* m_event;
   void* m_host_mem;
-  void* m_dev_mem;
+  void* m_dev_mem1;
+  void* m_dev_mem2;
 };
 
 #endif // TEST_HPP

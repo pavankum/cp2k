@@ -44,7 +44,7 @@
 #endif
 
 //#define LIBXSTREAM_CAPTURE_DEBUG
-//#define LIBXSTREAM_CAPTURE_UNLOCK_EARLY
+//#define LIBXSTREAM_CAPTURE_UNLOCK_LATE
 
 
 namespace libxstream_capture_internal {
@@ -53,7 +53,6 @@ class queue_type {
 public:
   queue_type()
     : m_lock(libxstream_lock_create())
-    , m_terminated(false)
     , m_index(0)
 #if defined(LIBXSTREAM_STDFEATURES)
     , m_thread() // do not start here
@@ -63,45 +62,29 @@ public:
     , m_size(0)
   {
     std::fill_n(m_buffer, LIBXSTREAM_MAX_QSIZE, static_cast<libxstream_capture_base*>(0));
+#if defined(LIBXSTREAM_STDFEATURES)
+    std::thread(run, this).swap(m_thread);
+#else
+# if defined(__GNUC__)
+    pthread_create(&m_thread, 0, run, this);
+# else
+    m_thread = CreateThread(0, 0, run, this, 0, 0);
+# endif
+#endif
   }
 
   ~queue_type() {
-    terminate();
-    libxstream_lock_destroy(m_lock);
-  }
-
-public:
-  bool start() {
-    if (!m_terminated) {
+    // terminates the background thread
+    push(terminator, true);
 #if defined(LIBXSTREAM_STDFEATURES)
-      if (!m_thread.joinable()) {
-        libxstream_lock_acquire(m_lock);
-        if (!m_thread.joinable()) {
-          std::thread(run, this).swap(m_thread);
-        }
-        libxstream_lock_release(m_lock);
-      }
+    m_thread.detach();
 #else
-      if (0 == m_thread) {
-        libxstream_lock_acquire(m_lock);
-        if (0 == m_thread) {
 # if defined(__GNUC__)
-          pthread_create(&m_thread, 0, run, this);
+    pthread_detach(m_thread);
 # else
-          m_thread = CreateThread(0, 0, run, this, 0, 0);
+    CloseHandle(m_thread);
 # endif
-        }
-        libxstream_lock_release(m_lock);
-      }
 #endif
-    }
-
-    return !m_terminated;
-  }
-
-  void terminate() {
-    push(terminator, false); // terminates the background thread
-
 #if defined(LIBXSTREAM_DEBUG)
     size_t dangling = 0;
     for (size_t i = 0; i < LIBXSTREAM_MAX_QSIZE; ++i) {
@@ -116,25 +99,10 @@ public:
       LIBXSTREAM_PRINT_WARN("%lu work item%s dangling!", static_cast<unsigned long>(dangling), 1 < dangling ? "s are" : " is");
     }
 #endif
-
-#if defined(LIBXSTREAM_STDFEATURES)
-    if (m_thread.joinable()) {
-      m_thread.join();
-    }
-#else
-    if (0 != m_thread) {
-# if defined(__GNUC__)
-      pthread_join(m_thread, 0);
-# else
-      WaitForSingleObject(m_thread, INFINITE);
-# endif
-      m_thread = 0;
-    }
-#endif
-
-    m_terminated = true;
+    libxstream_lock_destroy(m_lock);
   }
 
+public:
   bool empty() const {
     return 0 == get();
   }
@@ -242,7 +210,6 @@ private:
   static const libxstream_capture_base* terminator;
   const libxstream_capture_base* m_buffer[LIBXSTREAM_MAX_QSIZE];
   libxstream_lock* m_lock;
-  bool m_terminated;
   size_t m_index;
 #if defined(LIBXSTREAM_STDFEATURES)
   std::thread m_thread;
@@ -271,10 +238,10 @@ libxstream_capture_base::libxstream_capture_base(size_t argc, const arg_type arg
 #if defined(LIBXSTREAM_THREADLOCAL_SIGNALS)
   , m_thread(this_thread_id())
 #endif
-#if defined(LIBXSTREAM_CAPTURE_UNLOCK_EARLY)
-  , m_unlock(true)
-#else
+#if defined(LIBXSTREAM_CAPTURE_UNLOCK_LATE)
   , m_unlock(false)
+#else
+  , m_unlock(true)
 #endif
 {
   if (2 == argc && (argv[0].signature() || argv[1].signature())) {
@@ -290,13 +257,17 @@ libxstream_capture_base::libxstream_capture_base(size_t argc, const arg_type arg
     }
 
     size_t arity = 0;
-    libxstream_fn_arity(signature, &arity);
+    if (signature) {
+      libxstream_fn_arity(signature, &arity);
 #if defined(__INTEL_COMPILER)
-#   pragma loop_count min(0), max(LIBXSTREAM_MAX_NARGS), avg(LIBXSTREAM_MAX_NARGS/2)
+#     pragma loop_count min(0), max(LIBXSTREAM_MAX_NARGS), avg(LIBXSTREAM_MAX_NARGS/2)
 #endif
-    for (size_t i = 0; i <= arity; ++i) m_signature[i] = signature[i];
+      for (size_t i = 0; i < arity; ++i) m_signature[i] = signature[i];
+    }
+    libxstream_construct(m_signature, arity, libxstream_argument::kind_invalid, 0, LIBXSTREAM_TYPE_INVALID, 0, 0);
   }
   else {
+    LIBXSTREAM_ASSERT(argc <= (LIBXSTREAM_MAX_NARGS));
     for (size_t i = 0; i < argc; ++i) m_signature[i] = argv[i];
     libxstream_construct(m_signature, argc, libxstream_argument::kind_invalid, 0, LIBXSTREAM_TYPE_INVALID, 0, 0);
 #if defined(LIBXSTREAM_DEBUG)
@@ -338,10 +309,10 @@ int libxstream_capture_base::thread() const
 libxstream_capture_base* libxstream_capture_base::clone() const
 {
   libxstream_capture_base *const instance = virtual_clone();
-#if defined(LIBXSTREAM_CAPTURE_UNLOCK_EARLY)
-  instance->m_unlock = false;
-#else
+#if defined(LIBXSTREAM_CAPTURE_UNLOCK_LATE)
   instance->m_unlock = true;
+#else
+  instance->m_unlock = false;
 #endif
   return instance;
 }
@@ -356,23 +327,13 @@ void libxstream_capture_base::operator()() const
 LIBXSTREAM_EXPORT_INTERNAL void libxstream_enqueue(const libxstream_capture_base& capture_region, bool wait)
 {
 #if !defined(LIBXSTREAM_CAPTURE_DEBUG)
-  if (libxstream_capture_internal::queue.start()) {
 # if defined(LIBXSTREAM_SYNCHRONOUS)
-    libxstream_use_sink(&wait);
-    libxstream_capture_internal::queue.push(capture_region, true);
+  libxstream_use_sink(&wait);
+  libxstream_capture_internal::queue.push(capture_region, true);
 # else
-    libxstream_capture_internal::queue.push(capture_region, wait);
+  libxstream_capture_internal::queue.push(capture_region, wait);
 # endif
-  }
 #else
   capture_region();
-#endif
-}
-
-
-void libxstream_capture_shutdown()
-{
-#if !defined(LIBXSTREAM_CAPTURE_DEBUG)
-  libxstream_capture_internal::queue.terminate();
 #endif
 }

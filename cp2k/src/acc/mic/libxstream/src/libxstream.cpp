@@ -74,8 +74,6 @@
 # include <unistd.h>
 #endif
 
-//#define LIBXSTREAM_SYNC_NO_MEMSYNC
-
 
 namespace libxstream_internal {
 
@@ -527,7 +525,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_
   }
   LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT);
 
-#if !defined(LIBXSTREAM_SYNC_NO_MEMSYNC)
+#if defined(LIBXSTREAM_SYNCMEM)
   libxstream_stream::sync(device);
 #endif
 
@@ -543,7 +541,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_deallocate(int device, const void* memory
   int result = LIBXSTREAM_ERROR_NONE;
 
   if (memory) {
-#if !defined(LIBXSTREAM_SYNC_NO_MEMSYNC)
+#if defined(LIBXSTREAM_SYNCMEM)
     libxstream_stream::sync(device);
 #endif
 
@@ -570,7 +568,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_deallocate(int device, const void* memory
         result = libxstream_real_deallocate(memory);
       }
     }
-    LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT);
+    LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT);
   }
 
   LIBXSTREAM_PRINT_INFOCTX("device=%i buffer=0x%llx", device, reinterpret_cast<unsigned long long>(memory));
@@ -958,12 +956,6 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_input(libxstream_argument* signature, size
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
 #endif
-#if defined(LIBXSTREAM_PRINT)
-  if (0 < dims && 0 == shape) {
-    LIBXSTREAM_PRINT_WARNCTX("signature=0x%llx arg=%lu is weakly typed (no shape information)!",
-      reinterpret_cast<unsigned long long>(signature), static_cast<unsigned long>(arg));
-  }
-#endif
   return libxstream_construct(signature, arg, libxstream_argument::kind_input, in, type, dims, shape);
 }
 
@@ -975,12 +967,6 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_output(libxstream_argument* signature, siz
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
 #endif
-#if defined(LIBXSTREAM_PRINT)
-  if (0 < dims && 0 == shape) {
-    LIBXSTREAM_PRINT_WARNCTX("signature=0x%llx arg=%lu is weakly typed (no shape information)!",
-      reinterpret_cast<unsigned long long>(signature), static_cast<unsigned long>(arg));
-  }
-#endif
   return libxstream_construct(signature, arg, libxstream_argument::kind_output, out, type, dims, shape);
 }
 
@@ -991,12 +977,6 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_inout(libxstream_argument* signature, size
 #if defined(LIBXSTREAM_DEBUG)
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
-#endif
-#if defined(LIBXSTREAM_PRINT)
-  if (0 < dims && 0 == shape) {
-    LIBXSTREAM_PRINT_WARNCTX("signature=0x%llx arg=%lu is weakly typed (no shape information)!",
-      reinterpret_cast<unsigned long long>(signature), static_cast<unsigned long>(arg));
-  }
 #endif
   return libxstream_construct(signature, arg, libxstream_argument::kind_inout, inout, type, dims, shape);
 }
