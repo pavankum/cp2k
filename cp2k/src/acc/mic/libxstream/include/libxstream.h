@@ -44,34 +44,32 @@ LIBXSTREAM_EXPORT_C typedef struct libxstream_stream libxstream_stream;
 LIBXSTREAM_EXPORT_C typedef struct libxstream_event libxstream_event;
 /** Enumeration of elemental "scalar" types. */
 LIBXSTREAM_EXPORT_C typedef enum libxstream_type {
-  /** signed integer types */
+  /** signed integer types: I8, I16, I32, I64, BOOL */
   LIBXSTREAM_TYPE_I8,
   LIBXSTREAM_TYPE_I16,
   LIBXSTREAM_TYPE_I32, LIBXSTREAM_TYPE_BOOL = LIBXSTREAM_TYPE_I32,
   LIBXSTREAM_TYPE_I64,
-  /** floating point types */
+  /** floating point types: F32, F64, C32, C64 */
   LIBXSTREAM_TYPE_F32,
   LIBXSTREAM_TYPE_F64,
   LIBXSTREAM_TYPE_C32,
   LIBXSTREAM_TYPE_C64,
-  /** unsigned integer types */
+  /** unsigned integer types: U8, U16, U32, U64, BYTE */
   LIBXSTREAM_TYPE_U8, LIBXSTREAM_TYPE_BYTE = LIBXSTREAM_TYPE_U8,
   LIBXSTREAM_TYPE_U16,
   LIBXSTREAM_TYPE_U32,
   LIBXSTREAM_TYPE_U64,
-  /** special types */
+  /** special types: CHAR, VOID */
   LIBXSTREAM_TYPE_CHAR,
   LIBXSTREAM_TYPE_VOID,
   /** terminates type list */
   LIBXSTREAM_TYPE_INVALID
 } libxstream_type;
-/** Flags to adjust function call behavior (valid for binary combination). */
+/** Function call behavior (flags valid for binary combination). */
 LIBXSTREAM_EXPORT_C typedef enum libxstream_call_flags {
   LIBXSTREAM_CALL_DEFAULT = 0,
-  /* synchronous call */
-  LIBXSTREAM_CALL_WAIT    = 1,
-  /* assume MIC-only function */
-  LIBXSTREAM_CALL_NATIVE  = 2,
+  LIBXSTREAM_CALL_WAIT    = 1 /* synchronous function call */,
+  LIBXSTREAM_CALL_NATIVE  = 2 /* native host/MIC function */,
 } libxstream_call_flags;
 /** Function argument type. */
 LIBXSTREAM_EXPORT_C typedef struct LIBXSTREAM_TARGET(mic) libxstream_argument libxstream_argument;
@@ -87,6 +85,8 @@ LIBXSTREAM_EXPORT_C int libxstream_set_active_device(int device);
 
 /** Query the memory metrics of the device (valid to pass one NULL pointer). */
 LIBXSTREAM_EXPORT_C int libxstream_mem_info(int device, size_t* allocatable, size_t* physical);
+/** Query the real pointer on the device side; both pointers are equal if the device specifies the host. */
+LIBXSTREAM_EXPORT_C int libxstream_mem_pointer(int device, const void* memory, const void** real);
 /** Allocate aligned memory (0: automatic) on the device. */
 LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_t size, size_t alignment);
 /** Deallocate memory; shall match the device where the memory was allocated. */
@@ -153,20 +153,20 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_call(libxstream_function function, const l
 LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_typesize(libxstream_type type, size_t* size);
 /** Query the name of the elemental type (string does not need to be buffered). */
 LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_typename(libxstream_type type, const char** name);
-/** Query the argument corresponding to the given pointer variable; this does not work with by-value variables. */
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_argument(const void* variable, const libxstream_argument** arg);
-/** Query a textual value of the argument (valid until next call); thread safe. */
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_value(const libxstream_argument* arg, const char** value);
-/** Query the elemental type of the argument. */
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_type(const libxstream_argument* arg, libxstream_type* type);
-/** Query the dimensionality of the argument; an elemental argument is 0-dimensional. */
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_dims(const libxstream_argument* arg, size_t* dims);
-/** Query the extent of the argument; an elemental argument has an 0-extent. */
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_shape(const libxstream_argument* arg, size_t shape[]);
-/** Query the number of elements of the argument. */
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_size(const libxstream_argument* arg, size_t* size);
-/** Query the data size of the argument (Byte). */
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_datasize(const libxstream_argument* arg, size_t* size);
+/** Query the argument's 0-based position within the signature; needs a pointer variable (not from a by-value variable). */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_argument(const void* variable, size_t* arg);
+/** Query a textual representation; thread safe (valid until next call). A NULL-signature designates the call context. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_value(const libxstream_argument* signature, size_t arg, const char** value);
+/** Query the elemental type of the argument. A NULL-signature designates the call context. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_type(const libxstream_argument* signature, size_t arg, libxstream_type* type);
+/** Query the dimensionality of the argument; an elemental arg. is 0-dimensional. A NULL-signature designates the call context. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_dims(const libxstream_argument* signature, size_t arg, size_t* dims);
+/** Query the extent of the argument; an elemental argument has an 0-extent. A NULL-signature designates the call context. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_shape(const libxstream_argument* signature, size_t arg, size_t shape[]);
+/** Query the number of elements of the argument. A NULL-signature designates the call context. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_size(const libxstream_argument* signature, size_t arg, size_t* size);
+/** Query the data size of the argument (Byte). A NULL-signature designates the call context. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_datasize(const libxstream_argument* signature, size_t arg, size_t* size);
 
 #if defined(__cplusplus)
 template<typename TYPE> struct libxstream_type2value  { /*static const libxstream_type value = LIBXSTREAM_TYPE_VOID;*/ };
