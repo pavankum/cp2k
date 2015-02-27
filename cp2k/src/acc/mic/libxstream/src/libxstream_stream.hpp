@@ -33,6 +33,10 @@
 
 #include "libxstream.hpp"
 
+#if defined(LIBXSTREAM_OFFLOAD) && (0 != LIBXSTREAM_OFFLOAD)
+# include <offload.h>
+#endif
+
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM) || defined(LIBXSTREAM_INTERNAL)
 
 
@@ -41,7 +45,7 @@ struct LIBXSTREAM_EXPORT_INTERNAL libxstream_event;
 
 struct LIBXSTREAM_EXPORT_INTERNAL libxstream_stream {
 public:
-  static void enqueue(libxstream_event& event);
+  static int enqueue(libxstream_event& event);
 
   static int sync(int device);
   static int sync();
@@ -62,14 +66,6 @@ public:
   int demux() const       { return m_demux; }
   int device() const      { return m_device; }
   int priority() const    { return m_priority; }
-
-  void status(int value)  { m_status = value; }
-  int status() const      { return m_status; }
-  int reset() {
-    const int result = m_status;
-    m_status = LIBXSTREAM_ERROR_NONE;
-    return result;
-  }
 
   libxstream_signal signal() const;
   int wait(libxstream_signal signal);
@@ -105,7 +101,7 @@ private:
 #endif
   void* m_thread;
 #if !defined(LIBXSTREAM_THREADLOCAL_SIGNALS)
-  libxstream_signal m_signal, *m_pending;
+  libxstream_signal m_signal, *const m_pending;
 #endif
 #if defined(LIBXSTREAM_LOCK_RETRY) && (0 < (LIBXSTREAM_LOCK_RETRY))
   size_t m_begin, m_end;
@@ -113,7 +109,6 @@ private:
   int m_demux;
   int m_device;
   int m_priority;
-  int m_status;
 
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (2 == (2*LIBXSTREAM_ASYNC+1)/2)
   mutable _Offload_stream m_handle; // lazy creation

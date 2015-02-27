@@ -119,16 +119,18 @@ public:
     return m_streams;
   }
 
-  void enqueue(libxstream_event& event) {
+  int enqueue(libxstream_event& event) {
     LIBXSTREAM_ASSERT(0 == event.expected());
     const size_t n = max_nstreams();
     bool reset = true;
     for (size_t i = 0; i < n; ++i) {
       if (libxstream_stream *const stream = m_streams[i]) {
-        event.enqueue(*stream, reset);
+        const int result = event.enqueue(*stream, reset);
+        LIBXSTREAM_CHECK_ERROR(result);
         reset = false;
       }
     }
+    return LIBXSTREAM_ERROR_NONE;
   }
 
   int sync(int device) {
@@ -230,9 +232,9 @@ T atomic_store(A& atomic, T value)
 } // namespace libxstream_stream_internal
 
 
-/*static*/void libxstream_stream::enqueue(libxstream_event& event)
+/*static*/int libxstream_stream::enqueue(libxstream_event& event)
 {
-  libxstream_stream_internal::registry.enqueue(event);
+  return libxstream_stream_internal::registry.enqueue(event);
 }
 
 
@@ -261,7 +263,7 @@ libxstream_stream::libxstream_stream(int device, int demux, int priority, const 
   , m_begin(0), m_end(0)
 #endif
   , m_demux(demux)
-  , m_device(device), m_priority(priority), m_status(LIBXSTREAM_ERROR_NONE)
+  , m_device(device), m_priority(priority)
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (2 == (2*LIBXSTREAM_ASYNC+1)/2)
   , m_handle(0) // lazy creation
   , m_npartitions(0)
@@ -317,11 +319,10 @@ int libxstream_stream::wait(libxstream_signal signal)
 {
   int result = LIBXSTREAM_ERROR_NONE;
 
-  LIBXSTREAM_ASYNC_BEGIN(this, &result, m_pending, signal)
+  LIBXSTREAM_ASYNC_BEGIN(this, m_pending, signal)
   {
-    *ptr<int,0>() = LIBXSTREAM_ASYNC_STREAM->reset(); // result code
-    libxstream_signal *const pending_signals = ptr<libxstream_signal,1>();
-    const libxstream_signal signal = val<const libxstream_signal,2>();
+    libxstream_signal *const pending_signals = ptr<libxstream_signal,0>();
+    const libxstream_signal signal = val<const libxstream_signal,1>();
 
 #if defined(LIBXSTREAM_THREADLOCAL_SIGNALS)
     const int nthreads = static_cast<int>(nthreads_active());
@@ -335,9 +336,9 @@ int libxstream_stream::wait(libxstream_signal signal)
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (0 != (2*LIBXSTREAM_ASYNC+1)/2)
         if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
 # if defined(LIBXSTREAM_STREAM_WAIT_PAST)
-        const libxstream_signal pending = 0 != signal ? signal : pending_signal;
+          const libxstream_signal pending = 0 != signal ? signal : pending_signal;
 # else
-        const libxstream_signal pending = pending_signal;
+          const libxstream_signal pending = pending_signal;
 # endif
 #         pragma offload_wait LIBXSTREAM_ASYNC_TARGET wait(pending)
         }
@@ -366,7 +367,7 @@ int libxstream_stream::wait(libxstream_signal signal)
       }
     }
   }
-  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT | LIBXSTREAM_CALL_UNLOCK);
+  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT | LIBXSTREAM_CALL_UNLOCK, result);
 
   return result;
 }
@@ -378,6 +379,7 @@ void libxstream_stream::pending(int thread, libxstream_signal signal)
   LIBXSTREAM_ASSERT(0 <= thread && thread < LIBXSTREAM_MAX_NTHREADS);
   m_pending[thread] = signal;
 #else
+  libxstream_use_sink(&thread);
   LIBXSTREAM_ASSERT(0 == thread);
   m_signal = signal;
 #endif
@@ -390,6 +392,7 @@ libxstream_signal libxstream_stream::pending(int thread) const
   LIBXSTREAM_ASSERT(0 <= thread && thread < LIBXSTREAM_MAX_NTHREADS);
   const libxstream_signal signal = m_pending[thread];
 #else
+  libxstream_use_sink(&thread);
   LIBXSTREAM_ASSERT(0 == thread);
   const libxstream_signal signal = m_signal;
 #endif
@@ -533,7 +536,7 @@ _Offload_stream libxstream_stream::handle() const
 
   if (nstreams != m_npartitions) {
     if (0 != m_handle) {
-      wait(0); // complete pending operations on old stream
+      const_cast<libxstream_stream*>(this)->wait(0); // complete pending operations on old stream
       _Offload_stream_destroy(m_device, m_handle);
     }
 

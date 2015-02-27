@@ -459,25 +459,24 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_info(int device, size_t* allocatable, siz
   uint64_t memory_physical = 0, memory_allocatable = 0;
   int result = LIBXSTREAM_ERROR_NONE;
 
-  LIBXSTREAM_ASYNC_BEGIN(0, device, &memory_physical, &memory_allocatable)
-  {
-    uint64_t& memory_physical = *ptr<uint64_t,1>();
-    uint64_t& memory_allocatable = *ptr<uint64_t,2>();
-
 #if defined(LIBXSTREAM_OFFLOAD)
-    if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
-#     pragma offload target(mic:LIBXSTREAM_ASYNC_DEVICE) //out(memory_physical, memory_allocatable)
-      {
-        libxstream_internal::mem_info(memory_physical, memory_allocatable);
-      }
-    }
-    else
-#endif
+  if (0 <= device) {
+    LIBXSTREAM_ASYNC_BEGIN(0, device, &memory_physical, &memory_allocatable)
     {
+      uint64_t& memory_physical = *ptr<uint64_t,1>();
+      uint64_t& memory_allocatable = *ptr<uint64_t,2>();
+#     pragma offload target(mic:LIBXSTREAM_ASYNC_DEVICE) //out(memory_physical, memory_allocatable)
       libxstream_internal::mem_info(memory_physical, memory_allocatable);
     }
+    LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT, result);
   }
-  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT);
+  else {
+#else
+  {
+    libxstream_use_sink(&device);
+#endif
+    libxstream_internal::mem_info(memory_physical, memory_allocatable);
+  }
 
   LIBXSTREAM_PRINT_INFOCTX("device=%i allocatable=%lu physical=%lu", device,
     static_cast<unsigned long>(memory_allocatable),
@@ -499,6 +498,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_info(int device, size_t* allocatable, siz
 LIBXSTREAM_EXPORT_C int libxstream_mem_pointer(int device, const void* memory, const void** real)
 {
   LIBXSTREAM_CHECK_CONDITION(0 != real);
+  int result = LIBXSTREAM_ERROR_NONE;
 
   if (memory) {
 #if defined(LIBXSTREAM_OFFLOAD)
@@ -507,14 +507,10 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_pointer(int device, const void* memory, c
       {
         const char* memory = ptr<const char,1>();
         const void*& real = *ptr<const void*,2>();
-
-#       pragma offload target(mic:LIBXSTREAM_ASYNC_DEVICE) \
-          in(memory: length(0) alloc_if(false) free_if(false)) //out(real)
-        {
-          real = memory;
-        }
+#       pragma offload target(mic:LIBXSTREAM_ASYNC_DEVICE) in(memory: length(0) LIBXSTREAM_OFFLOAD_REUSE) //out(real)
+        real = memory;
       }
-      LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT);
+      LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT, result);
     }
     else {
 #else
@@ -528,38 +524,39 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_pointer(int device, const void* memory, c
     *real = 0;
   }
 
-  return LIBXSTREAM_ERROR_NONE;
+  return result;
 }
 
 
 LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_t size, size_t alignment)
 {
+  LIBXSTREAM_CHECK_CONDITION(0 != memory);
   int result = LIBXSTREAM_ERROR_NONE;
 
-  LIBXSTREAM_ASYNC_BEGIN(0, device, memory, size, alignment, &result)
-  {
-    void*& memory = *ptr<void*,1>();
-    const size_t size = val<const size_t,2>();
-    const size_t alignment = val<const size_t,3>();
-    int& result = *ptr<int,4>();
-
 #if defined(LIBXSTREAM_OFFLOAD)
-    if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
-      const int device = LIBXSTREAM_ASYNC_DEVICE;
-      result = libxstream_virt_allocate(&memory, size, alignment, &device, sizeof(device));
+  if (0 <= device) {
+    void* buffer = 0;
+    result = libxstream_virt_allocate(&buffer, size, alignment, &device, sizeof(device));
 
-      if (LIBXSTREAM_ERROR_NONE == result && 0 != memory) {
-        char *const buffer = static_cast<char*>(memory);
-#       pragma offload_transfer target(mic:LIBXSTREAM_ASYNC_DEVICE) nocopy(buffer: length(size) alloc_if(true))
+    if (LIBXSTREAM_ERROR_NONE == result && 0 != buffer) {
+      LIBXSTREAM_ASYNC_BEGIN(0, device, buffer, size)
+      {
+        const char* buffer = ptr<const char,1>();
+        const size_t size = val<const size_t,2>();
+#       pragma offload_transfer target(mic:LIBXSTREAM_ASYNC_DEVICE) nocopy(buffer: length(size) LIBXSTREAM_OFFLOAD_ALLOC)
       }
-    }
-    else
-#endif
-    {
-      result = libxstream_real_allocate(&memory, size, alignment);
+      LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT, result);
+      LIBXSTREAM_CHECK_ERROR(result);
+      *memory = buffer;
     }
   }
-  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT);
+  else {
+#else
+  {
+    libxstream_use_sink(&device);
+#endif
+    result = libxstream_real_allocate(memory, size, alignment);
+  }
 
 #if defined(LIBXSTREAM_SYNCMEM)
   libxstream_stream::sync(device);
@@ -601,31 +598,31 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_deallocate(int device, const void* memory
 #if defined(LIBXSTREAM_SYNCMEM)
     libxstream_stream::sync(device);
 #endif
-
-    LIBXSTREAM_ASYNC_BEGIN(0, device, memory, &result)
-    {
-      const char *const memory = ptr<const char,1>();
-      int& result = *ptr<int,2>();
-
 #if defined(LIBXSTREAM_OFFLOAD)
-      if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
+    if (0 <= device) {
 # if defined(LIBXSTREAM_CHECK)
-        const int memory_device = *static_cast<const int*>(libxstream_virt_data(memory));
-        if (memory_device != LIBXSTREAM_ASYNC_DEVICE) {
-          LIBXSTREAM_PRINT_WARN("device %i does not match allocating device %i!", LIBXSTREAM_ASYNC_DEVICE, memory_device);
-          LIBXSTREAM_ASYNC_DEVICE_UPDATE(memory_device);
-        }
+      const int memory_device = *static_cast<const int*>(libxstream_virt_data(memory));
+      if (device != memory_device) {
+        LIBXSTREAM_PRINT_WARN("device %i does not match allocating device %i!", device, memory_device);
+        LIBXSTREAM_CHECK_CONDITION(0 <= memory_device);
+        device = memory_device;
+      }
 # endif
-#       pragma offload_transfer target(mic:LIBXSTREAM_ASYNC_DEVICE) nocopy(memory: length(0) free_if(true))
-        result = libxstream_virt_deallocate(memory);
-      }
-      else
-#endif
+      LIBXSTREAM_ASYNC_BEGIN(0, device, memory)
       {
-        result = libxstream_real_deallocate(memory);
+        const char *const memory = ptr<const char,1>();
+#       pragma offload_transfer target(mic:LIBXSTREAM_ASYNC_DEVICE) nocopy(memory: length(0) LIBXSTREAM_OFFLOAD_FREE)
+        LIBXSTREAM_CHECK_CALL_ASSERT(status(libxstream_virt_deallocate(memory)));
       }
+      LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT, result);
     }
-    LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT);
+    else {
+#else
+    {
+      libxstream_use_sink(&device);
+#endif
+      result = libxstream_real_deallocate(memory);
+    }
   }
 
   return result;
@@ -638,6 +635,7 @@ LIBXSTREAM_EXPORT_C int libxstream_memset_zero(void* memory, size_t size, libxst
     reinterpret_cast<unsigned long long>(memory), static_cast<unsigned long>(size),
     reinterpret_cast<unsigned long long>(stream));
   LIBXSTREAM_CHECK_CONDITION(memory && stream);
+  int result = LIBXSTREAM_ERROR_NONE;
 
   LIBXSTREAM_ASYNC_BEGIN(stream, memory, size)
   {
@@ -647,18 +645,12 @@ LIBXSTREAM_EXPORT_C int libxstream_memset_zero(void* memory, size_t size, libxst
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
       if (LIBXSTREAM_ASYNC_READY) {
-#       pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL \
-          in(size) out(dst: length(0) alloc_if(false) free_if(false))
-        {
-          memset(dst, 0, size);
-        }
+#       pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL in(size) out(dst: length(0) LIBXSTREAM_OFFLOAD_REUSE)
+        memset(dst, 0, size);
       }
       else {
-#       pragma offload LIBXSTREAM_ASYNC_TARGET_WAIT \
-          in(size) out(dst: length(0) alloc_if(false) free_if(false))
-        {
-          memset(dst, 0, size);
-        }
+#       pragma offload LIBXSTREAM_ASYNC_TARGET_WAIT in(size) out(dst: length(0) LIBXSTREAM_OFFLOAD_REUSE)
+        memset(dst, 0, size);
       }
     }
     else
@@ -667,9 +659,9 @@ LIBXSTREAM_EXPORT_C int libxstream_memset_zero(void* memory, size_t size, libxst
       memset(dst, 0, size);
     }
   }
-  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT);
+  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT, result);
 
-  return LIBXSTREAM_ERROR_NONE;
+  return result;
 }
 
 
@@ -678,6 +670,7 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_h2d(const void* host_mem, void* dev_me
   LIBXSTREAM_PRINT_INFO("libxstream_memcpy_h2d: 0x%llx->0x%llx size=%lu stream=0x%llx", reinterpret_cast<unsigned long long>(host_mem),
     reinterpret_cast<unsigned long long>(dev_mem), static_cast<unsigned long>(size), reinterpret_cast<unsigned long long>(stream));
   LIBXSTREAM_CHECK_CONDITION(host_mem && dev_mem && stream);
+  int result = LIBXSTREAM_ERROR_NONE;
 
   LIBXSTREAM_ASYNC_BEGIN(stream, host_mem, dev_mem, size)
   {
@@ -688,12 +681,10 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_h2d(const void* host_mem, void* dev_me
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
       if (LIBXSTREAM_ASYNC_READY) {
-#       pragma offload_transfer LIBXSTREAM_ASYNC_TARGET_SIGNAL \
-          in(src: length(size) into(dst) alloc_if(false) free_if(false))
+#       pragma offload_transfer LIBXSTREAM_ASYNC_TARGET_SIGNAL in(src: length(size) into(dst) LIBXSTREAM_OFFLOAD_REUSE)
       }
       else {
-#       pragma offload_transfer LIBXSTREAM_ASYNC_TARGET_WAIT \
-          in(src: length(size) into(dst) alloc_if(false) free_if(false))
+#       pragma offload_transfer LIBXSTREAM_ASYNC_TARGET_WAIT in(src: length(size) into(dst) LIBXSTREAM_OFFLOAD_REUSE)
       }
     }
     else
@@ -714,9 +705,9 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_h2d(const void* host_mem, void* dev_me
 #endif
     }
   }
-  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT);
+  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT, result);
 
-  return LIBXSTREAM_ERROR_NONE;
+  return result;
 }
 
 
@@ -725,6 +716,7 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2h(const void* dev_mem, void* host_me
   LIBXSTREAM_PRINT_INFO("libxstream_memcpy_d2h: 0x%llx->0x%llx size=%lu stream=0x%llx", reinterpret_cast<unsigned long long>(dev_mem),
     reinterpret_cast<unsigned long long>(host_mem), static_cast<unsigned long>(size), reinterpret_cast<unsigned long long>(stream));
   LIBXSTREAM_CHECK_CONDITION(dev_mem && host_mem && stream);
+  int result = LIBXSTREAM_ERROR_NONE;
 
   LIBXSTREAM_ASYNC_BEGIN(stream, dev_mem, host_mem, size)
   {
@@ -735,12 +727,10 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2h(const void* dev_mem, void* host_me
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
       if (LIBXSTREAM_ASYNC_READY) {
-#       pragma offload_transfer LIBXSTREAM_ASYNC_TARGET_SIGNAL \
-          out(src: length(size) into(dst) alloc_if(false) free_if(false))
+#       pragma offload_transfer LIBXSTREAM_ASYNC_TARGET_SIGNAL out(src: length(size) into(dst) LIBXSTREAM_OFFLOAD_REUSE)
       }
       else {
-#       pragma offload_transfer LIBXSTREAM_ASYNC_TARGET_WAIT \
-          out(src: length(size) into(dst) alloc_if(false) free_if(false))
+#       pragma offload_transfer LIBXSTREAM_ASYNC_TARGET_WAIT out(src: length(size) into(dst) LIBXSTREAM_OFFLOAD_REUSE)
       }
     }
     else
@@ -749,9 +739,9 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2h(const void* dev_mem, void* host_me
       std::copy(src, src + size, dst);
     }
   }
-  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT);
+  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT, result);
 
-  return LIBXSTREAM_ERROR_NONE;
+  return result;
 }
 
 
@@ -760,11 +750,12 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2d(const void* src, void* dst, size_t
   LIBXSTREAM_PRINT_INFO("libxstream_memcpy_d2d: 0x%llx->0x%llx size=%lu stream=0x%llx", reinterpret_cast<unsigned long long>(src),
     reinterpret_cast<unsigned long long>(dst), static_cast<unsigned long>(size), reinterpret_cast<unsigned long long>(stream));
   LIBXSTREAM_CHECK_CONDITION(src && dst && stream);
+  int result = LIBXSTREAM_ERROR_NONE;
 
   LIBXSTREAM_ASYNC_BEGIN(stream, src, dst, size)
   {
-    const uint64_t *const src = ptr<const uint64_t,0>();
-    uint64_t* dst = ptr<uint64_t,1>();
+    const char *const src = ptr<const char,0>();
+    char* dst = ptr<char,1>();
     const size_t size = val<const size_t,2>();
 
 #if defined(LIBXSTREAM_OFFLOAD)
@@ -772,13 +763,11 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2d(const void* src, void* dst, size_t
       // TODO: implement cross-device transfer
 
       if (LIBXSTREAM_ASYNC_READY) {
-#       pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL \
-          in(size) in(src: length(0) alloc_if(false) free_if(false)) out(dst: length(0) alloc_if(false) free_if(false))
+#       pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL in(size) in(src: length(0) LIBXSTREAM_OFFLOAD_REUSE) out(dst: length(0) LIBXSTREAM_OFFLOAD_REUSE)
         memcpy(dst, src, size);
       }
       else {
-#       pragma offload LIBXSTREAM_ASYNC_TARGET_WAIT \
-          in(size) in(src: length(0) alloc_if(false) free_if(false)) out(dst: length(0) alloc_if(false) free_if(false))
+#       pragma offload LIBXSTREAM_ASYNC_TARGET_WAIT in(size) in(src: length(0) LIBXSTREAM_OFFLOAD_REUSE) out(dst: length(0) LIBXSTREAM_OFFLOAD_REUSE)
         memcpy(dst, src, size);
       }
     }
@@ -788,9 +777,9 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2d(const void* src, void* dst, size_t
       memcpy(dst, src, size);
     }
   }
-  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT);
+  LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT, result);
 
-  return LIBXSTREAM_ERROR_NONE;
+  return result;
 }
 
 
@@ -925,15 +914,7 @@ LIBXSTREAM_EXPORT_C int libxstream_event_destroy(libxstream_event* event)
 LIBXSTREAM_EXPORT_C int libxstream_event_record(libxstream_event* event, libxstream_stream* stream)
 {
   LIBXSTREAM_PRINT_INFOCTX("event=0x%llx stream=0x%llx", reinterpret_cast<unsigned long long>(event), reinterpret_cast<unsigned long long>(stream));
-
-  if (stream) {
-    event->enqueue(*stream, true);
-  }
-  else {
-    libxstream_stream::enqueue(*event);
-  }
-
-  return LIBXSTREAM_ERROR_NONE;
+  return stream ? event->enqueue(*stream, true) : libxstream_stream::enqueue(*event);
 }
 
 
@@ -1078,29 +1059,51 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_call(libxstream_function function, const l
 }
 
 
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_typesize(libxstream_type type, size_t* size)
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_typesize(libxstream_type type, size_t* typesize)
 {
-  LIBXSTREAM_CHECK_CONDITION(0 != size);
+  LIBXSTREAM_CHECK_CONDITION(0 != typesize);
   int result = LIBXSTREAM_ERROR_NONE;
 
   switch(type) {
-    case LIBXSTREAM_TYPE_I8:    *size = 1;  break;
-    case LIBXSTREAM_TYPE_I16:   *size = 2;  break;
-    case LIBXSTREAM_TYPE_I32:   *size = 4;  break;
-    case LIBXSTREAM_TYPE_I64:   *size = 8;  break;
-    case LIBXSTREAM_TYPE_F32:   *size = 4;  break;
-    case LIBXSTREAM_TYPE_F64:   *size = 8;  break;
-    case LIBXSTREAM_TYPE_C32:   *size = 8;  break;
-    case LIBXSTREAM_TYPE_C64:   *size = 16; break;
-    case LIBXSTREAM_TYPE_U8:    *size = 1;  break;
-    case LIBXSTREAM_TYPE_U16:   *size = 2;  break;
-    case LIBXSTREAM_TYPE_U32:   *size = 4;  break;
-    case LIBXSTREAM_TYPE_U64:   *size = 8;  break;
-    case LIBXSTREAM_TYPE_CHAR:  *size = 1;  break;
+    case LIBXSTREAM_TYPE_I8:    *typesize = 1;  break;
+    case LIBXSTREAM_TYPE_I16:   *typesize = 2;  break;
+    case LIBXSTREAM_TYPE_I32:   *typesize = 4;  break;
+    case LIBXSTREAM_TYPE_I64:   *typesize = 8;  break;
+    case LIBXSTREAM_TYPE_F32:   *typesize = 4;  break;
+    case LIBXSTREAM_TYPE_F64:   *typesize = 8;  break;
+    case LIBXSTREAM_TYPE_C32:   *typesize = 8;  break;
+    case LIBXSTREAM_TYPE_C64:   *typesize = 16; break;
+    case LIBXSTREAM_TYPE_U8:    *typesize = 1;  break;
+    case LIBXSTREAM_TYPE_U16:   *typesize = 2;  break;
+    case LIBXSTREAM_TYPE_U32:   *typesize = 4;  break;
+    case LIBXSTREAM_TYPE_U64:   *typesize = 8;  break;
+    case LIBXSTREAM_TYPE_CHAR:  *typesize = 1;  break;
     default: // LIBXSTREAM_TYPE_VOID, etc.
       result = LIBXSTREAM_ERROR_CONDITION;
   }
   return result;
+}
+
+
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_autotype(size_t typesize, libxstream_type* autotype)
+{
+  LIBXSTREAM_CHECK_CONDITION(0 != autotype);
+  size_t size = 0;
+  int i = 0;
+
+  do {
+    *autotype = static_cast<libxstream_type>(i);
+    LIBXSTREAM_CHECK_CALL(libxstream_get_typesize(*autotype, &size));
+    if (typesize != size) {
+      ++i;
+    }
+    else {
+      i = LIBXSTREAM_TYPE_INVALID; // break
+    }
+  }
+  while (i <= LIBXSTREAM_TYPE_VOID);
+
+  return LIBXSTREAM_ERROR_NONE;
 }
 
 
@@ -1295,6 +1298,28 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_size(const libxstr
 }
 
 
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_elemsize(const libxstream_argument* signature, size_t arg, size_t* size)
+{
+  LIBXSTREAM_CHECK_CONDITION(0 != size);
+  if (0 == signature) {
+    const libxstream_context& context = libxstream_context::instance();
+    LIBXSTREAM_CHECK_CONDITION(LIBXSTREAM_CALL_INVALID != context.flags && 0 != context.signature);
+    signature = context.signature;
+  }
+#if defined(LIBXSTREAM_DEBUG) && (!defined(LIBXSTREAM_OFFLOAD) || (0 == LIBXSTREAM_OFFLOAD))
+  size_t arity = 0;
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_arity(signature, &arity) && arg < arity);
+#endif
+  const libxstream_argument& argument = signature[arg];
+  size_t typesize = 0 != argument.dims ? 1 : *argument.shape;
+  if (LIBXSTREAM_TYPE_VOID != argument.type) {
+    LIBXSTREAM_CHECK_CALL(libxstream_get_typesize(argument.type, &typesize));
+  }
+  *size = typesize;
+  return LIBXSTREAM_ERROR_NONE;
+}
+
+
 LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_datasize(const libxstream_argument* signature, size_t arg, size_t* size)
 {
   LIBXSTREAM_CHECK_CONDITION(0 != size);
@@ -1308,8 +1333,10 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_datasize(const lib
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_arity(signature, &arity) && arg < arity);
 #endif
   const libxstream_argument& argument = signature[arg];
-  size_t typesize = 0;
-  LIBXSTREAM_CHECK_CALL(libxstream_get_typesize(argument.type, &typesize));
+  size_t typesize = 0 != argument.dims ? 1 : *argument.shape;
+  if (LIBXSTREAM_TYPE_VOID != argument.type) {
+    LIBXSTREAM_CHECK_CALL(libxstream_get_typesize(argument.type, &typesize));
+  }
   *size = libxstream_linear_size(argument.dims, argument.shape, typesize);
   return LIBXSTREAM_ERROR_NONE;
 }
