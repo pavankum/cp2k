@@ -141,10 +141,10 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     const size_t stacksize = nblocks;
     libxstream_argument* signature = 0;
     LIBXSTREAM_CHECK_CALL(libxstream_fn_create_signature(&signature, 4));
-    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 0, stack + offset, libxstream_type2value<U>::value, 1, &stacksize));
-    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 1, &m, libxstream_type2value<U>::value, 0, 0));
-    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 2, &n, libxstream_type2value<U>::value, 0, 0));
-    LIBXSTREAM_CHECK_CALL(libxstream_fn_inout(signature, 3, data, libxstream_type2value<T>::value, 1, 0/*unknown*/));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 0, stack + offset, libxstream_type2value<U>::value(), 1, &stacksize));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 1,   &m, libxstream_type2value<U>::value(), 0, 0));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 2,   &n, libxstream_type2value<U>::value(), 0, 0));
+    LIBXSTREAM_CHECK_CALL(libxstream_fn_inout(signature, 3, data, libxstream_type2value<T>::value(), 1, 0/*unknown*/));
     LIBXSTREAM_CHECK_CALL(libxstream_fn_call(function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
     LIBXSTREAM_CHECK_CALL(libxstream_fn_destroy_signature(signature));
   }
