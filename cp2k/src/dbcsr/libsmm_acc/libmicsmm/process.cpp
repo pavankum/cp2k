@@ -259,16 +259,15 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
   const libxstream_function function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
   const size_t shape = stacksize;
   libxstream_argument* signature = 0;
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_create_signature(&signature, 7));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 0,  stack, libxstream_type2value<U>::value(), 1, &shape));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 1, &max_m, libxstream_type2value<U>::value(), 0, 0));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 2, &max_n, libxstream_type2value<U>::value(), 0, 0));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 3, &max_k, libxstream_type2value<U>::value(), 0, 0));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 4, a_data, libxstream_type2value<T>::value(), 1, 0/*unknown*/));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_input(signature, 5, b_data, libxstream_type2value<T>::value(), 1, 0/*unknown*/));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_inout(signature, 6, c_data, libxstream_type2value<T>::value(), 1, 0/*unknown*/));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_call(function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
-  LIBXSTREAM_CHECK_CALL(libxstream_fn_destroy_signature(signature));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 0,  stack, libxstream_type2value<U>::value(), 1, &shape));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 1, &max_m, libxstream_type2value<U>::value(), 0, 0));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 2, &max_n, libxstream_type2value<U>::value(), 0, 0));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 3, &max_k, libxstream_type2value<U>::value(), 0, 0));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 4, a_data, libxstream_type2value<T>::value(), 1, 0/*unknown*/));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 5, b_data, libxstream_type2value<T>::value(), 1, 0/*unknown*/));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 6, c_data, libxstream_type2value<T>::value(), 1, 0/*unknown*/));
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_call(function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
 
 #if defined(LIBMICSMM_USE_DUMP)
   LIBXSTREAM_CHECK_CALL(acc_memcpy_d2h(c_data, &buffer[0], size_c * sizeof(T), stream));
