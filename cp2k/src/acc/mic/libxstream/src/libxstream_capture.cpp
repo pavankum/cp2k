@@ -29,9 +29,10 @@
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
 #include "libxstream_capture.hpp"
+
+#include <libxstream_begin.h>
 #include <algorithm>
 #include <cstdio>
-
 #if defined(LIBXSTREAM_STDFEATURES)
 # include <thread>
 # include <atomic>
@@ -42,6 +43,7 @@
 #   include <Windows.h>
 # endif
 #endif
+#include <libxstream_end.h>
 
 //#define LIBXSTREAM_CAPTURE_DEBUG
 //#define LIBXSTREAM_CAPTURE_UNLOCK_LATE
@@ -274,12 +276,12 @@ libxstream_capture_base::libxstream_capture_base(size_t argc, const arg_type arg
     const libxstream_argument* signature = 0;
     if (argv[1].signature()) {
       m_function = *reinterpret_cast<const libxstream_function*>(argv + 0);
-      signature = reinterpret_cast<const libxstream_argument*>(libxstream_get_data(argv[1]));
+      signature = reinterpret_cast<const libxstream_argument*>(libxstream_get_value(argv[1]));
     }
     else {
       LIBXSTREAM_ASSERT(argv[0].signature());
       m_function = *reinterpret_cast<const libxstream_function*>(argv + 1);
-      signature = reinterpret_cast<const libxstream_argument*>(libxstream_get_data(argv[0]));
+      signature = reinterpret_cast<const libxstream_argument*>(libxstream_get_value(argv[0]));
     }
 
     size_t arity = 0;

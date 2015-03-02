@@ -48,8 +48,8 @@ libxstream_context& libxstream_context::instance()
 libxstream_context& libxstream_context::instance(const libxstream_argument signature_[], int flags_)
 {
   libxstream_context& context = instance();
-  context.signature = signature_;
   LIBXSTREAM_ASSERT(LIBXSTREAM_CALL_INVALID != flags_);
+  context.signature = signature_;
   context.flags = flags_;
   return context;
 }
@@ -61,7 +61,7 @@ LIBXSTREAM_TARGET(mic) const libxstream_argument* libxstream_find(const libxstre
   if (context.signature) {
     for (const libxstream_argument* argi = context.signature; LIBXSTREAM_TYPE_INVALID != argi->type; ++argi) {
       LIBXSTREAM_ASSERT(libxstream_argument::kind_invalid != argi->kind);
-      if (variable == libxstream_get_data(*argi)) {
+      if (variable == libxstream_get_value(*argi)) {
         argument = argi;
         break;
       }
