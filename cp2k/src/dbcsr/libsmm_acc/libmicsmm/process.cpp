@@ -145,22 +145,19 @@ public:
 
 
 template<size_t N, typename T, typename U>
-LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U max_m, U max_n, U max_k,
+LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& max_m, const U& max_n, const U& max_k,
   const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
 {
-#if defined(LIBMICSMM_USE_PRETRANSPOSE)
-  LIBXSTREAM_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
-#endif
-#if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
+  size_t stacksize = 0;
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
+  LIBXSTREAM_PRINT_INFO("libsmm_acc_process (mic): stacksize=%lu max_m=%i max_n=%i max_k=%i", static_cast<unsigned long>(stacksize), max_m, max_n, max_k);
+
+#if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
-
   const smm_type<T,U> smm(max_m, max_n, max_k/*, LIBMICSMM_MAX_M*/);
-  U colspan[LIBMICSMM_MAX_BURST];
-
-  size_t stacksize = 0;
-  libxstream_get_shape(0, 0/*stack*/, &stacksize);
   const U n = static_cast<U>(stacksize * N);
+  U colspan[LIBMICSMM_MAX_BURST];
 
   for (U s = N; s <= n;) {
     int size = 0;
@@ -192,7 +189,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U max_m, 
     }
   }
 
-#if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
+#if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
   static double duration = 0, flops = 0;
   const double stop = omp_get_wtime();
   if (start < stop) {
@@ -200,7 +197,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, U max_m, 
     duration += stop - start;
 #   pragma omp atomic
     flops += static_cast<double>(2ul * max_m * max_n * max_k * stacksize);
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_process: %.f GFLOP/s", flops / (1E9 * duration));
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (mic): %.f GFLOP/s", flops / (1E9 * duration));
   }
 #endif
 }
@@ -210,12 +207,10 @@ template<typename T, bool Complex, typename U>
 int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
   U def_mnk, void* stream)
 {
-  LIBXSTREAM_PRINT_INFOCTX("type=%s size=%i homogeneous=%s max_m=%i max_n=%i max_k=%i a=0x%lx b=0x%lx c=0x%lx stream=0x%lx",
-    dbcsr_elem<T,Complex>::name(), stacksize, 1 == def_mnk ? "true" : "false", max_m, max_n, max_k,
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(a_data)),
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(b_data)),
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(c_data)),
-    static_cast<unsigned long>(reinterpret_cast<uintptr_t>(stream)));
+  LIBXSTREAM_PRINT_INFO("libsmm_acc_process (host): type=%s homogeneous=%s stack=0x%llx a=0x%llx b=0x%llx c=0x%llx stream=0x%llx",
+    dbcsr_elem<T,Complex>::name(), 1 == def_mnk ? "true" : "false", reinterpret_cast<unsigned long long>(stack),
+    reinterpret_cast<unsigned long long>(a_data), reinterpret_cast<unsigned long long>(b_data), reinterpret_cast<unsigned long long>(c_data),
+    reinterpret_cast<unsigned long long>(stream));
   LIBXSTREAM_CHECK_CONDITION(
     stack && 0 <= stacksize && 0 <= nparams
     && 0 <= max_m && 0 <= max_n && 0 <= max_k
@@ -244,6 +239,9 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
 
 extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
 {
+#if defined(LIBMICSMM_USE_PRETRANSPOSE)
+  LIBXSTREAM_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
+#endif
   const int *const stack = static_cast<const int*>(param_stack);
   int result = LIBXSTREAM_ERROR_NONE;
 
