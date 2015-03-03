@@ -28,7 +28,6 @@
 //#define LIBMICSMM_USE_PRETRANSPOSE
 //#define LIBMICSMM_USE_MKLTRANS
 //#define LIBMICSMM_USE_MKLSMM
-//#define LIBMICSMM_USE_DUMP
 
 
 typedef enum dbcsr_elem_type {
@@ -36,11 +35,6 @@ typedef enum dbcsr_elem_type {
   DBCSR_ELEM_F32 = 1, DBCSR_ELEM_F64 = 3,
   DBCSR_ELEM_C32 = 5, DBCSR_ELEM_C64 = 7
 } dbcsr_elem_type;
-
-
-LIBXSTREAM_EXTERN_C int libsmm_acc_file_save(const char groupname[], const char name[], size_t id, const void* data, size_t data_size, const void* header, size_t header_size);
-LIBXSTREAM_EXTERN_C int libsmm_acc_file_load(const char groupname[], const char name[], size_t id, void* data, size_t* data_size, void* header);
-LIBXSTREAM_EXTERN_C int libsmm_acc_file_diff(const char groupname[], const char name[], size_t id, const void* data, dbcsr_elem_type elem_type, double* max_diff);
 
 #endif // defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)
 #endif // LIBMICSMM_H
