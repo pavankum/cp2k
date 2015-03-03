@@ -505,7 +505,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_pointer(int device, const void* memory, c
       {
         const char* memory = ptr<const char,1>();
         const void*& real = *ptr<const void*,2>();
-#       pragma offload target(mic:LIBXSTREAM_ASYNC_DEVICE) in(memory: length(0) LIBXSTREAM_OFFLOAD_REUSE) //out(real)
+#       pragma offload target(mic:LIBXSTREAM_ASYNC_DEVICE) in(memory: LIBXSTREAM_OFFLOAD_REFRESH) //out(real)
         real = memory;
       }
       LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_WAIT, result);
@@ -643,11 +643,11 @@ LIBXSTREAM_EXPORT_C int libxstream_memset_zero(void* memory, size_t size, libxst
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
       if (LIBXSTREAM_ASYNC_READY) {
-#       pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL in(size) out(dst: length(0) LIBXSTREAM_OFFLOAD_REUSE)
+#       pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL in(size) out(dst: LIBXSTREAM_OFFLOAD_REFRESH)
         memset(dst, 0, size);
       }
       else {
-#       pragma offload LIBXSTREAM_ASYNC_TARGET_WAIT in(size) out(dst: length(0) LIBXSTREAM_OFFLOAD_REUSE)
+#       pragma offload LIBXSTREAM_ASYNC_TARGET_WAIT in(size) out(dst: LIBXSTREAM_OFFLOAD_REFRESH)
         memset(dst, 0, size);
       }
     }
@@ -762,11 +762,11 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2d(const void* src, void* dst, size_t
         // TODO: implement cross-device transfer
 
         if (LIBXSTREAM_ASYNC_READY) {
-#         pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL in(size) in(src: length(0) LIBXSTREAM_OFFLOAD_REUSE) out(dst: length(0) LIBXSTREAM_OFFLOAD_REUSE)
+#         pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL in(size) in(src: LIBXSTREAM_OFFLOAD_REFRESH) out(dst: LIBXSTREAM_OFFLOAD_REFRESH)
           memcpy(dst, src, size);
         }
         else {
-#         pragma offload LIBXSTREAM_ASYNC_TARGET_WAIT in(size) in(src: length(0) LIBXSTREAM_OFFLOAD_REUSE) out(dst: length(0) LIBXSTREAM_OFFLOAD_REUSE)
+#         pragma offload LIBXSTREAM_ASYNC_TARGET_WAIT in(size) in(src: LIBXSTREAM_OFFLOAD_REFRESH) out(dst: LIBXSTREAM_OFFLOAD_REFRESH)
           memcpy(dst, src, size);
         }
       }
@@ -1175,7 +1175,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_data(const libxstr
   size_t arity = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_arity(signature, &arity) && arg < arity);
 #endif
-  *data = signature[arg].data.pointer;
+  *data = libxstream_get_value(signature[arg]);
   return LIBXSTREAM_ERROR_NONE;
 }
 
