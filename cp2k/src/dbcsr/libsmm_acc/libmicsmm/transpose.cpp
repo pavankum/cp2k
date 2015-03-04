@@ -97,9 +97,13 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& 
 #   if defined(LIBMICSMM_USE_LOOPHINTS)
 #     pragma loop_count min(1), max(LIBMICSMM_MAX_N), avg(23)
 #   endif
+#     if defined(LIBMICSMM_USE_XALIGN)
 #     pragma simd aligned(tmp:1)
+#     endif
 # elif defined(_OPENMP)
+#     if defined(LIBMICSMM_USE_XALIGN)
 #     pragma omp simd aligned(tmp:1)
+#     endif
 # endif
       for (U j = 0; j < n; ++j) {
         mat[i*n+j] = tmp[i*n+j];

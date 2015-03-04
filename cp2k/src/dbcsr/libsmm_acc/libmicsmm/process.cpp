@@ -47,14 +47,20 @@ public:
   {}
 
   void zero_c(T *LIBXSTREAM_RESTRICT c) const {
+#if defined(LIBMICSMM_USE_XALIGN)
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSTREAM_MAX_SIMD);
+#endif
 #if defined(__INTEL_COMPILER)
 # if defined(LIBMICSMM_USE_LOOPHINTS)
 #   pragma loop_count min(1), max(LIBMICSMM_MAX_RESULT_SIZE), avg(23*23)
 # endif
+#   if defined(LIBMICSMM_USE_XALIGN)
 #   pragma simd aligned(c:1)
+#   endif
 #elif defined(_OPENMP)
+#   if defined(LIBMICSMM_USE_XALIGN)
 #   pragma omp simd aligned(c:1)
+#   endif
 #endif
     for (U i = 0; i < (N * LDC); ++i) {
       c[i] = 0;
@@ -62,7 +68,9 @@ public:
   }
 
   void copy_c(const T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT out) const {
+#if defined(LIBMICSMM_USE_XALIGN)
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSTREAM_MAX_SIMD);
+#endif
 #if defined(__INTEL_COMPILER)
 # if defined(LIBMICSMM_USE_LOOPHINTS)
 #   pragma loop_count min(1), max(LIBMICSMM_MAX_N), avg(23)
@@ -176,7 +184,9 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& 
       const U j0 = colspan[i], j1 = colspan[i+1], kc = stack[j0+5] - 1;
 
       LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBXSTREAM_MAX_SIMD);
+#if defined(LIBMICSMM_USE_XALIGN)
       LIBXSTREAM_ASSERT(0 == (reinterpret_cast<uintptr_t>(tmp) % LIBXSTREAM_MAX_SIMD));
+#endif
       smm.zero_c(tmp);
 
       for (U j = j0; j < j1; j += N) {
