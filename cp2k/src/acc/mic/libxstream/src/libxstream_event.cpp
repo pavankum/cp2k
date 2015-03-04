@@ -119,7 +119,7 @@ int libxstream_event::query(bool& occurred, const libxstream_stream* exclude) co
       libxstream_stream *const stream = slot.stream();
 
       if (exclude != stream && 0 != pending_slot) {
-        const libxstream_signal pending_stream = stream->pending(thread());
+        const libxstream_signal pending_stream = stream ? stream->pending(thread()) : 0;
 
         if (0 != pending_stream) {
 #if defined(LIBXSTREAM_EVENT_WAIT_PAST)
@@ -127,7 +127,7 @@ int libxstream_event::query(bool& occurred, const libxstream_stream* exclude) co
 #else
           const libxstream_signal signal = pending_stream;
 #endif
-#if defined(LIBXSTREAM_OFFLOAD) && (0 != LIBXSTREAM_OFFLOAD) && !defined(__MIC__)
+#if defined(LIBXSTREAM_OFFLOAD) && (0 != LIBXSTREAM_OFFLOAD) && !defined(__MIC__) && defined(LIBXSTREAM_ASYNC) && (0 != (2*LIBXSTREAM_ASYNC+1)/2)
           if (0 != _Offload_signaled(stream->device(), reinterpret_cast<void*>(signal)))
 #endif
           {
@@ -170,7 +170,7 @@ int libxstream_event::wait(const libxstream_stream* exclude)
       const libxstream_signal pending_slot = slot.pending();
 
       if (exclude != stream && 0 != pending_slot) {
-        const libxstream_signal pending_stream = stream->pending(thread());
+        const libxstream_signal pending_stream = stream ? stream->pending(thread()) : 0;
 
         if (0 != pending_stream) {
   #if defined(LIBXSTREAM_EVENT_WAIT_PAST)
