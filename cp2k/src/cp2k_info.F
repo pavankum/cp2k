@@ -204,17 +204,11 @@ ENDIF
 #if defined __CRAY_PM_FAKE_ENERGY
    flags=TRIM(flags)//" cray_pm_fake_energy"
 #endif
-#if defined __CUBLASDP
-   flags=TRIM(flags)//" cublasdp"
-#endif
 #if defined __CUDA_PROFILING
    flags=TRIM(flags)//" cuda_profiling"
 #endif
 #if defined __DBCSR_ACC
    flags=TRIM(flags)//" dbcsr_acc"
-#endif
-#if defined __DEBUG_HWTOPO
-   flags=TRIM(flags)//" debug_hwtopo"
 #endif
 #if defined __HAS_LIBGRID
    flags=TRIM(flags)//" libgrid"
