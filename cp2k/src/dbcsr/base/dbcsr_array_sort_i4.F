@@ -25,7 +25,7 @@
 !>      12.2012 first version [ole]
 !> \author Ole Schuett
 ! *****************************************************************************
-MODULE cp_array_i4_sort
+MODULE dbcsr_array_sort_i4
    
   USE kinds,                           ONLY: int_4
 
@@ -33,9 +33,9 @@ MODULE cp_array_i4_sort
   PRIVATE
 
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.FALSE.
-  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'cp_array_i4_sort'
+  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'dbcsr_array_sort_i4'
 
-  PUBLIC :: cp_1d_i4_sort
+  PUBLIC :: dbcsr_1d_i4_sort
   
   CONTAINS
 
@@ -50,36 +50,35 @@ MODULE cp_array_i4_sort
 !>      12.2012 created [ole]
 !> \author Ole Schuett
 ! *****************************************************************************
-SUBROUTINE cp_1d_i4_sort(arr, n, indices)
+SUBROUTINE dbcsr_1d_i4_sort(arr, n, indices)
     INTEGER, INTENT(in)                      :: n
     INTEGER(kind=int_4), DIMENSION(1:n), &
       INTENT(inout)                          :: arr
     INTEGER, DIMENSION(1:n), INTENT(out)     :: indices
 
     INTEGER                                  :: i, stat
-    INTEGER(kind=int_4), ALLOCATABLE, &
-      DIMENSION(:)                           :: tmp_arr
-    INTEGER, ALLOCATABLE, DIMENSION(:)       :: tmp_idx
+    INTEGER(kind=int_4), POINTER             :: tmp_arr(:)
+    INTEGER, POINTER                         :: tmp_idx(:)
 
    IF(n == 0) RETURN ! for some reason this is a frequent case in cp2k
    
    ! scratch space used during the merge step
    ALLOCATE(tmp_arr((SIZE(arr)+1)/2), tmp_idx((SIZE(arr)+1)/2), stat=stat)
-   IF(stat /= 0) STOP "cp_1d_i4_sort: allocation failed"
+   IF(stat /= 0) STOP "dbcsr_1d_i4_sort: allocation failed"
    
    indices = (/ (i, i = 1, SIZE(arr)) /)
    
-   CALL cp_1d_i4_sort_low(arr(1:n), indices, tmp_arr, tmp_idx)
+   CALL dbcsr_1d_i4_sort_low(arr(1:n), indices, tmp_arr, tmp_idx)
    
    DEALLOCATE(tmp_arr,tmp_idx)
    
-END SUBROUTINE cp_1d_i4_sort
+END SUBROUTINE dbcsr_1d_i4_sort
 
 
 
 ! *****************************************************************************
 !> \brief The actual sort routing. 
-!>            Only cp_1d_i4_sort and itself should call this.
+!>            Only dbcsr_1d_i4_sort and itself should call this.
 !> \param arr the array to sort
 !> \param indices elements-indices before the sort
 !> \param tmp_arr scratch space
@@ -88,7 +87,7 @@ END SUBROUTINE cp_1d_i4_sort
 !>      12.2012 created [ole]
 !> \author Ole Schuett
 ! *****************************************************************************
-RECURSIVE SUBROUTINE cp_1d_i4_sort_low(arr, indices, tmp_arr, tmp_idx)
+RECURSIVE SUBROUTINE dbcsr_1d_i4_sort_low(arr, indices, tmp_arr, tmp_idx)
     INTEGER(kind=int_4), DIMENSION(:), &
       INTENT(inout)                          :: arr
     INTEGER, DIMENSION(SIZE(arr)), &
@@ -131,8 +130,8 @@ RECURSIVE SUBROUTINE cp_1d_i4_sort_low(arr, indices, tmp_arr, tmp_idx)
    
    ! split list in half and recusively sort both sublists
    m = (SIZE(arr)+1)/2 ! index where we going to divide the list in two
-   CALL cp_1d_i4_sort_low(arr(1:m), indices(1:m), tmp_arr, tmp_idx)
-   CALL cp_1d_i4_sort_low(arr(m+1:), indices(m+1:), tmp_arr, tmp_idx)
+   CALL dbcsr_1d_i4_sort_low(arr(1:m), indices(1:m), tmp_arr, tmp_idx)
+   CALL dbcsr_1d_i4_sort_low(arr(m+1:), indices(m+1:), tmp_arr, tmp_idx)
    
    ! Check for a special case: Can we just concate the two sorted sublists?
    ! This leads to O(n) scaling if the input is already sorted. 
@@ -171,7 +170,7 @@ RECURSIVE SUBROUTINE cp_1d_i4_sort_low(arr, indices, tmp_arr, tmp_idx)
 
    ENDIF
    
-END SUBROUTINE cp_1d_i4_sort_low
+END SUBROUTINE dbcsr_1d_i4_sort_low
 
 
   ! template def put here so that line numbers in template and derived
@@ -183,9 +182,8 @@ END SUBROUTINE cp_1d_i4_sort_low
 !    "#define CP_I_LESS_Q(el1,el2) ( el1 < el2 )
 !     "
 !  lessQ = "CP_I_LESS_Q"
-!  libname = "cp"
 !  nametype1 = "i4"
 !  type1 = "integer(kind=int_4)"
 
 
-END MODULE cp_array_i4_sort
+END MODULE dbcsr_array_sort_i4

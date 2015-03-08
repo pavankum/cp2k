@@ -25,7 +25,7 @@
 !>      12.2012 first version [ole]
 !> \author Ole Schuett
 ! *****************************************************************************
-MODULE cp_array_i8_sort
+MODULE cp_array_sort_i8
    
   USE kinds,                           ONLY: int_8
 
@@ -33,7 +33,7 @@ MODULE cp_array_i8_sort
   PRIVATE
 
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.FALSE.
-  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'cp_array_i8_sort'
+  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'cp_array_sort_i8'
 
   PUBLIC :: cp_1d_i8_sort
   
@@ -57,9 +57,8 @@ SUBROUTINE cp_1d_i8_sort(arr, n, indices)
     INTEGER, DIMENSION(1:n), INTENT(out)     :: indices
 
     INTEGER                                  :: i, stat
-    INTEGER(kind=int_8), ALLOCATABLE, &
-      DIMENSION(:)                           :: tmp_arr
-    INTEGER, ALLOCATABLE, DIMENSION(:)       :: tmp_idx
+    INTEGER(kind=int_8), POINTER             :: tmp_arr(:)
+    INTEGER, POINTER                         :: tmp_idx(:)
 
    IF(n == 0) RETURN ! for some reason this is a frequent case in cp2k
    
@@ -183,9 +182,8 @@ END SUBROUTINE cp_1d_i8_sort_low
 !    "#define CP_I_LESS_Q(el1,el2) ( el1 < el2 )
 !     "
 !  lessQ = "CP_I_LESS_Q"
-!  libname = "cp"
 !  nametype1 = "i8"
 !  type1 = "integer(kind=int_8)"
 
 
-END MODULE cp_array_i8_sort
+END MODULE cp_array_sort_i8
