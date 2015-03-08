@@ -42,10 +42,14 @@ namespace libxstream_offload_internal {
 
 LIBXSTREAM_TARGET(mic) void call(libxstream_function function, libxstream_argument arguments[], char* translation[], size_t arity, int flags)
 {
-  const struct LIBXSTREAM_TARGET(mic) argument_type {
-    libxstream_argument* m_signature;
-    explicit argument_type(libxstream_argument* signature): m_signature(signature) {}
-    void* operator[](int i) const { return libxstream_get_value(m_signature[i]); }
+  const struct argument_type {
+    libxstream_argument* m_arguments;
+    explicit argument_type(libxstream_argument arguments[]): m_arguments(arguments) {}
+#if defined(LIBXSTREAM_CALL_BYVALUE)
+    libxstream_argument::value_union::value_type operator[](size_t i) const { return libxstream_get_value(m_arguments[i]).value; }
+#else
+    const void* operator[](size_t i) const { return libxstream_get_value(m_arguments[i]).const_pointer; }
+#endif
   } a(arguments);
 
   if (arguments && translation) {
@@ -100,7 +104,7 @@ LIBXSTREAM_TARGET(mic) void call(libxstream_function function, libxstream_argume
 
 int libxstream_offload(libxstream_function function, const libxstream_argument signature[], libxstream_stream* stream, int flags)
 {
-  LIBXSTREAM_ASSERT(0 == (LIBXSTREAM_CALL_INVALID & flags));
+  LIBXSTREAM_ASSERT(0 == (LIBXSTREAM_CALL_EXTERNAL & flags));
   int result = LIBXSTREAM_ERROR_NONE;
 
   LIBXSTREAM_ASYNC_BEGIN(stream, function, signature) {
@@ -122,11 +126,11 @@ int libxstream_offload(libxstream_function function, const libxstream_argument s
 #endif
       for (size_t i = 0; i < arity; ++i) {
         if (0 != m_signature[i].dims) {
-          p[np] = static_cast<char*>(libxstream_get_value(m_signature[i]));
+          p[np] = static_cast<char*>(libxstream_get_value(m_signature[i]).pointer);
           ++np;
         }
         else if (0 != (libxstream_argument::kind_output & m_signature[i].kind)) {
-          p[np] = static_cast<char*>(libxstream_get_value(m_signature[i]));
+          p[np] = static_cast<char*>(libxstream_get_value(m_signature[i]).pointer);
           s |= ((2 << np) >> 1);
           ++np;
         }

@@ -36,6 +36,11 @@
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM) || defined(LIBXSTREAM_INTERNAL)
 
 
+template<size_t N> struct libxstream_argument_value {};
+template<> struct libxstream_argument_value<4> { typedef float type; };
+template<> struct libxstream_argument_value<8> { typedef double type; };
+
+
 extern "C" struct LIBXSTREAM_TARGET(mic) libxstream_argument {
   enum kind_type {
     kind_invalid  = 0,
@@ -45,22 +50,27 @@ extern "C" struct LIBXSTREAM_TARGET(mic) libxstream_argument {
   };
 
   // This data member *must* be the first!
-  union element_union {
-    char self[sizeof(void*)];
-    signed char i8;
-    unsigned char u8;
-    short i16;
-    unsigned u16;
-    int i32;
-    unsigned int u32;
-    long long i64;
-    unsigned long long u64;
-    float f32;
-    double f64;
-    float c32[2];
-    double c64[2];
-    char c;
+  union data_union {
+    char self[sizeof(void*)], c;
+    uintptr_t pointer;
+    int8_t    i8;
+    uint8_t   u8;
+    int16_t   i16;
+    uint16_t  u16;
+    int32_t   i32;
+    uint32_t  u32;
+    int64_t   i64;
+    uint64_t  u64;
+    float     f32, c32[2];
+    double    f64, c64[2];
   } data;
+
+  union value_union {
+    void* pointer;
+    const void* const_pointer;
+    typedef libxstream_argument_value<sizeof(void*)>::type value_type;
+    value_type value;
+  };
 
   size_t shape[LIBXSTREAM_MAX_NDIMS];
   kind_type kind;
@@ -72,8 +82,12 @@ extern "C" struct LIBXSTREAM_TARGET(mic) libxstream_argument {
 LIBXSTREAM_EXPORT_INTERNAL int libxstream_construct(libxstream_argument arguments[], size_t arg, libxstream_argument::kind_type kind, const void* value, libxstream_type type, size_t dims, const size_t shape[]);
 int libxstream_construct(libxstream_argument* signature, size_t nargs);
 
-LIBXSTREAM_EXPORT_INTERNAL LIBXSTREAM_TARGET(mic) const void* libxstream_get_value(const libxstream_argument& arg, libxstream_call_flags call_convention = LIBXSTREAM_CALL_CONVENTION);
-LIBXSTREAM_EXPORT_INTERNAL LIBXSTREAM_TARGET(mic) void* libxstream_get_value(libxstream_argument& arg, libxstream_call_flags call_convention = LIBXSTREAM_CALL_CONVENTION);
+LIBXSTREAM_EXPORT_INTERNAL LIBXSTREAM_TARGET(mic) libxstream_argument::value_union libxstream_get_value(const libxstream_argument& arg,
+#if defined(LIBXSTREAM_CALL_BYVALUE)
+  bool byvalue = true);
+#else
+  bool byvalue = false);
+#endif
 LIBXSTREAM_TARGET(mic) int libxstream_set_value(libxstream_argument& arg, const void* data);
 
 #endif // defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)

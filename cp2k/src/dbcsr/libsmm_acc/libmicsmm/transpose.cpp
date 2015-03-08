@@ -49,11 +49,11 @@ LIBXSTREAM_TARGET(mic) void mkl_imatcopy(size_t m, size_t n, double* matrix)
 
 
 template<typename T, typename U>
-LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& m, const U& n, T *LIBXSTREAM_RESTRICT matrix)
+LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREAM_INVAL(U) m, LIBXSTREAM_INVAL(U) n, T *LIBXSTREAM_RESTRICT matrix)
 {
   size_t stacksize = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
-  LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (mic): stacksize=%%lu m=%i n=%i", static_cast<unsigned long>(stacksize), m, n);
+  LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (mic): stacksize=%%lu m=%i n=%i", static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
 #if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
@@ -65,7 +65,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& 
     T *const mat = matrix + stack[s];
 
 #if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
-    mkl_imatcopy(static_cast<size_t>(m), static_cast<size_t>(n), mat);
+    mkl_imatcopy(static_cast<size_t>(LIBXSTREAM_GETVAL(m)), static_cast<size_t>(LIBXSTREAM_GETVAL(n)), mat);
 #else
     LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_MATRIX_SIZE], LIBXSTREAM_MAX_SIMD);
 
@@ -75,7 +75,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& 
     // macro invocation (actual trip can be larger anyways).
 #   pragma loop_count min(1), max(LIBMICSMM_MAX_M), avg(23)
 # endif
-    for (U i = 0; i < m; ++i) {
+    for (U i = 0; i < LIBXSTREAM_GETVAL(m); ++i) {
 # if defined(__INTEL_COMPILER)
 #   if defined(LIBMICSMM_USE_LOOPHINTS)
 #     pragma loop_count min(1), max(LIBMICSMM_MAX_N), avg(23)
@@ -84,15 +84,15 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& 
 # elif defined(_OPENMP)
 #     pragma omp simd
 # endif
-      for (U j = 0; j < n; ++j) {
-        tmp[j*m+i] = mat[i*n+j];
+      for (U j = 0; j < LIBXSTREAM_GETVAL(n); ++j) {
+        tmp[j*LIBXSTREAM_GETVAL(m)+i] = mat[i*LIBXSTREAM_GETVAL(n)+j];
       }
     }
 
 # if defined(LIBMICSMM_USE_LOOPHINTS) && defined(__INTEL_COMPILER)
 #   pragma loop_count min(1), max(LIBMICSMM_MAX_M), avg(23)
 # endif
-    for (U i = 0; i < m; ++i) {
+    for (U i = 0; i < LIBXSTREAM_GETVAL(m); ++i) {
 # if defined(__INTEL_COMPILER)
 #   if defined(LIBMICSMM_USE_LOOPHINTS)
 #     pragma loop_count min(1), max(LIBMICSMM_MAX_N), avg(23)
@@ -105,8 +105,8 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& 
 #     pragma omp simd aligned(tmp:1)
 #     endif
 # endif
-      for (U j = 0; j < n; ++j) {
-        mat[i*n+j] = tmp[i*n+j];
+      for (U j = 0; j < LIBXSTREAM_GETVAL(n); ++j) {
+        mat[i*LIBXSTREAM_GETVAL(n)+j] = tmp[i*LIBXSTREAM_GETVAL(n)+j];
       }
     }
 #endif
@@ -119,7 +119,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, const U& 
 #   pragma omp atomic
     duration += stop - start;
 #   pragma omp atomic
-    problemsize += 2ul * m * n * sizeof(T) * stacksize;
+    problemsize += 2ul * LIBXSTREAM_GETVAL(m) * LIBXSTREAM_GETVAL(n) * sizeof(T) * stacksize;
     LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (mic): %.f GB/s", problemsize / (1E9 * duration));
   }
 #endif

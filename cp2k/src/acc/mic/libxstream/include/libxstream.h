@@ -49,38 +49,35 @@ LIBXSTREAM_EXPORT_C typedef struct libxstream_stream libxstream_stream;
 LIBXSTREAM_EXPORT_C typedef struct libxstream_event libxstream_event;
 /** Enumeration of elemental "scalar" types. */
 LIBXSTREAM_EXPORT_C typedef enum libxstream_type {
+  /** special types: BOOL, BYTE, CHAR, VOID */
+  LIBXSTREAM_TYPE_CHAR,
   /** signed integer types: I8, I16, I32, I64 */
   LIBXSTREAM_TYPE_I8,
   LIBXSTREAM_TYPE_I16,
   LIBXSTREAM_TYPE_I32, LIBXSTREAM_TYPE_BOOL = LIBXSTREAM_TYPE_I32,
   LIBXSTREAM_TYPE_I64,
-  /** floating point types: F32, F64, C32, C64 */
-  LIBXSTREAM_TYPE_F32,
-  LIBXSTREAM_TYPE_F64,
-  LIBXSTREAM_TYPE_C32,
-  LIBXSTREAM_TYPE_C64,
   /** unsigned integer types: U8, U16, U32, U64 */
   LIBXSTREAM_TYPE_U8, LIBXSTREAM_TYPE_BYTE = LIBXSTREAM_TYPE_U8,
   LIBXSTREAM_TYPE_U16,
   LIBXSTREAM_TYPE_U32,
   LIBXSTREAM_TYPE_U64,
-  /** special types: BOOL, BYTE, CHAR, VOID */
-  LIBXSTREAM_TYPE_CHAR,
-  LIBXSTREAM_TYPE_VOID,
+  /** floating point types: F32, F64, C32, C64 */
+  LIBXSTREAM_TYPE_F32,
+  LIBXSTREAM_TYPE_F64,
+  LIBXSTREAM_TYPE_C32,
+  LIBXSTREAM_TYPE_C64,
   /** terminates type list */
+  LIBXSTREAM_TYPE_VOID,
   LIBXSTREAM_TYPE_INVALID
 } libxstream_type;
 /** Function call behavior (flags valid for binary combination). */
 LIBXSTREAM_EXPORT_C typedef enum libxstream_call_flags {
   LIBXSTREAM_CALL_WAIT    = 1 /* synchronous function call */,
   LIBXSTREAM_CALL_NATIVE  = 2 /* native host/MIC function */,
-  /** [array, scalar, complex] by-pointer (P), or by-value (V). */
-  LIBXSTREAM_CALL_PPP     = 4 /* by-P, by-P, by-P */,
-  LIBXSTREAM_CALL_PVP     = 8 /* by-P, by-V, by-P */,
   /** terminates the list */
   LIBXSTREAM_CALL_INVALID,
   /** collection of any valid flags from above */
-  LIBXSTREAM_CALL_DEFAULT = LIBXSTREAM_CALL_CONVENTION
+  LIBXSTREAM_CALL_DEFAULT = 0
 } libxstream_call_flags;
 /** Function argument type. */
 LIBXSTREAM_EXPORT_C typedef struct LIBXSTREAM_TARGET(mic) libxstream_argument libxstream_argument;
@@ -189,7 +186,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_datasize(const lib
 
 #if defined(__cplusplus)
 template<typename TYPE> struct libxstream_map_to { static libxstream_type type() {/** select a type by type-size; bool goes here! */
-                  libxstream_type t = LIBXSTREAM_TYPE_VOID;   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_autotype(sizeof(TYPE), &t)); return t; } };
+                             libxstream_type autotype = LIBXSTREAM_TYPE_VOID; libxstream_get_autotype(sizeof(TYPE), &autotype); return autotype; } };
 template<> struct libxstream_map_to<int8_t>                                       { static libxstream_type type() { return LIBXSTREAM_TYPE_I8;   } };
 template<> struct libxstream_map_to<uint8_t>                                      { static libxstream_type type() { return LIBXSTREAM_TYPE_U8;   } };
 template<> struct libxstream_map_to<int16_t>                                      { static libxstream_type type() { return LIBXSTREAM_TYPE_I16;  } };

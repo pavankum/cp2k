@@ -1132,7 +1132,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_typename(libxstrea
 LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_argument(const void* variable, size_t* arg)
 {
   const libxstream_context& context = libxstream_context::instance();
-  LIBXSTREAM_CHECK_CONDITION(0 != arg && 0 == (LIBXSTREAM_CALL_INVALID & context.flags));
+  LIBXSTREAM_CHECK_CONDITION(0 != arg && 0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags));
   const libxstream_argument *const hit = libxstream_find(context, variable);
   int result = LIBXSTREAM_ERROR_NONE;
 
@@ -1153,7 +1153,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_arity(const libxst
   LIBXSTREAM_CHECK_CONDITION(0 != arity);
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
@@ -1181,12 +1181,12 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_data(const libxstr
 #endif
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
   LIBXSTREAM_ASSERT(0 != signature);
-  *data = libxstream_get_value(signature[arg], LIBXSTREAM_CALL_PPP);
+  *data = libxstream_get_value(signature[arg], false).const_pointer;
   return LIBXSTREAM_ERROR_NONE;
 }
 
@@ -1200,13 +1200,13 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_string(const libxs
 #endif
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
   LIBXSTREAM_ASSERT(0 != signature);
   const libxstream_argument& argument = signature[arg];
-  const void *const data = libxstream_get_value(argument, LIBXSTREAM_CALL_PPP);
+  const void *const data = libxstream_get_value(argument, false).const_pointer;
   static LIBXSTREAM_TLS char buffer[128];
   int result = LIBXSTREAM_ERROR_NONE;
 
@@ -1266,7 +1266,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_type(const libxstr
 #endif
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
@@ -1285,7 +1285,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_dims(const libxstr
 #endif
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
@@ -1304,7 +1304,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_shape(const libxst
 #endif
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
@@ -1335,7 +1335,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_size(const libxstr
 #endif
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
@@ -1355,7 +1355,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_elemsize(const lib
 #endif
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
@@ -1379,7 +1379,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_datasize(const lib
 #endif
   if (0 == signature) {
     const libxstream_context& context = libxstream_context::instance();
-    if (0 == (LIBXSTREAM_CALL_INVALID & context.flags)) {
+    if (0 == (LIBXSTREAM_CALL_EXTERNAL & context.flags)) {
       signature = context.signature;
     }
   }
