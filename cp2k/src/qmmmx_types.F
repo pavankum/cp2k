@@ -6,8 +6,8 @@
 ! *****************************************************************************
 !> \author Ole Schuett
 ! *****************************************************************************
-MODULE qmmm_types
-  USE fist_environment_types,          ONLY: fist_env_release,&
+MODULE qmmmx_types
+ USE fist_environment_types,          ONLY: fist_env_release,&
                                              fist_env_retain,&
                                              fist_environment_type
   USE qmmm_types_low,                  ONLY: qmmm_env_qm_release,&
@@ -28,6 +28,10 @@ MODULE qmmm_types
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_env_release,&
                                              qs_environment_type
+  USE qmmm_types,                      ONLY: qmmm_env_release,&
+                                             qmmm_env_retain,&
+                                             qmmm_env_type,&
+                                             qmmm_env_get
   USE kinds,                           ONLY: dp
 
 #include "./common/cp_common_uses.f90"
@@ -35,29 +39,29 @@ MODULE qmmm_types
   IMPLICIT NONE
   PRIVATE
 
-  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmm_types'
+  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmmx_types'
 
-  PUBLIC :: qmmm_env_type, qmmm_env_retain, qmmm_env_release, qmmm_env_get
+  PUBLIC :: qmmmx_env_type, qmmmx_env_get, qmmmx_env_retain, qmmmx_env_release
 
-  TYPE qmmm_env_type
+  ! *****************************************************************************
+  TYPE qmmmx_env_type
      INTEGER                                                 :: ref_count = 1
-     TYPE(qs_environment_type), POINTER                      :: qs_env => Null()
-     TYPE(fist_environment_type), POINTER                    :: fist_env => Null()
-     TYPE(qmmm_env_qm_type), POINTER                         :: qm => Null()
-  END TYPE qmmm_env_type
+     TYPE(qmmm_env_type), POINTER                            :: core => Null()
+     TYPE(qmmm_env_type), POINTER                            :: ext => Null()
+  END TYPE qmmmx_env_type
 
 CONTAINS
 
 ! *****************************************************************************
 ! *****************************************************************************
-  SUBROUTINE qmmm_env_get(qmmm_env,subsys,potential_energy,kinetic_energy,error)
-    TYPE(qmmm_env_type), POINTER             :: qmmm_env
+  SUBROUTINE qmmmx_env_get(qmmmx_env,subsys,potential_energy,kinetic_energy,error)
+    TYPE(qmmmx_env_type), POINTER             :: qmmmx_env
     TYPE(cp_subsys_type), OPTIONAL, POINTER  :: subsys
     REAL(KIND=dp), INTENT(OUT), OPTIONAL     :: potential_energy, &
                                                 kinetic_energy
     TYPE(cp_error_type), INTENT(inout)       :: error
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_get', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'qmmmx_env_get', &
       routineP = moduleN//':'//routineN
 
     LOGICAL                                  :: failure
@@ -66,78 +70,70 @@ CONTAINS
     failure=.FALSE.
     NULLIFY(qs_energy, thermo)
 
-    CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(qmmmx_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(qmmmx_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    IF (PRESENT(kinetic_energy)) THEN
-        CALL fist_env_get(qmmm_env%fist_env,thermo=thermo,error=error)
-        kinetic_energy = thermo%kin
-    END IF
-    IF (PRESENT(subsys)) THEN
-        CALL fist_env_get(qmmm_env%fist_env,subsys=subsys,error=error)
-    ENDIF
-    IF (PRESENT(potential_energy)) THEN
-         ! get the underlying energies from primary subsys.  This is the only subsys
-         ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
-         CALL fist_env_get(qmmm_env%fist_env, thermo=thermo, error=error)
-         CALL get_qs_env(qmmm_env%qs_env,energy=qs_energy,error=error)
-         potential_energy = thermo%pot + qs_energy%total
-    ENDIF
-  END SUBROUTINE qmmm_env_get
+    CALL qmmm_env_get(qmmmx_env%core, kinetic_energy=kinetic_energy,subsys=subsys, error=error)
+
+    ! get the underlying energies from primary subsys.  This is the only subsys
+    ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
+    CALL qmmm_env_get(qmmmx_env%ext, potential_energy=potential_energy, error=error)
+  END SUBROUTINE qmmmx_env_get
 
 
 ! *****************************************************************************
-!> \brief releases the given qmmm_env (see doc/ReferenceCounting.html)
+!> \brief ...
+!> \param qmmmx_env ...
+!> \param error variable to control error logging, stopping,...
+!>        see module cp_error_handling
+!> \author Ole Schuett
+! *****************************************************************************
+  SUBROUTINE qmmmx_env_retain(qmmmx_env,error)
+    TYPE(qmmmx_env_type), POINTER            :: qmmmx_env
+    TYPE(cp_error_type), INTENT(inout)       :: error
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'qmmmx_env_retain', &
+      routineP = moduleN//':'//routineN
+
+    LOGICAL                                  :: failure
+
+    failure=.FALSE.
+
+    CPPrecondition(ASSOCIATED(qmmmx_env),cp_failure_level,routineP,error,failure)
+    IF (.NOT. failure) THEN
+       CPPreconditionNoFail(qmmmx_env%ref_count>0,cp_failure_level,routineP,error)
+       qmmmx_env%ref_count = qmmmx_env%ref_count+1
+    END IF
+  END SUBROUTINE qmmmx_env_retain
+
+! *****************************************************************************
+!> \brief releases the given qmmmx_env (see doc/ReferenceCounting.html)
 !> \param qmmm_env the object to release
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE qmmm_env_release(qmmm_env,error)
-    TYPE(qmmm_env_type), POINTER             :: qmmm_env
+  SUBROUTINE qmmmx_env_release(qmmmx_env,error)
+    TYPE(qmmmx_env_type), POINTER             :: qmmmx_env
     TYPE(cp_error_type), INTENT(inout)       :: error
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_release', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'qmmmx_env_release', &
       routineP = moduleN//':'//routineN
 
     LOGICAL                                  :: failure
 
     failure=.FALSE.
 
-    IF (ASSOCIATED(qmmm_env)) THEN
-       CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP,error)
-       qmmm_env%ref_count=qmmm_env%ref_count-1
-       IF (qmmm_env%ref_count==0) THEN
-          CALL qs_env_release(qmmm_env%qs_env, error)
-          CALL fist_env_release(qmmm_env%fist_env, error)
-          CALL qmmm_env_qm_release(qmmm_env%qm, error)
-          DEALLOCATE(qmmm_env)
+    IF (ASSOCIATED(qmmmx_env)) THEN
+       CPPreconditionNoFail(qmmmx_env%ref_count>0,cp_failure_level,routineP,error)
+       qmmmx_env%ref_count = qmmmx_env%ref_count-1
+       IF (qmmmx_env%ref_count==0) THEN
+          CALL qmmm_env_release(qmmmx_env%core, error)
+          CALL qmmm_env_release(qmmmx_env%ext, error)
+          DEALLOCATE(qmmmx_env)
        END IF
     END IF
-    NULLIFY(qmmm_env)
-  END SUBROUTINE qmmm_env_release
+    NULLIFY(qmmmx_env)
+  END SUBROUTINE qmmmx_env_release
 
-! *****************************************************************************
-!> \brief ...
-!> \param qmmm_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!> \author Ole Schuett
-! *****************************************************************************
-  SUBROUTINE qmmm_env_retain(qmmm_env,error)
-    TYPE(qmmm_env_type), POINTER             :: qmmm_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_retain', &
-      routineP = moduleN//':'//routineN
-
-    LOGICAL                                  :: failure
-
-    failure=.FALSE.
-
-    CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
-    CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP,error)
-    qmmm_env%ref_count=qmmm_env%ref_count+1
-  END SUBROUTINE qmmm_env_retain
-
-END MODULE qmmm_types
+END MODULE qmmmx_types

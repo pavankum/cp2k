@@ -53,7 +53,7 @@ MODULE qmmm_init
   USE qmmm_gaussian_init,              ONLY: qmmm_gaussian_initialize
   USE qmmm_per_elpot,                  ONLY: qmmm_ewald_potential_init,&
                                              qmmm_per_potential_init
-  USE qmmm_types,                      ONLY: add_set_type,&
+  USE qmmm_types_low,                  ONLY: add_set_type,&
                                              create_add_set_type,&
                                              qmmm_env_mm_type,&
                                              qmmm_env_qm_type,&

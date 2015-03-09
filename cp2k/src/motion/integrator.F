@@ -80,7 +80,7 @@ MODULE integrator
                                              update_particle_set
   USE physcon,                         ONLY: bohr,&
                                              femtoseconds
-  USE qmmm_update,                     ONLY: qmmm_update_force_mixing_env
+  USE qmmmx_update,                    ONLY: qmmm_update_force_mixing_env
   USE qmmm_util,                       ONLY: apply_qmmm_walls_reflective
   USE qs_environment_types,            ONLY: get_qs_env
   USE reftraj_types,                   ONLY: reftraj_type
@@ -558,8 +558,9 @@ CONTAINS
        END IF
 
        ![NB] let nve work with force mixing which does not have consistent energies and forces
-       CALL force_env_calc_energy_force(force_env,require_consistent_energy_force=.FALSE.,error=error)
-       
+
+       ! consistent_energies=.FALSE. by default
+       CALL force_env_calc_energy_force(force_env,error=error)
        IF(ehrenfest_md)THEN
           CALL rt_prop_output(force_env%qs_env,ehrenfest,delta_iter=force_env%qs_env%rtp%delta_iter,error=error)
        ENDIF
@@ -1192,7 +1193,8 @@ CONTAINS
 
     ! Update forces
     ![NB] let nvt work with force mixing which does not have consistent energies and forces
-    CALL force_env_calc_energy_force(force_env,require_consistent_energy_force=.FALSE.,error=error)
+    ! consistent_energies=.FALSE. by default
+    CALL force_env_calc_energy_force(force_env,error=error)
 
     ! Metadynamics
     CALL metadyn_integrator(force_env, itimes, tmp%vel, rand=rand, error=error)
@@ -1727,8 +1729,8 @@ CPSourceFileRef,&
     ! Task to perform on the reference trajectory
     ! Compute energy and forces
     ![NB] let reftraj work with force mixing which does not have consistent energies and forces
-    CALL force_env_calc_energy_force(force_env,eval_energy_forces=reftraj_env%info%eval_EF,&
-         require_consistent_energy_force=.FALSE., error=error)
+    ! consistent_energies=.FALSE. by default
+    CALL force_env_calc_energy_force(force_env,eval_energy_forces=reftraj_env%info%eval_EF,error=error)
 
     ! Metadynamics
     CALL metadyn_integrator(force_env, trj_itimes, error=error)
