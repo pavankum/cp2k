@@ -27,7 +27,7 @@ MODULE qmmm_update
   USE qmmm_create,                     ONLY: qmmm_create_force_env_low
   USE qmmm_force_mixing,               ONLY: setup_force_mixing_qmmm_sections,&
                                              update_force_mixing_labels
-  USE qmmm_types,                      ONLY: force_mixing_core_subsys,&
+  USE qmmm_types_low,                      ONLY: force_mixing_core_subsys,&
                                              force_mixing_extended_subsys,&
                                              primary_subsys,&
                                              qmmm_env_qm_release,&
@@ -180,14 +180,14 @@ CPSourceFileRef,&
         force_env%sub_force_env => sub_force_env
 
         ! duplicate releases in force_env_release
-        CALL qmmm_env_qm_release(force_env%qmmm_env,error=error)
+        CALL qmmm_env_qm_release(force_env%qmmm_env%qm,error=error)
 
         ! duplicate things that are pointed to in force_env_create when doing qmmm
-        force_env%qmmm_env => sub_force_env(primary_subsys)%force_env%qmmm_env
-        CALL qmmm_env_qm_retain(force_env%qmmm_env, error=error)
+        force_env%qmmm_env%qm => sub_force_env(primary_subsys)%force_env%qmmm_env%qm
+        CALL qmmm_env_qm_retain(force_env%qmmm_env%qm, error=error)
 
         ! set a flag to identify when force mixing is active
-        force_env%qmmm_env%do_force_mixing = .TRUE.
+        force_env%qmmm_env%qm%do_force_mixing = .TRUE.
 
       ENDIF
 

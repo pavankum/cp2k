@@ -9,6 +9,8 @@
 !> \author Teodoro Laino
 ! *****************************************************************************
 MODULE qmmm_util
+  USE qs_environment_types,            ONLY: get_qs_env
+  USE fist_environment_types,          ONLY: fist_env_get
   USE cell_types,                      ONLY: cell_copy,&
                                              cell_type
   USE cp_subsys_types,                 ONLY: cp_subsys_type
@@ -27,11 +29,9 @@ MODULE qmmm_util
   USE particle_methods,                ONLY: write_fist_particle_coordinates,&
                                              write_qs_particle_coordinates
   USE particle_types,                  ONLY: particle_type
-  USE qmmm_types,                      ONLY: fist_subsys,&
-                                             force_mixing_core_subsys,&
+  USE qmmm_types_low,                      ONLY: force_mixing_core_subsys,&
                                              force_mixing_extended_subsys,&
-                                             primary_subsys,&
-                                             qs_subsys
+                                             primary_subsys
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env
   USE qs_kind_types,                   ONLY: qs_kind_type
@@ -140,19 +140,19 @@ CONTAINS
        CPPrecondition(ASSOCIATED(force_env%qmmm_env),cp_failure_level,routineP,error,failure)
        CPPrecondition(force_env%qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-       IF (force_env%qmmm_env%do_force_mixing) THEN
+       IF (force_env%qmmm_env%qm%do_force_mixing) THEN
           CALL cp_assert(iwall_type == do_qmmm_wall_none, &
             cp_warning_level,cp_assertion_failed,routineP,&
             "Reflective walls for QM/MM are not implemented (or useful) when "//&
             "force mixing is active.  Skipping!"//CPSourceFileRef)
           RETURN
        END IF
-   
-       CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env%sub_force_env(fist_subsys)%force_env,&
+
+       CALL fist_env_get(force_env%sub_force_env(primary_subsys)%force_env%qmmm_env%fist_env,&
                           cell=mm_cell,subsys=subsys_mm,error=error)
-       CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env%sub_force_env(qs_subsys)%force_env,&
-                          cell=qm_cell,subsys=subsys_qm,error=error)
-       qm_atom_index   => force_env%qmmm_env%qm_atom_index
+       CALL get_qs_env(force_env%sub_force_env(primary_subsys)%force_env%qmmm_env%qs_env,&
+                          cell=qm_cell,cp_subsys=subsys_qm,error=error)
+       qm_atom_index   => force_env%qmmm_env%qm%qm_atom_index
        CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
 
        qm_cell_diag = (/qm_cell%hmat(1,1),&
@@ -253,7 +253,7 @@ CONTAINS
     CPPrecondition(ASSOCIATED(force_env%qmmm_env),cp_failure_level,routineP,error,failure)
     CPPrecondition(force_env%qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    IF (force_env%qmmm_env%do_force_mixing) THEN
+    IF (force_env%qmmm_env%qm%do_force_mixing) THEN
        CALL cp_assert(.FALSE., &
           cp_warning_level,cp_assertion_failed,routineP,&
           "Quadratic walls for QM/MM are not implemented (or useful), when "//&
@@ -261,12 +261,10 @@ CONTAINS
        RETURN
     END IF
 
-    CALL force_env_get(force_env%sub_force_env(fist_subsys)%force_env,&
-                       cell=mm_cell,subsys=subsys_mm,error=error)
-    CALL force_env_get(force_env%sub_force_env(qs_subsys)%force_env,&
-                       cell=qm_cell,subsys=subsys_qm,error=error)
+    CALL fist_env_get(force_env%qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
+    CALL get_qs_env(force_env%qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)
 
-    qm_atom_index   => force_env%qmmm_env%qm_atom_index
+    qm_atom_index   => force_env%qmmm_env%qm%qm_atom_index
     CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
 
     skin(:) = list(:)
@@ -328,7 +326,7 @@ CONTAINS
        ENDIF
     ENDDO
 
-    CALL get_qs_env(qs_env=force_env%sub_force_env(qs_subsys)%force_env%qs_env, energy=energy,error=error)
+    CALL get_qs_env(qs_env=force_env%qmmm_env%qs_env, energy=energy,error=error)
     energy%total = energy%total + wallenergy
 
   END SUBROUTINE apply_qmmm_walls_quadratic
@@ -466,11 +464,11 @@ CONTAINS
         CALL cell_copy(cell_extended, cell_core, error)
 
         ! also update core QM particles (like in apply_qmmm_translate_low)
-        CALL force_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env%sub_force_env(fist_subsys)%force_env,&
+        CALL fist_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%fist_env,&
                          subsys=subsys_fist,error=error)
-        CALL force_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env%sub_force_env(qs_subsys)%force_env,&
-                         subsys=subsys_qs,error=error)
-        qm_atom_index   => force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qm_atom_index
+        CALL get_qs_env(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qs_env,&
+                         cp_subsys=subsys_qs,error=error)
+        qm_atom_index   => force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qm%qm_atom_index
         particles_qm => subsys_qs%particles%els
         particles_mm => subsys_fist%particles%els
         CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
@@ -479,16 +477,16 @@ CONTAINS
         END DO
 
         IF (debug_this_module) THEN
-          CALL force_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env%sub_force_env(qs_subsys)%force_env,&
-                            subsys=subsys_core,cell=cell_core,error=error)
+          CALL get_qs_env(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qs_env,&
+                            cp_subsys=subsys_core,cell=cell_core,error=error)
           particles_core => subsys_core%particles%els
           subsys_section => section_vals_get_subs_vals(force_env%force_env_section, &
                                                               "SUBSYS",error=error)
-          CALL get_qs_env(force_env%sub_force_env(force_mixing_core_subsys)%force_env%sub_force_env(qs_subsys)%force_env%qs_env,&
+          CALL get_qs_env(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qs_env,&
                           qs_kind_set=qs_kind_set,error=error)
           CALL write_qs_particle_coordinates(particles_core,qs_kind_set,subsys_section,&
                                              "QM/MM core calc first QM, then MM (0 charges)",error)
-          CALL force_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env%sub_force_env(fist_subsys)%force_env,&
+          CALL fist_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%fist_env,&
                             subsys=subsys_core,cell=cell_core,error=error)
           particles_core => subsys_core%particles%els
           ALLOCATE(charges(SIZE(particles_core)))
@@ -551,18 +549,16 @@ CONTAINS
        CPPrecondition(ASSOCIATED(force_env%qmmm_env),cp_failure_level,routineP,error,failure)
        CPPrecondition(force_env%qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-       CALL force_env_get(force_env%sub_force_env(fist_subsys)%force_env,&
-                          cell=mm_cell,subsys=subsys_mm,error=error)
-       CALL force_env_get(force_env%sub_force_env(qs_subsys)%force_env,&
-                          cell=qm_cell,subsys=subsys_qm,error=error)
-       qm_atom_index   => force_env%qmmm_env%qm_atom_index
+       CALL fist_env_get(force_env%qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
+       CALL get_qs_env(force_env%qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)
+       qm_atom_index   => force_env%qmmm_env%qm%qm_atom_index
        CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
 
        particles_qm => subsys_qm%particles%els
        particles_mm => subsys_mm%particles%els
-       IF (.NOT.force_env%qmmm_env%center_qm_subsys0) force_env%qmmm_env%do_translate = .FALSE.
-       IF (force_env%qmmm_env%do_translate) THEN
-          IF (.NOT. force_env%qmmm_env%center_qm_subsys_pbc_aware) THEN
+       IF (.NOT.force_env%qmmm_env%qm%center_qm_subsys0) force_env%qmmm_env%qm%do_translate = .FALSE.
+       IF (force_env%qmmm_env%qm%do_translate) THEN
+          IF (.NOT. force_env%qmmm_env%qm%center_qm_subsys_pbc_aware) THEN
              ! naive coordinate based min-max
              min_coord       =  HUGE(0.0_dp)
              max_coord       = -HUGE(0.0_dp)
@@ -636,11 +632,11 @@ CONTAINS
           !
           transl_v(:) = transl_v(:) - SUM(qm_cell%hmat, 2)/2.0_dp
 
-          IF (ANY(force_env%qmmm_env%utrasl /= 1.0_dp)) THEN
-             transl_v = REAL( FLOOR(transl_v/force_env%qmmm_env%utrasl),KIND=dp) *&
-                  force_env%qmmm_env%utrasl
+          IF (ANY(force_env%qmmm_env%qm%utrasl /= 1.0_dp)) THEN
+             transl_v = REAL( FLOOR(transl_v/force_env%qmmm_env%qm%utrasl),KIND=dp) *&
+                  force_env%qmmm_env%qm%utrasl
           END IF
-          force_env%qmmm_env%transl_v = force_env%qmmm_env%transl_v + transl_v
+          force_env%qmmm_env%qm%transl_v = force_env%qmmm_env%qm%transl_v + transl_v
           particles_mm => subsys_mm%particles%els
           DO ip=1,subsys_mm%particles%n_els
              particles_mm(ip)%r = particles_mm(ip)%r - transl_v
@@ -648,7 +644,7 @@ CONTAINS
           unit_nr=cp_logger_get_default_io_unit(logger)
           IF (unit_nr>0) WRITE (unit=unit_nr,fmt='(/1X,A)')&
                " Translating the system in order to center the QM fragment in the QM box."
-          IF (.NOT.force_env%qmmm_env%center_qm_subsys) force_env%qmmm_env%do_translate = .FALSE.
+          IF (.NOT.force_env%qmmm_env%qm%center_qm_subsys) force_env%qmmm_env%qm%do_translate = .FALSE.
        END IF
        particles_mm => subsys_mm%particles%els
        DO ip=1,SIZE(qm_atom_index)
@@ -658,8 +654,7 @@ CONTAINS
        subsys_section => section_vals_get_subs_vals(force_env%force_env_section, &
                                                     "SUBSYS",error=error)
 
-       CALL get_qs_env(qs_env=force_env%sub_force_env(qs_subsys)%force_env%qs_env,&
-                       qs_kind_set=qs_kind_set,error=error)
+       CALL get_qs_env(qs_env=force_env%qmmm_env%qs_env,qs_kind_set=qs_kind_set,error=error)
        CALL write_qs_particle_coordinates(particles_qm,qs_kind_set,subsys_section,"QM/MM first QM, then MM (0 charges)",error)
        ALLOCATE(charges(SIZE(particles_mm)))
        charges = 0.0_dp

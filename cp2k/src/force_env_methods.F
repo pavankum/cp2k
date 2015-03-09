@@ -108,11 +108,12 @@ MODULE force_env_methods
                                              qmmm_added_chrg_forces,&
                                              qmmm_link_Imomm_coord,&
                                              qmmm_link_Imomm_forces
-  USE qmmm_types,                      ONLY: &
-       fist_subsys, force_mixing_core_subsys, force_mixing_extended_subsys, &
+  USE qmmm_types_low,                      ONLY: &
+       force_mixing_core_subsys, force_mixing_extended_subsys, &
        force_mixing_label_QM_core, force_mixing_label_QM_dynamics, &
        force_mixing_label_buffer, primary_subsys, qmmm_env_qm_retain, &
-       qmmm_env_qm_type, qmmm_links_type, qs_subsys
+       qmmm_env_qm_type, qmmm_links_type
+       USE qmmm_types, ONLY: qmmm_env_type, qmmm_env_retain
   USE qmmm_util,                       ONLY: apply_qmmm_translate,&
                                              apply_qmmm_unwrap,&
                                              apply_qmmm_walls,&
@@ -697,7 +698,7 @@ CONTAINS
     TYPE(meta_env_type), OPTIONAL, POINTER   :: meta_env
     TYPE(force_env_p_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: sub_force_env
-    TYPE(qmmm_env_qm_type), OPTIONAL, &
+    TYPE(qmmm_env_type), OPTIONAL, &
       POINTER                                :: qmmm_env
     TYPE(eip_environment_type), OPTIONAL, &
       POINTER                                :: eip_env
@@ -769,7 +770,7 @@ CONTAINS
           CPPrecondition(PRESENT(sub_force_env),cp_failure_level,routineP,error,failure)
           force_env%in_use=use_qmmm
           force_env%qmmm_env => qmmm_env
-          CALL qmmm_env_qm_retain(qmmm_env,error=error)
+          CALL qmmm_env_retain(qmmm_env,error=error)
        END IF
        IF (PRESENT(mixed_env)) THEN
           CPPrecondition(force_env%in_use==0, cp_failure_level, routineP, error, failure)
@@ -858,12 +859,12 @@ CPSourceFileRef,&
         ! For force mixing only (for now), wrap positions before QM/MM calculation.
         ! Required if diffusion causes atoms outside of periodic box get added to QM
         ! region.
-        IF (force_env%qmmm_env%do_force_mixing) THEN ! force mixing only
+        IF (force_env%qmmm_env%qm%do_force_mixing) THEN ! force mixing only
            CALL force_env_get(force_env%sub_force_env(isubf)%force_env%sub_force_env(fist_subsys)%force_env,&
                              cell=mm_cell,subsys=subsys_mm,error=error)
            CALL force_env_get(force_env%sub_force_env(isubf)%force_env%sub_force_env(qs_subsys)%force_env,&
                        subsys=subsys_qm,error=error)
-           qm_atom_index   => force_env%sub_force_env(isubf)%force_env%qmmm_env%qm_atom_index
+           qm_atom_index   => force_env%sub_force_env(isubf)%force_env%qmmm_env%qm%qm_atom_index
            CALL apply_qmmm_wrap(subsys_mm, mm_cell, subsys_qm, qm_atom_index, saved_pos, error)
         END IF
         IF (SIZE(force_env%sub_force_env) > 1) THEN ! rewrite restart file name
@@ -904,7 +905,7 @@ CPSourceFileRef,&
         ! see force_env_get for potential energy to copy 
         ! copy forces, energy, virial up
         CONTINUE
-    ELSE IF (force_env%qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing happens here
+    ELSE IF (force_env%qmmm_env%qm%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing happens here
         ! energy will just inherit from extended sub_force_env in force_env_get()
 
         ! get forces from subsys of each sub force env
@@ -1029,6 +1030,7 @@ CPSourceFileRef,&
       POINTER                                :: particles_mm, particles_qm
     TYPE(qmmm_links_type), POINTER           :: qmmm_links
     TYPE(section_vals_type), POINTER         :: force_env_section, print_key
+    TYPE(fist_energy_type), POINTER          :: fist_energy
 
     min_coord        =  HUGE(0.0_dp)
     max_coord        = -HUGE(0.0_dp)
@@ -1050,14 +1052,12 @@ CPSourceFileRef,&
     CPPrecondition(ASSOCIATED(force_env%qmmm_env),cp_failure_level,routineP,error,failure)
     CPPrecondition(force_env%qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    CALL force_env_get(force_env%sub_force_env(fist_subsys)%force_env,&
-                       cell=mm_cell,subsys=subsys_mm,error=error)
-    CALL force_env_get(force_env%sub_force_env(qs_subsys)%force_env,&
-                       cell=qm_cell,subsys=subsys_qm,error=error)
-    qm_atom_index   => force_env%qmmm_env%qm_atom_index
-    qmmm_link       =  force_env%qmmm_env%qmmm_link
-    qmmm_links      => force_env%qmmm_env%qmmm_links
-    qmmm_added_chrg =  (force_env%qmmm_env%move_mm_charges .OR. force_env%qmmm_env%add_mm_charges)
+    CALL fist_env_get(force_env%qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
+    CALL get_qs_env(force_env%qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)
+    qm_atom_index   => force_env%qmmm_env%qm%qm_atom_index
+    qmmm_link       =  force_env%qmmm_env%qm%qmmm_link
+    qmmm_links      => force_env%qmmm_env%qm%qmmm_links
+    qmmm_added_chrg =  (force_env%qmmm_env%qm%move_mm_charges .OR. force_env%qmmm_env%qm%add_mm_charges)
     IF (qmmm_link) THEN
        CPPrecondition(ASSOCIATED(qmmm_links),cp_failure_level,routineP,error,failure)
        IF (ASSOCIATED(qmmm_links%imomm)) qmmm_link_imomm = (SIZE(qmmm_links%imomm) /= 0)
@@ -1088,35 +1088,37 @@ CPSourceFileRef,&
     IF (qmmm_link_imomm) CALL qmmm_link_Imomm_coord(qmmm_links, particles_qm, qm_atom_index, error)
 
     ! If add charges get their position NOW!
-    IF (qmmm_added_chrg) CALL qmmm_added_chrg_coord(force_env%qmmm_env, particles_mm, error)
+    IF (qmmm_added_chrg) CALL qmmm_added_chrg_coord(force_env%qmmm_env%qm, particles_mm, error)
 
     ! Initialize ks_qmmm_env
     CALL ks_qmmm_env_rebuild(qs_env=force_env%sub_force_env(qs_subsys)%force_env%qs_env,&
-         qmmm_env=force_env%qmmm_env,error=error)
+         qmmm_env=force_env%qmmm_env%qm,error=error)
 
     ! Compute the short range QM/MM Electrostatic Potential
     CALL qmmm_el_coupling( qs_env=force_env%sub_force_env(qs_subsys)%force_env%qs_env,&
-         qmmm_env=force_env%qmmm_env,&
+         qmmm_env=force_env%qmmm_env%qm,&
          mm_particles=particles_mm,&
          mm_cell=mm_cell,&
          error=error)
 
     ! Fist
-    CALL force_env_calc_energy_force(force_env%sub_force_env(fist_subsys)%force_env,&
-         calc_force=calculate_forces,skip_external_control=.TRUE.,error=error)
+    CALL fist_calc_energy_force(force_env%qmmm_env%fist_env, error)
+    !CALL force_env_calc_energy_force(force_env%qmmm_env%fist_envsub_force_env(fist_subsys)%force_env,&
+    !     calc_force=calculate_forces,skip_external_control=.TRUE.,error=error)
 
     ! Print Out information on fist energy calculation...
-    CALL force_env_get(force_env%sub_force_env(fist_subsys)%force_env,&
-                       potential_energy=energy_mm, error=error)
+    CALL fist_env_get(force_env%qmmm_env%fist_env,thermo=fist_energy,error=error)
+    energy_mm = fist_energy%pot
     CALL cp_subsys_get(subsys_mm, results=results_mm, error=error)
 
     ! QS
+    STOP "TODO: build convinient method like fist_calc_energy_force"
     CALL force_env_calc_energy_force(force_env%sub_force_env(qs_subsys)%force_env,&
          calc_force=calculate_forces,skip_external_control=.TRUE.,linres=linres_run,error=error)
 
     ! QM/MM Interaction Potential forces
     CALL qmmm_forces(force_env%sub_force_env(qs_subsys)%force_env%qs_env,&
-                     force_env%qmmm_env,particles_mm,&
+                     force_env%qmmm_env%qm,particles_mm,&
                      mm_cell=mm_cell,&
                      calc_force=calculate_forces,&
                      error=error)
@@ -1141,7 +1143,7 @@ CPSourceFileRef,&
           particles_mm(qm_atom_index(ip))%f=particles_mm(qm_atom_index(ip))%f+particles_qm(ip)%f
        END DO
        ! If add charges get rid of their derivatives right NOW!
-       IF (qmmm_added_chrg) CALL qmmm_added_chrg_forces(force_env%qmmm_env, particles_mm, error)
+       IF (qmmm_added_chrg) CALL qmmm_added_chrg_forces(force_env%qmmm_env%qm, particles_mm, error)
     END IF
 
     ! Handle some output

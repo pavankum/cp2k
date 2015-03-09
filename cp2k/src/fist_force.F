@@ -12,6 +12,21 @@
 !> \author CJM & JGH
 ! *****************************************************************************
 MODULE fist_force
+USE virial_types,                    ONLY: cp_virial,&
+                                             sym_virial,&
+                                             virial_create,&
+                                             virial_p_type,&
+                                             virial_release,&
+                                             virial_type,&
+                                             zero_virial
+USE atprop_types,                    ONLY: atprop_init,&
+                                             atprop_type
+  USE cp_para_types,                   ONLY: cp_para_env_type
+  USE cp_subsys_types,                 ONLY: cp_subsys_get,&
+                                             cp_subsys_release,&
+                                             cp_subsys_retain,&
+                                             cp_subsys_set,&
+                                             cp_subsys_type
   USE atomic_kind_types,               ONLY: atomic_kind_type,&
                                              get_atomic_kind
   USE atprop_types,                    ONLY: atprop_type
@@ -99,7 +114,6 @@ MODULE fist_force
   END TYPE debug_variables_type
 
 CONTAINS
-
 
 ! *****************************************************************************
 !> \brief Calculates the total potential energy, total force, and the
@@ -196,11 +210,12 @@ CONTAINS
          molecule_kind_set,molecule_set,particle_set, print_section,&
          shell, shell_particle_set, core_particle_set, thermo, multipoles,&
          e_coulomb, pv_coulomb)
-    mm_section => section_vals_get_subs_vals(force_env_section,"MM",error=error)
-    iw = cp_print_key_unit_nr(logger,mm_section,"PRINT%DERIVATIVES",&
-         extension=".mmLog",error=error)
-    iw2= cp_print_key_unit_nr(logger,mm_section,"PRINT%EWALD_INFO",&
-         extension=".mmLog",error=error)
+    STOP "need the force_env_section somehow 2"
+    !mm_section => section_vals_get_subs_vals(force_env_section,"MM",error=error)
+    !iw = cp_print_key_unit_nr(logger,mm_section,"PRINT%DERIVATIVES",&
+    !     extension=".mmLog",error=error)
+    !iw2= cp_print_key_unit_nr(logger,mm_section,"PRINT%EWALD_INFO",&
+    !     extension=".mmLog",error=error)
 
     CALL fist_env_get(fist_env, ewald_pw=ewald_pw, ewald_env=ewald_env, &
          local_particles=local_particles, particle_set=particle_set, &

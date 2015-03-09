@@ -39,8 +39,9 @@ MODULE md_conserved_quantities
   USE particle_list_types,             ONLY: particle_list_type
   USE particle_types,                  ONLY: particle_type
   USE physcon,                         ONLY: kelvin
-  USE qmmm_types,                      ONLY: force_mixing_label_QM_dynamics,&
+  USE qmmm_types_low,                      ONLY: force_mixing_label_QM_dynamics,&
                                              qmmm_env_qm_type
+  USE qmmm_types,                      ONLY: qmmm_env_type
   USE shell_potential_types,           ONLY: shell_kind_type
   USE simpar_types,                    ONLY: simpar_type
   USE termination,                     ONLY: stop_program
@@ -208,7 +209,7 @@ CONTAINS
     TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(force_env_type), POINTER            :: force_env
     TYPE(particle_list_type), POINTER        :: particles
-    TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env
+    TYPE(qmmm_env_type), POINTER          :: qmmm_env
     TYPE(section_vals_type), POINTER         :: force_env_section
 
     NULLIFY(qmmm_env,subsys,particles,force_env,force_env_section)
@@ -224,9 +225,9 @@ CONTAINS
         ! system is treated at QM level (not really QM/MM, just for consistency).
         ! The degree of freedom will not be correct if 1-3 atoms are treated only
         ! MM. In this case we should take care of rotations
-        nfree_qm = 3*SIZE(qmmm_env%qm_atom_index)
+        nfree_qm = 3*SIZE(qmmm_env%qm%qm_atom_index)
         IF (nfree_qm == 3*(particles%n_els)) nfree_qm = md_ener%nfree
-      ELSE IF (qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! doing force mixing
+      ELSE IF (qmmm_env%qm%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! doing force mixing
         CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%INDICES",i_vals=cur_indices,error=error)
         CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%LABELS",i_vals=cur_labels,error=error)
         nfree_qm = 0
@@ -519,7 +520,7 @@ CPSourceFileRef, error)
       POINTER                                :: core_particle_set, &
                                                 particle_set, &
                                                 shell_particle_set
-    TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env
+    TYPE(qmmm_env_type), POINTER          :: qmmm_env
     TYPE(section_vals_type), POINTER         :: force_env_section
     TYPE(shell_kind_type), POINTER           :: shell
 
@@ -661,15 +662,15 @@ CPSourceFileRef, error)
     ! Compute the QM/MM kinetic energy
     IF (ASSOCIATED(qmmm_env)) THEN
        IF (SIZE(force_env%sub_force_env) == 1) THEN ! conventional QM/MM
-          DO i = 1, SIZE(qmmm_env%qm_atom_index)
-             iparticle = qmmm_env%qm_atom_index(i)
+          DO i = 1, SIZE(qmmm_env%qm%qm_atom_index)
+             iparticle = qmmm_env%qm%qm_atom_index(i)
              mass = particle_set(iparticle)%atomic_kind%mass
              md_ener%ekin_qm = md_ener%ekin_qm +  0.5_dp * mass *  &
                   ( particle_set(iparticle)%v(1)* particle_set(iparticle)%v(1) &
                   + particle_set(iparticle)%v(2)* particle_set(iparticle)%v(2) &
                   + particle_set(iparticle)%v(3)* particle_set(iparticle)%v(3) )
           END DO
-       ELSE IF (qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! doing force mixing
+       ELSE IF (qmmm_env%qm%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! doing force mixing
           CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%INDICES",i_vals=cur_indices,error=error)
           CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%LABELS",i_vals=cur_labels,error=error)
           DO i=1, SIZE(cur_indices)

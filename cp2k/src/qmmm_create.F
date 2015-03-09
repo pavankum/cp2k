@@ -10,6 +10,22 @@
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 MODULE qmmm_create
+  USE qs_environment,                  ONLY: qs_init
+  USE qs_environment_types,            ONLY: qs_env_create,&
+                                             qs_env_release,&
+                                             qs_environment_type
+  USE cp_para_types,                   ONLY: cp_para_env_type
+  USE cp_subsys_types,                 ONLY: cp_subsys_type
+  USE fist_environment,                ONLY: fist_init
+  USE fist_environment_types,          ONLY: fist_env_create,&
+                                             fist_env_release,&
+                                             fist_env_set,&
+                                             fist_environment_type 
+  USE force_env_methods,               ONLY: force_env_create
+  USE force_env_types,                 ONLY: force_env_type
+  USE global_types,                    ONLY: global_environment_type
+  USE input_section_types,             ONLY: section_vals_type
+  USE qmmm_types_low,                  ONLY: qmmm_env_mm_type
   USE bibliography,                    ONLY: Golze2013,&
                                              Laino2005,&
                                              Laino2006,&
@@ -60,7 +76,8 @@ MODULE qmmm_create
        setup_qmmm_vars_mm, setup_qmmm_vars_qm
   USE qmmm_links_methods,              ONLY: qmmm_link_Imomm_coord
   USE qmmm_pw_grid,                    ONLY: qmmm_pw_grid_init
-  USE qmmm_types,                      ONLY: &
+  USE qmmm_types,                  ONLY: qmmm_env_type, qmmm_env_create
+  USE qmmm_types_low,                  ONLY: &
        add_set_release, add_set_type, fist_subsys, force_mixing_core_subsys, &
        force_mixing_extended_subsys, primary_subsys, qmmm_env_mm_create, &
        qmmm_env_mm_release, qmmm_env_mm_type, qmmm_env_qm_create, &
@@ -121,7 +138,7 @@ CONTAINS
     TYPE(force_env_p_type), DIMENSION(:), &
       POINTER                                :: sub_force_env
     TYPE(force_env_type), POINTER            :: use_dummy_force_env
-    TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env_qm
+    !TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env_qm
     TYPE(section_vals_type), POINTER         :: qmmm_core_section, &
                                                 qmmm_extended_section, &
                                                 qmmm_force_mixing, &
@@ -177,15 +194,16 @@ CONTAINS
         force_env_section, qmmm_section, subsys_section, use_motion_section, error=error)
     ENDIF
 
-     CALL force_env_get(sub_force_env(primary_subsys)%force_env,qmmm_env=qmmm_env_qm,error=error)
-     CALL force_env_create(force_env, root_section, sub_force_env=sub_force_env,&
-          qmmm_env=qmmm_env_qm, &
-          para_env=para_env, globenv=globenv, force_env_section= force_env_section,&
-          error=error)
-
-     ! set a flag to identify when force mixing is active
-     CALL force_env_get(force_env,qmmm_env=qmmm_env_qm,error=error)
-     qmmm_env_qm%do_force_mixing = force_mixing_active
+    STOP "TODO:   qmmm_create_force_env"
+     !CALL force_env_get(sub_force_env(primary_subsys)%force_env,qmmm_env=qmmm_env_qm,error=error)
+     !CALL force_env_create(force_env, root_section, sub_force_env=sub_force_env,&
+     !     qmmm_env=qmmm_env_qm, &
+     !     para_env=para_env, globenv=globenv, force_env_section= force_env_section,&
+     !     error=error)
+     !
+     !! set a flag to identify when force mixing is active
+     !CALL force_env_get(force_env,qmmm_env=qmmm_env_qm,error=error)
+     !qmmm_env_qm%do_force_mixing = force_mixing_active
 
   END SUBROUTINE qmmm_create_force_env
 
@@ -226,7 +244,7 @@ CONTAINS
 
     CHARACTER(len=default_string_length), &
       DIMENSION(:), POINTER                  :: qm_atom_type
-    INTEGER :: center_i, delta_charge, handle, isubf, iw, iw2, orig_charge, &
+    INTEGER :: center_i, delta_charge, handle, iw, iw2, orig_charge, &
       qmmm_coupl_type, stat, use_multipole
     INTEGER, DIMENSION(:), POINTER           :: mm_atom_index, mm_link_atoms, &
                                                 qm_atom_index
@@ -246,9 +264,10 @@ CONTAINS
     TYPE(cp_subsys_type), POINTER            :: subsys_mm, subsys_qm
     TYPE(fist_environment_type), POINTER     :: fist_env
     TYPE(fist_nonbond_env_type), POINTER     :: fist_nonbond_env
-    TYPE(force_env_p_type), DIMENSION(:), &
-      POINTER                                :: sub_force_env
+    !TYPE(force_env_p_type), DIMENSION(:), &
+    !  POINTER                                :: sub_force_env
     TYPE(pw_env_type), POINTER               :: pw_env
+    TYPE(qmmm_env_type), POINTER          :: qmmm_env
     TYPE(qmmm_env_mm_type), POINTER          :: qmmm_env_mm
     TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env_qm
     TYPE(qmmm_links_type), POINTER           :: qmmm_links
@@ -259,9 +278,9 @@ CONTAINS
     CALL timeset(routineN,handle)
     failure=.FALSE.
 
-    NULLIFY(sub_force_env, qm_atom_index, mm_atom_index, qm_atom_type,   &
+    NULLIFY(qm_atom_index, mm_atom_index, qm_atom_type,   &
          qmmm_env_qm, subsys_mm,subsys_qm, mm_cell, qm_cell_small,       &
-         qs_env, mm_atom_chrg,mm_el_pot_radius, qmmm_env_mm, fist_env,   &
+         mm_atom_chrg,mm_el_pot_radius, qmmm_env_mm, fist_env, qmmm_env, &
          mm_link_atoms, mm_link_scale_factor, qmmm_links, added_charges, &
          fist_scale_charge_link, print_section, fist_nonbond_env, &
          print_gen, logger, mm_el_pot_radius_corr, super_cell, pw_env)
@@ -280,11 +299,11 @@ CONTAINS
        print_gen => section_vals_get_subs_vals(print_section,"PROGRAM_RUN_INFO",error=error)
        iw = cp_print_key_unit_nr(logger,print_gen,"", extension=".log",error=error)
 
-       ALLOCATE(sub_force_env(2),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-       DO isubf=1,2
-          NULLIFY(sub_force_env(isubf)%force_env)
-       END DO
+       !ALLOCATE(sub_force_env(2),stat=stat)
+       !CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       !DO isubf=1,2
+       !   NULLIFY(sub_force_env(isubf)%force_env)
+       !END DO
        ! Create QM/MM Environments..
        CALL qmmm_env_qm_create(qmmm_env_qm,error=error)
        CALL qmmm_env_mm_create(qmmm_env_mm,error=error)
@@ -357,14 +376,18 @@ CPSourceFileRef,&
 
        ! First Initialize Fist...
        CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_fist,error=error)
-       CALL fist_create_force_env(sub_force_env(fist_subsys)%force_env, &
-            root_section, para_env, globenv, qmmm=.TRUE., qmmm_env=qmmm_env_mm,&
-            force_env_section=force_env_section, subsys_section=subsys_section,&
-            use_motion_section=use_motion_section, prev_subsys=prev_subsys, &
-            error=error)
+       !CALL fist_create_force_env(sub_force_env(fist_subsys)%force_env, &
+       !     root_section, para_env, globenv, qmmm=.TRUE., qmmm_env=qmmm_env_mm,&
+       !     force_env_section=force_env_section, subsys_section=subsys_section,&
+       !     use_motion_section=use_motion_section, prev_subsys=prev_subsys, &
+       !     error=error)
 
-       CALL force_env_get(sub_force_env(fist_subsys)%force_env,subsys=subsys_mm,&
-            cell=mm_cell,fist_env=fist_env,error=error)
+
+       CALL fist_env_create(fist_env, para_env=para_env, error=error)
+       CALL fist_env_set(fist_env, qmmm=.TRUE., qmmm_env=qmmm_env_mm, error=error)
+       CALL fist_init(fist_env, root_section, para_env, force_env_section,&
+            subsys_section, use_motion_section, prev_subsys=prev_subsys, error=error )
+       CALL fist_env_get(fist_env, subsys=subsys_mm, cell=mm_cell, error=error)
 
        ! Set up QM/MM Options
        CALL setup_qmmm_vars_qm (qmmm_section,&
@@ -484,12 +507,19 @@ CPSourceFileRef,&
             ignore_outside_box=ignore_outside_box, error=error)
        IF (qmmm_link_imomm) CALL qmmm_link_Imomm_coord(qmmm_links, subsys_qm%particles%els,&
             qm_atom_index, error)
-       CALL quickstep_create_force_env(sub_force_env(qs_subsys)%force_env, root_section, para_env,&
-            globenv, subsys=subsys_qm, cell=qm_cell_small, qmmm=.TRUE., qmmm_env_qm=qmmm_env_qm,&
+
+       CALL qs_env_create(qs_env, globenv, error=error)
+       CALL qs_init(qs_env, para_env, globenv, root_section, cp_subsys=subsys_qm,&
+            cell=qm_cell_small, qmmm=.TRUE., qmmm_env_qm=qmmm_env_qm,&
             force_env_section=force_env_section, subsys_section=subsys_section,&
             use_motion_section=use_motion_section, error=error)
-       CALL cp_subsys_release(subsys_qm,error=error)
-       CALL force_env_get(sub_force_env(qs_subsys)%force_env,qs_env=qs_env,error=error)
+       !CALL quickstep_create_force_env(sub_force_env(qs_subsys)%force_env, root_section, para_env,&
+       !     globenv, subsys=subsys_qm, cell=qm_cell_small, qmmm=.TRUE., qmmm_env_qm=qmmm_env_qm,&
+       !     force_env_section=force_env_section, subsys_section=subsys_section,&
+       !     use_motion_section=use_motion_section, error=error)
+       !CALL cp_subsys_release(subsys_qm,error=error)
+       !CALL force_env_get(sub_force_env(qs_subsys)%force_env,qs_env=qs_env,error=error)
+
        IF (qmmm_env_qm%periodic) THEN
           IF (.NOT.ASSOCIATED(super_cell)) THEN
              ALLOCATE (super_cell,STAT=stat)
@@ -559,12 +589,13 @@ CPSourceFileRef,&
 
        CALL cell_release(qm_cell_small, error)
 
-       CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_qmmm,error=error)
-       CALL force_env_create(force_env,root_section, sub_force_env=sub_force_env,&
-            qmmm_env=qmmm_env_qm,para_env=para_env,globenv=globenv, force_env_section= force_env_section,&
-            error=error)
-       CALL qmmm_env_qm_release(qmmm_env_qm, error)
-       CALL qmmm_env_mm_release(qmmm_env_mm, error)
+       CALL qmmm_env_create(qmmm_env, qs_env, fist_env, qmmm_env_qm, error)
+       !CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_qmmm,error=error)
+       CALL force_env_create(force_env,root_section, qmmm_env=qmmm_env, para_env=para_env,&
+                globenv=globenv, force_env_section=force_env_section, error=error)
+       !CALL qmmm_env_qm_release(qmmm_env_qm, error)
+       !CALL qmmm_env_mm_release(qmmm_env_mm, error)
+       !TODO: release also qs_env and fist_env ???
        DEALLOCATE(qm_atom_type,stat=stat)
        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
     END IF

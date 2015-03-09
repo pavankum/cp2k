@@ -45,12 +45,7 @@ MODULE force_env_types
   USE mixed_environment_types,         ONLY: get_mixed_env,&
                                              mixed_env_release,&
                                              mixed_environment_type
-  USE qmmm_types,                      ONLY: fist_subsys,&
-                                             force_mixing_extended_subsys,&
-                                             primary_subsys,&
-                                             qmmm_env_qm_release,&
-                                             qmmm_env_qm_type,&
-                                             qs_subsys
+  USE qmmm_types,                      ONLY: qmmm_env_type, qmmm_env_release
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_env_release,&
@@ -130,7 +125,7 @@ MODULE force_env_types
      TYPE ( global_environment_type ), POINTER           :: globenv
      TYPE ( cp_para_env_type ), POINTER                  :: para_env
      TYPE ( force_env_p_type ), DIMENSION(:), POINTER    :: sub_force_env
-     TYPE ( qmmm_env_qm_type ), POINTER                  :: qmmm_env
+     TYPE ( qmmm_env_type ), POINTER                     :: qmmm_env
      TYPE ( mixed_environment_type ), POINTER            :: mixed_env
      TYPE ( section_vals_type), POINTER                  :: force_env_section
      TYPE ( section_vals_type), POINTER                  :: root_section
@@ -243,7 +238,7 @@ CONTAINS
           CPAssert(.NOT.ASSOCIATED(force_env%mixed_env),cp_warning_level,routineP,error,failure)
           CALL meta_env_release(force_env%meta_env,error=error)
           CALL fp_env_release(force_env%fp_env,error=error)
-          CALL qmmm_env_qm_release(force_env%qmmm_env,error=error)
+          CALL qmmm_env_release(force_env%qmmm_env,error=error)
           CALL section_vals_release(force_env%force_env_section,error=error)
           CALL section_vals_release(force_env%root_section,error=error)
           force_env%ref_count=0
@@ -307,7 +302,7 @@ CONTAINS
     TYPE(cell_type), OPTIONAL, POINTER       :: cell
     TYPE(force_env_p_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: sub_force_env
-    TYPE(qmmm_env_qm_type), OPTIONAL, &
+    TYPE(qmmm_env_type), OPTIONAL, &
       POINTER                                :: qmmm_env
     TYPE(eip_environment_type), OPTIONAL, &
       POINTER                                :: eip_env
@@ -383,36 +378,37 @@ CONTAINS
           IF (PRESENT(kinetic_energy)) kinetic_energy = eip_kinetic_energy
           CPPrecondition(.NOT.PRESENT(kinetic_energy),cp_failure_level,routineP,error,failure)
        CASE (use_qmmm)
-            IF (PRESENT(kinetic_energy)) THEN
-               CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
-                                  kinetic_energy=kinetic_energy,&
-                                  error=error)
-            END IF
-            IF (PRESENT(subsys)) THEN
-               CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
-                                  subsys=subsys, error=error)
-            ENDIF
-            IF (PRESENT(potential_energy)) THEN
-                 ! get the underlying energies from primary subsys.  This is the only subsys
-                 ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
-                 IF (SIZE(force_env%sub_force_env) == 1) THEN
-                   cur_subsys = primary_subsys
-                 ELSE IF (force_env%qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing
-                   cur_subsys = force_mixing_extended_subsys
-                 ELSE
-                    CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
-                         routineP,"bad number of sub_force_envs (or do_force_mixing setting) getting qmmm potential energy "//&
-                         CPSourceFileRef,&
-                         error,failure)
-                 ENDIF
-                 CALL force_env_get(force_env%sub_force_env(cur_subsys)%force_env%sub_force_env(fist_subsys)%force_env,&
-                                    potential_energy=penergy_mm,&
-                                    error=error)
-                 CALL force_env_get(force_env%sub_force_env(cur_subsys)%force_env%sub_force_env(qs_subsys)%force_env,&
-                                    potential_energy=penergy_qm,&
-                                    error=error)
-                 potential_energy = penergy_qm+penergy_mm
-            ENDIF
+            STOP "TODO: implement proper getters for qmmm"
+            !IF (PRESENT(kinetic_energy)) THEN
+            !   CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
+            !                      kinetic_energy=kinetic_energy,&
+            !                      error=error)
+            !END IF
+            !IF (PRESENT(subsys)) THEN
+            !   CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
+            !                      subsys=subsys, error=error)
+            !ENDIF
+            !IF (PRESENT(potential_energy)) THEN
+            !     ! get the underlying energies from primary subsys.  This is the only subsys
+            !     ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
+            !     IF (SIZE(force_env%sub_force_env) == 1) THEN
+            !       cur_subsys = primary_subsys
+            !     ELSE IF (force_env%qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing
+            !       cur_subsys = force_mixing_extended_subsys
+            !     ELSE
+            !        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
+            !             routineP,"bad number of sub_force_envs (or do_force_mixing setting) getting qmmm potential energy "//&
+            !             CPSourceFileRef,&
+            !             error,failure)
+            !     ENDIF
+            !     CALL force_env_get(force_env%sub_force_env(cur_subsys)%force_env%sub_force_env(fist_subsys)%force_env,&
+            !                        potential_energy=penergy_mm,&
+            !                        error=error)
+            !     CALL force_env_get(force_env%sub_force_env(cur_subsys)%force_env%sub_force_env(qs_subsys)%force_env,&
+            !                        potential_energy=penergy_qm,&
+            !                        error=error)
+            !     potential_energy = penergy_qm+penergy_mm
+            !ENDIF
        CASE (use_mixed_force)
           CPPrecondition(ASSOCIATED(force_env%mixed_env),cp_failure_level,routineP,error,failure)
 !          CPPreconditionNoFail(.NOT.PRESENT(qs_env),cp_warning_level,routineP,error)
