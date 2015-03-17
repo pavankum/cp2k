@@ -100,6 +100,13 @@
         else
           PLATFORM="Linux-${machine}-gfortran"
         fi;;
+      CYGWIN_NT-*-*-*)
+        if [ -n "$FORT_C_NAME" ]
+        then
+          PLATFORM="Linux-${machine}-$FORT_C_NAME"
+        else
+          PLATFORM="Linux-${machine}-gfortran"
+        fi;;
       *-unicosmk-*-CRAY*T3E)
         PLATFORM="CRAY-T3E";;
       SunOS-*-sun4u)
@@ -111,7 +118,7 @@
     case $PLATFORM in
         unknown)
         echo "############################################################" >&2
-        echo "have a look at cp2k/tools/get_arch_code" >&2
+        echo "have a look at cp2k/tools/build_utils/get_arch_code" >&2
         echo "your system is a $platform" >&2
         echo "but get_arch_code is not able to deal with that "  >&2
         echo "############################################################" >&2
