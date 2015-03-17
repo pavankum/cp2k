@@ -33,7 +33,7 @@
 
 #include <libxstream.h>
 
-#if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM) || defined(LIBXSTREAM_INTERNAL)
+#if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
 
 
 /** Data type representing a signal. */
@@ -49,12 +49,12 @@ bool libxstream_lock_try(libxstream_lock* lock);
 size_t nthreads_active();
 int this_thread_id();
 void this_thread_yield();
-void this_thread_sleep(size_t ms);
+void this_thread_sleep(size_t ms = 1);
 
 enum {
   LIBXSTREAM_CALL_UNLOCK    = (2 * (LIBXSTREAM_CALL_INVALID - 1)),
   LIBXSTREAM_CALL_EXTERNAL  = (4 * (LIBXSTREAM_CALL_INVALID - 1))
 };
 
-#endif // defined(LIBXSTREAM_EXPORTED) || defined(LIBXSTREAM_INTERNAL)
+#endif // defined(LIBXSTREAM_EXPORTED)
 #endif // LIBXSTREAM_HPP

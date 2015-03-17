@@ -209,8 +209,15 @@ private:
 #   pragma omp master
 #endif
     for (;;) {
+      size_t cycle = 0;
       while (0 == (capture_region = q.get())) {
-        this_thread_yield();
+        if ((LIBXSTREAM_WAIT_ACTIVE_CYCLES) > cycle) {
+          this_thread_yield();
+          ++cycle;
+        }
+        else {
+          this_thread_sleep();
+        }
       }
 
       if (terminator != capture_region) {
@@ -362,7 +369,7 @@ void libxstream_capture_base::operator()()
 }
 
 
-LIBXSTREAM_EXPORT_INTERNAL int libxstream_enqueue(const libxstream_capture_base& capture_region, bool wait)
+int libxstream_enqueue(const libxstream_capture_base& capture_region, bool wait)
 {
 #if !defined(LIBXSTREAM_CAPTURE_DEBUG)
 # if defined(LIBXSTREAM_SYNCHRONOUS)

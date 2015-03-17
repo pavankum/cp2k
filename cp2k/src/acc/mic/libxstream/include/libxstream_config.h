@@ -101,9 +101,6 @@
 /** Maximum number of host threads. */
 #define LIBXSTREAM_MAX_NTHREADS 1024
 
-/** Number of milliseconds a lock can stall. */
-#define LIBXSTREAM_LOCK_WAIT_MS 200
-
 /**
  * Number of times a locked stream must be discovered to be
  * "not alive" before unlocking the stream in question.
@@ -112,6 +109,12 @@
 
 /** Enables non-recursive locks. */
 #define LIBXSTREAM_LOCK_NONRECURSIVE
+
+/** Number of milliseconds a lock can stall. */
+#define LIBXSTREAM_WAIT_LOCK_MS 200
+
+/** Number of cycles to actively wait. */
+#define LIBXSTREAM_WAIT_ACTIVE_CYCLES 10000
 
 /**
  * Thread-local signals allow for some more concurrency
@@ -127,9 +130,6 @@
 
 /** Prefers OpenMP based locking primitives. */
 /*#define LIBXSTREAM_PREFER_OPENMP*/
-
-/** Enable exporting internal C++ interfaces (legacy). */
-/*#define LIBXSTREAM_INTERNAL*/
 
 /**
  * Changing the calling convention; this is a rather deep switch impacting

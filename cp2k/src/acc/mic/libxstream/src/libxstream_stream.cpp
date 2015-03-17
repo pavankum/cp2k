@@ -465,7 +465,7 @@ void libxstream_stream::lock(bool retry)
 # endif
     if (retry) {
       while (!libxstream_stream_internal::atomic_compare_exchange(*stream_thread, unlocked, this_thread)) {
-        static /*const*/ size_t sleep_ms = (LIBXSTREAM_LOCK_WAIT_MS) / (LIBXSTREAM_LOCK_RETRY);
+        static /*const*/ size_t sleep_ms = (LIBXSTREAM_WAIT_LOCK_MS) / (LIBXSTREAM_LOCK_RETRY);
 
         if ((LIBXSTREAM_LOCK_RETRY) > nretry || m_begin != m_end) {
           nretry += (thread_begin == m_begin && thread_end == m_end) ? 1 : 0;
@@ -568,37 +568,37 @@ const char* libxstream_stream::name() const
 #endif
 
 
-LIBXSTREAM_EXPORT_INTERNAL const libxstream_stream* cast_to_stream(const void* stream)
+const libxstream_stream* cast_to_stream(const void* stream)
 {
   return static_cast<const libxstream_stream*>(stream);
 }
 
 
-LIBXSTREAM_EXPORT_INTERNAL libxstream_stream* cast_to_stream(void* stream)
+libxstream_stream* cast_to_stream(void* stream)
 {
   return static_cast<libxstream_stream*>(stream);
 }
 
 
-LIBXSTREAM_EXPORT_INTERNAL const libxstream_stream* cast_to_stream(const libxstream_stream* stream)
+const libxstream_stream* cast_to_stream(const libxstream_stream* stream)
 {
   return stream;
 }
 
 
-LIBXSTREAM_EXPORT_INTERNAL libxstream_stream* cast_to_stream(libxstream_stream* stream)
+libxstream_stream* cast_to_stream(libxstream_stream* stream)
 {
   return stream;
 }
 
 
-LIBXSTREAM_EXPORT_INTERNAL const libxstream_stream* cast_to_stream(const libxstream_stream& stream)
+const libxstream_stream* cast_to_stream(const libxstream_stream& stream)
 {
   return &stream;
 }
 
 
-LIBXSTREAM_EXPORT_INTERNAL libxstream_stream* cast_to_stream(libxstream_stream& stream)
+libxstream_stream* cast_to_stream(libxstream_stream& stream)
 {
   return &stream;
 }

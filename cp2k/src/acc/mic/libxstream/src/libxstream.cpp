@@ -234,7 +234,7 @@ void libxstream_lock_acquire(libxstream_lock* lock)
   std::atomic<int>& typed_lock = *static_cast<std::atomic<int>*>(lock);
   if (1 < ++typed_lock) {
     while (1 < typed_lock) {
-      std::this_thread::yield();
+      this_thread_sleep();
     }
   }
 # endif
@@ -358,10 +358,10 @@ int this_thread_id()
 
 void this_thread_yield()
 {
-#if defined(__GNUC__)
-  pthread_yield();
-#elif defined(LIBXSTREAM_STDFEATURES)
+#if defined(LIBXSTREAM_STDFEATURES) && defined(LIBXSTREAM_STDFEATURES_THREADX)
   std::this_thread::yield();
+#elif defined(__GNUC__)
+  pthread_yield();
 #endif
 }
 
@@ -374,8 +374,13 @@ void this_thread_sleep(size_t ms)
   const milliseconds interval(static_cast<milliseconds::rep>(ms));
   std::this_thread::sleep_for(interval);
 #elif defined(_WIN32)
-  LIBXSTREAM_ASSERT(ms <= std::numeric_limits<DWORD>::max());
-  Sleep(static_cast<DWORD>(ms));
+  if (1 < ms) {
+    LIBXSTREAM_ASSERT(ms <= std::numeric_limits<DWORD>::max());
+    Sleep(static_cast<DWORD>(ms));
+  }
+  else {
+    SwitchToThread();
+  }
 #else
   const size_t s = ms / 1000;
   ms -= 1000 * s;
