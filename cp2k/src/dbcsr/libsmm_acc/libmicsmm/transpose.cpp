@@ -32,7 +32,7 @@ LIBXSTREAM_EXTERN_C void MKL_Dimatcopy(const char, const char, size_t, size_t, d
 
 namespace libmicsmm_transpose_private {
 
-LIBXSTREAM_TARGET(mic) void mkl_imatcopy(size_t m, size_t n, float* matrix)
+LIBXSTREAM_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, float* matrix)
 {
 #if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
   MKL_Simatcopy('R', 'T', m, n, 1.f, matrix, n, m);
@@ -40,7 +40,7 @@ LIBXSTREAM_TARGET(mic) void mkl_imatcopy(size_t m, size_t n, float* matrix)
 }
 
 
-LIBXSTREAM_TARGET(mic) void mkl_imatcopy(size_t m, size_t n, double* matrix)
+LIBXSTREAM_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, double* matrix)
 {
 #if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
   MKL_Dimatcopy('R', 'T', m, n, 1.0, matrix, n, m);
@@ -125,6 +125,12 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #endif
 }
 
+} // namespace libmicsmm_transpose_private
+
+// workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
+const libxstream_function libmicsmm_transpose_function = reinterpret_cast<libxstream_function>(kernel<T,U>);
+
+namespace libmicsmm_transpose_private {
 
 template<typename T, bool Complex, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
@@ -138,7 +144,6 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     && data && stream);
 
   if (1 < m || 1 < n) {
-    const libxstream_function function = reinterpret_cast<libxstream_function>(kernel<T,U>);
     const size_t stacksize = nblocks;
     libxstream_argument* signature = 0;
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
@@ -146,7 +151,8 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 1,   &m, libxstream_map_to<U>::type(), 0, 0));
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 2,   &n, libxstream_map_to<U>::type(), 0, 0));
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 3, data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
-    LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_call(function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
+    //const libxstream_function libmicsmm_transpose_function = reinterpret_cast<libxstream_function>(kernel<T,U>);
+    LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_call(libmicsmm_transpose_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
   }
 
   return LIBXSTREAM_ERROR_NONE;
