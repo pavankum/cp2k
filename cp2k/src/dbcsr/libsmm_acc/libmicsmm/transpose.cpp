@@ -53,7 +53,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 {
   size_t stacksize = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
-  LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (mic): stacksize=%%lu m=%i n=%i", static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
+  LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (mic): stacksize=%lu m=%i n=%i", static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
 #if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
@@ -125,12 +125,6 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #endif
 }
 
-} // namespace libmicsmm_transpose_private
-
-// workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
-const libxstream_function libmicsmm_transpose_function = reinterpret_cast<libxstream_function>(kernel<T,U>);
-
-namespace libmicsmm_transpose_private {
 
 template<typename T, bool Complex, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
@@ -151,7 +145,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 1,   &m, libxstream_map_to<U>::type(), 0, 0));
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 2,   &n, libxstream_map_to<U>::type(), 0, 0));
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 3, data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
-    //const libxstream_function libmicsmm_transpose_function = reinterpret_cast<libxstream_function>(kernel<T,U>);
+    const libxstream_function libmicsmm_transpose_function = reinterpret_cast<libxstream_function>(kernel<T,U>);
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_call(libmicsmm_transpose_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
   }
 
@@ -159,6 +153,9 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
 }
 
 } // namespace libmicsmm_transpose_private
+
+// workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
+const libxstream_function libmicsmm_transpose_function = reinterpret_cast<libxstream_function>(libmicsmm_transpose_private::kernel<double,int>);
 
 
 LIBXSTREAM_EXTERN_C int libsmm_acc_transpose(void* trs_stack, int offset, int nblks, void* buffer, int datatype, int m, int n, void* stream)

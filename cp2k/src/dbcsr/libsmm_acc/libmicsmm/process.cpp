@@ -51,8 +51,12 @@ public:
     : m_xmm_function(0), m_smm_function(smm_type::bmm)
 #endif
     , m_m(m), m_n(n), m_k(k)
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+# if (0 < (LIBXSMM_ALIGNED_STORES))
     , m_ldc(LIBXSTREAM_ALIGN_VALUE(U, T, m, LIBXSMM_ALIGNED_STORES))
+# else
+    , m_ldc(m)
+# endif
 #elif defined(LIBMICSMM_USE_XALIGN)
     , m_ldc(LIBXSTREAM_ALIGN_VALUE(U, T, m, LIBXSTREAM_MAX_SIMD))
 #else
@@ -85,8 +89,10 @@ public:
   }
 
   void copy_c(const T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT out) const {
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+# if (0 < (LIBXSMM_ALIGNED_STORES))
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSMM_ALIGNED_STORES);
+# endif
 #elif defined(LIBMICSMM_USE_XALIGN)
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSTREAM_MAX_SIMD);
 #endif
@@ -223,12 +229,6 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #endif
 }
 
-} // namespace libmicsmm_process_private
-
-// workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
-const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
-
-namespace libmicsmm_process_private {
 
 template<typename T, bool Complex, typename U>
 int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
@@ -255,13 +255,16 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 4, a_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 5, b_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 6, c_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
-  //const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
+  const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_call(libmicsmm_process_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
 
   return LIBXSTREAM_ERROR_NONE;
 }
 
 } // namespace libmicsmm_process_private
+
+// workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
+const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(libmicsmm_process_private::kernel<LIBMICSMM_NPARAMS,double,int>);
 
 
 extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
@@ -274,7 +277,9 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 
   switch(static_cast<dbcsr_elem_type>(datatype)) {
     case DBCSR_ELEM_F32: {
-      //result = libmicsmm_process_private::process<float,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
+#if 0
+      result = libmicsmm_process_private::process<float,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
+#endif
       result = LIBXSTREAM_ERROR_CONDITION;
     } break;
     case DBCSR_ELEM_F64: {
