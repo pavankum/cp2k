@@ -78,10 +78,10 @@ ifeq (,$(MIC))
   MIC := 1
 endif
 # workaround for issue "cannot find address of function"
-ifeq (,$(ATTRIBUTE))
-  ATTRIBUTE := mic
-  DIAG_DISABLE := $(DIAG_DISABLE),3218
-endif
+#ifeq (,$(ATTRIBUTE))
+#  ATTRIBUTE := mic
+#  DIAG_DISABLE := $(DIAG_DISABLE),2571,3218
+#endif
 ifeq (,$(MKL))
   MKL := 2
 endif
@@ -173,10 +173,11 @@ ifneq (0,$(ACC))
   ifneq (,$(LIBXSMMROOT))
     DFLAGS  += -D__LIBXSMM
     IFLAGS  += -I$(LIBXSMMROOT)/include
+    LIBS    += $(LIBXSMMROOT)/lib/intel64/libxsmm.a
     #MIC_CXFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
     #MIC_CCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
     #MIC_FCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
-    MIC_LDFLAGS += -offload-option,mic,ld,"$(LIBXSMMROOT)/lib/mic/libxsmm.a"
+    #MIC_LDFLAGS += -offload-option,mic,ld,"$(LIBXSMMROOT)/lib/mic/libxsmm.a"
   endif
 
   ifeq (0,$(OCL))
