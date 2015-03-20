@@ -7,13 +7,16 @@
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)
 
 #include "libmicsmm.hpp"
-#include <cstdlib>
 #include <vector>
 
 #include <libxstream_begin.h>
+#include <cstdlib>
 #include <cstdio>
-#if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__)
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
 # include <libxsmm.h>
+# if (0 != LIBXSMM_ROW_MAJOR)
+#   error Please compile LIBXSMM using "make ROW_MAJOR=0 ..."!
+# endif
 #endif
 #if defined(LIBMICSMM_USE_MKLSMM) && defined(__MKL)
 # if !defined(MKL_DIRECT_CALL_SEQ) && !defined(MKL_DIRECT_CALL)
@@ -33,122 +36,125 @@ namespace libmicsmm_process_private {
 
 template<typename T, typename U>
 class LIBXSTREAM_TARGET(mic) smm_type {
-  U M, N, K, LDC;
-#if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
-  libxsmm_mm_dispatch<T> xmm;
-#endif
+public:
+  typedef void (*xmm_function_type)(const T*, const T*, T*);
+  typedef void (*smm_function_type)(U, U, U, const T*, const T*, T*, xmm_function_type);
 
 public:
-  smm_type(U M_, U N_, U K_, U LDC_ = 0)
-    : M(M_), N(N_), K(K_), LDC(0 == LDC_ ? M_ : LDC_)
-#if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
-    , xmm(LDC == M ? libxsmm_mm_dispatch<T>(M_, N_, K_) : libxsmm_mm_dispatch<T>())
+  smm_type(U m, U n, U k)
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+    : m_xmm_function(libxsmm_mm_dispatch<T>(m, n, k))
+    , m_smm_function((LIBXSMM_MAX_MNK) >= (m * n * k)
+      ? (0 != m_xmm_function ? smm_type::xmm : smm_type::imm)
+      : smm_type::bmm)
+#else
+    : m_xmm_function(0), m_smm_function(smm_type::bmm)
+#endif
+    , m_m(m), m_n(n), m_k(k)
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+    , m_ldc(LIBXSTREAM_ALIGN_VALUE(U, T, m, LIBXSMM_ALIGNED_STORES))
+#elif defined(LIBMICSMM_USE_XALIGN)
+    , m_ldc(LIBXSTREAM_ALIGN_VALUE(U, T, m, LIBXSTREAM_MAX_SIMD))
+#else
+    , m_ldc(m)
 #endif
   {}
 
+public:
   void zero_c(T *LIBXSTREAM_RESTRICT c) const {
-#if defined(LIBMICSMM_USE_XALIGN)
+    const U size = m_n * m_ldc;
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+    LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSMM_ALIGNED_STORES);
+#elif defined(LIBMICSMM_USE_XALIGN)
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSTREAM_MAX_SIMD);
 #endif
+
 #if defined(__INTEL_COMPILER)
 # if defined(LIBMICSMM_USE_LOOPHINTS)
 #   pragma loop_count min(1), max(LIBMICSMM_MAX_RESULT_SIZE), avg(23*23)
 # endif
-#   if defined(LIBMICSMM_USE_XALIGN)
+#   if (defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))) || defined(LIBMICSMM_USE_XALIGN)
 #   pragma simd aligned(c:1)
 #   endif
-#elif defined(_OPENMP)
-#   if defined(LIBMICSMM_USE_XALIGN)
+#elif (201307 <= _OPENMP) // V4.0
+#   if (defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))) || defined(LIBMICSMM_USE_XALIGN)
 #   pragma omp simd aligned(c:1)
 #   endif
 #endif
-    for (U i = 0; i < (N * LDC); ++i) {
-      c[i] = 0;
-    }
+    for (U i = 0; i < size; ++i) c[i] = 0;
   }
 
   void copy_c(const T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT out) const {
-#if defined(LIBMICSMM_USE_XALIGN)
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+    LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSMM_ALIGNED_STORES);
+#elif defined(LIBMICSMM_USE_XALIGN)
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSTREAM_MAX_SIMD);
 #endif
-#if defined(__INTEL_COMPILER)
-# if defined(LIBMICSMM_USE_LOOPHINTS)
+
+#if defined(__INTEL_COMPILER) && defined(LIBMICSMM_USE_LOOPHINTS)
 #   pragma loop_count min(1), max(LIBMICSMM_MAX_N), avg(23)
-# endif
-#   pragma vector nontemporal(out)
 #endif
-    for (U j = 0; j < N; ++j) {
-#if defined(__INTEL_COMPILER)
-#     pragma unroll(16)
+    for (U j = 0; j < m_n; ++j) {
+#if defined(__INTEL_COMPILER) && defined(LIBMICSMM_USE_LOOPHINTS)
+#     pragma loop_count min(1), max(LIBMICSMM_MAX_M), avg(23)
 #endif
-      for (U i = 0; i < M; ++i) {
+      for (U i = 0; i < m_m; ++i) {
+        const T value = c[j*m_ldc+i];
 #if defined(_OPENMP)
 #       pragma omp atomic
 #endif
-        out[j*M+i] += c[j*LDC+i];
+        out[j*m_m+i] += value;
       }
     }
   }
-
-#if defined(MKL_DIRECT_CALL_SEQ)
-  void blasmm(const float* a, const float* b, float* c) const {
-    static float alpha = 1.f, beta = 1.f;
-    static char trans = 'N';
-    int m = M, n = N, k = K, ldc = LDC;
-    sgemm(&trans, &trans, &m, &n, &k, &alpha, const_cast<float*>(a), &m, const_cast<float*>(b), &k, &beta, c, &ldc);
-  }
-
-  void blasmm(const double* a, const double* b, double* c) const {
-    static double alpha = 1.0, beta = 1.0;
-    static char trans = 'N';
-    int m = M, n = N, k = K, ldc = LDC;
-    dgemm(&trans, &trans, &m, &n, &k, &alpha, const_cast<double*>(a), &m, const_cast<double*>(b), &k, &beta, c, &ldc);
-  }
-#endif
 
   void operator()(const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c) const {
-#if defined(LIBMICSMM_USE_LIBXSMM) && (2 != (LIBMICSMM_USE_LIBXSMM+1)) && defined(__LIBXSMM) && defined(__MIC__) && (0 != LIBXSMM_COL_MAJOR)
-    if (0 != xmm) {
-      (*xmm)(a, b, c);
-    }
-    else if (LIBXSMM_MAX_MNK >= (M * N * K)) {
-      libxsmm_imm(M, N, K, a, b, c);
-    }
-    else {
-      libxsmm_blasmm(M, N, K, a, b, c);
-    }
-#elif defined(MKL_DIRECT_CALL_SEQ)
-    blasmm(a, b, c);
+    LIBXSTREAM_ASSERT(m_smm_function);
+    m_smm_function(m_m, m_n, m_k, a, b, c, m_xmm_function);
+  }
+
+private:
+  static void bmm(U m, U n, U k, const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c, xmm_function_type) {
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+    LIBXSTREAM_ASSERT((LIBXSMM_MAX_MNK) < (m * n * k));
+    libxsmm_blasmm(m, n, k, a, b, c);
 #else
-# if defined(__INTEL_COMPILER)
-#   if defined(LIBMICSMM_USE_LOOPHINTS)
-#   pragma loop_count min(1), max(LIBMICSMM_MAX_M), avg(23)
-#   endif
-#   pragma vector nontemporal(c)
-#   pragma simd collapse(2)
-# elif defined(_OPENMP)
-#   pragma omp simd collapse(2)
-# endif
-    for (U j = 0; j < M; ++j) {
-      for (U i = 0; i < N; ++i) {
-        const U index = i * LDC + j;
-        T r = c[index];
-# if defined(__INTEL_COMPILER)
-#       pragma unroll(16)
-#       pragma simd reduction(+:r)
-# elif defined(_OPENMP)
-#       pragma omp simd reduction(+:r)
-# endif
-        for (U k = 0; k < K; ++k) {
-          const T aj = a[k*M+j];
-          const T bk = b[i*K+k];
-          r += aj * bk;
-        }
-        c[index] = r;
-      }
-    }
+    blasmm(m, n, k, a, b, c, m_ldc);
 #endif
   }
+
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+  static void xmm(U, U, U, const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c, xmm_function_type xmm_function) {
+    LIBXSTREAM_ASSERT(xmm_function);
+    xmm_function(a, b, c);
+  }
+
+  static void imm(U m, U n, U k, const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c, xmm_function_type) {
+    LIBXSTREAM_ASSERT((LIBXSMM_MAX_MNK) >= (m * n * k));
+    libxsmm_imm(m, n, k, a, b, c);
+  }
+
+#else /*no LIBXSMM*/
+
+  static void blasmm(U m, U n, U k, const float* a, const float* b, float* c, U ldc) {
+    static float alpha = 1.f, beta = 1.f;
+    static char trans = 'N';
+    int im = static_cast<int>(m), in = static_cast<int>(n), ik = static_cast<int>(k), ildc = static_cast<int>(ldc);
+    sgemm(&trans, &trans, &im, &in, &ik, &alpha, const_cast<float*>(a), &im, const_cast<float*>(b), &ik, &beta, c, &ildc);
+  }
+
+  static void blasmm(U m, U n, U k, const double* a, const double* b, double* c, U ldc) {
+    static double alpha = 1.0, beta = 1.0;
+    static char trans = 'N';
+    int im = static_cast<int>(m), in = static_cast<int>(n), ik = static_cast<int>(k), ildc = static_cast<int>(ldc);
+    dgemm(&trans, &trans, &im, &in, &ik, &alpha, const_cast<double*>(a), &im, const_cast<double*>(b), &ik, &beta, c, &ildc);
+  }
+#endif
+
+private:
+  xmm_function_type m_xmm_function;
+  smm_function_type m_smm_function;
+  U m_m, m_n, m_k, m_ldc;
 };
 
 
@@ -164,7 +170,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
-  const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k)/*, LIBMICSMM_MAX_M*/);
+  const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
   const U n = static_cast<U>(stacksize * N);
   U colspan[LIBMICSMM_MAX_BURST];
 
@@ -187,9 +193,10 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
       LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[colspan[i]+2]);
       const U j0 = colspan[i], j1 = colspan[i+1], kc = stack[j0+5] - 1;
 
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+      LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBXSMM_ALIGNED_STORES);
+#else
       LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBXSTREAM_MAX_SIMD);
-#if defined(LIBMICSMM_USE_XALIGN)
-      LIBXSTREAM_ASSERT(0 == (reinterpret_cast<uintptr_t>(tmp) % LIBXSTREAM_MAX_SIMD));
 #endif
       smm.zero_c(tmp);
 
@@ -216,6 +223,12 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #endif
 }
 
+} // namespace libmicsmm_process_private
+
+// workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
+const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
+
+namespace libmicsmm_process_private {
 
 template<typename T, bool Complex, typename U>
 int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
@@ -232,7 +245,6 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
     && LIBMICSMM_NPARAMS == nparams
     && 1 == def_mnk);
 
-  const libxstream_function function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
   const size_t shape = stacksize;
   libxstream_argument* signature = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
@@ -243,7 +255,8 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 4, a_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 5, b_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 6, c_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
-  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_call(function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
+  //const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_call(libmicsmm_process_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
 
   return LIBXSTREAM_ERROR_NONE;
 }
