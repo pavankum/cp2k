@@ -77,8 +77,10 @@ endif
 ifeq (,$(MIC))
   MIC := 1
 endif
+# workaround for issue "cannot find address of function"
 ifeq (,$(ATTRIBUTE))
   ATTRIBUTE := mic
+  DIAG_DISABLE := $(DIAG_DISABLE),3218
 endif
 ifeq (,$(MKL))
   MKL := 2
@@ -110,9 +112,9 @@ ifeq (0,$(DBG))
   OPTFLAGS  += -xHost
   DFLAGS    += -DNDEBUG
 
-  CXXFLAGS  += -fp-model precise #-fno-alias -ansi-alias
-  CFLAGS    += -fp-model precise #-fno-alias -ansi-alias
-  FCFLAGS   += -fp-model source
+  CXXFLAGS  += -fno-alias -ansi-alias #-fp-model fast=2 #precise
+  CFLAGS    += -fno-alias -ansi-alias #-fp-model fast=2 #precise
+  FCFLAGS   += #-fp-model fast=2 #source
   LDFLAGS   += #
 
   ifeq (1,$(IPO))
@@ -325,11 +327,11 @@ ifneq (0,$(ACC))
   endif
 endif
 
-thermostat_utils.o: thermostat_utils.F
-	$(FC) -c $(FCFLAGS) -O1 $<
+#thermostat_utils.o: thermostat_utils.F
+#	$(FC) -c $(FCFLAGS) -O1 $<
 
-mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
-	$(FC) -c $(FCFLAGS) -O0 $<
+#mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
+#	$(FC) -c $(FCFLAGS) -O0 $<
 
 qs_vxc_atom.o: qs_vxc_atom.F
 	$(FC) -c $(FCFLAGS) -O1 $<
