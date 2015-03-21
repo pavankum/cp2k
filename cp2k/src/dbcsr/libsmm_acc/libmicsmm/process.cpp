@@ -12,22 +12,26 @@
 #include <libxstream_begin.h>
 #include <cstdlib>
 #include <cstdio>
+#if defined(_OPENMP)
+# include <omp.h>
+#endif
+#include <libxstream_end.h>
+
 #if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
 # include <libxsmm.h>
 # if (0 != LIBXSMM_ROW_MAJOR)
 #   error Please compile LIBXSMM using "make ROW_MAJOR=0 ..."!
 # endif
+#else
+LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(dgemm)(
+  const char*, const char*, const int*, const int*, const int*,
+  const double*, const double*, const int*, const double*, const int*,
+  const double*, double*, const int*);
+LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(sgemm)(
+  const char*, const char*, const int*, const int*, const int*,
+  const float*, const float*, const int*, const float*, const int*,
+  const float*, float*, const int*);
 #endif
-#if defined(LIBMICSMM_USE_MKLSMM) && defined(__MKL)
-# if !defined(MKL_DIRECT_CALL_SEQ) && !defined(MKL_DIRECT_CALL)
-#   define MKL_DIRECT_CALL_SEQ
-# endif
-# include <mkl.h>
-#endif
-#if defined(_OPENMP)
-# include <omp.h>
-#endif
-#include <libxstream_end.h>
 
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
 #if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
@@ -75,19 +79,7 @@ public:
 #if (defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))) || defined(LIBMICSMM_USE_XALIGN)
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
-
-#if defined(__INTEL_COMPILER)
-# if defined(LIBMICSMM_USE_LOOPHINTS)
-#   pragma loop_count min(1), max(LIBMICSMM_MAX_RESULT_SIZE), avg(23*23)
-# endif
-#   if (defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))) || defined(LIBMICSMM_USE_XALIGN)
-#   pragma simd aligned(c:1)
-#   endif
-#elif (201307 <= _OPENMP) // V4.0
-#   if (defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))) || defined(LIBMICSMM_USE_XALIGN)
-#   pragma omp simd aligned(c:1)
-#   endif
-#endif
+    LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_RESULT_SIZE, 23*23)
     for (U i = 0; i < size; ++i) c[i] = 0;
   }
 
@@ -95,14 +87,8 @@ public:
 #if (defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))) || defined(LIBMICSMM_USE_XALIGN)
     LIBXSTREAM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
-
-#if defined(__INTEL_COMPILER) && defined(LIBMICSMM_USE_LOOPHINTS)
-#   pragma loop_count min(1), max(LIBMICSMM_MAX_N), avg(23)
-#endif
     for (U j = 0; j < m_n; ++j) {
-#if defined(__INTEL_COMPILER) && defined(LIBMICSMM_USE_LOOPHINTS)
-#     pragma loop_count min(1), max(LIBMICSMM_MAX_M), avg(23)
-#endif
+      LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_M, 23)
       for (U i = 0; i < m_m; ++i) {
         const T value = c[j*m_ldc+i];
 #if defined(_OPENMP)

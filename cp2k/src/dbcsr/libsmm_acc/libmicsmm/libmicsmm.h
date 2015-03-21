@@ -23,12 +23,10 @@
 /** Maximum number of matrices potentially processed in parallel. */
 #define LIBMICSMM_MAX_BURST 16384
 
-#define LIBMICSMM_USE_LOOPHINTS
 #define LIBMICSMM_USE_LIBXSMM
 #define LIBMICSMM_USE_XALIGN
 //#define LIBMICSMM_USE_PRETRANSPOSE
 //#define LIBMICSMM_USE_MKLTRANS
-//#define LIBMICSMM_USE_MKLSMM
 
 
 typedef enum dbcsr_elem_type {
