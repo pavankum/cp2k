@@ -53,7 +53,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 {
   size_t stacksize = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
-  LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (mic): stacksize=%lu m=%i n=%i", static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
+  LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose ("(LIBXSTREAM_DEVICE_NAME)"): stacksize=%lu m=%i n=%i", static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
 #if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
   const double start = omp_get_wtime();
 #endif
@@ -120,7 +120,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
     duration += stop - start;
 #   pragma omp atomic
     problemsize += 2ul * LIBXSTREAM_GETVAL(m) * LIBXSTREAM_GETVAL(n) * sizeof(T) * stacksize;
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (mic): %.f GB/s", problemsize / (1E9 * duration));
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose ("(LIBXSTREAM_DEVICE_NAME)"): %.f GB/s", problemsize / (1E9 * duration));
   }
 #endif
 }
