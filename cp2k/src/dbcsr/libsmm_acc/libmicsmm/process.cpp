@@ -30,6 +30,11 @@
 #include <libxstream_end.h>
 
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
+#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+# define LIBMICSMM_ALIGNMENT LIBXSMM_ALIGNED_STORES
+#else
+# define LIBMICSMM_ALIGNMENT LIBXSTREAM_MAX_SIMD
+#endif
 
 
 namespace libmicsmm_process_private {
@@ -67,10 +72,8 @@ public:
 public:
   void zero_c(T *LIBXSTREAM_RESTRICT c) const {
     const U size = m_n * m_ldc;
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
-    LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSMM_ALIGNED_STORES);
-#elif defined(LIBMICSMM_USE_XALIGN)
-    LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSTREAM_MAX_SIMD);
+#if (defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))) || defined(LIBMICSMM_USE_XALIGN)
+    LIBXSTREAM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
 
 #if defined(__INTEL_COMPILER)
@@ -89,12 +92,8 @@ public:
   }
 
   void copy_c(const T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT out) const {
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
-# if (0 < (LIBXSMM_ALIGNED_STORES))
-    LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSMM_ALIGNED_STORES);
-# endif
-#elif defined(LIBMICSMM_USE_XALIGN)
-    LIBXSTREAM_ASSUME_ALIGNED(c, LIBXSTREAM_MAX_SIMD);
+#if (defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))) || defined(LIBMICSMM_USE_XALIGN)
+    LIBXSTREAM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
 
 #if defined(__INTEL_COMPILER) && defined(LIBMICSMM_USE_LOOPHINTS)
@@ -199,11 +198,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
       LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[colspan[i]+2]);
       const U j0 = colspan[i], j1 = colspan[i+1], kc = stack[j0+5] - 1;
 
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
-      LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBXSMM_ALIGNED_STORES);
-#else
-      LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBXSTREAM_MAX_SIMD);
-#endif
+      LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
       smm.zero_c(tmp);
 
       for (U j = j0; j < j1; j += N) {
