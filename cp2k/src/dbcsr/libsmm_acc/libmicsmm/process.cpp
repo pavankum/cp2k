@@ -155,7 +155,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 {
   size_t stacksize = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
-  LIBXSTREAM_PRINT_INFO("libsmm_acc_process ("LIBXSTREAM_DEVICE_NAME"): stacksize=%lu max_m=%i max_n=%i max_k=%i", static_cast<unsigned long>(stacksize),
+  LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu max_m=%i max_n=%i max_k=%i", static_cast<unsigned long>(stacksize),
     LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
 
 #if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
@@ -173,7 +173,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
       for (U kc1 = stack[s+5-N], kc2 = stack[s+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[s+5]);
       colspan[++size] = s < n ? s : n;
     }
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_process ("LIBXSTREAM_DEVICE_NAME"): burst=%lu", static_cast<unsigned long>(size));
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): burst=%lu", static_cast<unsigned long>(size));
 
 #if defined(_OPENMP)
 #   pragma omp parallel for schedule(dynamic)
@@ -206,7 +206,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
     duration += stop - start;
 #   pragma omp atomic
     flops += static_cast<double>(2ul * LIBXSTREAM_GETVAL(max_m) * LIBXSTREAM_GETVAL(max_n) * LIBXSTREAM_GETVAL(max_k) * stacksize);
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_process ("LIBXSTREAM_DEVICE_NAME"): %.f GFLOP/s", flops / (1E9 * duration));
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): %.f GFLOP/s", flops / (1E9 * duration));
   }
 #endif
 }
