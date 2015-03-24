@@ -134,6 +134,7 @@ ifneq (0,$(PAR))
   LD  = mpiifort
   DFLAGS += -D__parallel -D__BLACS -D__SCALAPACK
   ifneq (1,$(PAR))
+    DFLAGS += -D__MPI_VERSION=3
     DFLAGS += -D__SCALAPACK2
   endif
 else
