@@ -79,7 +79,7 @@ MODULE cp_dbcsr_operations
   END INTERFACE
 
   ! CP2K API emulation
-  PUBLIC :: cp_dbcsr_from_fm, copy_fm_to_dbcsr, copy_dbcsr_to_fm,&
+  PUBLIC :: copy_fm_to_dbcsr, copy_dbcsr_to_fm,&
             copy_dbcsr_to_cfm, copy_cfm_to_dbcsr,&
             cp_dbcsr_sm_fm_multiply, cp_dbcsr_plus_fm_fm_t,&
             copy_dbcsr_to_fm_bc, copy_fm_to_dbcsr_bc, cp_fm_to_dbcsr_row_template,&
@@ -678,41 +678,6 @@ CONTAINS
     CALL timestop(timing_handle)
 
   END SUBROUTINE cp_dbcsr_plus_fm_fm_t_native
-
-! *****************************************************************************
-!> \brief Converts a cp2k full matrix into a DBCSR matrix.
-!> \param[out] matrix         the created BCSR matrix
-!> \param[in] fm              the cpk full matrix
-!> \param[in] distribution    the distribution to use for the new matrix
-!> \param[in] row_blk_size sizes of row blocks
-!> \param[in] col_blk_size sizes of column blocks
-!> \param[in,out] error       cp2k error
-! *****************************************************************************
-  SUBROUTINE cp_dbcsr_from_fm(matrix, fm, distribution, row_blk_size,&
-       col_blk_size, error)
-    TYPE(cp_dbcsr_type), INTENT(OUT)         :: matrix
-    TYPE(cp_fm_type), POINTER                :: fm
-    TYPE(dbcsr_distribution_obj)             :: distribution
-    TYPE(array_i1d_obj), INTENT(IN)          :: row_blk_size, col_blk_size
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
-
-    CHARACTER(LEN=*), PARAMETER :: routineN = 'cp_dbcsr_from_fm', &
-      routineP = moduleN//':'//routineN
-
-    INTEGER                                  :: timing_handle
-
-    CALL timeset(routineN, timing_handle)
-
-    !CALL cp_dbcsr_init (matrix, error)! the matrix should already be initialized
-    CALL cp_dbcsr_create(matrix, fm%name, distribution, dbcsr_type_no_symmetry,&
-         row_blk_size, col_blk_size,&
-         0, 0, dbcsr_type_real_8, error=error)
-    CALL copy_fm_to_dbcsr(fm, matrix, error=error)
-    CALL cp_dbcsr_verify_matrix(matrix, error)
-    CALL timestop(timing_handle)
-
-  END SUBROUTINE cp_dbcsr_from_fm
-
 
 ! *****************************************************************************
 !> \brief   Copy a BLACS matrix to a dbcsr matrix.
@@ -1782,7 +1747,6 @@ CONTAINS
 !> \param sym ...
 !> \param data_type ...
 !> \param error ...
-!> \param m global row size of output matrix UNMATCHED_PROCEDURE_ARGUMENT: please check 
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_m_by_n_from_row_template(matrix,template,n,sym,data_type,error)
     TYPE(cp_dbcsr_type), INTENT(INOUT)       :: matrix, template
