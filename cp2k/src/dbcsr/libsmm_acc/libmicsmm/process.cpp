@@ -143,7 +143,7 @@ private:
 #endif
 
 private:
-  xmm_function_type m_xmm_function;
+  mutable xmm_function_type m_xmm_function;
   smm_function_type m_smm_function;
   U m_m, m_n, m_k, m_ldc;
 };
@@ -176,7 +176,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
     LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): burst=%lu", static_cast<unsigned long>(size));
 
 #if defined(_OPENMP)
-#   pragma omp parallel for schedule(dynamic)
+#   pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
 #endif
     for (int i = 0; i < size; ++i) {
       LIBXSTREAM_ASSERT(colspan[i] < n);

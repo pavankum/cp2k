@@ -59,7 +59,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #endif
 
 #if defined(_OPENMP)
-# pragma omp parallel for
+# pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
 #endif
   for (U s = 0; s < stacksize; ++s) {
     T *const mat = matrix + stack[s];

@@ -24,9 +24,21 @@
 #define LIBMICSMM_MAX_BURST 16384
 
 #define LIBMICSMM_USE_LIBXSMM
+
 #define LIBMICSMM_USE_XALIGN
-//#define LIBMICSMM_USE_PRETRANSPOSE
-//#define LIBMICSMM_USE_MKLTRANS
+
+/** Ensures a sufficient parallel slack. */
+#define LIBMICSMM_MIN_NPARALLEL 210
+
+/** Ensures an amortized atomic overhead. */
+#define LIBMICSMM_MIN_NLOCAL 150
+#define LIBMICSMM_MAX_NLOCAL 250
+
+/** OpenMP scheduling policy (and chunk size) */
+#define LIBMICSMM_SCHEDULE static,1
+
+/*#define LIBMICSMM_USE_PRETRANSPOSE*/
+/*#define LIBMICSMM_USE_MKLTRANS*/
 
 
 typedef enum dbcsr_elem_type {
@@ -35,5 +47,5 @@ typedef enum dbcsr_elem_type {
   DBCSR_ELEM_C32 = 5, DBCSR_ELEM_C64 = 7
 } dbcsr_elem_type;
 
-#endif // defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)
-#endif // LIBMICSMM_H
+#endif /*defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC)*/
+#endif /*LIBMICSMM_H*/
