@@ -23,6 +23,7 @@
 /** Maximum number of matrices potentially processed in parallel. */
 #define LIBMICSMM_MAX_BURST 16384
 
+/** Determines if LIBXSMM is used. */
 #define LIBMICSMM_USE_LIBXSMM
 
 #define LIBMICSMM_USE_XALIGN
@@ -35,7 +36,7 @@
 #define LIBMICSMM_MAX_NLOCAL 250
 
 /** OpenMP scheduling policy (and chunk size) */
-#define LIBMICSMM_SCHEDULE static,1
+#define LIBMICSMM_SCHEDULE dynamic,1
 
 /*#define LIBMICSMM_USE_PRETRANSPOSE*/
 /*#define LIBMICSMM_USE_MKLTRANS*/

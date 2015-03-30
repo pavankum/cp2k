@@ -171,7 +171,13 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
     colspan[0] = s - N;
     for (; size < (LIBMICSMM_MAX_BURST - 1) && s <= n; s += N) {
       for (U kc1 = stack[s+5-N], kc2 = stack[s+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[s+5]);
-      colspan[++size] = s < n ? s : n;
+      const U r = colspan[size], nlocal = s - r;
+      if (N * (LIBMICSMM_MAX_NLOCAL) < nlocal) {
+        const U parts = (nlocal + N * (LIBMICSMM_MAX_NLOCAL) - 1) / (N * (LIBMICSMM_MAX_NLOCAL));
+        const U index = ((r + nlocal / parts + N - 1) / N) * N;
+        s = index; // reset
+      }
+      colspan[++size] = std::min(s, n);
     }
     LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): burst=%lu", static_cast<unsigned long>(size));
 
