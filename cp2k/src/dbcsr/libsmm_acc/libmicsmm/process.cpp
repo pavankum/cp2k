@@ -168,7 +168,7 @@ LIBXSTREAM_TARGET(mic) U map(U i, U base, const U* indexes)
 }
 #else
 template<typename U>
-LIBXSTREAM_TARGET(mic) U map(U i, U /*base*, const U* /*indexes*/)
+LIBXSTREAM_TARGET(mic) U map(U i, U /*base*/, const U* /*indexes*/)
 {
   return i;
 }
