@@ -145,6 +145,36 @@ private:
 };
 
 
+#if defined(LIBMICSMM_LOCALSORT)
+template<typename U>
+class LIBXSTREAM_TARGET(mic) indirect_less {
+public:
+  explicit indirect_less(const U* keys): m_keys(keys) {}
+
+public:
+  bool operator()(U i, U j) const {
+    return m_keys[i+5] < m_keys[j+5];
+  }
+
+private:
+  const U* m_keys;
+};
+
+template<typename U>
+LIBXSTREAM_TARGET(mic) U map(U i, U base, const U* indexes)
+{
+  LIBXSTREAM_ASSERT(indexes);
+  return indexes[i-base];
+}
+#else
+template<typename U>
+LIBXSTREAM_TARGET(mic) U map(U i, U /*base*, const U* /*indexes*/)
+{
+  return i;
+}
+#endif // LIBMICSMM_LOCALSORT
+
+
 template<size_t N, typename T, typename U>
 LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREAM_INVAL(U) max_m, LIBXSTREAM_INVAL(U) max_n, LIBXSTREAM_INVAL(U) max_k,
   const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
@@ -170,12 +200,23 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
   const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
   const U n = static_cast<U>(stacksize * N);
   U colspan[LIBMICSMM_MAX_BURST];
+#if defined(LIBMICSMM_LOCALSORT)
+  U indexes[LIBMICSMM_MAX_BURST];
+#else
+  const U *const indexes = 0, base = 0;
+#endif
 
   for (U s = N; s <= n;) {
+#if defined(LIBMICSMM_LOCALSORT)
+    const U base = s;
+    for (U i = 0; i < LIBMICSMM_MAX_BURST; ++i) indexes[i] = base + i * N;
+    std::sort(indexes, indexes + LIBMICSMM_MAX_BURST, indirect_less<U>(stack));
+#endif
+
     int size = 0;
     colspan[0] = s - N;
     for (; size < (LIBMICSMM_MAX_BURST - 1) && s <= n; s += N) {
-      for (U kc1 = stack[s+5-N], kc2 = stack[s+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[s+5]);
+      for (U kc1 = stack[map<U>(s-N,base,indexes)+5], kc2 = stack[map(s,base,indexes)+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[map(s,base,indexes)+5]);
       colspan[++size] = std::min(s, n);
     }
     LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): burst=%lu", static_cast<unsigned long>(size));
@@ -185,10 +226,10 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #endif
     for (int i = 0; i < size; ++i) {
       LIBXSTREAM_ASSERT(colspan[i] < n);
-      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_m) == stack[colspan[i]+0]);
-      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_n) == stack[colspan[i]+1]);
-      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[colspan[i]+2]);
-      const U j0 = colspan[i], j1 = colspan[i+1], kc = stack[j0+5] - 1;
+      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_m) == stack[map(colspan[i],base,indexes)+0]);
+      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_n) == stack[map(colspan[i],base,indexes)+1]);
+      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[map(colspan[i],base,indexes)+2]);
+      const U j0 = colspan[i], j1 = colspan[i+1], kc = stack[map(j0,base,indexes)+5] - 1;
 #if !defined(LIBMICSMM_THREADPRIVATE)
       LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
@@ -196,7 +237,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 
       for (U j = j0; j < j1; j += N) {
         LIBXSTREAM_ASSERT(j < n);
-        const U ka = stack[j+3] - 1, kb = stack[j+4] - 1;
+        const U idx = map(j, base, indexes), ka = stack[idx+3] - 1, kb = stack[idx+4] - 1;
         smm(a + ka, b + kb, tmp);
       }
 
