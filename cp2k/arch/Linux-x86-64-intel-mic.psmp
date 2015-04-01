@@ -122,6 +122,7 @@ ifeq (0,$(DBG))
   endif
 else
   OPTFLAGS  += -O0 -g -traceback
+  DFLAGS    += -D__USE_CP2K_TRACE
   ifeq (2,$(DBG))
     FCFLAGS   += -fpe0 # debugging NaNs
   endif
@@ -306,7 +307,7 @@ else # sequential
   LIBS += -lpthread -lm
 endif
 
-DFLAGS  += -D__INTEL -D__HAS_ISO_C_BINDING -D__USE_CP2K_TRACE
+DFLAGS  += -D__INTEL -D__HAS_ISO_C_BINDING
 IFLAGS  += # general include paths
 
 # Define __INTEL_COMPILER in case of external preprocessing because some source (pw/fft/fftw3_lib.F)
