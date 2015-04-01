@@ -185,31 +185,34 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
   LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
   const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
-  const U n = static_cast<U>(stacksize * N);
-  U colspan[LIBMICSMM_MAX_BURST];
+  U colspan[(LIBMICSMM_MAX_BURST)+1], n = 0;
 #if defined(LIBMICSMM_LOCALSORT)
-  U index[LIBMICSMM_MAX_BURST];
+  U index[(LIBMICSMM_MAX_BURST)+1];
 #endif
 
-  for (U s = N; s <= n;) {
+  for (size_t s = 0; s < stacksize;) {
     int size = 0;
-#if defined(LIBMICSMM_LOCALSORT)
-    for (U i = 0, t = s; i < LIBMICSMM_MAX_BURST && t <= n; ++i, t += N) index[i] = t;
-    std::sort(index, index + LIBMICSMM_MAX_BURST, indirect_less<U>(stack));
 
-    colspan[0] = 0;
-    for (U i = 1; size < (LIBMICSMM_MAX_BURST - 1) && s <= n; s += N) {
-      for (U kc1 = stack[index[i-1]+5], kc2 = stack[index[i]+5]; kc1 == kc2; ++i, s += N, kc1 = kc2, kc2 = stack[index[i]+5]);
+#if defined(LIBMICSMM_LOCALSORT)
+    const size_t r = std::min(static_cast<size_t>(LIBMICSMM_MAX_BURST), stacksize - s);
+    for (U i = 0, m = n; i < r; ++i, m += N) index[i] = m;
+    std::sort(index, index + r, indirect_less<U>(stack));
+
+    colspan[size] = 0;
+    for (U i = 0; i < r; n += N, ++s) {
+      ++i;
+      for (U kc0 = stack[index[i-1]+5], kc1 = (i < r ? stack[index[i]+5] : (kc0 + 1)); kc0 == kc1; n += N, ++s, ++i, kc0 = kc1, kc1 = stack[index[i]+5]);
       colspan[++size] = i;
     }
 #else
-    colspan[0] = s - N;
-    for (; size < (LIBMICSMM_MAX_BURST - 1) && s <= n; s += N) {
-      for (U kc1 = stack[s-N+5], kc2 = stack[s+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[s+5]);
-      colspan[++size] = std::min(s, n);
+    colspan[size] = n;
+    for (; size < (LIBMICSMM_MAX_BURST) && s < stacksize; n += N, ++s) {
+      for (U kc0 = stack[n+5], kc1 = (1 < stacksize ? stack[n+N+5] : (kc0 + 1)); kc0 == kc1 && s < stacksize; n += N, ++s, kc0 = kc1, kc1 = stack[n+N+5]);
+      colspan[++size] = n + N;
     }
 #endif
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): burst=%lu", static_cast<unsigned long>(size));
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): chunk=%i size=%lu",
+      static_cast<unsigned long>(s), static_cast<unsigned long>(size));
 
 #if defined(_OPENMP)
 #   pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
@@ -217,13 +220,12 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
     for (int i = 0; i < size; ++i) {
 #if defined(LIBMICSMM_LOCALSORT)
       const U j0 = colspan[i], j1 = colspan[i+1], jn = 1;
-      LIBXSTREAM_ASSERT(j0 <= j1 && index[j1] <= n);
       const U kc = stack[index[j0]+5] - 1;
 #else
       const U j0 = colspan[i], j1 = colspan[i+1], jn = N;
-      LIBXSTREAM_ASSERT(j0 <= j1 && j1 <= n);
       const U kc = stack[j0+5] - 1;
 #endif
+      LIBXSTREAM_ASSERT(j1 <= static_cast<U>(stacksize * N));
 #if !defined(LIBMICSMM_THREADPRIVATE)
       LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
@@ -238,7 +240,8 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
         LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_m) == stack[k+0]);
         LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_n) == stack[k+1]);
         LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[k+2]);
-        LIBXSTREAM_ASSERT(k <= n);
+        LIBXSTREAM_ASSERT(k < static_cast<U>(stacksize * N));
+        LIBXSTREAM_ASSERT(kc == stack[k+5] - 1);
         const U ka = stack[k+3] - 1, kb = stack[k+4] - 1;
         smm(a + ka, b + kb, tmp);
       }
