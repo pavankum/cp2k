@@ -24,7 +24,7 @@
 #define LIBMICSMM_MAX_BURST 65536
 
 /** Determines if LIBXSMM is used. */
-#define LIBMICSMM_USE_LIBXSMM
+#define LIBMICSMM_LIBXSMM
 
 /** OpenMP scheduling policy (and chunk size) */
 #define LIBMICSMM_SCHEDULE dynamic
@@ -35,8 +35,8 @@
 /** Sort matrix stacks according to the destination. */
 /*#define LIBMICSMM_LOCALSORT*/
 
-/*#define LIBMICSMM_USE_PRETRANSPOSE*/
-/*#define LIBMICSMM_USE_MKLTRANS*/
+/*#define LIBMICSMM_PRETRANSPOSE*/
+/*#define LIBMICSMM_MKLTRANS*/
 
 
 typedef enum dbcsr_elem_type {

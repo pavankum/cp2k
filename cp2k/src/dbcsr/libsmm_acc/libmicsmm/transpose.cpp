@@ -24,7 +24,7 @@
   LIBMICSMM_MAX_M, LIBMICSMM_MAX_N), \
   LIBMICSMM_MAX_K)
 
-#if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
+#if defined(LIBMICSMM_MKLTRANS) && defined(__MKL)
 LIBXSTREAM_EXTERN_C void MKL_Simatcopy(const char, const char, size_t, size_t, float, float*, size_t, size_t);
 LIBXSTREAM_EXTERN_C void MKL_Dimatcopy(const char, const char, size_t, size_t, double, double*, size_t, size_t);
 #endif
@@ -34,7 +34,7 @@ namespace libmicsmm_transpose_private {
 
 LIBXSTREAM_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, float* matrix)
 {
-#if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
+#if defined(LIBMICSMM_MKLTRANS) && defined(__MKL)
   MKL_Simatcopy('R', 'T', m, n, 1.f, matrix, n, m);
 #endif
 }
@@ -42,7 +42,7 @@ LIBXSTREAM_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, float
 
 LIBXSTREAM_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, double* matrix)
 {
-#if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
+#if defined(LIBMICSMM_MKLTRANS) && defined(__MKL)
   MKL_Dimatcopy('R', 'T', m, n, 1.0, matrix, n, m);
 #endif
 }
@@ -64,47 +64,20 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
   for (U s = 0; s < stacksize; ++s) {
     T *const mat = matrix + stack[s];
 
-#if defined(LIBMICSMM_USE_MKLTRANS) && defined(__MKL)
+#if defined(LIBMICSMM_MKLTRANS) && defined(__MKL)
     mkl_imatcopy(static_cast<size_t>(LIBXSTREAM_GETVAL(m)), static_cast<size_t>(LIBXSTREAM_GETVAL(n)), mat);
 #else
     LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_MATRIX_SIZE], LIBXSTREAM_MAX_SIMD);
 
-# if defined(LIBMICSMM_USE_LOOPHINTS) && defined(__INTEL_COMPILER)
-    // Best coice would be LIBMICSMM_MAX_MNK. However, the
-    // trip count must be a compile-time constant with no further
-    // macro invocation (actual trip can be larger anyways).
-#   pragma loop_count min(1), max(LIBMICSMM_MAX_M), avg(23)
-# endif
     for (U i = 0; i < LIBXSTREAM_GETVAL(m); ++i) {
-# if defined(__INTEL_COMPILER)
-#   if defined(LIBMICSMM_USE_LOOPHINTS)
-#     pragma loop_count min(1), max(LIBMICSMM_MAX_N), avg(23)
-#   endif
-#     pragma simd
-# elif defined(_OPENMP)
-#     pragma omp simd
-# endif
+      LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_N, 23)
       for (U j = 0; j < LIBXSTREAM_GETVAL(n); ++j) {
         tmp[j*LIBXSTREAM_GETVAL(m)+i] = mat[i*LIBXSTREAM_GETVAL(n)+j];
       }
     }
 
-# if defined(LIBMICSMM_USE_LOOPHINTS) && defined(__INTEL_COMPILER)
-#   pragma loop_count min(1), max(LIBMICSMM_MAX_M), avg(23)
-# endif
     for (U i = 0; i < LIBXSTREAM_GETVAL(m); ++i) {
-# if defined(__INTEL_COMPILER)
-#   if defined(LIBMICSMM_USE_LOOPHINTS)
-#     pragma loop_count min(1), max(LIBMICSMM_MAX_N), avg(23)
-#   endif
-#     if defined(LIBMICSMM_USE_XALIGN)
-#     pragma simd aligned(tmp:1)
-#     endif
-# elif defined(_OPENMP)
-#     if defined(LIBMICSMM_USE_XALIGN)
-#     pragma omp simd aligned(tmp:1)
-#     endif
-# endif
+      LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_N, 23)
       for (U j = 0; j < LIBXSTREAM_GETVAL(n); ++j) {
         mat[i*LIBXSTREAM_GETVAL(n)+j] = tmp[i*LIBXSTREAM_GETVAL(n)+j];
       }
@@ -162,7 +135,7 @@ LIBXSTREAM_EXTERN_C int libsmm_acc_transpose(void* trs_stack, int offset, int nb
 {
   int result = LIBXSTREAM_ERROR_NONE;
 
-#if defined(LIBMICSMM_USE_PRETRANSPOSE)
+#if defined(LIBMICSMM_PRETRANSPOSE)
   const int *const stack = static_cast<const int*>(trs_stack);
   switch(static_cast<dbcsr_elem_type>(datatype)) {
     case DBCSR_ELEM_F32: {

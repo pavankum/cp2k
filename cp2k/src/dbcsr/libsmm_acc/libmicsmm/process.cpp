@@ -18,7 +18,7 @@
 #endif
 #include <libxstream_end.h>
 
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM)
 # include <libxsmm.h>
 # if (0 != LIBXSMM_ROW_MAJOR)
 #   error Please compile LIBXSMM using "make ROW_MAJOR=0 ..."!
@@ -35,7 +35,7 @@ LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(sgemm)(
 #endif
 
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
 # define LIBMICSMM_ALIGNMENT LIBXSMM_ALIGNED_STORES
 #else
 # define LIBMICSMM_ALIGNMENT LIBXSTREAM_MAX_SIMD
@@ -52,7 +52,7 @@ public:
 
 public:
   smm_type(U m, U n, U k)
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM)
     : m_xmm_function(libxsmm_mm_dispatch<T>(m, n, k))
     , m_smm_function((LIBXSMM_MAX_MNK) >= (m * n * k)
       ? (0 != m_xmm_function ? smm_type::xmm : smm_type::imm)
@@ -61,7 +61,7 @@ public:
     : m_xmm_function(0), m_smm_function(smm_type::bmm)
 #endif
     , m_m(m), m_n(n), m_k(k)
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
     , m_ldc(LIBXSTREAM_ALIGN_VALUE(U, T, m, LIBXSMM_ALIGNED_STORES))
 #else
     , m_ldc(m)
@@ -71,7 +71,7 @@ public:
 public:
   void zero_c(T *LIBXSTREAM_RESTRICT c) const {
     const U size = m_n * m_ldc;
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
     LIBXSMM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
     LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_RESULT_SIZE, 23*23)
@@ -79,7 +79,7 @@ public:
   }
 
   void copy_c(const T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT out) const {
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
     LIBXSMM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
     for (U j = 0; j < m_n; ++j) {
@@ -101,7 +101,7 @@ public:
 
 private:
   LIBXSTREAM_TARGET(mic) static void bmm(U m, U n, U k, U ldc, const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c, xmm_function_type) {
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM)
     LIBXSTREAM_ASSERT((LIBXSMM_MAX_MNK) < (m * n * k));
     libxsmm_blasmm(m, n, k, a, b, c);
     libxstream_use_sink(&ldc);
@@ -110,7 +110,7 @@ private:
 #endif
   }
 
-#if defined(LIBMICSMM_USE_LIBXSMM) && defined(__LIBXSMM)
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM)
   LIBXSTREAM_TARGET(mic) static void xmm(U, U, U, U, const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c, xmm_function_type xmm_function) {
     LIBXSTREAM_ASSERT(xmm_function);
     xmm_function(a, b, c);
@@ -159,19 +159,6 @@ public:
 private:
   const U* m_keys;
 };
-
-template<typename U>
-LIBXSTREAM_TARGET(mic) U map(U i, U base, const U* indexes)
-{
-  LIBXSTREAM_ASSERT(indexes);
-  return indexes[i-base];
-}
-#else
-template<typename U>
-LIBXSTREAM_TARGET(mic) U map(U i, U /*base*/, const U* /*indexes*/)
-{
-  return i;
-}
 #endif // LIBMICSMM_LOCALSORT
 
 
@@ -201,43 +188,58 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
   const U n = static_cast<U>(stacksize * N);
   U colspan[LIBMICSMM_MAX_BURST];
 #if defined(LIBMICSMM_LOCALSORT)
-  U indexes[LIBMICSMM_MAX_BURST];
-#else
-  const U *const indexes = 0, base = 0;
+  U index[LIBMICSMM_MAX_BURST];
 #endif
 
   for (U s = N; s <= n;) {
-#if defined(LIBMICSMM_LOCALSORT)
-    const U base = s;
-    for (U i = 0; i < LIBMICSMM_MAX_BURST; ++i) indexes[i] = base + i * N;
-    std::sort(indexes, indexes + LIBMICSMM_MAX_BURST, indirect_less<U>(stack));
-#endif
-
     int size = 0;
+#if defined(LIBMICSMM_LOCALSORT)
+    for (U i = 0, t = s; i < LIBMICSMM_MAX_BURST && t <= n; ++i, t += N) index[i] = t;
+    std::sort(index, index + LIBMICSMM_MAX_BURST, indirect_less<U>(stack));
+
+    colspan[0] = 0;
+    for (U i = 1; size < (LIBMICSMM_MAX_BURST - 1) && s <= n; s += N) {
+      for (U kc1 = stack[index[i-1]+5], kc2 = stack[index[i]+5]; kc1 == kc2; ++i, s += N, kc1 = kc2, kc2 = stack[index[i]+5]);
+      colspan[++size] = i;
+    }
+#else
     colspan[0] = s - N;
     for (; size < (LIBMICSMM_MAX_BURST - 1) && s <= n; s += N) {
-      for (U kc1 = stack[map<U>(s-N,base,indexes)+5], kc2 = stack[map(s,base,indexes)+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[map(s,base,indexes)+5]);
+      for (U kc1 = stack[s-N+5], kc2 = stack[s+5]; kc1 == kc2; s += N, kc1 = kc2, kc2 = stack[s+5]);
       colspan[++size] = std::min(s, n);
     }
+#endif
     LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): burst=%lu", static_cast<unsigned long>(size));
 
 #if defined(_OPENMP)
 #   pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
 #endif
     for (int i = 0; i < size; ++i) {
-      LIBXSTREAM_ASSERT(colspan[i] < n);
-      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_m) == stack[map(colspan[i],base,indexes)+0]);
-      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_n) == stack[map(colspan[i],base,indexes)+1]);
-      LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[map(colspan[i],base,indexes)+2]);
-      const U j0 = colspan[i], j1 = colspan[i+1], kc = stack[map(j0,base,indexes)+5] - 1;
+#if defined(LIBMICSMM_LOCALSORT)
+      const U j0 = colspan[i], j1 = colspan[i+1], jn = 1;
+      LIBXSTREAM_ASSERT(j0 <= j1 && index[j1] <= n);
+      const U kc = stack[index[j0]+5] - 1;
+#else
+      const U j0 = colspan[i], j1 = colspan[i+1], jn = N;
+      LIBXSTREAM_ASSERT(j0 <= j1 && j1 <= n);
+      const U kc = stack[j0+5] - 1;
+#endif
 #if !defined(LIBMICSMM_THREADPRIVATE)
       LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
       smm.zero_c(tmp);
 
-      for (U j = j0; j < j1; j += N) {
-        LIBXSTREAM_ASSERT(j < n);
-        const U idx = map(j, base, indexes), ka = stack[idx+3] - 1, kb = stack[idx+4] - 1;
+      for (U j = j0; j < j1; j += jn) {
+#if defined(LIBMICSMM_LOCALSORT)
+        const U k = index[j];
+#else
+        const U k = j;
+#endif
+        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_m) == stack[k+0]);
+        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_n) == stack[k+1]);
+        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[k+2]);
+        LIBXSTREAM_ASSERT(k <= n);
+        const U ka = stack[k+3] - 1, kb = stack[k+4] - 1;
         smm(a + ka, b + kb, tmp);
       }
 
@@ -298,7 +300,7 @@ const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstre
 
 extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
 {
-#if defined(LIBMICSMM_USE_PRETRANSPOSE)
+#if defined(LIBMICSMM_PRETRANSPOSE)
   LIBXSTREAM_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
 #endif
   const int *const stack = static_cast<const int*>(param_stack);
