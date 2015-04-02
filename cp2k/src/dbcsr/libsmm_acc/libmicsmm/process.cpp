@@ -34,12 +34,35 @@ LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(sgemm)(
   const float*, float*, const int*);
 #endif
 
+#if defined(LIBMICSMM_STACKSIZE) && (0 < (LIBMICSMM_STACKSIZE))
+LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*, void*);
+LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*, void*);
+extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
+extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers);
+extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams);
+extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers);
+#endif
+
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
 #if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
 # define LIBMICSMM_ALIGNMENT LIBXSMM_ALIGNED_STORES
 #else
 # define LIBMICSMM_ALIGNMENT LIBXSTREAM_MAX_SIMD
 #endif
+
+
+LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver, void* error)
+{
+  LIBXSTREAM_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver, error);
+#if defined(LIBMICSMM_STACKSIZE) && (0 < (LIBMICSMM_STACKSIZE))
+  const int stacksize = LIBMICSMM_STACKSIZE;
+  LIBXSTREAM_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize, error);
+  LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams) = LIBMICSMM_POSTERIOR_STREAMS;
+  LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers) = LIBMICSMM_POSTERIOR_BUFFERS;
+  LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams) = LIBMICSMM_PRIORITY_STREAMS;
+  LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers) = LIBMICSMM_PRIORITY_BUFFERS;
+#endif
+}
 
 
 namespace libmicsmm_process_private {

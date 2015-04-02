@@ -99,13 +99,23 @@ endif
 ifeq (,$(DBG))
   DBG := 0
 endif
+ifeq (,$(RECONFIGURE))
+  RECONFIGURE := 1
+endif
 
+# initial build flags
 CPPFLAGS  := $(NULL)
-CXXFLAGS  := -diag-disable $(DIAG_DISABLE) -std=c++0x
-CFLAGS    := -diag-disable $(DIAG_DISABLE)
-FCFLAGS   := -diag-disable $(DIAG_DISABLE) -free -fpp
-LDFLAGS   := -diag-disable $(DIAG_DISABLE)
+CXXFLAGS  := -std=c++0x
+CFLAGS    := 
+FCFLAGS   := -free -fpp
+LDFLAGS   := 
 OPTFLAGS  := $(NULL)
+
+
+ifneq (0,$(RECONFIGURE))
+  LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_mm_driver_
+  DIAG_DISABLE := $(DIAG_DISABLE),11021
+endif
 
 ifeq (0,$(DBG))
   OPTFLAGS  += -O2
@@ -314,10 +324,10 @@ IFLAGS  += # general include paths
 # toggles code using this symbol, but of course the cpp preprocessor is not defining this symbol.
 CPPFLAGS  += #-C $(IFLAGS) $(DFLAGS) -D__INTEL_COMPILER -P -traditional
 
-CXXFLAGS  += $(OPTFLAGS) $(DFLAGS) $(IFLAGS)
-CFLAGS    += $(OPTFLAGS) $(DFLAGS) $(IFLAGS)
-FCFLAGS   += $(OPTFLAGS) $(DFLAGS) $(IFLAGS)
-LDFLAGS   += $(OPTFLAGS)
+CXXFLAGS  += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) $(DFLAGS) $(IFLAGS)
+CFLAGS    += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) $(DFLAGS) $(IFLAGS)
+FCFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) $(DFLAGS) $(IFLAGS)
+LDFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE)
 
 LIBS += -lstdc++
 ifneq (0,$(ACC))

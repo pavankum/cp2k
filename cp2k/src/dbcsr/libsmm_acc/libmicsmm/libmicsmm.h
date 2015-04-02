@@ -26,9 +26,6 @@
 /** Ensures amortized synchronization overhead. */
 #define LIBMICSMM_NLOCAL 128
 
-/** Determines if LIBXSMM is used. */
-#define LIBMICSMM_LIBXSMM
-
 /** OpenMP scheduling policy (and chunk size) */
 #define LIBMICSMM_SCHEDULE dynamic
 
@@ -42,6 +39,16 @@
 
 /** The kind of thread-private data. */
 #define LIBMICSMM_THREADPRIVATE 1
+
+/** Determines if CP2K/ACC is reconfigured. */
+#define LIBMICSMM_STACKSIZE 1000000
+#define LIBMICSMM_POSTERIOR_STREAMS 0
+#define LIBMICSMM_POSTERIOR_BUFFERS 0
+#define LIBMICSMM_PRIORITY_STREAMS 2
+#define LIBMICSMM_PRIORITY_BUFFERS 2
+
+/** Determines if LIBXSMM is used. */
+#define LIBMICSMM_LIBXSMM
 
 /*#define LIBMICSMM_PRETRANSPOSE*/
 /*#define LIBMICSMM_MKLTRANS*/

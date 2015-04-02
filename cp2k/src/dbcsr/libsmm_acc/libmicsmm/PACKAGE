@@ -1,5 +1,5 @@
 {
 "description": "Small Matrix Multiplications for MIC",
 "archive": "libmicsmm",
-"requires": ["../include", "../../../acc/include", "../../../acc/mic"]
+"requires": ["../include", "../../../acc/include", "../../../acc/mic", "../../base"]
 }
