@@ -86,7 +86,7 @@ public:
       LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_M, 23)
       for (U i = 0; i < m_m; ++i) {
         const T value = c[j*m_ldc+i];
-#if defined(_OPENMP) && !defined(LIBMICSMM_LOCALSORT)
+#if defined(_OPENMP)
 #       pragma omp atomic
 #endif
         out[j*m_m+i] += value;
@@ -145,23 +145,6 @@ private:
 };
 
 
-#if defined(LIBMICSMM_LOCALSORT)
-template<typename U>
-class LIBXSTREAM_TARGET(mic) indirect_less {
-public:
-  explicit indirect_less(const U* keys): m_keys(keys) {}
-
-public:
-  bool operator()(U i, U j) const {
-    return m_keys[i+5] < m_keys[j+5];
-  }
-
-private:
-  const U* m_keys;
-};
-#endif // LIBMICSMM_LOCALSORT
-
-
 template<size_t N, typename T, typename U>
 LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREAM_INVAL(U) max_m, LIBXSTREAM_INVAL(U) max_n, LIBXSTREAM_INVAL(U) max_k,
   const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
@@ -185,63 +168,38 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
   LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
   const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
-  U colspan[(LIBMICSMM_MAX_BURST)+1], n = 0;
-#if defined(LIBMICSMM_LOCALSORT)
-  U index[(LIBMICSMM_MAX_BURST)+1];
-#endif
+  const U nstacksize = static_cast<U>(stacksize * N);
+  U colspan[LIBMICSMM_MAX_BURST];
 
-  for (size_t s = 0; s < stacksize;) {
+  for (U n = 0; n < nstacksize;) {
     int size = 0;
 
-#if defined(LIBMICSMM_LOCALSORT)
-    const size_t r = std::min(static_cast<size_t>(LIBMICSMM_MAX_BURST), stacksize - s);
-    for (U i = 0, m = n; i < r; ++i, m += N) index[i] = m;
-    std::sort(index, index + r, indirect_less<U>(stack));
-
-    colspan[size] = 0;
-    for (U i = 0; i < r; n += N, ++s) {
-      ++i;
-      for (U kc0 = stack[index[i-1]+5], kc1 = (i < r ? stack[index[i]+5] : (kc0 + 1)); kc0 == kc1; n += N, ++s, ++i, kc0 = kc1, kc1 = stack[index[i]+5]);
-      colspan[++size] = i;
-    }
-#else
-    colspan[size] = n;
-    for (; size < (LIBMICSMM_MAX_BURST) && s < stacksize; n += N, ++s) {
-      for (U kc0 = stack[n+5], kc1 = (1 < stacksize ? stack[n+N+5] : (kc0 + 1)); kc0 == kc1 && s < stacksize; n += N, ++s, kc0 = kc1, kc1 = stack[n+N+5]);
+    colspan[0] = n;
+    for (; size < (LIBMICSMM_MAX_BURST - 1) && n < nstacksize; n += N) {
+      for (U kc0 = stack[n+5], kc1 = (((n + N) < nstacksize) ? stack[n+N+5] : (kc0 + 1)); kc0 == kc1; n += N, kc0 = kc1, kc1 = stack[n+N+5]);
       colspan[++size] = n + N;
     }
-#endif
     LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): parallel=%lu", static_cast<unsigned long>(size));
 
 #if defined(_OPENMP)
 #   pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
 #endif
     for (int i = 0; i < size; ++i) {
-#if defined(LIBMICSMM_LOCALSORT)
-      const U j0 = colspan[i], j1 = colspan[i+1], jn = 1;
-      const U kc = stack[index[j0]+5] - 1;
-#else
-      const U j0 = colspan[i], j1 = colspan[i+1], jn = N;
+      const U j0 = colspan[i], j1 = colspan[i+1];
       const U kc = stack[j0+5] - 1;
-#endif
-      LIBXSTREAM_ASSERT(j1 <= static_cast<U>(stacksize * N));
+      LIBXSTREAM_ASSERT(j1 <= nstacksize);
 #if !defined(LIBMICSMM_THREADPRIVATE)
       LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
       smm.zero_c(tmp);
 
-      for (U j = j0; j < j1; j += jn) {
-#if defined(LIBMICSMM_LOCALSORT)
-        const U k = index[j];
-#else
-        const U k = j;
-#endif
-        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_m) == stack[k+0]);
-        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_n) == stack[k+1]);
-        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[k+2]);
-        LIBXSTREAM_ASSERT(k < static_cast<U>(stacksize * N));
-        LIBXSTREAM_ASSERT(kc == stack[k+5] - 1);
-        const U ka = stack[k+3] - 1, kb = stack[k+4] - 1;
+      for (U j = j0; j < j1; j += N) {
+        LIBXSTREAM_ASSERT(j < nstacksize);
+        LIBXSTREAM_ASSERT(kc == stack[j+5] - 1);
+        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_m) == stack[j+0]);
+        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_n) == stack[j+1]);
+        LIBXSTREAM_ASSERT(LIBXSTREAM_GETVAL(max_k) == stack[j+2]);
+        const U ka = stack[j+3] - 1, kb = stack[j+4] - 1;
         smm(a + ka, b + kb, tmp);
       }
 

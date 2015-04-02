@@ -32,9 +32,6 @@
 /** The kind of thread-private data. */
 #define LIBMICSMM_THREADPRIVATE 1
 
-/** Sort matrix stacks according to the destination. */
-/*#define LIBMICSMM_LOCALSORT*/
-
 /*#define LIBMICSMM_PRETRANSPOSE*/
 /*#define LIBMICSMM_MKLTRANS*/
 
