@@ -206,14 +206,89 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
   LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
   const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
+  const int nstacksize = static_cast<int>(stacksize * N);
+
+#if defined(_OPENMP)
+# pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
+#endif
+  for (int n = 0; n < nstacksize; n += ((LIBMICSMM_NLOCAL) * N)) {
+#if !defined(LIBMICSMM_THREADPRIVATE)
+    LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+#endif
+    const int end = n + std::min(static_cast<int>((LIBMICSMM_NLOCAL) * N), nstacksize - n);
+    U i = n, kc = stack[n+5], next = kc;
+ 
+    do {
+      smm.zero_c(tmp);
+
+      for (;;) {
+        const U ka = stack[i+3], kb = stack[i+4];
+        smm(a + ka - 1, b + kb - 1, tmp);
+        i += N;
+
+        if (i < nstacksize) {
+          next = stack[i+5];
+          if (next != kc || end <= i) {
+            break;
+          }
+        }
+        else {
+          break;
+        }
+      }
+
+      smm.copy_c(tmp, c + kc - 1);
+      kc = next;
+    }
+    while(i < end);
+  }
+
+#if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
+  static double duration = 0, flops = 0;
+  const double stop = omp_get_wtime();
+  if (start < stop) {
+#   pragma omp atomic
+    duration += stop - start;
+#   pragma omp atomic
+    flops += static_cast<double>(2ul * LIBXSTREAM_GETVAL(max_m) * LIBXSTREAM_GETVAL(max_n) * LIBXSTREAM_GETVAL(max_k) * stacksize);
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): %.f GFLOP/s", flops / (1E9 * duration));
+  }
+#endif
+}
+
+
+#if defined(LIBMICSMM_PLANSIZE) && (0 < (LIBMICSMM_PLANSIZE))
+template<size_t N, typename T, typename U>
+LIBXSTREAM_TARGET(mic) void kernel_plan(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREAM_INVAL(U) max_m, LIBXSTREAM_INVAL(U) max_n, LIBXSTREAM_INVAL(U) max_k,
+  const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
+{
+  size_t stacksize = 0;
+  LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
+  LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu max_m=%i max_n=%i max_k=%i", static_cast<unsigned long>(stacksize),
+    LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
+
+#if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
+  const double start = omp_get_wtime();
+#endif
+#if defined(LIBMICSMM_THREADPRIVATE) && defined(_OPENMP)
+# if 1 == (LIBMICSMM_THREADPRIVATE) // native OpenMP TLS
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+# pragma omp threadprivate(tmp)
+#else
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+# endif
+#else // without OpenMP nothing needs to be thread-local due to a single-threaded program
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+#endif
+  const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
   const U nstacksize = static_cast<U>(stacksize * N);
-  U colspan[LIBMICSMM_MAX_BURST];
+  U colspan[LIBMICSMM_PLANSIZE];
 
   for (U n = 0; n < nstacksize;) {
     int size = 0;
 
     colspan[0] = n;
-    for (; size < (LIBMICSMM_MAX_BURST - 1) && n < nstacksize; n += N) {
+    for (; size < (LIBMICSMM_PLANSIZE - 1) && n < nstacksize; n += N) {
       for (U kc0 = stack[n+5], kc1 = (((n + N) < nstacksize) ? stack[n+N+5] : (kc0 + 1)); kc0 == kc1; n += N, kc0 = kc1, kc1 = stack[n+N+5]);
       colspan[++size] = n + N;
     }
@@ -257,6 +332,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
   }
 #endif
 }
+#endif // LIBMICSMM_PLANSIZE
 
 
 template<typename T, bool Complex, typename U>
@@ -284,7 +360,11 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 4, a_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 5, b_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 6, c_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
+#if !defined(LIBMICSMM_PLANSIZE) || (0 >= (LIBMICSMM_PLANSIZE))
   const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(kernel<LIBMICSMM_NPARAMS,T,U>);
+#else
+  const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(kernel_plan<LIBMICSMM_NPARAMS,T,U>);
+#endif
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_fn_call(libmicsmm_process_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
 
   return LIBXSTREAM_ERROR_NONE;
@@ -293,8 +373,11 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
 } // namespace libmicsmm_process_private
 
 // workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
+#if !defined(LIBMICSMM_PLANSIZE) || (0 >= (LIBMICSMM_PLANSIZE))
 const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(libmicsmm_process_private::kernel<LIBMICSMM_NPARAMS,double,int>);
-
+#else
+const libxstream_function libmicsmm_process_function = reinterpret_cast<libxstream_function>(libmicsmm_process_private::kernel_plan<LIBMICSMM_NPARAMS,double,int>);
+#endif
 
 extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
 {

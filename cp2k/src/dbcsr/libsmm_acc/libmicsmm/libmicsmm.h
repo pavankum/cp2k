@@ -20,8 +20,11 @@
 /** Number of parameters per stack entry. */
 #define LIBMICSMM_NPARAMS 7
 
-/** Maximum number of matrices potentially processed in parallel. */
-#define LIBMICSMM_MAX_BURST 32768
+/** Maximum parallel slack (0: no plan). */
+/*#define LIBMICSMM_PLANSIZE 32768*/
+
+/** Ensures amortized synchronization overhead. */
+#define LIBMICSMM_NLOCAL 128
 
 /** Determines if LIBXSMM is used. */
 #define LIBMICSMM_LIBXSMM
