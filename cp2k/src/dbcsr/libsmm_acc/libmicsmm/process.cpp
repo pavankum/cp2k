@@ -86,7 +86,7 @@ public:
       LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_M, 23)
       for (U i = 0; i < m_m; ++i) {
         const T value = c[j*m_ldc+i];
-#if defined(_OPENMP)
+#if defined(_OPENMP) && !defined(LIBMICSMM_LOCALSORT)
 #       pragma omp atomic
 #endif
         out[j*m_m+i] += value;
@@ -211,8 +211,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
       colspan[++size] = n + N;
     }
 #endif
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): chunk=%i size=%lu",
-      static_cast<unsigned long>(s), static_cast<unsigned long>(size));
+    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): parallel=%lu", static_cast<unsigned long>(size));
 
 #if defined(_OPENMP)
 #   pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
