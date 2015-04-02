@@ -21,13 +21,21 @@
 #define LIBMICSMM_NPARAMS 7
 
 /** Maximum number of matrices potentially processed in parallel. */
-#define LIBMICSMM_MAX_BURST 65536
+#define LIBMICSMM_MAX_BURST 32768
 
 /** Determines if LIBXSMM is used. */
 #define LIBMICSMM_LIBXSMM
 
 /** OpenMP scheduling policy (and chunk size) */
 #define LIBMICSMM_SCHEDULE dynamic
+
+/**
+ * Synchronization mechanism.
+ * >1: number of locks
+ * =1: omp critical
+ * =0: atomic
+ */
+#define LIBMICSMM_SYNCHRONIZATION 1
 
 /** The kind of thread-private data. */
 #define LIBMICSMM_THREADPRIVATE 1

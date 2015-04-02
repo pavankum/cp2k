@@ -44,6 +44,32 @@ LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(sgemm)(
 
 namespace libmicsmm_process_private {
 
+#if defined(_OPENMP) && defined(LIBMICSMM_SYNCHRONIZATION) && (1 < (LIBMICSMM_SYNCHRONIZATION))
+LIBXSTREAM_TARGET(mic) class LIBXSTREAM_TARGET(mic) lock_type {
+public:
+  lock_type() {
+    for (size_t i = 0; i < (LIBMICSMM_SYNCHRONIZATION); ++i) omp_init_lock(m_lock + i);
+  }
+  
+  ~lock_type() {
+    for (size_t i = 0; i < (LIBMICSMM_SYNCHRONIZATION); ++i) omp_destroy_lock(m_lock + i);
+  }
+
+public:
+  void acquire(const void* id) {
+    omp_set_lock(m_lock + reinterpret_cast<uintptr_t>(id) % LIBMICSMM_SYNCHRONIZATION);
+  }
+
+  void release(const void* id) {
+    omp_unset_lock(m_lock + reinterpret_cast<uintptr_t>(id) % LIBMICSMM_SYNCHRONIZATION);
+  }
+
+private:
+  omp_lock_t m_lock[LIBMICSMM_SYNCHRONIZATION];
+} lock;
+#endif // LIBXSTREAM_TARGET(mic)
+
+
 template<typename T, typename U>
 class LIBXSTREAM_TARGET(mic) smm_type {
 public:
@@ -79,19 +105,31 @@ public:
   }
 
   void copy_c(const T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT out) const {
+#if defined(_OPENMP) && defined(LIBMICSMM_SYNCHRONIZATION) && (0 < (LIBMICSMM_SYNCHRONIZATION))
+# if (1 == (LIBMICSMM_SYNCHRONIZATION))
+#   pragma omp critical(libmicsmm_process)
+# else
+    lock.acquire(c);
+# endif
+#endif
+    {
 #if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
-    LIBXSMM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
+      LIBXSMM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
-    for (U j = 0; j < m_n; ++j) {
-      LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_M, 23)
-      for (U i = 0; i < m_m; ++i) {
-        const T value = c[j*m_ldc+i];
-#if defined(_OPENMP)
-#       pragma omp atomic
+      for (U j = 0; j < m_n; ++j) {
+        LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_M, 23)
+        for (U i = 0; i < m_m; ++i) {
+          const T value = c[j*m_ldc+i];
+#if defined(_OPENMP) && (!defined(LIBMICSMM_SYNCHRONIZATION) || (0 == (LIBMICSMM_SYNCHRONIZATION)))
+#         pragma omp atomic
 #endif
-        out[j*m_m+i] += value;
+          out[j*m_m+i] += value;
+        }
       }
     }
+#if defined(_OPENMP) && defined(LIBMICSMM_SYNCHRONIZATION) && (1 < (LIBMICSMM_SYNCHRONIZATION))
+    lock.release(c);
+#endif
   }
 
   void operator()(const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c) const {
