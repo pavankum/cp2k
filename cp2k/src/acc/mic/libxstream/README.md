@@ -180,12 +180,12 @@ The Query interface allows enumerating and accessing function arguments includin
 LIBXSTREAM_TARGET(mic) void fill(float* out, ...)
 {
   size_t n = 0, i = 0, arity = 0;
-  float fill_value = 0;
+  float fill_value = 0; /*default*/
   const void* data = 0;
 
-  libxstream_get_shape(NULL/*this call context*/, 0/*in*/, &n);
+  libxstream_get_shape(NULL/*this call context*/, 0/*out*/, &n);
   libxstream_get_arity(NULL/*this call context*/, &arity);
-  if (1 < arity) {
+  if (1 < arity) { /*non-default fill value*/
     libxstream_get_data(NULL/*this call context*/, 1, &data);
     fill_value = *(const float*)data; /*better check the type*/
   }
@@ -224,7 +224,7 @@ Although the library is under development, the interface is stable. There is a h
 ## Applications and References
 **\[1] http://cp2k.org/**: Open Source Molecular Dynamics application. An experimental [branch](https://github.com/cp2k/cp2k/tree/intel) at GitHub uses the library to offload work to an Intel Xeon Phi coprocessor.
 
-**\[2] https://github.com/01org/pyMIC**: Module to offload computation in a Python program to the Intel Xeon Phi coprocessor. The next release uses the library to deliver a stream programming model.
+**\[2] https://github.com/01org/pyMIC**: Python module to offload computation to Intel Xeon Phi coprocessors.
 
 **\[3] http://software.intel.com/xeonphicatalog**: Intel Xeon Phi Applications and Solutions Catalog.
 
