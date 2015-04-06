@@ -20,10 +20,12 @@
 /** Number of parameters per stack entry. */
 #define LIBMICSMM_NPARAMS 7
 
-/** Maximum parallel slack (0: no plan). */
-/*#define LIBMICSMM_PLANSIZE 32768*/
-
-/** Ensures amortized synchronization overhead. */
+/**
+ * Ensures an amortized synchronization overhead.
+ * >0: maximum number of locally processed MM
+ * =0: process MM using a plan
+ * <0: adaptive MM-processing
+ */
 #define LIBMICSMM_NLOCAL 128
 
 /** OpenMP scheduling policy (and chunk size) */

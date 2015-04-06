@@ -250,19 +250,19 @@ LIBXSTREAM_TARGET(mic) void work_basic(const U *LIBXSTREAM_RESTRICT stack, size_
 }
 
 
-#if defined(LIBMICSMM_PLANSIZE) && (0 < (LIBMICSMM_PLANSIZE))
 template<size_t N, typename T, typename U>
 LIBXSTREAM_TARGET(mic) void work_planned(const U *LIBXSTREAM_RESTRICT stack, size_t stacksize, const smm_type<T,U>& smm,
   const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT tmp)
 {
   const U nstacksize = static_cast<U>(stacksize * N);
-  U colspan[LIBMICSMM_PLANSIZE];
+  const U plansize = 32768;
+  U colspan[plansize];
 
   for (U n = 0; n < nstacksize;) {
     int size = 0;
 
     colspan[0] = n;
-    for (; size < (LIBMICSMM_PLANSIZE - 1) && n < nstacksize; n += N) {
+    for (; size < (plansize - 1) && n < nstacksize; n += N) {
       for (U kc0 = stack[n+5], kc1 = (((n + N) < nstacksize) ? stack[n+N+5] : (kc0 + 1)); kc0 == kc1; n += N, kc0 = kc1, kc1 = stack[n+N+5]);
       colspan[++size] = n + N;
     }
@@ -291,7 +291,6 @@ LIBXSTREAM_TARGET(mic) void work_planned(const U *LIBXSTREAM_RESTRICT stack, siz
     }
   }
 }
-#endif // LIBMICSMM_PLANSIZE
 
 
 template<size_t N, typename T, typename U>
@@ -319,10 +318,12 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
 #endif
 
   const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
-#if !defined(LIBMICSMM_PLANSIZE) || (0 >= (LIBMICSMM_PLANSIZE))
+#if defined(LIBMICSMM_NLOCAL) && (0 < (LIBMICSMM_NLOCAL))
   work_basic<LIBMICSMM_NPARAMS,T,U>(stack, stacksize, smm, a, b, c, tmp);
-#else
+#elif defined(LIBMICSMM_NLOCAL) && (0 == (LIBMICSMM_NLOCAL))
   work_planned<LIBMICSMM_NPARAMS,T,U>(stack, stacksize, smm, a, b, c, tmp);
+#else
+  LIBXSTREAM_ASSERT(false/*TODO: not yet implemented.*/);
 #endif
 
 #if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
