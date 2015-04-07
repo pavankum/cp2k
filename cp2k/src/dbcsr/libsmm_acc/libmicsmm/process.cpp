@@ -209,15 +209,25 @@ private:
 
 template<size_t N, typename T, typename U>
 LIBXSTREAM_TARGET(mic) void work_basic(const U *LIBXSTREAM_RESTRICT stack, size_t stacksize, const smm_type<T,U>& smm,
-  const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT tmp)
+  const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
 {
+#if defined(_OPENMP)
+# if defined(LIBMICSMM_THREADPRIVATE) && (1 == (2*LIBMICSMM_THREADPRIVATE+1)/2) // OpenMP TLS
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+# pragma omp threadprivate(tmp)
+# else // alternative TLS
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+# endif
+#else // without OpenMP nothing needs to be thread-local due to a single-threaded program
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+#endif
   const int nstacksize = static_cast<int>(stacksize * N);
 
 #if defined(_OPENMP)
 # pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
 #endif
   for (int n = 0; n < nstacksize; n += ((LIBMICSMM_NLOCAL) * N)) {
-#if !defined(LIBMICSMM_THREADPRIVATE)
+#if !defined(LIBMICSMM_THREADPRIVATE) && defined(_OPENMP)
     LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
     const int end = n + std::min(static_cast<int>((LIBMICSMM_NLOCAL) * N), nstacksize - n);
@@ -252,8 +262,18 @@ LIBXSTREAM_TARGET(mic) void work_basic(const U *LIBXSTREAM_RESTRICT stack, size_
 
 template<size_t N, typename T, typename U>
 LIBXSTREAM_TARGET(mic) void work_planned(const U *LIBXSTREAM_RESTRICT stack, size_t stacksize, const smm_type<T,U>& smm,
-  const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c, T *LIBXSTREAM_RESTRICT tmp)
+  const T *LIBXSTREAM_RESTRICT a, const T *LIBXSTREAM_RESTRICT b, T *LIBXSTREAM_RESTRICT c)
 {
+#if defined(_OPENMP)
+# if defined(LIBMICSMM_THREADPRIVATE) && (1 == (2*LIBMICSMM_THREADPRIVATE+1)/2) // OpenMP TLS
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+# pragma omp threadprivate(tmp)
+# else // alternative TLS
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+# endif
+#else // without OpenMP nothing needs to be thread-local due to a single-threaded program
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+#endif
   const U nstacksize = static_cast<U>(stacksize * N);
   const U plansize = 32768;
   U colspan[plansize];
@@ -275,7 +295,7 @@ LIBXSTREAM_TARGET(mic) void work_planned(const U *LIBXSTREAM_RESTRICT stack, siz
       const U j0 = colspan[i], j1 = colspan[i+1];
       const U kc = stack[j0+5] - 1;
       LIBXSTREAM_ASSERT(j1 <= nstacksize);
-#if !defined(LIBMICSMM_THREADPRIVATE)
+#if !defined(LIBMICSMM_THREADPRIVATE) && defined(_OPENMP)
       LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
       smm.zero_c(tmp);
@@ -304,17 +324,6 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
 
 #if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
   const double start = omp_get_wtime();
-#endif
-
-#if defined(LIBMICSMM_THREADPRIVATE) && defined(_OPENMP)
-# if 1 == (LIBMICSMM_THREADPRIVATE) // native OpenMP TLS
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
-# pragma omp threadprivate(tmp)
-#else
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
-# endif
-#else // without OpenMP nothing needs to be thread-local due to a single-threaded program
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
 #endif
 
   const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));

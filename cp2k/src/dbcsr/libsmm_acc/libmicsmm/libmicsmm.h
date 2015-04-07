@@ -39,7 +39,11 @@
  */
 #define LIBMICSMM_SYNCHRONIZATION 1
 
-/** The kind of thread-private data. */
+/**
+ * Kind of thread-private data.
+ * 1: OpenMP based TLS
+ * 2: Alternative TLS
+ */
 #define LIBMICSMM_THREADPRIVATE 1
 
 /** Determines if CP2K/ACC is reconfigured. */
