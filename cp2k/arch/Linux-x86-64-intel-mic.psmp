@@ -8,13 +8,10 @@ AR       = xiar -r
 # Version 1.1.5 (tested)
 #
 # $ env \
-#   AR=xiar \
-#   FC=ifort F77=ifort F90=ifort FCFLAGS="-O2 -xHost -ipo" \
-#   CC=icc CFLAGS="-O2 -xHost -ipo" \
-#   CXX=icpc CXXFLAGS="-O2 -xHost -ipo" \
+#   AR=xiar CC=icc CXX=icpc \
 #   ./configure --prefix=$HOME/libint \
-#     --with-cc-optflags="-O2 -xHost -ipo" \
-#     --with-cxx-optflags="-O2 -xHost -ipo" \
+#     --with-cc-optflags="-O0 -xHost -ipo" \
+#     --with-cxx-optflags="-O0 -xHost -ipo" \
 #     --with-libint-max-am=5 \
 #     --with-libderiv-max-am1=4
 # $ make
