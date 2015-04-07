@@ -328,9 +328,9 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
 
   const smm_type<T,U> smm(LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
 #if defined(LIBMICSMM_NLOCAL) && (0 < (LIBMICSMM_NLOCAL))
-  work_basic<LIBMICSMM_NPARAMS,T,U>(stack, stacksize, smm, a, b, c, tmp);
+  work_basic<LIBMICSMM_NPARAMS,T,U>(stack, stacksize, smm, a, b, c);
 #elif defined(LIBMICSMM_NLOCAL) && (0 == (LIBMICSMM_NLOCAL))
-  work_planned<LIBMICSMM_NPARAMS,T,U>(stack, stacksize, smm, a, b, c, tmp);
+  work_planned<LIBMICSMM_NPARAMS,T,U>(stack, stacksize, smm, a, b, c);
 #else
   LIBXSTREAM_ASSERT(false/*TODO: not yet implemented.*/);
 #endif
