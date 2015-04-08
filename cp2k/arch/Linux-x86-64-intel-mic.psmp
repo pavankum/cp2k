@@ -109,11 +109,6 @@ LDFLAGS   :=
 OPTFLAGS  := $(NULL)
 
 
-ifneq (0,$(RECONFIGURE))
-  LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_mm_driver_
-  DIAG_DISABLE := $(DIAG_DISABLE),11021
-endif
-
 ifeq (0,$(DBG))
   OPTFLAGS  += -O2
   OPTFLAGS  += -xHost
@@ -210,6 +205,8 @@ ifneq (0,$(ACC))
     DFLAGS  += -D__OPENCL -D__USE_INTEL_CL
     LIBS    += -L/usr/lib64 -lOpenCL -lrt
   endif
+else
+  RECONFIGURE := 0
 endif
 
 ifneq (1,$(MKL))
@@ -312,6 +309,11 @@ else # sequential
   endif
   MIC_LDFLAGS += -offload-option,mic,ld,"-lpthread -lm"
   LIBS += -lpthread -lm
+endif
+
+ifneq (0,$(RECONFIGURE))
+  LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_mm_driver_
+  DIAG_DISABLE := $(DIAG_DISABLE),11021
 endif
 
 DFLAGS  += -D__INTEL -D__HAS_ISO_C_BINDING
