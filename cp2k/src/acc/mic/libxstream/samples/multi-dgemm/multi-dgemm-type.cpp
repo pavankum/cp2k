@@ -29,11 +29,11 @@
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
 #include "multi-dgemm-type.hpp"
-#include "../../include/libxstream_begin.h"
+#include <libxstream_begin.h>
 #include <stdexcept>
 #include <algorithm>
 #include <cstdlib>
-#include "../../include/libxstream_end.h"
+#include <libxstream_end.h>
 
 
 multi_dgemm_type::host_data_type::host_data_type(libxstream_function process, size_t size, const size_t split[])

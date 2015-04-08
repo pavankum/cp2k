@@ -31,7 +31,7 @@
 #ifndef MULTI_DGEMM_TYPE_HPP
 #define MULTI_DGEMM_TYPE_HPP
 
-#include "../../include/libxstream.h"
+#include <libxstream.h>
 
 
 class multi_dgemm_type {
