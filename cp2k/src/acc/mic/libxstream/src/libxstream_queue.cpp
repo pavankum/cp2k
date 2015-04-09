@@ -29,46 +29,99 @@
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
-#include "libxstream_context.hpp"
-#include "libxstream.hpp"
+#include "libxstream_queue.hpp"
+
+#include <libxstream_begin.h>
+#include <algorithm>
+#include <cstdio>
+#if defined(LIBXSTREAM_STDFEATURES)
+# include <atomic>
+#endif
+#include <libxstream_end.h>
 
 
-libxstream_context& libxstream_context::instance()
+libxstream_queue::libxstream_queue()
+  : m_index(0)
+#if defined(LIBXSTREAM_STDFEATURES)
+  , m_size(new std::atomic<size_t>(0))
+#else
+  , m_size(new size_t(0))
+#endif
 {
-  LIBXSTREAM_TARGET(mic) static LIBXSTREAM_TLS libxstream_context* pcontext = 0;
-  if (0 == pcontext) {
-    LIBXSTREAM_TARGET(mic) static LIBXSTREAM_TLS libxstream_context context;
-    context.flags = LIBXSTREAM_CALL_EXTERNAL;
-    context.signature = 0;
-    pcontext = &context;
-  }
-  return *pcontext;
+  std::fill_n(m_buffer, LIBXSTREAM_MAX_QSIZE, static_cast<void*>(0));
 }
 
 
-libxstream_context& libxstream_context::instance(const libxstream_argument signature_[], int flags_)
+libxstream_queue::~libxstream_queue()
 {
-  libxstream_context& context = instance();
-  LIBXSTREAM_ASSERT(LIBXSTREAM_CALL_EXTERNAL != flags_);
-  context.signature = signature_;
-  context.flags = flags_;
-  return context;
-}
-
-
-LIBXSTREAM_TARGET(mic) const libxstream_argument* libxstream_find(const libxstream_context& context, const void* variable)
-{
-  const libxstream_argument* argument = 0;
-  if (context.signature) {
-    for (const libxstream_argument* argi = context.signature; LIBXSTREAM_TYPE_INVALID != argi->type; ++argi) {
-      LIBXSTREAM_ASSERT(libxstream_argument::kind_invalid != argi->kind);
-      if (variable == libxstream_get_value(*argi).const_pointer) {
-        argument = argi;
-        break;
-      }
+#if defined(LIBXSTREAM_DEBUG)
+  size_t dangling = 0;
+  for (size_t i = 0; i < LIBXSTREAM_MAX_QSIZE; ++i) {
+    const void* item = m_buffer[i];
+    if (0 != item) {
+      m_buffer[i] = 0;
+      ++dangling;
+      delete item;
     }
   }
-  return argument;
+  if (0 < dangling) {
+    LIBXSTREAM_PRINT_WARN("%lu work item%s dangling!", static_cast<unsigned long>(dangling), 1 < dangling ? "s are" : " is");
+  }
+#endif
+#if defined(LIBXSTREAM_STDFEATURES)
+  delete static_cast<std::atomic<size_t>*>(m_size);
+#else
+  delete static_cast<size_t*>(m_size);
+#endif
+}
+
+
+size_t libxstream_queue::size() const
+{
+#if defined(LIBXSTREAM_STDFEATURES)
+  const size_t offset = *static_cast<const std::atomic<size_t>*>(m_size);
+#else
+  const size_t offset = *static_cast<const size_t*>(m_size);
+#endif
+  const size_t index = m_index;
+  const void *const entry = m_buffer[offset%LIBXSTREAM_MAX_QSIZE];
+  return 0 != entry ? (offset - index) : (std::max<size_t>(offset - index, 1) - 1);
+}
+
+
+void** libxstream_queue::allocate_push()
+{
+  void** result = 0;
+#if defined(LIBXSTREAM_STDFEATURES)
+  result = m_buffer + ((*static_cast<std::atomic<size_t>*>(m_size))++ % LIBXSTREAM_MAX_QSIZE);
+#elif defined(_OPENMP)
+  size_t size1 = 0;
+# if (201107 <= _OPENMP)
+#   pragma omp atomic capture
+# else
+#   pragma omp critical
+# endif
+  size1 = ++m_size;
+  result = m_buffer + ((size1 - 1) % LIBXSTREAM_MAX_QSIZE);
+#else // generic
+  libxstream_lock_acquire(m_lock);
+  result = m_buffer + (m_size++ % LIBXSTREAM_MAX_QSIZE);
+  libxstream_lock_release(m_lock);
+#endif
+  LIBXSTREAM_ASSERT(0 != result);
+
+#if defined(LIBXSTREAM_DEBUG)
+  if (0 != *result) {
+    LIBXSTREAM_PRINT_WARN0("queuing work is stalled!");
+  }
+#endif
+  // stall if LIBXSTREAM_MAX_QSIZE is exceeded
+  while (0 != *result) {
+    this_thread_yield();
+  }
+
+  LIBXSTREAM_ASSERT(0 == *result);
+  return result;
 }
 
 #endif // defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)

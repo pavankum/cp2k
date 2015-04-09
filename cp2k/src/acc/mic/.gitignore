@@ -1,13 +1,5 @@
-My Amplifier*
-My Inspector*
-bin
-build
-*.user
-*.exe
-*.sdf
-*.pdb
-*.suo
-*.exp
-*.lib
+libxstream/ide
+libxstream/samples
+libxstream/documentation/*.pptx
 *.obj
 *.o

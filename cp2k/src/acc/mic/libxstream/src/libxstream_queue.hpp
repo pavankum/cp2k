@@ -28,47 +28,42 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
-#include "libxstream_context.hpp"
+#ifndef LIBXSTREAM_QUEUE_HPP
+#define LIBXSTREAM_QUEUE_HPP
+
 #include "libxstream.hpp"
 
+#if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
 
-libxstream_context& libxstream_context::instance()
-{
-  LIBXSTREAM_TARGET(mic) static LIBXSTREAM_TLS libxstream_context* pcontext = 0;
-  if (0 == pcontext) {
-    LIBXSTREAM_TARGET(mic) static LIBXSTREAM_TLS libxstream_context context;
-    context.flags = LIBXSTREAM_CALL_EXTERNAL;
-    context.signature = 0;
-    pcontext = &context;
+
+class libxstream_queue {
+public:
+  libxstream_queue();
+  ~libxstream_queue();
+
+public:
+  size_t size() const;
+  void** allocate_push();
+
+  void* get() const { // not thread-safe!
+    return m_buffer[m_index%LIBXSTREAM_MAX_QSIZE];
   }
-  return *pcontext;
-}
 
-
-libxstream_context& libxstream_context::instance(const libxstream_argument signature_[], int flags_)
-{
-  libxstream_context& context = instance();
-  LIBXSTREAM_ASSERT(LIBXSTREAM_CALL_EXTERNAL != flags_);
-  context.signature = signature_;
-  context.flags = flags_;
-  return context;
-}
-
-
-LIBXSTREAM_TARGET(mic) const libxstream_argument* libxstream_find(const libxstream_context& context, const void* variable)
-{
-  const libxstream_argument* argument = 0;
-  if (context.signature) {
-    for (const libxstream_argument* argi = context.signature; LIBXSTREAM_TYPE_INVALID != argi->type; ++argi) {
-      LIBXSTREAM_ASSERT(libxstream_argument::kind_invalid != argi->kind);
-      if (variable == libxstream_get_value(*argi).const_pointer) {
-        argument = argi;
-        break;
-      }
-    }
+  void pop() { // not thread-safe!
+    LIBXSTREAM_ASSERT(!empty());
+    m_buffer[m_index%LIBXSTREAM_MAX_QSIZE] = 0;
+    ++m_index;
   }
-  return argument;
-}
+
+  bool empty() const {
+    return 0 == get();
+  }
+
+private:
+  void* m_buffer[LIBXSTREAM_MAX_QSIZE];
+  size_t m_index;
+  void* m_size;
+};
 
 #endif // defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
+#endif // LIBXSTREAM_QUEUE_HPP

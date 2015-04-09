@@ -189,6 +189,29 @@ libxstream_lock* libxstream_lock_create()
 }
 
 
+libxstream_lock* libxstream_lock_get(const void* address)
+{
+  // guaranteed to be zero-initialized according to C++ lang. rules
+  static libxstream_lock* locks[(LIBXSTREAM_MAX_NLOCKS)];
+
+  libxstream_lock* *const result = locks + (reinterpret_cast<uintptr_t>(address) & ((LIBXSTREAM_MAX_NLOCKS) - 1));
+
+  if (0 == *result) {
+    libxstream_lock *const lock = libxstream_internal::context.lock();
+    libxstream_lock_acquire(lock);
+
+    if (0 == *result) {
+      *result = libxstream_lock_create();
+    }
+
+    libxstream_lock_release(lock);
+  }
+
+  LIBXSTREAM_ASSERT(0 != *result);
+  return *result;
+}
+
+
 void libxstream_lock_destroy(libxstream_lock* lock)
 {
 #if defined(LIBXSTREAM_STDFEATURES)
@@ -721,7 +744,7 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_h2d(const void* host_mem, void* dev_me
     else
 #endif
     {
-#if defined(LIBXSTREAM_ASYNCHOST)
+#if defined(LIBXSTREAM_ASYNCHOST) && (201307 <= _OPENMP) // V4.0
       if (LIBXSTREAM_ASYNC_READY) {
 #       pragma omp task depend(out:capture_region_signal) depend(in:LIBXSTREAM_ASYNC_PENDING)
         std::copy(src, src + size, dst);
@@ -1217,7 +1240,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_data(const libxstr
     }
   }
   LIBXSTREAM_ASSERT(0 != signature);
-  *data = libxstream_get_value(signature[arg], false).const_pointer;
+  *data = libxstream_get_value(signature[arg]).const_pointer;
   return LIBXSTREAM_ERROR_NONE;
 }
 
@@ -1237,7 +1260,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_string(const libxs
   }
   LIBXSTREAM_ASSERT(0 != signature);
   const libxstream_argument& argument = signature[arg];
-  const void *const data = libxstream_get_value(argument, false).const_pointer;
+  const void *const data = libxstream_get_value(argument).const_pointer;
   static LIBXSTREAM_TLS char buffer[128];
   int result = LIBXSTREAM_ERROR_NONE;
 
