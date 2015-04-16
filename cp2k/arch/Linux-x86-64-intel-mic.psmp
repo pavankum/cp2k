@@ -279,7 +279,7 @@ else # sequential
   else # static
     ifneq (0,$(PAR))
       MIC_LDFLAGS += -offload-option,mic,ld," \
-        $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a
+        $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
         --start-group \
           $(MKLROOT)/lib/mic/libmkl_intel_lp64.a \
           $(MKLROOT)/lib/mic/libmkl_core.a \
@@ -287,7 +287,7 @@ else # sequential
         --end-group \
         $(MKLROOT)/lib/mic/libmkl_blacs_intelmpi_lp64.a"
       LIBS += \
-        $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a
+        $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a \
         -Wl,--start-group \
           $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a \
           $(MKLROOT)/lib/intel64/libmkl_core.a \
