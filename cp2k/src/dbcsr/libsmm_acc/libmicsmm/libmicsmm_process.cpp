@@ -65,6 +65,7 @@ LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_con
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers) = LIBMICSMM_POSTERIOR_BUFFERS;
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams) = LIBMICSMM_PRIORITY_STREAMS;
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers) = LIBMICSMM_PRIORITY_BUFFERS;
+  LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) = LIBMICSMM_MIN_NFLOPS_PERMM;
 #endif
 }
 
@@ -398,7 +399,7 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #endif
 #if defined(LIBMICSMM_RECONFIGURE)
   const int mflops = static_cast<int>(2E-6 * stacksize * max_m * max_n * max_k + 0.5);
-  int result = (LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) <= mflops) ? LIBXSTREAM_ERROR_NONE : 1/*LIBXSTREAM_NOT_SUPPORTED*/;
+  int result = (LIBMICSMM_MIN_MFLOPS_PERSTACK) <= mflops ? LIBXSTREAM_ERROR_NONE : 1/*LIBXSTREAM_NOT_SUPPORTED*/;
 #else
   int result = LIBXSTREAM_ERROR_NONE;
 #endif
