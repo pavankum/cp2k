@@ -56,6 +56,9 @@
 #define LIBMICSMM_PRIORITY_STREAMS 1
 #define LIBMICSMM_PRIORITY_BUFFERS 1
 
+/** Determines if LIBMICSMM reconfigures CP2K default settings. */
+#define LIBMICSMM_RECONFIGURE
+
 /** Determines if LIBXSMM is used. */
 #define LIBMICSMM_LIBXSMM
 

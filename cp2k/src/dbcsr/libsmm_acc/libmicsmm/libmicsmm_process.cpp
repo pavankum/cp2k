@@ -37,13 +37,14 @@ LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(sgemm)(
   const float*, float*, const int*);
 #endif
 
-#if defined(LIBMICSMM_STACKSIZE) && (0 < (LIBMICSMM_STACKSIZE))
+#if defined(LIBMICSMM_RECONFIGURE)
 LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*, void*);
 LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*, void*);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers);
+extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
 #endif
 
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
@@ -57,7 +58,7 @@ extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers);
 LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver, void* error)
 {
   LIBXSTREAM_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver, error);
-#if defined(LIBMICSMM_STACKSIZE) && (0 < (LIBMICSMM_STACKSIZE))
+#if defined(LIBMICSMM_RECONFIGURE)
   const int stacksize = LIBMICSMM_STACKSIZE;
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize, error);
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams) = LIBMICSMM_POSTERIOR_STREAMS;
@@ -345,7 +346,7 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
 #   pragma omp atomic
     duration += stop - start;
 #   pragma omp atomic
-    flops += static_cast<double>(2ul * LIBXSTREAM_GETVAL(max_m) * LIBXSTREAM_GETVAL(max_n) * LIBXSTREAM_GETVAL(max_k) * stacksize);
+    flops += 2.0 * LIBXSTREAM_GETVAL(max_m) * LIBXSTREAM_GETVAL(max_n) * LIBXSTREAM_GETVAL(max_k) * stacksize;
     LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): %.f GFLOP/s", flops / (1E9 * duration));
   }
 #endif
@@ -395,27 +396,37 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #if defined(LIBMICSMM_PRETRANSPOSE)
   LIBXSTREAM_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
 #endif
-  const int *const stack = static_cast<const int*>(param_stack);
+#if defined(LIBMICSMM_RECONFIGURE)
+  const int mflops = static_cast<int>(2E-6 * stacksize * max_m * max_n * max_k + 0.5);
+  int result = (LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) <= mflops) ? LIBXSTREAM_ERROR_NONE : 1/*LIBXSTREAM_NOT_SUPPORTED*/;
+#else
   int result = LIBXSTREAM_ERROR_NONE;
-
-  switch(static_cast<dbcsr_elem_type>(datatype)) {
-    case DBCSR_ELEM_F32: {
-#if 0
-      result = libmicsmm_process_private::process<float,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
 #endif
-      result = LIBXSTREAM_ERROR_CONDITION;
-    } break;
-    case DBCSR_ELEM_F64: {
-      result = libmicsmm_process_private::process<double,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
-    } break;
-    case DBCSR_ELEM_C32: {
-      result = LIBXSTREAM_ERROR_CONDITION;
-    } break;
-    case DBCSR_ELEM_C64: {
-      result = LIBXSTREAM_ERROR_CONDITION;
-    } break;
-    default:
-      result = LIBXSTREAM_ERROR_CONDITION;
+
+  if (LIBXSTREAM_ERROR_NONE == result) {
+    const int *const stack = static_cast<const int*>(param_stack);
+
+    switch(static_cast<dbcsr_elem_type>(datatype)) {
+      case DBCSR_ELEM_F32: {
+#if 0
+        result = libmicsmm_process_private::process<float,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
+#else
+        result = 1/*LIBXSTREAM_NOT_SUPPORTED*/;
+#endif
+        result = LIBXSTREAM_ERROR_CONDITION;
+      } break;
+      case DBCSR_ELEM_F64: {
+        result = libmicsmm_process_private::process<double,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
+      } break;
+      case DBCSR_ELEM_C32: {
+        result = LIBXSTREAM_ERROR_CONDITION;
+      } break;
+      case DBCSR_ELEM_C64: {
+        result = LIBXSTREAM_ERROR_CONDITION;
+      } break;
+      default:
+        result = LIBXSTREAM_ERROR_CONDITION;
+    }
   }
 
   return result;
