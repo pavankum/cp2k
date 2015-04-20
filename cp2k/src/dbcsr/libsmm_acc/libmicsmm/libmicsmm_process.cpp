@@ -48,9 +48,21 @@ extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
 #endif
 
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
-#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
-# define LIBMICSMM_ALIGNMENT LIBXSMM_ALIGNED_STORES
+#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM)
+# if (0 < (LIBXSMM_ALIGNED_STORES))
+#   define LIBMICSMM_ALIGNMENT LIBXSMM_ALIGNED_STORES
+# endif
+# define LIBMICSMM_LOOP_MAX_M LIBXSMM_MAX_M
+# define LIBMICSMM_LOOP_AVG_M LIBXSMM_AVG_M
+# define LIBMICSMM_LOOP_MAX_N LIBXSMM_MAX_N
+# define LIBMICSMM_LOOP_AVG_N LIBXSMM_AVG_N
 #else
+# define LIBMICSMM_LOOP_MAX_M LIBMICSMM_MAX_M
+# define LIBMICSMM_LOOP_AVG_M 23
+# define LIBMICSMM_LOOP_MAX_N LIBMICSMM_MAX_N
+# define LIBMICSMM_LOOP_AVG_N 23
+#endif
+#if !defined(LIBMICSMM_ALIGNMENT)
 # define LIBMICSMM_ALIGNMENT LIBXSTREAM_MAX_SIMD
 #endif
 
@@ -76,11 +88,11 @@ namespace libmicsmm_process_private {
 LIBXSTREAM_TARGET(mic) class LIBXSTREAM_TARGET(mic) lock_type {
 public:
   lock_type() {
-    for (size_t i = 0; i < (LIBMICSMM_SYNCHRONIZATION); ++i) omp_init_lock(m_lock + i);
+    for (int i = 0; i < (LIBMICSMM_SYNCHRONIZATION); ++i) omp_init_lock(m_lock + i);
   }
   
   ~lock_type() {
-    for (size_t i = 0; i < (LIBMICSMM_SYNCHRONIZATION); ++i) omp_destroy_lock(m_lock + i);
+    for (int i = 0; i < (LIBMICSMM_SYNCHRONIZATION); ++i) omp_destroy_lock(m_lock + i);
   }
 
 public:
@@ -90,6 +102,18 @@ public:
 
   void release(const void* id) {
     omp_unset_lock(m_lock + reinterpret_cast<uintptr_t>(id) % LIBMICSMM_SYNCHRONIZATION);
+  }
+
+  void acquire(const void* address) {
+    const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNMENT);
+    // non-pot: omp_set_lock(m_lock + id % LIBMICSMM_SYNCHRONIZATION);
+    omp_set_lock(m_lock + (id & (LIBMICSMM_SYNCHRONIZATION - 1)));
+  }
+
+  void release(const void* address) {
+    const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNMENT);
+    // non-pot: omp_unset_lock(m_lock + id % LIBMICSMM_SYNCHRONIZATION);
+    omp_unset_lock(m_lock + (id & (LIBMICSMM_SYNCHRONIZATION - 1)));
   }
 
 private:
@@ -128,7 +152,7 @@ public:
 #if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
     LIBXSMM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
-    LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_RESULT_SIZE, 23*23)
+    LIBXSTREAM_PRAGMA_LOOP_COUNT(1, (LIBMICSMM_LOOP_MAX_M)*(LIBMICSMM_LOOP_MAX_N), (LIBMICSMM_LOOP_AVG_M)*(LIBMICSMM_LOOP_AVG_N))
     for (U i = 0; i < size; ++i) c[i] = 0;
   }
 
@@ -145,7 +169,7 @@ public:
       LIBXSMM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
 #endif
       for (U j = 0; j < m_n; ++j) {
-        LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_MAX_M, 23)
+        LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_LOOP_MAX_M, LIBMICSMM_LOOP_AVG_M)
         for (U i = 0; i < m_m; ++i) {
           const T value = c[j*m_ldc+i];
 #if defined(_OPENMP) && (!defined(LIBMICSMM_SYNCHRONIZATION) || (0 == (LIBMICSMM_SYNCHRONIZATION)))
