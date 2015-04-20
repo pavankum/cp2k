@@ -95,7 +95,7 @@ public:
 private:
   omp_lock_t m_lock[LIBMICSMM_SYNCHRONIZATION];
 } lock;
-#endif // LIBXSTREAM_TARGET(mic)
+#endif
 
 
 template<typename T, typename U>
