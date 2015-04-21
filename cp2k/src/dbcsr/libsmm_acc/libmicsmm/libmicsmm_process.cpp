@@ -153,7 +153,7 @@ public:
 # if (1 == (LIBMICSMM_SYNCHRONIZATION))
 #   pragma omp critical(libmicsmm_process)
 # else
-    lock.acquire(c);
+    lock.acquire(out);
 # endif
 #endif
     {
@@ -172,7 +172,7 @@ public:
       }
     }
 #if defined(_OPENMP) && defined(LIBMICSMM_SYNCHRONIZATION) && (1 < (LIBMICSMM_SYNCHRONIZATION))
-    lock.release(c);
+    lock.release(out);
 #endif
   }
 
