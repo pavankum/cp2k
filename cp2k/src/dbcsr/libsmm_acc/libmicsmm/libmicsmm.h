@@ -36,7 +36,7 @@
 
 /**
  * Synchronization mechanism.
- * >1: number of locks
+ * >1: number of locks (POT)
  * =1: omp critical
  * =0: atomic
  */

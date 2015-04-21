@@ -96,14 +96,6 @@ public:
   }
 
 public:
-  void acquire(const void* id) {
-    omp_set_lock(m_lock + reinterpret_cast<uintptr_t>(id) % LIBMICSMM_SYNCHRONIZATION);
-  }
-
-  void release(const void* id) {
-    omp_unset_lock(m_lock + reinterpret_cast<uintptr_t>(id) % LIBMICSMM_SYNCHRONIZATION);
-  }
-
   void acquire(const void* address) {
     const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNMENT);
     // non-pot: omp_set_lock(m_lock + id % LIBMICSMM_SYNCHRONIZATION);
