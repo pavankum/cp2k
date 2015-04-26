@@ -62,7 +62,7 @@ b) How to generate the library running a single job interactively.
       This command generates a file small_gen_optimal_dnn_linux.gnu.out
 
    3) Run: ./generate -c config/linux.gnu -j 0 -t 16 -w slurm lib
-      This command produces the llibrary inside the directory lib/
+      This command produces the library inside the directory lib/
       (libsmm_dnn_linux.gnu.a).
 
    4) It is highly recommended to run the final test to check the correctness
