@@ -143,7 +143,7 @@
           ! Geometry Minimization
           CALL force_env_calc_energy_force(gopt_env%force_env,&
                calc_force=PRESENT(gradient),&
-               require_consistent_energy_force=gopt_env%require_consistent_energy_force,&
+               consistent_energies=gopt_env%require_consistent_energy_force,&
                error=error)
           ! Possibly take the potential energy
           IF (PRESENT(f)) THEN
@@ -194,7 +194,7 @@ CPSourceFileRef,&
           CALL virial_create(virial_avg,error=error)
           CALL force_env_calc_energy_force(gopt_env%force_env,&
                calc_force=PRESENT(gradient),&
-               require_consistent_energy_force=gopt_env%require_consistent_energy_force,&
+               consistent_energies=gopt_env%require_consistent_energy_force,&
                error=error)
           ! Possibly take the potential energy
           CALL force_env_get(gopt_env%force_env,potential_energy=potential_energy,error=error)
@@ -237,7 +237,7 @@ CPSourceFileRef,&
           IF (my_final_evaluation) THEN
              CALL force_env_calc_energy_force(gopt_env%force_env,&
                   calc_force=PRESENT(gradient),&
-                  require_consistent_energy_force=gopt_env%require_consistent_energy_force,&
+                  consistent_energies=gopt_env%require_consistent_energy_force,&
                   error=error)
              IF (PRESENT(f)) THEN
                 CALL force_env_get(gopt_env%force_env,potential_energy=f,error=error)
@@ -334,7 +334,7 @@ CPSourceFileRef,&
        ! Shell-core optimization
        CALL force_env_calc_energy_force(gopt_env%force_env,&
             calc_force=PRESENT(gradient),&
-            require_consistent_energy_force=gopt_env%require_consistent_energy_force,&
+            consistent_energies=gopt_env%require_consistent_energy_force,&
             error=error)
 
        ! Possibly take the potential energy

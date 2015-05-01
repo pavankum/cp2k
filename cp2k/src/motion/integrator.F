@@ -553,7 +553,8 @@ CONTAINS
        END IF
 
        ![NB] let nve work with force mixing which does not have consistent energies and forces
-       CALL force_env_calc_energy_force(force_env,require_consistent_energy_force=.FALSE.,error=error)
+       ! consistent_energies=.FALSE. by default
+       CALL force_env_calc_energy_force(force_env,error=error)
 
        ! Metadynamics
        CALL metadyn_integrator(force_env, itimes, tmp%vel, error=error)
@@ -1189,7 +1190,8 @@ CONTAINS
 
     ! Update forces
     ![NB] let nvt work with force mixing which does not have consistent energies and forces
-    CALL force_env_calc_energy_force(force_env,require_consistent_energy_force=.FALSE.,error=error)
+    ! consistent_energies=.FALSE. by default
+    CALL force_env_calc_energy_force(force_env,error=error)
 
     ! Metadynamics
     CALL metadyn_integrator(force_env, itimes, tmp%vel, rand=rand, error=error)
@@ -1724,8 +1726,8 @@ CPSourceFileRef,&
     ! Task to perform on the reference trajectory
     ! Compute energy and forces
     ![NB] let reftraj work with force mixing which does not have consistent energies and forces
-    CALL force_env_calc_energy_force(force_env,eval_energy_forces=reftraj_env%info%eval_EF,&
-         require_consistent_energy_force=.FALSE., error=error)
+    ! consistent_energies=.FALSE. by default
+    CALL force_env_calc_energy_force(force_env,eval_energy_forces=reftraj_env%info%eval_EF,error=error)
 
     ! Metadynamics
     CALL metadyn_integrator(force_env, trj_itimes, error=error)
