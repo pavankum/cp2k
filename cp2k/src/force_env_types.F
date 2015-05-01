@@ -45,7 +45,8 @@ MODULE force_env_types
   USE mixed_environment_types,         ONLY: get_mixed_env,&
                                              mixed_env_release,&
                                              mixed_environment_type
-  USE qmmm_types,                      ONLY: qmmm_env_type, qmmm_env_release
+  USE qmmm_types,                      ONLY: qmmm_env_release,&
+                                             qmmm_env_type
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_env_release,&
@@ -302,8 +303,7 @@ CONTAINS
     TYPE(cell_type), OPTIONAL, POINTER       :: cell
     TYPE(force_env_p_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: sub_force_env
-    TYPE(qmmm_env_type), OPTIONAL, &
-      POINTER                                :: qmmm_env
+    TYPE(qmmm_env_type), OPTIONAL, POINTER   :: qmmm_env
     TYPE(eip_environment_type), OPTIONAL, &
       POINTER                                :: eip_env
     TYPE(global_environment_type), &
@@ -322,8 +322,7 @@ CONTAINS
 
     LOGICAL                                  :: failure
     REAL(KIND=dp)                            :: eip_kinetic_energy, &
-                                                eip_potential_energy, &
-                                                penergy_mm, penergy_qm
+                                                eip_potential_energy
     TYPE(cp_subsys_type), POINTER            :: subsys_tmp
     TYPE(fist_energy_type), POINTER          :: thermo
     TYPE(mixed_energy_type), POINTER         :: mixed_energy

@@ -13,9 +13,6 @@
 !> \author fawzi
 ! *****************************************************************************
 MODULE force_env_methods
-  USE qmmm_force,                      ONLY: qmmm_calc_energy_force
-  USE qs_energy_types,                 ONLY: qs_energy_type
-  USE fist_energy_types,               ONLY: fist_energy_type
   USE atprop_types,                    ONLY: atprop_init,&
                                              atprop_type
   USE cell_types,                      ONLY: cell_clone,&
@@ -28,10 +25,7 @@ MODULE force_env_methods
   USE constraint_fxd,                  ONLY: fix_atom_control
   USE constraint_vsite,                ONLY: vsite_force_control
   USE cp_iter_types,                   ONLY: cp_iteration_info_copy_iter
-  USE cp_output_handling,              ONLY: cp_iter_string,&
-                                             cp_p_file,&
-                                             cp_print_key_finished_output,&
-                                             cp_print_key_should_output,&
+  USE cp_output_handling,              ONLY: cp_print_key_finished_output,&
                                              cp_print_key_unit_nr,&
                                              low_print_level
   USE cp_para_env,                     ONLY: cp_para_env_retain
@@ -39,7 +33,6 @@ MODULE force_env_methods
   USE cp_result_methods,               ONLY: cp_results_erase,&
                                              cp_results_mp_bcast,&
                                              get_results,&
-                                             put_results,&
                                              test_for_result
   USE cp_result_types,                 ONLY: cp_result_copy,&
                                              cp_result_create,&
@@ -55,7 +48,8 @@ MODULE force_env_methods
   USE eip_silicon,                     ONLY: eip_bazant,&
                                              eip_lenosky
   USE external_potential_methods,      ONLY: add_external_potential
-  USE fist_environment_types,          ONLY: fist_env_retain,&
+  USE fist_environment_types,          ONLY: fist_env_get,&
+                                             fist_env_retain,&
                                              fist_environment_type
   USE fist_force,                      ONLY: fist_calc_energy_force
   USE force_env_types,                 ONLY: &
@@ -105,21 +99,17 @@ MODULE force_env_methods
                                              particle_list_type
   USE particle_types,                  ONLY: particle_type
   USE physcon,                         ONLY: debye
-  USE qmmm_gpw_energy,                 ONLY: qmmm_el_coupling
-  USE qmmm_gpw_forces,                 ONLY: qmmm_forces
-  USE qmmm_links_methods,              ONLY: qmmm_added_chrg_coord,&
-                                             qmmm_added_chrg_forces,&
-                                             qmmm_link_Imomm_coord,&
-                                             qmmm_link_Imomm_forces
-  USE qmmm_types_low,                      ONLY: &
-       force_mixing_core_subsys, force_mixing_extended_subsys, &
-       force_mixing_label_QM_core, force_mixing_label_QM_dynamics, &
-       force_mixing_label_buffer, primary_subsys, qmmm_env_qm_retain, &
-       qmmm_env_qm_type, qmmm_links_type
-  USE qmmm_types, ONLY: qmmm_env_type, qmmm_env_retain
+  USE qmmm_force,                      ONLY: qmmm_calc_energy_force
+  USE qmmm_types,                      ONLY: qmmm_env_retain,&
+                                             qmmm_env_type
+  USE qmmm_types_low,                  ONLY: force_mixing_core_subsys,&
+                                             force_mixing_extended_subsys,&
+                                             force_mixing_label_QM_core,&
+                                             force_mixing_label_QM_dynamics,&
+                                             force_mixing_label_buffer,&
+                                             primary_subsys
   USE qmmm_util,                       ONLY: apply_qmmm_translate,&
                                              apply_qmmm_unwrap,&
-                                             apply_qmmm_walls,&
                                              apply_qmmm_wrap,&
                                              qmmm_force_mixing_active
   USE qs_energy,                       ONLY: qs_energies
@@ -128,7 +118,6 @@ MODULE force_env_methods
                                              qs_environment_type,&
                                              set_qs_env
   USE qs_force,                        ONLY: qs_forces
-  USE qs_ks_qmmm_methods,              ONLY: ks_qmmm_env_rebuild
   USE restraint,                       ONLY: restraint_control
   USE string_utilities,                ONLY: compress
   USE termination,                     ONLY: print_warning
@@ -701,8 +690,7 @@ CONTAINS
     TYPE(meta_env_type), OPTIONAL, POINTER   :: meta_env
     TYPE(force_env_p_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: sub_force_env
-    TYPE(qmmm_env_type), OPTIONAL, &
-      POINTER                                :: qmmm_env
+    TYPE(qmmm_env_type), OPTIONAL, POINTER   :: qmmm_env
     TYPE(eip_environment_type), OPTIONAL, &
       POINTER                                :: eip_env
     TYPE(section_vals_type), POINTER         :: force_env_section

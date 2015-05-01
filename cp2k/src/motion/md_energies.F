@@ -67,7 +67,6 @@ MODULE md_energies
   USE physcon,                         ONLY: angstrom,&
                                              femtoseconds,&
                                              kelvin
-  USE qmmm_types_low,                      ONLY: qmmm_env_qm_type
   USE qmmm_types,                      ONLY: qmmm_env_type
   USE reftraj_types,                   ONLY: reftraj_type
   USE simpar_types,                    ONLY: simpar_type
@@ -302,7 +301,7 @@ CONTAINS
     TYPE(md_ener_type), POINTER              :: md_ener
     TYPE(particle_list_type), POINTER        :: core_particles, particles, &
                                                 shell_particles
-    TYPE(qmmm_env_type), POINTER          :: qmmm_env
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(reftraj_type), POINTER              :: reftraj
     TYPE(section_vals_type), POINTER         :: motion_section, print_key, &
                                                 root_section

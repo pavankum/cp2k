@@ -12,21 +12,6 @@
 !> \author CJM & JGH
 ! *****************************************************************************
 MODULE fist_force
-USE virial_types,                    ONLY: cp_virial,&
-                                             sym_virial,&
-                                             virial_create,&
-                                             virial_p_type,&
-                                             virial_release,&
-                                             virial_type,&
-                                             zero_virial
-USE atprop_types,                    ONLY: atprop_init,&
-                                             atprop_type
-  USE cp_para_types,                   ONLY: cp_para_env_type
-  USE cp_subsys_types,                 ONLY: cp_subsys_get,&
-                                             cp_subsys_release,&
-                                             cp_subsys_retain,&
-                                             cp_subsys_set,&
-                                             cp_subsys_type
   USE atomic_kind_types,               ONLY: atomic_kind_type,&
                                              get_atomic_kind
   USE atprop_types,                    ONLY: atprop_type

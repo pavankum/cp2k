@@ -27,7 +27,7 @@ MODULE qmmm_update
   USE qmmm_create,                     ONLY: qmmm_create_force_env_low
   USE qmmm_force_mixing,               ONLY: setup_force_mixing_qmmm_sections,&
                                              update_force_mixing_labels
-  USE qmmm_types_low,                      ONLY: force_mixing_core_subsys,&
+  USE qmmm_types_low,                  ONLY: force_mixing_core_subsys,&
                                              force_mixing_extended_subsys,&
                                              primary_subsys,&
                                              qmmm_env_qm_release,&

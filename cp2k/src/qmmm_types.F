@@ -7,19 +7,12 @@
 !> \author Ole Schuett
 ! *****************************************************************************
 MODULE qmmm_types
-  USE qmmm_types_low,                  ONLY: qmmm_env_qm_type, qmmm_env_qm_retain
-  USE qs_environment_types,            ONLY: qs_env_create,&
-                                             qs_env_release,&
-                                             qs_env_retain,&
-                                             qs_environment_type
-  USE cp_para_types,                   ONLY: cp_para_env_type
-  USE cp_subsys_types,                 ONLY: cp_subsys_type
-  USE fist_environment_types,          ONLY: fist_env_create,&
-                                             fist_env_release,&
-                                             fist_env_retain,&
-                                             fist_env_set,&
+  USE fist_environment_types,          ONLY: fist_env_retain,&
                                              fist_environment_type
-
+  USE qmmm_types_low,                  ONLY: qmmm_env_qm_retain,&
+                                             qmmm_env_qm_type
+  USE qs_environment_types,            ONLY: qs_env_retain,&
+                                             qs_environment_type
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -41,16 +34,19 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief TODO
+!> \param qmmm_env ...
+!> \param qs_env ...
+!> \param fist_env ...
+!> \param qmmm_env_qm ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE qmmm_env_create(qmmm_env, qs_env, fist_env, qmmm_env_qm, error)
-    TYPE(qmmm_env_type), POINTER                            :: qmmm_env
-    TYPE(qs_environment_type), POINTER                      :: qs_env
-    TYPE(fist_environment_type), POINTER                    :: fist_env
-    TYPE(qmmm_env_qm_type), POINTER                        :: qmmm_env_qm
-
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
+    TYPE(qs_environment_type), POINTER       :: qs_env
+    TYPE(fist_environment_type), POINTER     :: fist_env
+    TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env_qm
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_create', &
@@ -81,7 +77,7 @@ CONTAINS
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE qmmm_env_retain(qmmm_env,error)
-    TYPE(qmmm_env_type), POINTER          :: qmmm_env
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_retain', &
@@ -106,14 +102,15 @@ CONTAINS
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE qmmm_env_release(qmmm_env,error)
-    TYPE(qmmm_env_type), POINTER          :: qmmm_env
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_release', &
       routineP = moduleN//':'//routineN
 
-    !INTEGER                                  :: stat
     LOGICAL                                  :: failure
+
+!INTEGER                                  :: stat
 
     failure=.FALSE.
     IF (ASSOCIATED(qmmm_env)) THEN

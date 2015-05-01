@@ -43,7 +43,6 @@ MODULE qmmm_force
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env
   USE qs_ks_qmmm_methods,              ONLY: ks_qmmm_env_rebuild
-
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -58,7 +57,7 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief calculates the qm/mm energy and forces
-!> \param force_env ...
+!> \param qmmm_env ...
 !> \param calc_force if also the forces should be calculated
 !> \param linres ...
 !> \param error variable to control error logging, stopping,...
@@ -164,7 +163,7 @@ CPSourceFileRef,&
          error=error)
 
     ! Fist
-    CALL fist_calc_energy_force(qmmm_env%fist_env, error)
+    CALL fist_calc_energy_force(qmmm_env%fist_env, error=error)
     !CALL force_env_calc_energy_force(force_env%qmmm_env%fist_envsub_force_env(fist_subsys)%force_env,&
     !     calc_force=calculate_forces,skip_external_control=.TRUE.,error=error)
 

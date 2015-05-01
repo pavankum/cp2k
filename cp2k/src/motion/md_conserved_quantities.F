@@ -39,9 +39,8 @@ MODULE md_conserved_quantities
   USE particle_list_types,             ONLY: particle_list_type
   USE particle_types,                  ONLY: particle_type
   USE physcon,                         ONLY: kelvin
-  USE qmmm_types_low,                      ONLY: force_mixing_label_QM_dynamics,&
-                                             qmmm_env_qm_type
   USE qmmm_types,                      ONLY: qmmm_env_type
+  USE qmmm_types_low,                  ONLY: force_mixing_label_QM_dynamics
   USE shell_potential_types,           ONLY: shell_kind_type
   USE simpar_types,                    ONLY: simpar_type
   USE termination,                     ONLY: stop_program
@@ -209,7 +208,7 @@ CONTAINS
     TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(force_env_type), POINTER            :: force_env
     TYPE(particle_list_type), POINTER        :: particles
-    TYPE(qmmm_env_type), POINTER          :: qmmm_env
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(section_vals_type), POINTER         :: force_env_section
 
     NULLIFY(qmmm_env,subsys,particles,force_env,force_env_section)
@@ -520,7 +519,7 @@ CPSourceFileRef, error)
       POINTER                                :: core_particle_set, &
                                                 particle_set, &
                                                 shell_particle_set
-    TYPE(qmmm_env_type), POINTER          :: qmmm_env
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(section_vals_type), POINTER         :: force_env_section
     TYPE(shell_kind_type), POINTER           :: shell
 

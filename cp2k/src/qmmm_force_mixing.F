@@ -36,7 +36,7 @@ MODULE qmmm_force_mixing
   USE particle_list_types,             ONLY: particle_list_type
   USE particle_types,                  ONLY: particle_type
   USE qmmm_ff_fist,                    ONLY: qmmm_ff_precond_only_qm
-  USE qmmm_types_low,                      ONLY: force_mixing_label_QM_core,&
+  USE qmmm_types_low,                  ONLY: force_mixing_label_QM_core,&
                                              force_mixing_label_QM_core_list,&
                                              force_mixing_label_QM_dynamics,&
                                              force_mixing_label_QM_dynamics_list,&

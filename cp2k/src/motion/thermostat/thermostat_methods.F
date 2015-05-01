@@ -63,7 +63,6 @@ MODULE thermostat_methods
                                              molecule_type
   USE particle_list_types,             ONLY: particle_list_type
   USE particle_types,                  ONLY: particle_type
-  USE qmmm_types_low,                      ONLY: qmmm_env_qm_type
   USE qmmm_types,                      ONLY: qmmm_env_type
   USE simpar_types,                    ONLY: simpar_type
   USE thermostat_types,                ONLY: allocate_thermostats,&

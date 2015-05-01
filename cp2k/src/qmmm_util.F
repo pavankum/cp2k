@@ -9,12 +9,10 @@
 !> \author Teodoro Laino
 ! *****************************************************************************
 MODULE qmmm_util
-  USE qmmm_types,                      ONLY: qmmm_env_type
-  USE qs_environment_types,            ONLY: get_qs_env
-  USE fist_environment_types,          ONLY: fist_env_get
   USE cell_types,                      ONLY: cell_copy,&
                                              cell_type
   USE cp_subsys_types,                 ONLY: cp_subsys_type
+  USE fist_environment_types,          ONLY: fist_env_get
   USE force_env_types,                 ONLY: force_env_get,&
                                              force_env_type,&
                                              use_qmmm
@@ -30,7 +28,8 @@ MODULE qmmm_util
   USE particle_methods,                ONLY: write_fist_particle_coordinates,&
                                              write_qs_particle_coordinates
   USE particle_types,                  ONLY: particle_type
-  USE qmmm_types_low,                      ONLY: force_mixing_core_subsys,&
+  USE qmmm_types,                      ONLY: qmmm_env_type
+  USE qmmm_types_low,                  ONLY: force_mixing_core_subsys,&
                                              force_mixing_extended_subsys,&
                                              primary_subsys
   USE qs_energy_types,                 ONLY: qs_energy_type
@@ -56,7 +55,7 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Apply QM quadratic walls in order to avoid QM atoms escaping from
 !>      the QM Box
-!> \param force_env ...
+!> \param qmmm_env ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \par History
@@ -92,7 +91,7 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Apply reflective QM walls in order to avoid QM atoms escaping from
 !>      the QM Box
-!> \param force_env ...
+!> \param qmmm_env ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \par History
@@ -209,7 +208,7 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Apply QM quadratic walls in order to avoid QM atoms escaping from
 !>      the QM Box
-!> \param force_env ...
+!> \param qmmm_env ...
 !> \param walls_section ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling

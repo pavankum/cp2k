@@ -10,22 +10,6 @@
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 MODULE qmmm_create
-  USE qs_environment,                  ONLY: qs_init
-  USE qs_environment_types,            ONLY: qs_env_create,&
-                                             qs_env_release,&
-                                             qs_environment_type
-  USE cp_para_types,                   ONLY: cp_para_env_type
-  USE cp_subsys_types,                 ONLY: cp_subsys_type
-  USE fist_environment,                ONLY: fist_init
-  USE fist_environment_types,          ONLY: fist_env_create,&
-                                             fist_env_release,&
-                                             fist_env_set,&
-                                             fist_environment_type 
-  USE force_env_methods,               ONLY: force_env_create
-  USE force_env_types,                 ONLY: force_env_type
-  USE global_types,                    ONLY: global_environment_type
-  USE input_section_types,             ONLY: section_vals_type
-  USE qmmm_types_low,                  ONLY: qmmm_env_mm_type
   USE bibliography,                    ONLY: Golze2013,&
                                              Laino2005,&
                                              Laino2006,&
@@ -39,11 +23,12 @@ MODULE qmmm_create
                                              cp_print_key_unit_nr
   USE cp_para_types,                   ONLY: cp_para_env_type
   USE cp_subsys_methods,               ONLY: create_small_subsys
-  USE cp_subsys_types,                 ONLY: cp_subsys_release,&
-                                             cp_subsys_type
-  USE fist_environment_types,          ONLY: fist_env_get,&
+  USE cp_subsys_types,                 ONLY: cp_subsys_type
+  USE fist_environment,                ONLY: fist_init
+  USE fist_environment_types,          ONLY: fist_env_create,&
+                                             fist_env_get,&
+                                             fist_env_set,&
                                              fist_environment_type
-  USE fist_main,                       ONLY: fist_create_force_env
   USE fist_nonbond_env_types,          ONLY: fist_nonbond_env_type
   USE force_env_methods,               ONLY: force_env_create
   USE force_env_types,                 ONLY: force_env_get,&
@@ -53,7 +38,7 @@ MODULE qmmm_create
   USE global_types,                    ONLY: global_environment_type
   USE header,                          ONLY: qmmm_header
   USE input_constants,                 ONLY: &
-       do_fist, do_multipole_section_off, do_multipole_section_on, do_qmmm, &
+       do_fist, do_multipole_section_off, do_multipole_section_on, &
        do_qmmm_center_every_step, do_qmmm_center_never, &
        do_qmmm_center_pbc_aware, do_qmmm_center_setup_only, do_qmmm_none, &
        do_qs
@@ -76,16 +61,17 @@ MODULE qmmm_create
        setup_qmmm_vars_mm, setup_qmmm_vars_qm
   USE qmmm_links_methods,              ONLY: qmmm_link_Imomm_coord
   USE qmmm_pw_grid,                    ONLY: qmmm_pw_grid_init
-  USE qmmm_types,                  ONLY: qmmm_env_type, qmmm_env_create
+  USE qmmm_types,                      ONLY: qmmm_env_create,&
+                                             qmmm_env_type
   USE qmmm_types_low,                  ONLY: &
        add_set_release, add_set_type, force_mixing_core_subsys, &
-       force_mixing_extended_subsys, primary_subsys, qmmm_env_mm_create, &
-       qmmm_env_mm_release, qmmm_env_mm_type, qmmm_env_qm_create, &
-       qmmm_env_qm_release, qmmm_env_qm_type, qmmm_links_type
+       force_mixing_extended_subsys, qmmm_env_mm_create, qmmm_env_mm_type, &
+       qmmm_env_qm_create, qmmm_env_qm_type, qmmm_links_type
+  USE qs_environment,                  ONLY: qs_init
   USE qs_environment_types,            ONLY: get_qs_env,&
+                                             qs_env_create,&
                                              qs_environment_type,&
                                              set_qs_env
-  USE qs_main,                         ONLY: quickstep_create_force_env
   USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
@@ -138,11 +124,12 @@ CONTAINS
     TYPE(force_env_p_type), DIMENSION(:), &
       POINTER                                :: sub_force_env
     TYPE(force_env_type), POINTER            :: use_dummy_force_env
-    !TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env_qm
     TYPE(section_vals_type), POINTER         :: qmmm_core_section, &
                                                 qmmm_extended_section, &
                                                 qmmm_force_mixing, &
                                                 qmmm_section
+
+!TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env_qm
 
     qmmm_section => section_vals_get_subs_vals(force_env_section,"QMMM",error=error)
     qmmm_force_mixing => section_vals_get_subs_vals(qmmm_section,"FORCE_MIXING",error=error)
@@ -244,8 +231,10 @@ CONTAINS
 
     CHARACTER(len=default_string_length), &
       DIMENSION(:), POINTER                  :: qm_atom_type
-    INTEGER :: center_i, delta_charge, handle, iw, iw2, orig_charge, &
-      qmmm_coupl_type, stat, use_multipole
+    INTEGER                                  :: center_i, delta_charge, &
+                                                handle, iw, iw2, orig_charge, &
+                                                qmmm_coupl_type, stat, &
+                                                use_multipole
     INTEGER, DIMENSION(:), POINTER           :: mm_atom_index, mm_link_atoms, &
                                                 qm_atom_index
     LOGICAL :: add_mm_charges, explicit, failure, move_mm_charges, &
@@ -264,16 +253,17 @@ CONTAINS
     TYPE(cp_subsys_type), POINTER            :: subsys_mm, subsys_qm
     TYPE(fist_environment_type), POINTER     :: fist_env
     TYPE(fist_nonbond_env_type), POINTER     :: fist_nonbond_env
-    !TYPE(force_env_p_type), DIMENSION(:), &
-    !  POINTER                                :: sub_force_env
     TYPE(pw_env_type), POINTER               :: pw_env
-    TYPE(qmmm_env_type), POINTER          :: qmmm_env
     TYPE(qmmm_env_mm_type), POINTER          :: qmmm_env_mm
     TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env_qm
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(qmmm_links_type), POINTER           :: qmmm_links
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(section_vals_type), POINTER         :: multipole_section, print_gen, &
                                                 print_section, qmmm_periodic
+
+!TYPE(force_env_p_type), DIMENSION(:), &
+!  POINTER                                :: sub_force_env
 
     CALL timeset(routineN,handle)
     failure=.FALSE.
