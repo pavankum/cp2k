@@ -41,7 +41,7 @@ MODULE qmmm_create
        do_fist, do_multipole_section_off, do_multipole_section_on, &
        do_qmmm_center_every_step, do_qmmm_center_never, &
        do_qmmm_center_pbc_aware, do_qmmm_center_setup_only, do_qmmm_none, &
-       do_qs
+       do_qs, do_qmmm
   USE input_section_types,             ONLY: section_vals_get,&
                                              section_vals_get_subs_vals,&
                                              section_vals_release,&
@@ -290,11 +290,6 @@ CONTAINS
        print_gen => section_vals_get_subs_vals(print_section,"PROGRAM_RUN_INFO",error=error)
        iw = cp_print_key_unit_nr(logger,print_gen,"", extension=".log",error=error)
 
-       !ALLOCATE(sub_force_env(2),stat=stat)
-       !CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-       !DO isubf=1,2
-       !   NULLIFY(sub_force_env(isubf)%force_env)
-       !END DO
        ! Create QM/MM Environments..
        CALL qmmm_env_qm_create(qmmm_env_qm,error=error)
        CALL qmmm_env_mm_create(qmmm_env_mm,error=error)
@@ -329,9 +324,7 @@ CONTAINS
           qmmm_env_qm%center_qm_subsys0  = .TRUE.
        ELSE
           CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP,&
-               "Unknown type of CENTER! "//&
-CPSourceFileRef,&
-               only_ionode=.TRUE.)
+               "Unknown type of CENTER! "//CPSourceFileRef, only_ionode=.TRUE.)
        ENDIF
 
        CALL section_vals_val_get(qmmm_section,"CENTER_TYPE",i_val=center_i,error=error)
@@ -360,20 +353,12 @@ CPSourceFileRef,&
                "QMMM periodic calculation with coupling NONE was requested! "//&
                "Switching off the periodic keyword since periodic and non-periodic "//&
                "calculation with coupling NONE represent the same method! "//&
-CPSourceFileRef,&
-               only_ionode=.TRUE.)
+               CPSourceFileRef,only_ionode=.TRUE.)
           qmmm_env_qm%periodic = .FALSE.
        END IF
 
        ! First Initialize Fist...
        CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_fist,error=error)
-       !CALL fist_create_force_env(sub_force_env(fist_subsys)%force_env, &
-       !     root_section, para_env, globenv, qmmm=.TRUE., qmmm_env=qmmm_env_mm,&
-       !     force_env_section=force_env_section, subsys_section=subsys_section,&
-       !     use_motion_section=use_motion_section, prev_subsys=prev_subsys, &
-       !     error=error)
-
-
        CALL fist_env_create(fist_env, para_env=para_env, error=error)
        CALL fist_env_set(fist_env, qmmm=.TRUE., qmmm_env=qmmm_env_mm, error=error)
        CALL fist_init(fist_env, root_section, para_env, force_env_section,&
@@ -403,7 +388,7 @@ CPSourceFileRef,&
        qmmm_env_qm%num_mm_atoms = SIZE(mm_atom_index)
        IF(qmmm_env_qm%image_charge) THEN
          qmmm_env_qm%num_image_mm_atoms = SIZE(qmmm_env_qm%image_charge_pot%image_mm_list)
-         CALL cite_reference(Golze2013) 
+         CALL cite_reference(Golze2013)
        END IF
 
        ! Duplicate structure for link atoms
@@ -576,7 +561,7 @@ CPSourceFileRef,&
        CALL cell_release(qm_cell_small, error)
 
        CALL qmmm_env_create(qmmm_env, qs_env, fist_env, qmmm_env_qm, error)
-       !CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_qmmm,error=error)
+       CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_qmmm,error=error)
        CALL qmmm_env_qm_release(qmmm_env_qm, error)
        CALL qmmm_env_mm_release(qmmm_env_mm, error)
        CALL qs_env_release(qs_env, error)

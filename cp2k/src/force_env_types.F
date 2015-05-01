@@ -377,13 +377,11 @@ CONTAINS
           CPPrecondition(.NOT.PRESENT(kinetic_energy),cp_failure_level,routineP,error,failure)
        CASE (use_qmmm)
             IF (PRESENT(kinetic_energy)) THEN
-                CALL ABORT()
-               !CALL force_env_get(force_env%qmmm_env%qs_envsub_force_env(primary_subsys)%force_env,&
-               !                   kinetic_energy=kinetic_energy,&
-               !                   error=error)
+                CALL fist_env_get(force_env%qmmm_env%fist_env,thermo=thermo,error=error)
+                kinetic_energy = thermo%kin
             END IF
             IF (PRESENT(subsys)) THEN
-                CALL get_qs_env(force_env%qmmm_env%qs_env,cp_subsys=subsys,error=error)
+                CALL fist_env_get(force_env%qmmm_env%fist_env,subsys=subsys,error=error)
             ENDIF
             IF (PRESENT(potential_energy)) THEN
                  ! get the underlying energies from primary subsys.  This is the only subsys
