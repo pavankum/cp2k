@@ -42,6 +42,7 @@ MODULE qmmm_force
   USE qmmm_util,                       ONLY: apply_qmmm_walls
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env
+  USE qs_force,                        ONLY: qs_calc_energy_force
   USE qs_ks_qmmm_methods,              ONLY: ks_qmmm_env_rebuild
 #include "./common/cp_common_uses.f90"
 
@@ -59,6 +60,7 @@ CONTAINS
 !> \brief calculates the qm/mm energy and forces
 !> \param qmmm_env ...
 !> \param calc_force if also the forces should be calculated
+!> \param consistent_energies ...
 !> \param linres ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
@@ -66,9 +68,10 @@ CONTAINS
 !>      05.2004 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE qmmm_calc_energy_force(qmmm_env,calc_force,linres,error)
+  SUBROUTINE qmmm_calc_energy_force(qmmm_env,calc_force,consistent_energies,linres,error)
     TYPE(qmmm_env_type), POINTER             :: qmmm_env
-    LOGICAL, INTENT(IN), OPTIONAL            :: calc_force, linres
+    LOGICAL, INTENT(IN)                      :: calc_force, &
+                                                consistent_energies, linres
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_calc_energy_force', &
@@ -77,8 +80,9 @@ CONTAINS
     CHARACTER(LEN=default_string_length)     :: description, iter
     INTEGER                                  :: ip, j, nres, output_unit
     INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
-    LOGICAL :: calculate_forces, check, failure, linres_run, qmmm_added_chrg, &
-      qmmm_link, qmmm_link_imomm
+    LOGICAL                                  :: check, failure, &
+                                                qmmm_added_chrg, qmmm_link, &
+                                                qmmm_link_imomm
     REAL(KIND=dp)                            :: energy_mm, energy_qm
     REAL(KIND=dp), DIMENSION(3)              :: dip_mm, dip_qm, dip_qmmm, &
                                                 max_coord, min_coord
@@ -97,14 +101,10 @@ CONTAINS
     min_coord        =  HUGE(0.0_dp)
     max_coord        = -HUGE(0.0_dp)
     failure          = .FALSE.
-    calculate_forces = .TRUE.
-    linres_run = .FALSE.
     qmmm_link        = .FALSE.
     qmmm_link_imomm  = .FALSE.
     qmmm_added_chrg  = .FALSE.
     logger => cp_error_get_logger(error)
-    IF (PRESENT(calc_force)) calculate_forces = calc_force
-    IF (PRESENT(linres)) linres_run = linres
     NULLIFY(subsys_mm, subsys_qm, subsys, qm_atom_index,particles_mm,particles_qm, qm_cell, mm_cell)
     NULLIFY(force_env_section, print_key, results_qmmm, results_qm, results_mm)
 
@@ -164,8 +164,6 @@ CPSourceFileRef,&
 
     ! Fist
     CALL fist_calc_energy_force(qmmm_env%fist_env, error=error)
-    !CALL force_env_calc_energy_force(force_env%qmmm_env%fist_envsub_force_env(fist_subsys)%force_env,&
-    !     calc_force=calculate_forces,skip_external_control=.TRUE.,error=error)
 
     ! Print Out information on fist energy calculation...
     CALL fist_env_get(qmmm_env%fist_env,thermo=fist_energy,error=error)
@@ -173,15 +171,13 @@ CPSourceFileRef,&
     CALL cp_subsys_get(subsys_mm, results=results_mm, error=error)
 
     ! QS
-    STOP "TODO: build convinient method like fist_calc_energy_force"
-    !CALL force_env_calc_energy_force(force_env%qmmm_envsub_force_env(qs_subsys)%force_env,&
-    !     calc_force=calculate_forces,skip_external_control=.TRUE.,linres=linres_run,error=error)
+    CALL qs_calc_energy_force(qmmm_env%qs_env,calc_force,consistent_energies,linres,error)
 
     ! QM/MM Interaction Potential forces
     CALL qmmm_forces(qmmm_env%qs_env,&
                      qmmm_env%qm,particles_mm,&
                      mm_cell=mm_cell,&
-                     calc_force=calculate_forces,&
+                     calc_force=calc_force,&
                      error=error)
 
     ! Forces of quadratic wall on QM atoms
@@ -192,12 +188,10 @@ CPSourceFileRef,&
     energy_qm = qs_energy%total
     CALL cp_subsys_get(subsys_qm, results=results_qm, error=error)
 
-    ! Print Out information on QS energy calculation...
-    STOP "get results_qmmm"
-    !CALL force_env_get(force_env, subsys=subsys, error=error)
-    !CALL cp_subsys_get(subsys, results=results_qmmm, error=error)
+    !TODO: is really results_qm == results_qmmm ???
+    CALL cp_subsys_get(subsys_qm, results=results_qmmm, error=error)
 
-    IF (calculate_forces) THEN
+    IF (calc_force) THEN
        ! If present QM/MM links (just IMOMM) correct the position of the qm-link atom
        IF (qmmm_link_imomm) CALL qmmm_link_Imomm_forces(qmmm_links,particles_qm,qm_atom_index,error)
        particles_mm => subsys_mm%particles%els
@@ -213,7 +207,7 @@ CPSourceFileRef,&
              extension=".Log",error=error)
     IF (output_unit>0) THEN
        WRITE (unit=output_unit,fmt='(/1X,A,F15.9)')"Energy after QMMM calculation: ",energy_qm
-       IF (calculate_forces) THEN
+       IF (calc_force) THEN
           WRITE (unit=output_unit,fmt='(/1X,A)')"Derivatives on all atoms after QMMM calculation: "
           DO ip=1,SIZE(particles_mm)
              WRITE (unit=output_unit,fmt='(1X,3F15.9)') particles_mm(ip)%f

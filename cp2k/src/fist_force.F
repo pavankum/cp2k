@@ -195,12 +195,12 @@ CONTAINS
          molecule_kind_set,molecule_set,particle_set, print_section,&
          shell, shell_particle_set, core_particle_set, thermo, multipoles,&
          e_coulomb, pv_coulomb)
-    STOP "need the force_env_section somehow 2"
-    !mm_section => section_vals_get_subs_vals(force_env_section,"MM",error=error)
-    !iw = cp_print_key_unit_nr(logger,mm_section,"PRINT%DERIVATIVES",&
-    !     extension=".mmLog",error=error)
-    !iw2= cp_print_key_unit_nr(logger,mm_section,"PRINT%EWALD_INFO",&
-    !     extension=".mmLog",error=error)
+
+    mm_section => section_vals_get_subs_vals(force_env_section,"MM",error=error)
+    iw = cp_print_key_unit_nr(logger,mm_section,"PRINT%DERIVATIVES",&
+         extension=".mmLog",error=error)
+    iw2= cp_print_key_unit_nr(logger,mm_section,"PRINT%EWALD_INFO",&
+         extension=".mmLog",error=error)
 
     CALL fist_env_get(fist_env, ewald_pw=ewald_pw, ewald_env=ewald_env, &
          local_particles=local_particles, particle_set=particle_set, &

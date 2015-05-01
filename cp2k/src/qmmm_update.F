@@ -135,12 +135,12 @@ CPSourceFileRef,&
         subsys_section => section_vals_get_subs_vals(force_env%force_env_section,"SUBSYS",error=error)
         NULLIFY(sub_force_env(force_mixing_core_subsys)%force_env)
         ![ADAPT] no sure about use_motion_section
-        CALL qmmm_create_force_env_low(sub_force_env(force_mixing_core_subsys)%force_env, &
+        CALL qmmm_create_force_env_low(sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env, &
           force_env%root_section, force_env%para_env, force_env%globenv,&
           force_env%force_env_section, qmmm_core_section, subsys_section, use_motion_section=.TRUE., &
           prev_subsys=subsys, ignore_outside_box = .TRUE., error=error)
         NULLIFY(sub_force_env(force_mixing_extended_subsys)%force_env)
-        CALL qmmm_create_force_env_low(sub_force_env(force_mixing_extended_subsys)%force_env, &
+        CALL qmmm_create_force_env_low(sub_force_env(force_mixing_extended_subsys)%force_env%qmmm_env, &
           force_env%root_section, force_env%para_env, force_env%globenv,&
           force_env%force_env_section, qmmm_extended_section, subsys_section, use_motion_section=.TRUE., &
           prev_subsys=subsys, ignore_outside_box = .TRUE., error=error)

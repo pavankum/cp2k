@@ -376,37 +376,28 @@ CONTAINS
           IF (PRESENT(kinetic_energy)) kinetic_energy = eip_kinetic_energy
           CPPrecondition(.NOT.PRESENT(kinetic_energy),cp_failure_level,routineP,error,failure)
        CASE (use_qmmm)
-            STOP "TODO: implement proper getters for qmmm"
-            !IF (PRESENT(kinetic_energy)) THEN
-            !   CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
-            !                      kinetic_energy=kinetic_energy,&
-            !                      error=error)
-            !END IF
-            !IF (PRESENT(subsys)) THEN
-            !   CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
-            !                      subsys=subsys, error=error)
-            !ENDIF
-            !IF (PRESENT(potential_energy)) THEN
-            !     ! get the underlying energies from primary subsys.  This is the only subsys
-            !     ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
-            !     IF (SIZE(force_env%sub_force_env) == 1) THEN
-            !       cur_subsys = primary_subsys
-            !     ELSE IF (force_env%qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing
-            !       cur_subsys = force_mixing_extended_subsys
-            !     ELSE
-            !        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
-            !             routineP,"bad number of sub_force_envs (or do_force_mixing setting) getting qmmm potential energy "//&
-            !             CPSourceFileRef,&
-            !             error,failure)
-            !     ENDIF
-            !     CALL force_env_get(force_env%sub_force_env(cur_subsys)%force_env%sub_force_env(fist_subsys)%force_env,&
-            !                        potential_energy=penergy_mm,&
-            !                        error=error)
-            !     CALL force_env_get(force_env%sub_force_env(cur_subsys)%force_env%sub_force_env(qs_subsys)%force_env,&
-            !                        potential_energy=penergy_qm,&
-            !                        error=error)
-            !     potential_energy = penergy_qm+penergy_mm
-            !ENDIF
+            IF (PRESENT(kinetic_energy)) THEN
+                CALL ABORT()
+               !CALL force_env_get(force_env%qmmm_env%qs_envsub_force_env(primary_subsys)%force_env,&
+               !                   kinetic_energy=kinetic_energy,&
+               !                   error=error)
+            END IF
+            IF (PRESENT(subsys)) THEN
+                CALL get_qs_env(force_env%qmmm_env%qs_env,cp_subsys=subsys,error=error)
+            ENDIF
+            IF (PRESENT(potential_energy)) THEN
+                 ! get the underlying energies from primary subsys.  This is the only subsys
+                 ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
+                 IF (force_env%qmmm_env%qm%do_force_mixing) THEN
+                     STOP "force_env_get: can not get energy for force_mixing, yet"
+                     !CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
+                     !                   potential_energy=potential_energy, error=error)
+                 ELSE
+                    CALL fist_env_get(force_env%qmmm_env%fist_env, thermo=thermo, error=error)
+                    CALL get_qs_env(force_env%qmmm_env%qs_env,energy=qs_energy,error=error)
+                    potential_energy = thermo%pot + qs_energy%total
+                 ENDIF
+            ENDIF
        CASE (use_mixed_force)
           CPPrecondition(ASSOCIATED(force_env%mixed_env),cp_failure_level,routineP,error,failure)
 !          CPPreconditionNoFail(.NOT.PRESENT(qs_env),cp_warning_level,routineP,error)

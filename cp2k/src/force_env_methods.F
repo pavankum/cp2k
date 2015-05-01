@@ -117,7 +117,7 @@ MODULE force_env_methods
                                              qs_env_retain,&
                                              qs_environment_type,&
                                              set_qs_env
-  USE qs_force,                        ONLY: qs_forces
+  USE qs_force,                        ONLY: qs_calc_energy_force
   USE restraint,                       ONLY: restraint_control
   USE string_utilities,                ONLY: compress
   USE termination,                     ONLY: print_warning
@@ -162,12 +162,11 @@ CONTAINS
 ! *****************************************************************************
   RECURSIVE SUBROUTINE force_env_calc_energy_force ( force_env, calc_force, &
        consistent_energies, skip_external_control, eval_energy_forces, &
-       require_consistent_energy_force, linres, calc_stress_tensor, error)
+       linres, calc_stress_tensor, error)
 
     TYPE(force_env_type), POINTER            :: force_env
     LOGICAL, INTENT(IN), OPTIONAL :: calc_force, consistent_energies, &
-      skip_external_control, eval_energy_forces, &
-      require_consistent_energy_force, linres, calc_stress_tensor
+      skip_external_control, eval_energy_forces, linres, calc_stress_tensor
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_env_calc_energy_force', &
@@ -229,15 +228,7 @@ CONTAINS
           CASE ( use_fist_force )
              CALL fist_calc_energy_force(force_env%fist_env, error=error)
           CASE ( use_qs_force )
-             CALL set_qs_env(qs_env=force_env%qs_env,error=error)
-             force_env%qs_env%linres_run = linres_run
-             IF (.NOT.calculate_forces) THEN
-                CALL qs_energies(qs_env=force_env%qs_env, consistent_energies=energy_consistency, &
-                     calc_forces=calculate_forces, error=error)
-             ELSE
-                CALL qs_forces(force_env%qs_env, error=error)
-             END IF
-             CALL get_qs_env(qs_env=force_env%qs_env,error=error)
+             CALL qs_calc_energy_force(force_env%qs_env,calculate_forces,energy_consistency,linres_run,error=error)
           CASE (use_eip_force)
              IF (force_env%eip_env%eip_model == use_lenosky_eip) THEN
                 CALL eip_lenosky(force_env%eip_env, error=error)
@@ -245,7 +236,7 @@ CONTAINS
                 CALL eip_bazant(force_env%eip_env, error=error)
              END IF
           CASE ( use_qmmm )
-             CALL qmmm_energy_and_forces(force_env,calculate_forces,require_consistent_energy_force,&
+             CALL qmmm_energy_and_forces(force_env,calculate_forces,energy_consistency,&
                   linres=linres_run,error=error)
           CASE ( use_mixed_force )
              CALL mixed_energy_forces(force_env,calculate_forces,error=error)
@@ -758,7 +749,6 @@ CONTAINS
           END IF
        END IF
        IF (PRESENT(qmmm_env)) THEN
-          CPPrecondition(PRESENT(sub_force_env),cp_failure_level,routineP,error,failure)
           force_env%in_use=use_qmmm
           force_env%qmmm_env => qmmm_env
           CALL qmmm_env_retain(qmmm_env,error=error)
@@ -799,10 +789,9 @@ CONTAINS
 !> \author Fawzi Mohamed
 ! *****************************************************************************
   RECURSIVE SUBROUTINE qmmm_energy_and_forces(force_env,calc_force,&
-         require_consistent_energy_force,linres,error)
+         consistent_energies,linres,error)
     TYPE(force_env_type), POINTER            :: force_env
-    LOGICAL, INTENT(IN), OPTIONAL :: calc_force, &
-      require_consistent_energy_force, linres
+    LOGICAL, INTENT(IN)                      :: calc_force, consistent_energies, linres
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_energy_and_forces', &
@@ -818,7 +807,7 @@ CONTAINS
                                                 mom_conserv_type
     INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
     INTEGER, POINTER                         :: cur_indices(:), cur_labels(:)
-    LOGICAL :: do_require_consistent_energy_force, failure
+    LOGICAL                                  ::  failure
     REAL(dp)                                 :: delta_a(3), delta_f(3), &
                                                 mom_conserv_mass, total_f(3)
     REAL(dp), ALLOCATABLE                    :: saved_pos(:,:)
@@ -832,13 +821,10 @@ CONTAINS
                                                 particles_qmmm_extended
     TYPE(section_vals_type), POINTER         :: force_env_section
 
-    do_require_consistent_energy_force = .TRUE.
-    IF (PRESENT(require_consistent_energy_force)) do_require_consistent_energy_force = require_consistent_energy_force
-
-    IF (do_require_consistent_energy_force) THEN
+    IF (consistent_energies) THEN
       CALL cp_assert(.NOT. qmmm_force_mixing_active(force_env, error),&
           cp_failure_level,cp_assertion_failed,&
-          routineP,"qmmm_energy_and_forces got require_consistent_energy_force but force mixing is active. "//&
+          routineP,"qmmm_energy_and_forces got energy_consistency=.TRUE. but force mixing is active. "//&
 CPSourceFileRef,&
           error,failure)
     ENDIF
@@ -846,140 +832,144 @@ CPSourceFileRef,&
     ! Possibly translate the system
     CALL apply_qmmm_translate(force_env, error)
 
-    DO isubf=1, SIZE(force_env%sub_force_env)
-        ! For force mixing only (for now), wrap positions before QM/MM calculation.
-        ! Required if diffusion causes atoms outside of periodic box get added to QM
-        ! region.
-        IF (force_env%qmmm_env%qm%do_force_mixing) THEN ! force mixing only
-           CALL fist_env_get(force_env%sub_force_env(isubf)%force_env%qmmm_env%fist_env,&
-                             cell=mm_cell,subsys=subsys_mm,error=error)
-           CALL get_qs_env(force_env%sub_force_env(isubf)%force_env%qmmm_env%qs_env, cp_subsys=subsys_qm,error=error)
-           qm_atom_index   => force_env%sub_force_env(isubf)%force_env%qmmm_env%qm%qm_atom_index
-           CALL apply_qmmm_wrap(subsys_mm, mm_cell, subsys_qm, qm_atom_index, saved_pos, error)
-        END IF
-        IF (SIZE(force_env%sub_force_env) > 1) THEN ! rewrite restart file name
-           CALL force_env_get(force_env, force_env_section=force_env_section,error=error)
-           CALL section_vals_val_get(force_env_section, "DFT%SCF%PRINT%RESTART%FILENAME", &
-             c_val=restart_filename, error=error)
-           CALL section_vals_val_get(force_env_section, "DFT%SCF%PRINT%RESTART_HISTORY%FILENAME", &
-             c_val=restart_history_filename, error=error)
+    IF (force_env%qmmm_env%qm%do_force_mixing) STOP "qmmm_force_mixing not supporte, yet"
 
-           WRITE (unit=restart_filename_suffix, fmt=*) isubf
-           restart_filename_suffix= ADJUSTL(restart_filename_suffix)
+    CALL qmmm_calc_energy_force(force_env%qmmm_env,calc_force,consistent_energies,linres,error)
 
-           CALL force_env_get(force_env%sub_force_env(isubf)%force_env, force_env_section=force_env_section,error=error)
-           CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART%FILENAME", &
-                c_val=TRIM(restart_filename)//"-SubForceEnv-"//TRIM(restart_filename_suffix), error=error)
-           CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART_HISTORY%FILENAME", &
-                c_val=TRIM(restart_history_filename)//"-SubForceEnv-"//TRIM(restart_filename_suffix), error=error)
-        ENDIF
-
-        CALL qmmm_calc_energy_force(force_env%sub_force_env(isubf)%force_env%qmmm_env,&
-             calc_force,linres,error)
-
-        IF (SIZE(force_env%sub_force_env) > 1) THEN ! undo rewrite of restart file name
-           CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART%FILENAME", &
-                c_val=TRIM(restart_filename), error=error)
-           CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART_HISTORY%FILENAME", &
-                c_val=TRIM(restart_history_filename), error=error)
-        ENDIF
-
-        ! Restore unwrapped positions after calculation if needed
-        IF (ALLOCATED(saved_pos)) THEN
-           CALL apply_qmmm_unwrap(subsys_mm, subsys_qm, qm_atom_index, saved_pos, error)
-        END IF
-    END DO
-
-
-    IF (SIZE(force_env%sub_force_env) == 1) THEN
-        ! see force_env_get for potential energy to copy 
-        ! copy forces, energy, virial up
-        CONTINUE
-    ELSE IF (force_env%qmmm_env%qm%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing happens here
-        ! energy will just inherit from extended sub_force_env in force_env_get()
-
-        ! get forces from subsys of each sub force env
-        CALL force_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env,&
-                           subsys=subsys_qmmm_core,force_env_section=force_env_section,error=error)
-        CALL force_env_get(force_env%sub_force_env(force_mixing_extended_subsys)%force_env,&
-                           subsys=subsys_qmmm_extended,error=error)
-
-        CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%INDICES",i_vals=cur_indices,error=error)
-        CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%LABELS",i_vals=cur_labels,error=error)
-
-        particles_qmmm_extended => subsys_qmmm_extended%particles%els
-        particles_qmmm_core => subsys_qmmm_core%particles%els
-        DO ip=1,SIZE(cur_indices)
-           IF (cur_labels(ip) >= force_mixing_label_QM_dynamics) THEN ! this is a QM atom
-             ! copy (QM) force from extended calculation
-             particles_qmmm_core(cur_indices(ip))%f=particles_qmmm_extended(cur_indices(ip))%f
-           ENDIF
-        END DO
-
-        ! zero momentum
-        CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%MOMENTUM_CONSERVATION_TYPE",&
-                                  i_val=mom_conserv_type,error=error)
-        IF (mom_conserv_type /= do_fm_mom_conserv_none) THEN
-           CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%MOMENTUM_CONSERVATION_REGION",&
-                                     i_val=mom_conserv_region,error=error)
-
-           IF (mom_conserv_region == do_fm_mom_conserv_core) THEN
-              mom_conserv_min_label = force_mixing_label_QM_core
-           ELSEIF (mom_conserv_region == do_fm_mom_conserv_QM) THEN
-              mom_conserv_min_label = force_mixing_label_QM_dynamics
-           ELSEIF (mom_conserv_region == do_fm_mom_conserv_buffer) THEN
-              mom_conserv_min_label = force_mixing_label_buffer
-           ELSE
-              CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
-                   routineP,"Got unknown MOMENTUM_CONSERVATION_REGION (not CORE, QM, or BUFFER) !"//&
-CPSourceFileRef,&
-               error,failure)
-           ENDIF
-
-           total_f = 0.0_dp
-           DO ip=1, SIZE(particles_qmmm_core)
-             total_f(1:3) = total_f(1:3) + particles_qmmm_core(ip)%f(1:3)
-           END DO
-           IF (mom_conserv_type == do_fm_mom_conserv_equal_f) THEN
-              mom_conserv_n = COUNT(cur_labels >= mom_conserv_min_label)
-              delta_f = total_f/mom_conserv_n
-              DO ip=1, SIZE(cur_indices)
-                IF (cur_labels(ip) >= mom_conserv_min_label) THEN
-                  particles_qmmm_core(cur_indices(ip))%f = particles_qmmm_core(cur_indices(ip))%f - delta_f
-                ENDIF
-              END DO
-           ELSE IF (mom_conserv_type == do_fm_mom_conserv_equal_a) THEN
-              mom_conserv_mass = 0.0_dp
-              DO ip=1, SIZE(cur_indices)
-               IF (cur_labels(ip) >= mom_conserv_min_label) &
-                 mom_conserv_mass = mom_conserv_mass + particles_qmmm_core(cur_indices(ip))%atomic_kind%mass
-              END DO
-              delta_a = total_f/mom_conserv_mass
-              DO ip=1, SIZE(cur_indices)
-                IF (cur_labels(ip) >= mom_conserv_min_label) THEN
-                  particles_qmmm_core(cur_indices(ip))%f = particles_qmmm_core(cur_indices(ip))%f - &
-                     particles_qmmm_core(cur_indices(ip))%atomic_kind%mass * delta_a
-                ENDIF
-              END DO
-           ENDIF
-        ENDIF
-
-        IF (force_mixing_core_subsys /= primary_subsys) THEN
-          CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
-                             subsys=subsys_primary,force_env_section=force_env_section,error=error)
-          particles_primary => subsys_primary%particles%els
-          DO ip=1,SIZE(particles_qmmm_core)
-             particles_primary(ip)%f=particles_qmmm_core(ip)%f
-          END DO
-        ENDIF
-
-    ELSE
-        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
-             routineP,"sub_force_env confusing: neither size=1 (conventional QM/MM) nor "//&
-             "(do_force_mixing and size=2) (force-mixing)! "//&
-CPSourceFileRef,&
-         error,failure)
-    ENDIF
+!    DO isubf=1, SIZE(force_env%sub_force_env)
+!        ! For force mixing only (for now), wrap positions before QM/MM calculation.
+!        ! Required if diffusion causes atoms outside of periodic box get added to QM
+!        ! region.
+!        IF (force_env%qmmm_env%qm%do_force_mixing) THEN ! force mixing only
+!           CALL fist_env_get(force_env%sub_force_env(isubf)%force_env%qmmm_env%fist_env,&
+!                             cell=mm_cell,subsys=subsys_mm,error=error)
+!           CALL get_qs_env(force_env%sub_force_env(isubf)%force_env%qmmm_env%qs_env, cp_subsys=subsys_qm,error=error)
+!           qm_atom_index   => force_env%sub_force_env(isubf)%force_env%qmmm_env%qm%qm_atom_index
+!           CALL apply_qmmm_wrap(subsys_mm, mm_cell, subsys_qm, qm_atom_index, saved_pos, error)
+!        END IF
+!        IF (SIZE(force_env%sub_force_env) > 1) THEN ! rewrite restart file name
+!           CALL force_env_get(force_env, force_env_section=force_env_section,error=error)
+!           CALL section_vals_val_get(force_env_section, "DFT%SCF%PRINT%RESTART%FILENAME", &
+!             c_val=restart_filename, error=error)
+!           CALL section_vals_val_get(force_env_section, "DFT%SCF%PRINT%RESTART_HISTORY%FILENAME", &
+!             c_val=restart_history_filename, error=error)
+!
+!           WRITE (unit=restart_filename_suffix, fmt=*) isubf
+!           restart_filename_suffix= ADJUSTL(restart_filename_suffix)
+!
+!           CALL force_env_get(force_env%sub_force_env(isubf)%force_env, force_env_section=force_env_section,error=error)
+!           CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART%FILENAME", &
+!                c_val=TRIM(restart_filename)//"-SubForceEnv-"//TRIM(restart_filename_suffix), error=error)
+!           CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART_HISTORY%FILENAME", &
+!                c_val=TRIM(restart_history_filename)//"-SubForceEnv-"//TRIM(restart_filename_suffix), error=error)
+!        ENDIF
+!
+!        CALL qmmm_calc_energy_force(force_env%sub_force_env(isubf)%force_env%qmmm_env,&
+!             calc_force,linres,error)
+!
+!        IF (SIZE(force_env%sub_force_env) > 1) THEN ! undo rewrite of restart file name
+!           CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART%FILENAME", &
+!                c_val=TRIM(restart_filename), error=error)
+!           CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART_HISTORY%FILENAME", &
+!                c_val=TRIM(restart_history_filename), error=error)
+!        ENDIF
+!
+!        ! Restore unwrapped positions after calculation if needed
+!        IF (ALLOCATED(saved_pos)) THEN
+!           CALL apply_qmmm_unwrap(subsys_mm, subsys_qm, qm_atom_index, saved_pos, error)
+!        END IF
+!    END DO
+!
+!
+!    IF (SIZE(force_env%sub_force_env) == 1) THEN
+!        ! see force_env_get for potential energy to copy 
+!        ! copy forces, energy, virial up
+!        CONTINUE
+!    ELSE IF (force_env%qmmm_env%qm%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing happens here
+!        ! energy will just inherit from extended sub_force_env in force_env_get()
+!
+!        ! get forces from subsys of each sub force env
+!        CALL force_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env,&
+!                           subsys=subsys_qmmm_core,force_env_section=force_env_section,error=error)
+!        CALL force_env_get(force_env%sub_force_env(force_mixing_extended_subsys)%force_env,&
+!                           subsys=subsys_qmmm_extended,error=error)
+!
+!        CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%INDICES",i_vals=cur_indices,error=error)
+!        CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%LABELS",i_vals=cur_labels,error=error)
+!
+!        particles_qmmm_extended => subsys_qmmm_extended%particles%els
+!        particles_qmmm_core => subsys_qmmm_core%particles%els
+!        DO ip=1,SIZE(cur_indices)
+!           IF (cur_labels(ip) >= force_mixing_label_QM_dynamics) THEN ! this is a QM atom
+!             ! copy (QM) force from extended calculation
+!             particles_qmmm_core(cur_indices(ip))%f=particles_qmmm_extended(cur_indices(ip))%f
+!           ENDIF
+!        END DO
+!
+!        ! zero momentum
+!        CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%MOMENTUM_CONSERVATION_TYPE",&
+!                                  i_val=mom_conserv_type,error=error)
+!        IF (mom_conserv_type /= do_fm_mom_conserv_none) THEN
+!           CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%MOMENTUM_CONSERVATION_REGION",&
+!                                     i_val=mom_conserv_region,error=error)
+!
+!           IF (mom_conserv_region == do_fm_mom_conserv_core) THEN
+!              mom_conserv_min_label = force_mixing_label_QM_core
+!           ELSEIF (mom_conserv_region == do_fm_mom_conserv_QM) THEN
+!              mom_conserv_min_label = force_mixing_label_QM_dynamics
+!           ELSEIF (mom_conserv_region == do_fm_mom_conserv_buffer) THEN
+!              mom_conserv_min_label = force_mixing_label_buffer
+!           ELSE
+!              CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
+!                   routineP,"Got unknown MOMENTUM_CONSERVATION_REGION (not CORE, QM, or BUFFER) !"//&
+!CPSourceFileRef,&
+!               error,failure)
+!           ENDIF
+!
+!           total_f = 0.0_dp
+!           DO ip=1, SIZE(particles_qmmm_core)
+!             total_f(1:3) = total_f(1:3) + particles_qmmm_core(ip)%f(1:3)
+!           END DO
+!           IF (mom_conserv_type == do_fm_mom_conserv_equal_f) THEN
+!              mom_conserv_n = COUNT(cur_labels >= mom_conserv_min_label)
+!              delta_f = total_f/mom_conserv_n
+!              DO ip=1, SIZE(cur_indices)
+!                IF (cur_labels(ip) >= mom_conserv_min_label) THEN
+!                  particles_qmmm_core(cur_indices(ip))%f = particles_qmmm_core(cur_indices(ip))%f - delta_f
+!                ENDIF
+!              END DO
+!           ELSE IF (mom_conserv_type == do_fm_mom_conserv_equal_a) THEN
+!              mom_conserv_mass = 0.0_dp
+!              DO ip=1, SIZE(cur_indices)
+!               IF (cur_labels(ip) >= mom_conserv_min_label) &
+!                 mom_conserv_mass = mom_conserv_mass + particles_qmmm_core(cur_indices(ip))%atomic_kind%mass
+!              END DO
+!              delta_a = total_f/mom_conserv_mass
+!              DO ip=1, SIZE(cur_indices)
+!                IF (cur_labels(ip) >= mom_conserv_min_label) THEN
+!                  particles_qmmm_core(cur_indices(ip))%f = particles_qmmm_core(cur_indices(ip))%f - &
+!                     particles_qmmm_core(cur_indices(ip))%atomic_kind%mass * delta_a
+!                ENDIF
+!              END DO
+!           ENDIF
+!        ENDIF
+!
+!        IF (force_mixing_core_subsys /= primary_subsys) THEN
+!          CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
+!                             subsys=subsys_primary,force_env_section=force_env_section,error=error)
+!          particles_primary => subsys_primary%particles%els
+!          DO ip=1,SIZE(particles_qmmm_core)
+!             particles_primary(ip)%f=particles_qmmm_core(ip)%f
+!          END DO
+!        ENDIF
+!
+!    ELSE
+!        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
+!             routineP,"sub_force_env confusing: neither size=1 (conventional QM/MM) nor "//&
+!             "(do_force_mixing and size=2) (force-mixing)! "//&
+!CPSourceFileRef,&
+!         error,failure)
+!    ENDIF
 
   END SUBROUTINE qmmm_energy_and_forces
 
