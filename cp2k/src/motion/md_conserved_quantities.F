@@ -217,7 +217,7 @@ CONTAINS
     CALL get_md_env (md_env, force_env=force_env, error=error)
     CALL force_env_get(force_env, subsys=subsys, qmmm_env=qmmm_env, force_env_section=force_env_section, error=error)
     IF(ASSOCIATED(qmmm_env)) THEN
-      IF (SIZE(force_env%sub_force_env) == 1) THEN ! conventional QM/MM
+      IF (.NOT. qmmm_env%qm%do_force_mixing) THEN ! conventional QM/MM
         CALL cp_subsys_get(subsys, particles=particles, error=error)
         ! The degrees of freedom for the quantum part of the system
         ! are set to 3*Number of QM atoms and to simpar%nfree in case all the MM
@@ -660,7 +660,7 @@ CPSourceFileRef, error)
     !
     ! Compute the QM/MM kinetic energy
     IF (ASSOCIATED(qmmm_env)) THEN
-       IF (SIZE(force_env%sub_force_env) == 1) THEN ! conventional QM/MM
+       IF (.NOT. qmmm_env%qm%do_force_mixing) THEN ! conventional QM/MM
           DO i = 1, SIZE(qmmm_env%qm%qm_atom_index)
              iparticle = qmmm_env%qm%qm_atom_index(i)
              mass = particle_set(iparticle)%atomic_kind%mass
