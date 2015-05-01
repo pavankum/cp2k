@@ -320,7 +320,6 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'force_env_get', &
       routineP = moduleN//':'//routineN
 
-    INTEGER                                  :: cur_subsys
     LOGICAL                                  :: failure
     REAL(KIND=dp)                            :: eip_kinetic_energy, &
                                                 eip_potential_energy, &

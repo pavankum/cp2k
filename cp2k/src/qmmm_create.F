@@ -78,10 +78,10 @@ MODULE qmmm_create
   USE qmmm_pw_grid,                    ONLY: qmmm_pw_grid_init
   USE qmmm_types,                  ONLY: qmmm_env_type, qmmm_env_create
   USE qmmm_types_low,                  ONLY: &
-       add_set_release, add_set_type, fist_subsys, force_mixing_core_subsys, &
+       add_set_release, add_set_type, force_mixing_core_subsys, &
        force_mixing_extended_subsys, primary_subsys, qmmm_env_mm_create, &
        qmmm_env_mm_release, qmmm_env_mm_type, qmmm_env_qm_create, &
-       qmmm_env_qm_release, qmmm_env_qm_type, qmmm_links_type, qs_subsys
+       qmmm_env_qm_release, qmmm_env_qm_type, qmmm_links_type
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_environment_type,&
                                              set_qs_env

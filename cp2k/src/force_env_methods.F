@@ -13,6 +13,8 @@
 !> \author fawzi
 ! *****************************************************************************
 MODULE force_env_methods
+  USE qs_energy_types,                 ONLY: qs_energy_type
+  USE fist_energy_types,               ONLY: fist_energy_type
   USE atprop_types,                    ONLY: atprop_init,&
                                              atprop_type
   USE cell_types,                      ONLY: cell_clone,&
@@ -860,10 +862,9 @@ CPSourceFileRef,&
         ! Required if diffusion causes atoms outside of periodic box get added to QM
         ! region.
         IF (force_env%qmmm_env%qm%do_force_mixing) THEN ! force mixing only
-           CALL force_env_get(force_env%sub_force_env(isubf)%force_env%sub_force_env(fist_subsys)%force_env,&
+           CALL fist_env_get(force_env%sub_force_env(isubf)%force_env%qmmm_env%fist_env,&
                              cell=mm_cell,subsys=subsys_mm,error=error)
-           CALL force_env_get(force_env%sub_force_env(isubf)%force_env%sub_force_env(qs_subsys)%force_env,&
-                       subsys=subsys_qm,error=error)
+           CALL get_qs_env(force_env%sub_force_env(isubf)%force_env%qmmm_env%qs_env, cp_subsys=subsys_qm,error=error)
            qm_atom_index   => force_env%sub_force_env(isubf)%force_env%qmmm_env%qm%qm_atom_index
            CALL apply_qmmm_wrap(subsys_mm, mm_cell, subsys_qm, qm_atom_index, saved_pos, error)
         END IF
@@ -1004,8 +1005,7 @@ CPSourceFileRef,&
 !>      05.2004 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  RECURSIVE SUBROUTINE qmmm_energy_and_forces_low(force_env,calc_force,linres,error)
-
+  SUBROUTINE qmmm_energy_and_forces_low(force_env,calc_force,linres,error)
     TYPE(force_env_type), POINTER            :: force_env
     LOGICAL, INTENT(IN), OPTIONAL            :: calc_force, linres
     TYPE(cp_error_type), INTENT(inout)       :: error
@@ -1031,6 +1031,7 @@ CPSourceFileRef,&
     TYPE(qmmm_links_type), POINTER           :: qmmm_links
     TYPE(section_vals_type), POINTER         :: force_env_section, print_key
     TYPE(fist_energy_type), POINTER          :: fist_energy
+    TYPE(qs_energy_type), POINTER            :: qs_energy
 
     min_coord        =  HUGE(0.0_dp)
     max_coord        = -HUGE(0.0_dp)
@@ -1045,7 +1046,7 @@ CPSourceFileRef,&
     IF (PRESENT(linres)) linres_run = linres
     NULLIFY(subsys_mm, subsys_qm, subsys, qm_atom_index,particles_mm,particles_qm, qm_cell, mm_cell)
     NULLIFY(force_env_section, print_key, results_qmmm, results_qm, results_mm)
-    force_env_section => force_env%sub_force_env(qs_subsys)%force_env%force_env_section
+    force_env_section => force_env%force_env_section
 
     CPPrecondition(ASSOCIATED(force_env),cp_failure_level,routineP,error,failure)
     CPPrecondition(force_env%ref_count>0,cp_failure_level,routineP,error,failure)
@@ -1091,11 +1092,10 @@ CPSourceFileRef,&
     IF (qmmm_added_chrg) CALL qmmm_added_chrg_coord(force_env%qmmm_env%qm, particles_mm, error)
 
     ! Initialize ks_qmmm_env
-    CALL ks_qmmm_env_rebuild(qs_env=force_env%sub_force_env(qs_subsys)%force_env%qs_env,&
-         qmmm_env=force_env%qmmm_env%qm,error=error)
+    CALL ks_qmmm_env_rebuild(qs_env=force_env%qmmm_env%qs_env, qmmm_env=force_env%qmmm_env%qm,error=error)
 
     ! Compute the short range QM/MM Electrostatic Potential
-    CALL qmmm_el_coupling( qs_env=force_env%sub_force_env(qs_subsys)%force_env%qs_env,&
+    CALL qmmm_el_coupling(qs_env=force_env%qmmm_env%qs_env,&
          qmmm_env=force_env%qmmm_env%qm,&
          mm_particles=particles_mm,&
          mm_cell=mm_cell,&
@@ -1113,11 +1113,11 @@ CPSourceFileRef,&
 
     ! QS
     STOP "TODO: build convinient method like fist_calc_energy_force"
-    CALL force_env_calc_energy_force(force_env%sub_force_env(qs_subsys)%force_env,&
-         calc_force=calculate_forces,skip_external_control=.TRUE.,linres=linres_run,error=error)
+    !CALL force_env_calc_energy_force(force_env%qmmm_envsub_force_env(qs_subsys)%force_env,&
+    !     calc_force=calculate_forces,skip_external_control=.TRUE.,linres=linres_run,error=error)
 
     ! QM/MM Interaction Potential forces
-    CALL qmmm_forces(force_env%sub_force_env(qs_subsys)%force_env%qs_env,&
+    CALL qmmm_forces(force_env%qmmm_env%qs_env,&
                      force_env%qmmm_env%qm,particles_mm,&
                      mm_cell=mm_cell,&
                      calc_force=calculate_forces,&
@@ -1127,8 +1127,8 @@ CPSourceFileRef,&
     CALL apply_qmmm_walls(force_env,error)
 
     ! Print Out information on QS energy calculation...
-    CALL force_env_get(force_env%sub_force_env(qs_subsys)%force_env,&
-                       potential_energy=energy_qm, error=error)
+    CALL get_qs_env(force_env%qmmm_env%qs_env, energy=qs_energy, error=error)
+    energy_qm = qs_energy%total
     CALL cp_subsys_get(subsys_qm, results=results_qm, error=error)
 
     ! Print Out information on QS energy calculation...
