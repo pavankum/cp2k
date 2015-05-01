@@ -186,7 +186,7 @@ CONTAINS
     CALL force_env_get(force_env=force_env,subsys=subsys,cell=cell,error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     CALL cp_subsys_get(subsys=subsys,&
                        atomic_kinds=atomic_kinds,&
@@ -457,7 +457,7 @@ CONTAINS
     CALL force_env_get(force_env=force_env, subsys=subsys,cell=cell, error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules,molecules_new=molecules, &
@@ -670,7 +670,7 @@ CONTAINS
     CALL force_env_get(force_env=force_env,subsys=subsys,error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     IF (simpar%constraint) THEN
        CALL stop_program(routineN,moduleN,__LINE__,&
@@ -822,7 +822,7 @@ CONTAINS
     CALL force_env_get(force_env=force_env, subsys=subsys, cell=cell,error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules,molecules_new=molecules,&
@@ -1052,7 +1052,7 @@ CONTAINS
     CALL force_env_get(force_env=force_env, subsys=subsys, cell=cell,error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules,molecules_new=molecules,&
@@ -1326,7 +1326,7 @@ CONTAINS
     CALL force_env_get(force_env=force_env, subsys=subsys, cell=cell, error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules,molecules_new=molecules, &
@@ -1638,7 +1638,7 @@ CONTAINS
     reftraj_env%isnap = reftraj_env%isnap + reftraj_env%info%stride
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
     CALL cp_subsys_get(subsys=subsys, particles=particles, error=error)
     nparticle    = particles%n_els
     particle_set => particles%els
@@ -1819,7 +1819,7 @@ CPSourceFileRef,&
     CALL force_env_get(force_env, subsys=subsys, cell=cell ,error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules, molecules_new=molecules, gci=gci,&
@@ -2357,7 +2357,7 @@ CPSourceFileRef,&
     CALL force_env_get(force_env, subsys=subsys, cell=cell ,error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds, local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules,molecules_new=molecules, &
@@ -2659,7 +2659,7 @@ CPSourceFileRef,&
     CALL force_env_get(force_env%sub_force_env(1)%force_env,subsys=subsys_respa,error=error)
 
     ! Do some checks on coordinates and box
-    CALL apply_qmmm_walls_reflective(force_env, error=error)
+    CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
     CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles, local_molecules_new=local_molecules, molecules_new=molecules,&

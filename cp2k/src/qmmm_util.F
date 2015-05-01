@@ -9,6 +9,7 @@
 !> \author Teodoro Laino
 ! *****************************************************************************
 MODULE qmmm_util
+  USE qmmm_types,                      ONLY: qmmm_env_type
   USE qs_environment_types,            ONLY: get_qs_env
   USE fist_environment_types,          ONLY: fist_env_get
   USE cell_types,                      ONLY: cell_copy,&
@@ -62,8 +63,8 @@ CONTAINS
 !>      02.2008 created
 !> \author Benjamin G Levine
 ! *****************************************************************************
-  SUBROUTINE apply_qmmm_walls(force_env, error)
-    TYPE(force_env_type), POINTER            :: force_env
+  SUBROUTINE apply_qmmm_walls(qmmm_env, error)
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'apply_qmmm_walls', &
@@ -74,14 +75,13 @@ CONTAINS
     TYPE(section_vals_type), POINTER         :: walls_section
 
     failure         = .FALSE.
-    walls_section => section_vals_get_subs_vals(force_env%root_section,&
-        "FORCE_EVAL%QMMM%WALLS",error=error)
+    walls_section => section_vals_get_subs_vals(qmmm_env%qs_env%input,"QMMM%WALLS",error=error)
     CALL section_vals_get(walls_section, explicit=explicit, error=error)
     IF (explicit) THEN
        CALL section_vals_val_get(walls_section,"TYPE",i_val=iwall_type,error=error)
        SELECT CASE(iwall_type)
        CASE(do_qmmm_wall_quadratic)
-          CALL apply_qmmm_walls_quadratic(force_env, walls_section, error)
+          CALL apply_qmmm_walls_quadratic(qmmm_env, walls_section, error)
        CASE(do_qmmm_wall_reflective)
           ! Do nothing.. reflective walls are applied directly in the integrator
        END SELECT
@@ -99,8 +99,8 @@ CONTAINS
 !>      08.2007 created [tlaino] - Zurich University
 !> \author Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE apply_qmmm_walls_reflective(force_env, error)
-    TYPE(force_env_type), POINTER            :: force_env
+  SUBROUTINE apply_qmmm_walls_reflective(qmmm_env, error)
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'apply_qmmm_walls_reflective', &
@@ -119,97 +119,90 @@ CONTAINS
     TYPE(section_vals_type), POINTER         :: walls_section
 
     failure         = .FALSE.
-    SELECT CASE(force_env%in_use)
-    CASE(use_qmmm)
-       NULLIFY(subsys_mm, subsys_qm, qm_atom_index,particles_mm, qm_cell, mm_cell,&
-            walls_section)
-       walls_section => section_vals_get_subs_vals(force_env%root_section,"FORCE_EVAL%QMMM%WALLS",error=error)
-       CALL section_vals_get(walls_section, explicit=explicit, error=error)
-       IF (explicit) THEN
-          NULLIFY(list)
-          CALL section_vals_val_get(walls_section,"WALL_SKIN",r_vals=list,error=error)
-          CALL section_vals_val_get(walls_section,"TYPE",i_val=iwall_type,error=error)
-          skin(:) = list(:)
-       ELSE
-          ![NB]
-          iwall_type=do_qmmm_wall_reflective
-          skin(:) = 0.0_dp
-       END IF
-       CPPrecondition(ASSOCIATED(force_env),cp_failure_level,routineP,error,failure)
-       CPPrecondition(force_env%ref_count>0,cp_failure_level,routineP,error,failure)
-       CPPrecondition(ASSOCIATED(force_env%qmmm_env),cp_failure_level,routineP,error,failure)
-       CPPrecondition(force_env%qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    NULLIFY(subsys_mm, subsys_qm, qm_atom_index,particles_mm, qm_cell, mm_cell,&
+         walls_section)
+    walls_section => section_vals_get_subs_vals(qmmm_env%qs_env%input,"QMMM%WALLS",error=error)
+    CALL section_vals_get(walls_section, explicit=explicit, error=error)
+    IF (explicit) THEN
+       NULLIFY(list)
+       CALL section_vals_val_get(walls_section,"WALL_SKIN",r_vals=list,error=error)
+       CALL section_vals_val_get(walls_section,"TYPE",i_val=iwall_type,error=error)
+       skin(:) = list(:)
+    ELSE
+       ![NB]
+       iwall_type=do_qmmm_wall_reflective
+       skin(:) = 0.0_dp
+    END IF
+    CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-       IF (force_env%qmmm_env%qm%do_force_mixing) THEN
-          CALL cp_assert(iwall_type == do_qmmm_wall_none, &
-            cp_warning_level,cp_assertion_failed,routineP,&
-            "Reflective walls for QM/MM are not implemented (or useful) when "//&
-            "force mixing is active.  Skipping!"//CPSourceFileRef)
-          RETURN
-       END IF
+    IF (qmmm_env%qm%do_force_mixing) THEN
+       CALL cp_assert(iwall_type == do_qmmm_wall_none, &
+         cp_warning_level,cp_assertion_failed,routineP,&
+         "Reflective walls for QM/MM are not implemented (or useful) when "//&
+         "force mixing is active.  Skipping!"//CPSourceFileRef)
+       RETURN
+    END IF
 
-       CALL fist_env_get(force_env%sub_force_env(primary_subsys)%force_env%qmmm_env%fist_env,&
-                          cell=mm_cell,subsys=subsys_mm,error=error)
-       CALL get_qs_env(force_env%sub_force_env(primary_subsys)%force_env%qmmm_env%qs_env,&
-                          cell=qm_cell,cp_subsys=subsys_qm,error=error)
-       qm_atom_index   => force_env%qmmm_env%qm%qm_atom_index
-       CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
+    CALL fist_env_get(qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
+    CALL get_qs_env(qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)
+    qm_atom_index   => qmmm_env%qm%qm_atom_index
+    CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
 
-       qm_cell_diag = (/qm_cell%hmat(1,1),&
-                        qm_cell%hmat(2,2),&
-                        qm_cell%hmat(3,3)/)
-       particles_mm => subsys_mm%particles%els
-       DO ip=1,SIZE(qm_atom_index)
-          qm_index = qm_atom_index(ip)
-          coord = particles_mm(qm_index)%r
-          IF (ANY(coord<skin).OR.ANY(coord>(qm_cell_diag-skin))) THEN
-             IF (explicit) THEN
-                IF (iwall_type==do_qmmm_wall_reflective) THEN
-                   ! Apply Walls
-                   is_x(1) = (coord(1)<skin(1))
-                   is_x(2) = (coord(1)>(qm_cell_diag(1)-skin(1)))
-                   is_y(1) = (coord(2)<skin(2))
-                   is_y(2) = (coord(2)>(qm_cell_diag(2)-skin(2)))
-                   is_z(1) = (coord(3)<skin(3))
-                   is_z(2) = (coord(3)>(qm_cell_diag(3)-skin(3)))
-                   IF (ANY(is_x)) THEN
-                      ! X coordinate
-                      IF      (is_x(1)) THEN
-                         particles_mm(qm_index)%v(1) =  ABS(particles_mm(qm_index)%v(1))
-                      ELSE IF (is_x(2)) THEN
-                         particles_mm(qm_index)%v(1) =  -ABS(particles_mm(qm_index)%v(1))
-                      END IF
+    qm_cell_diag = (/qm_cell%hmat(1,1),&
+                     qm_cell%hmat(2,2),&
+                     qm_cell%hmat(3,3)/)
+    particles_mm => subsys_mm%particles%els
+    DO ip=1,SIZE(qm_atom_index)
+       qm_index = qm_atom_index(ip)
+       coord = particles_mm(qm_index)%r
+       IF (ANY(coord<skin).OR.ANY(coord>(qm_cell_diag-skin))) THEN
+          IF (explicit) THEN
+             IF (iwall_type==do_qmmm_wall_reflective) THEN
+                ! Apply Walls
+                is_x(1) = (coord(1)<skin(1))
+                is_x(2) = (coord(1)>(qm_cell_diag(1)-skin(1)))
+                is_y(1) = (coord(2)<skin(2))
+                is_y(2) = (coord(2)>(qm_cell_diag(2)-skin(2)))
+                is_z(1) = (coord(3)<skin(3))
+                is_z(2) = (coord(3)>(qm_cell_diag(3)-skin(3)))
+                IF (ANY(is_x)) THEN
+                   ! X coordinate
+                   IF      (is_x(1)) THEN
+                      particles_mm(qm_index)%v(1) =  ABS(particles_mm(qm_index)%v(1))
+                   ELSE IF (is_x(2)) THEN
+                      particles_mm(qm_index)%v(1) =  -ABS(particles_mm(qm_index)%v(1))
                    END IF
-                   IF (ANY(is_y)) THEN
-                      ! Y coordinate
-                      IF      (is_y(1)) THEN
-                         particles_mm(qm_index)%v(2) =  ABS(particles_mm(qm_index)%v(2))
-                      ELSE IF (is_y(2)) THEN
-                         particles_mm(qm_index)%v(2) =  -ABS(particles_mm(qm_index)%v(2))
-                      END IF
+                END IF
+                IF (ANY(is_y)) THEN
+                   ! Y coordinate
+                   IF      (is_y(1)) THEN
+                      particles_mm(qm_index)%v(2) =  ABS(particles_mm(qm_index)%v(2))
+                   ELSE IF (is_y(2)) THEN
+                      particles_mm(qm_index)%v(2) =  -ABS(particles_mm(qm_index)%v(2))
                    END IF
-                   IF (ANY(is_z)) THEN
-                      ! Z coordinate
-                      IF      (is_z(1)) THEN
-                         particles_mm(qm_index)%v(3) =  ABS(particles_mm(qm_index)%v(3))
-                      ELSE IF (is_z(2)) THEN
-                         particles_mm(qm_index)%v(3) =  -ABS(particles_mm(qm_index)%v(3))
-                      END IF
+                END IF
+                IF (ANY(is_z)) THEN
+                   ! Z coordinate
+                   IF      (is_z(1)) THEN
+                      particles_mm(qm_index)%v(3) =  ABS(particles_mm(qm_index)%v(3))
+                   ELSE IF (is_z(2)) THEN
+                      particles_mm(qm_index)%v(3) =  -ABS(particles_mm(qm_index)%v(3))
                    END IF
-                ENDIF
-             ELSE
-                ! Otherwise print a warning and continue crossing cp2k's finger..
-                CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,routineP,&
-                "One or few QM atoms are within the SKIN of the quantum box. Check your run "//&
-                "and you may possibly consider: the activation of the QMMM WALLS "//&
-                "around the QM box, switching ON the centering of the QM box or increase "//&
-                "the size of the QM cell. CP2K CONTINUE but results could be meaningless. "//&
-                CPSourceFileRef,&
-                only_ionode=.TRUE.)
-             END IF
+                END IF
+             ENDIF
+          ELSE
+             ! Otherwise print a warning and continue crossing cp2k's finger..
+             CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,routineP,&
+             "One or few QM atoms are within the SKIN of the quantum box. Check your run "//&
+             "and you may possibly consider: the activation of the QMMM WALLS "//&
+             "around the QM box, switching ON the centering of the QM box or increase "//&
+             "the size of the QM cell. CP2K CONTINUE but results could be meaningless. "//&
+             CPSourceFileRef,&
+             only_ionode=.TRUE.)
           END IF
-       END DO
-    END SELECT
+       END IF
+    END DO
 
   END SUBROUTINE apply_qmmm_walls_reflective
 
@@ -224,8 +217,8 @@ CONTAINS
 !>      02.2008 created
 !> \author Benjamin G Levine
 ! *****************************************************************************
-  SUBROUTINE apply_qmmm_walls_quadratic(force_env, walls_section, error)
-    TYPE(force_env_type), POINTER            :: force_env
+  SUBROUTINE apply_qmmm_walls_quadratic(qmmm_env, walls_section, error)
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(section_vals_type), POINTER         :: walls_section
     TYPE(cp_error_type), INTENT(inout)       :: error
 
@@ -248,12 +241,10 @@ CONTAINS
     NULLIFY(list)
     CALL section_vals_val_get(walls_section,"WALL_SKIN",r_vals=list,error=error)
     CALL section_vals_val_get(walls_section,"K",r_val=k,error=error)
-    CPPrecondition(ASSOCIATED(force_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(force_env%ref_count>0,cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(force_env%qmmm_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(force_env%qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    IF (force_env%qmmm_env%qm%do_force_mixing) THEN
+    IF (qmmm_env%qm%do_force_mixing) THEN
        CALL cp_assert(.FALSE., &
           cp_warning_level,cp_assertion_failed,routineP,&
           "Quadratic walls for QM/MM are not implemented (or useful), when "//&
@@ -261,10 +252,10 @@ CONTAINS
        RETURN
     END IF
 
-    CALL fist_env_get(force_env%qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
-    CALL get_qs_env(force_env%qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)
+    CALL fist_env_get(qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
+    CALL get_qs_env(qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)
 
-    qm_atom_index   => force_env%qmmm_env%qm%qm_atom_index
+    qm_atom_index   => qmmm_env%qm%qm_atom_index
     CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
 
     skin(:) = list(:)
@@ -326,7 +317,7 @@ CONTAINS
        ENDIF
     ENDDO
 
-    CALL get_qs_env(qs_env=force_env%qmmm_env%qs_env, energy=energy,error=error)
+    CALL get_qs_env(qs_env=qmmm_env%qs_env, energy=energy,error=error)
     energy%total = energy%total + wallenergy
 
   END SUBROUTINE apply_qmmm_walls_quadratic

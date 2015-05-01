@@ -10,8 +10,7 @@
 !> \author Alin M Elena
 ! *****************************************************************************
 MODULE tamc_run
-!!!!!!!!!!
-!!!!!!!!!! integrators
+
   USE atomic_kind_list_types,          ONLY: atomic_kind_list_type
   USE atomic_kind_types,               ONLY: atomic_kind_type
   USE averages_types,                  ONLY: average_quantities_type
@@ -1029,7 +1028,7 @@ SUBROUTINE qs_tamc(force_env, globenv,averages,error)
 !!!! this bit should vanish once I understand what the hell is with it
 
 !     ! Do some checks on coordinates and box
-     CALL apply_qmmm_walls_reflective(force_env, error=error)
+     CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
 
      CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules,molecules_new=molecules,&
