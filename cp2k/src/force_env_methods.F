@@ -55,7 +55,7 @@ MODULE force_env_methods
   USE force_env_types,                 ONLY: &
        force_env_get, force_env_get_natom, force_env_p_type, force_env_set, &
        force_env_type, use_eip_force, use_fist_force, use_mixed_force, &
-       use_prog_name, use_qmmm, use_qs_force
+       use_prog_name, use_qmmm, use_qmmmx, use_qs_force
   USE force_env_utils,                 ONLY: rescale_forces,&
                                              write_forces,&
                                              write_stress_tensor
@@ -102,6 +102,8 @@ MODULE force_env_methods
   USE qmmm_force,                      ONLY: qmmm_calc_energy_force
   USE qmmm_types,                      ONLY: qmmm_env_retain,&
                                              qmmm_env_type
+  USE qmmmx_types,                     ONLY: qmmmx_env_retain,&
+                                             qmmmx_env_type
   USE qmmm_types_low,                  ONLY: force_mixing_core_subsys,&
                                              force_mixing_extended_subsys,&
                                              force_mixing_label_QM_core,&
@@ -236,8 +238,13 @@ CONTAINS
                 CALL eip_bazant(force_env%eip_env, error=error)
              END IF
           CASE ( use_qmmm )
-             CALL qmmm_energy_and_forces(force_env,calculate_forces,energy_consistency,&
+             CALL qmmm_calc_energy_force(force_env%qmmm_env,calculate_forces,energy_consistency,&
                   linres=linres_run,error=error)
+           CASE ( use_qmmmx )
+             STOP "qmmmx_calc_energy_forces"
+             !CALL qmmm_energy_and_forces(force_env,calculate_forces,energy_consistency,&
+             !     linres=linres_run,error=error)
+             !
           CASE ( use_mixed_force )
              CALL mixed_energy_forces(force_env,calculate_forces,error=error)
           CASE default
@@ -657,6 +664,7 @@ CONTAINS
 !> \param meta_env ...
 !> \param sub_force_env ...
 !> \param qmmm_env ...
+!> \param qmmmx_env ...
 !> \param eip_env ...
 !> \param force_env_section ...
 !> \param mixed_env ...
@@ -667,7 +675,7 @@ CONTAINS
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE force_env_create(force_env,root_section,para_env,globenv,fist_env,&
-       qs_env,meta_env,sub_force_env,qmmm_env,eip_env,force_env_section,&
+       qs_env,meta_env,sub_force_env,qmmm_env,qmmmx_env,eip_env,force_env_section,&
        mixed_env,error)
 
     TYPE(force_env_type), POINTER            :: force_env
@@ -682,6 +690,7 @@ CONTAINS
     TYPE(force_env_p_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: sub_force_env
     TYPE(qmmm_env_type), OPTIONAL, POINTER   :: qmmm_env
+    TYPE(qmmmx_env_type), OPTIONAL, POINTER  :: qmmmx_env
     TYPE(eip_environment_type), OPTIONAL, &
       POINTER                                :: eip_env
     TYPE(section_vals_type), POINTER         :: force_env_section
@@ -703,7 +712,7 @@ CONTAINS
        NULLIFY (force_env%fist_env, force_env%qs_env, &
             force_env%para_env, force_env%globenv, &
             force_env%meta_env, force_env%sub_force_env, &
-            force_env%qmmm_env, force_env%fp_env, &
+            force_env%qmmm_env, force_env%qmmmx_env, force_env%fp_env, &
             force_env%force_env_section, force_env%eip_env,force_env%mixed_env,&
             force_env%root_section)
        last_force_env_id=last_force_env_id+1
@@ -752,6 +761,11 @@ CONTAINS
           force_env%in_use=use_qmmm
           force_env%qmmm_env => qmmm_env
           CALL qmmm_env_retain(qmmm_env,error=error)
+       END IF
+       IF (PRESENT(qmmmx_env)) THEN
+          force_env%in_use=use_qmmmx
+          force_env%qmmmx_env => qmmmx_env
+          CALL qmmmx_env_retain(qmmmx_env,error=error)
        END IF
        IF (PRESENT(mixed_env)) THEN
           CPPrecondition(force_env%in_use==0, cp_failure_level, routineP, error, failure)
@@ -821,6 +835,7 @@ CONTAINS
                                                 particles_qmmm_extended
     TYPE(section_vals_type), POINTER         :: force_env_section
 
+    STOP "qmmm_energy_and_forces: outdated"
     IF (consistent_energies) THEN
       CALL cp_assert(.NOT. qmmm_force_mixing_active(force_env, error),&
           cp_failure_level,cp_assertion_failed,&
@@ -832,7 +847,7 @@ CPSourceFileRef,&
     ! Possibly translate the system
     CALL apply_qmmm_translate(force_env, error)
 
-    IF (force_env%qmmm_env%qm%do_force_mixing) STOP "qmmm_force_mixing not supporte, yet"
+    IF (force_env%qmmm_env%do_force_mixing) STOP "qmmm_force_mixing not supporte, yet"
 
     CALL qmmm_calc_energy_force(force_env%qmmm_env,calc_force,consistent_energies,linres,error)
 
@@ -840,7 +855,7 @@ CPSourceFileRef,&
 !        ! For force mixing only (for now), wrap positions before QM/MM calculation.
 !        ! Required if diffusion causes atoms outside of periodic box get added to QM
 !        ! region.
-!        IF (force_env%qmmm_env%qm%do_force_mixing) THEN ! force mixing only
+!        IF (force_env%qmmm_env%do_force_mixing) THEN ! force mixing only
 !           CALL fist_env_get(force_env%sub_force_env(isubf)%force_env%qmmm_env%fist_env,&
 !                             cell=mm_cell,subsys=subsys_mm,error=error)
 !           CALL get_qs_env(force_env%sub_force_env(isubf)%force_env%qmmm_env%qs_env, cp_subsys=subsys_qm,error=error)
@@ -885,7 +900,7 @@ CPSourceFileRef,&
 !        ! see force_env_get for potential energy to copy 
 !        ! copy forces, energy, virial up
 !        CONTINUE
-!    ELSE IF (force_env%qmmm_env%qm%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing happens here
+!    ELSE IF (force_env%qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! force mixing happens here
 !        ! energy will just inherit from extended sub_force_env in force_env_get()
 !
 !        ! get forces from subsys of each sub force env

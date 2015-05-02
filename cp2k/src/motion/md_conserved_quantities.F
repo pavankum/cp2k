@@ -217,7 +217,7 @@ CONTAINS
     CALL get_md_env (md_env, force_env=force_env, error=error)
     CALL force_env_get(force_env, subsys=subsys, qmmm_env=qmmm_env, force_env_section=force_env_section, error=error)
     IF(ASSOCIATED(qmmm_env)) THEN
-      IF (.NOT. qmmm_env%qm%do_force_mixing) THEN ! conventional QM/MM
+      IF (.NOT. qmmm_env%do_force_mixing) THEN ! conventional QM/MM
         CALL cp_subsys_get(subsys, particles=particles, error=error)
         ! The degrees of freedom for the quantum part of the system
         ! are set to 3*Number of QM atoms and to simpar%nfree in case all the MM
@@ -226,7 +226,7 @@ CONTAINS
         ! MM. In this case we should take care of rotations
         nfree_qm = 3*SIZE(qmmm_env%qm%qm_atom_index)
         IF (nfree_qm == 3*(particles%n_els)) nfree_qm = md_ener%nfree
-      ELSE IF (qmmm_env%qm%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! doing force mixing
+      ELSE IF (qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! doing force mixing
         CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%INDICES",i_vals=cur_indices,error=error)
         CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%LABELS",i_vals=cur_labels,error=error)
         nfree_qm = 0
@@ -660,7 +660,7 @@ CPSourceFileRef, error)
     !
     ! Compute the QM/MM kinetic energy
     IF (ASSOCIATED(qmmm_env)) THEN
-       IF (.NOT. qmmm_env%qm%do_force_mixing) THEN ! conventional QM/MM
+       IF (.NOT. qmmm_env%do_force_mixing) THEN ! conventional QM/MM
           DO i = 1, SIZE(qmmm_env%qm%qm_atom_index)
              iparticle = qmmm_env%qm%qm_atom_index(i)
              mass = particle_set(iparticle)%atomic_kind%mass
@@ -669,7 +669,7 @@ CPSourceFileRef, error)
                   + particle_set(iparticle)%v(2)* particle_set(iparticle)%v(2) &
                   + particle_set(iparticle)%v(3)* particle_set(iparticle)%v(3) )
           END DO
-       ELSE IF (qmmm_env%qm%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! doing force mixing
+       ELSE IF (qmmm_env%do_force_mixing .AND. SIZE(force_env%sub_force_env) == 2) THEN ! doing force mixing
           CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%INDICES",i_vals=cur_indices,error=error)
           CALL section_vals_val_get(force_env_section,"QMMM%FORCE_MIXING%RESTART_INFO%LABELS",i_vals=cur_labels,error=error)
           DO i=1, SIZE(cur_indices)

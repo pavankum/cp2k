@@ -76,6 +76,7 @@ MODULE f77_interface
                                              do_fist,&
                                              do_mixed,&
                                              do_qmmm,&
+                                             do_qmmmx,&
                                              do_qs
   USE input_cp2k_check,                ONLY: check_cp2k_input
   USE input_cp2k_force_eval,           ONLY: create_force_eval_section
@@ -89,7 +90,7 @@ MODULE f77_interface
        section_get_keyword, section_release, section_type, &
        section_vals_duplicate, section_vals_get_subs_vals, &
        section_vals_release, section_vals_remove_values, section_vals_retain, &
-       section_vals_type, section_vals_val_get, section_vals_write
+       section_vals_type, section_vals_val_get, section_vals_write, section_vals_get
   USE kinds,                           ONLY: default_path_length,&
                                              default_string_length,&
                                              dp
@@ -109,7 +110,8 @@ MODULE f77_interface
   USE periodic_table,                  ONLY: init_periodic_table
   USE pw_cuda,                         ONLY: pw_cuda_finalize,&
                                              pw_cuda_init
-  USE qmmm_create,                     ONLY: qmmm_create_force_env
+  USE qmmm_create,                     ONLY: qmmm_env_create
+  USE qmmm_types,                      ONLY: qmmm_env_type, qmmm_env_release
   USE qs_environment,                  ONLY: qs_init
   USE qs_environment_types,            ONLY: qs_env_create,&
                                              qs_env_release,&
@@ -660,11 +662,12 @@ CONTAINS
                                                 i_force_eval, &
                                                 lgroup_distribution
     LOGICAL :: check, failure, multiple_subsys, my_echo, my_owns_out_unit, &
-      use_motion_section, use_multiple_para_env
+      use_motion_section, use_multiple_para_env, do_qmmm_force_mixing
     TYPE(cp_error_type)                      :: error, my_error
     TYPE(cp_logger_type), POINTER            :: logger
     TYPE(cp_para_env_type), POINTER          :: my_para_env, para_env
     TYPE(eip_environment_type), POINTER      :: eip_env
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(enumeration_type), POINTER          :: enum
     TYPE(f_env_p_type), DIMENSION(:), &
       POINTER                                :: f_envs_old
@@ -679,14 +682,14 @@ CONTAINS
     TYPE(section_type), POINTER              :: section
     TYPE(section_vals_type), POINTER :: fe_section, force_env_section, &
       force_env_sections, fp_section, input_file, root_section, &
-      subsys_section, wrk_section
+      subsys_section, wrk_section, qmmmx_section, qmmm_section
     TYPE(timer_env_type), POINTER            :: timer_env
 
     failure=.FALSE.
 
     CPPrecondition(ASSOCIATED(input_declaration),cp_failure_level,routineP,error,failure)
     NULLIFY(para_env, force_env,timer_env,mp_perf_env, globenv,meta_env,&
-            fp_env,eip_env,mixed_env,qs_env)
+            fp_env,eip_env,mixed_env,qs_env,qmmm_env)
     new_env_id=-1
     IF (PRESENT(mpi_comm)) THEN
        CALL cp_para_env_create(para_env, group=mpi_comm, owns_group=.FALSE.,error=error)
@@ -855,6 +858,13 @@ CPSourceFileRef,&
           END IF
           CALL section_vals_val_get(force_env_section,"METHOD",i_val=method_name_id,error=my_error)
 
+          IF(method_name_id==do_qmmm) THEN
+             qmmmx_section => section_vals_get_subs_vals(force_env_section,"QMMM%FORCE_MIXING",error=error)
+             CALL section_vals_get(qmmmx_section,explicit=do_qmmm_force_mixing,error=error)
+             IF(do_qmmm_force_mixing)&
+                method_name_id = do_qmmmx ! We are really doing  if QMMM Force-Mixing is enabled
+          ENDIF
+
           SELECT CASE (method_name_id)
           CASE (do_fist)
              CALL fist_create_force_env ( my_force_env, root_section, my_para_env, globenv,&
@@ -869,9 +879,18 @@ CPSourceFileRef,&
              CALL qs_env_release(qs_env,error=my_error)
 
           CASE (do_qmmm)
-             CALL qmmm_create_force_env( my_force_env, root_section, my_para_env, globenv,&
-                  force_env_section=force_env_section, subsys_section=subsys_section,&
-                  use_motion_section=use_motion_section, error=my_error)
+             qmmm_section => section_vals_get_subs_vals(force_env_section,"QMMM",error=error)
+             CALL qmmm_env_create(qmmm_env, root_section, para_env, globenv,&
+                  force_env_section, qmmm_section, subsys_section, use_motion_section, error=my_error)
+             CALL force_env_create(my_force_env,root_section, qmmm_env=qmmm_env, para_env=para_env,&
+                  globenv=globenv, force_env_section=force_env_section, error=my_error)
+             CALL qmmm_env_release(qmmm_env,error=my_error)
+
+          CASE (do_qmmmx)
+             STOP "qmmmx create force env not implemented yet"
+             !CALL qmmm_create_force_env( my_force_env, root_section, my_para_env, globenv,&
+             !     force_env_section=force_env_section, subsys_section=subsys_section,&
+             !     use_motion_section=use_motion_section, error=my_error)
 
           CASE (do_eip)
              CALL eip_env_create(eip_env, error=my_error)

@@ -61,8 +61,7 @@ MODULE qmmm_create
        setup_qmmm_vars_mm, setup_qmmm_vars_qm
   USE qmmm_links_methods,              ONLY: qmmm_link_Imomm_coord
   USE qmmm_pw_grid,                    ONLY: qmmm_pw_grid_init
-  USE qmmm_types,                      ONLY: qmmm_env_create,&
-                                             qmmm_env_type, qmmm_env_release
+  USE qmmm_types,                      ONLY: qmmm_env_type, qmmm_env_release
   USE qmmm_types_low,                  ONLY: &
        add_set_release, add_set_type, force_mixing_core_subsys, &
        force_mixing_extended_subsys, qmmm_env_mm_create, qmmm_env_mm_type, &
@@ -84,7 +83,7 @@ MODULE qmmm_create
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.TRUE.
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmm_create'
 
-  PUBLIC :: qmmm_create_force_env, qmmm_create_force_env_low
+  PUBLIC :: qmmm_create_force_env, qmmm_env_create
 
 CONTAINS
 
@@ -176,7 +175,7 @@ CONTAINS
     !      CALL force_env_release(use_dummy_force_env, error=error)
     !    ENDIF
     ELSE
-      CALL qmmm_create_force_env_low(qmmm_env, root_section, para_env, globenv,&
+      CALL qmmm_env_create(qmmm_env, root_section, para_env, globenv,&
            force_env_section, qmmm_section, subsys_section, use_motion_section, error=error)
       CALL force_env_create(force_env,root_section, qmmm_env=qmmm_env, para_env=para_env,&
            globenv=globenv, force_env_section=force_env_section, error=error)
@@ -192,7 +191,7 @@ CONTAINS
 
      ! set a flag to identify when force mixing is active
      CALL force_env_get(force_env,qmmm_env=qmmm_env,error=error)
-     qmmm_env%qm%do_force_mixing = force_mixing_active
+     qmmm_env%do_force_mixing = force_mixing_active
 
   END SUBROUTINE qmmm_create_force_env
 
@@ -214,21 +213,21 @@ CONTAINS
 !>      05.2004 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE qmmm_create_force_env_low(qmmm_env, root_section, para_env, globenv,&
+  SUBROUTINE qmmm_env_create(qmmm_env, root_section, para_env, globenv,&
        force_env_section, qmmm_section, subsys_section, use_motion_section, prev_subsys, &
        ignore_outside_box, error)
     TYPE(qmmm_env_type), POINTER             :: qmmm_env
     TYPE(section_vals_type), POINTER         :: root_section
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(global_environment_type), POINTER   :: globenv
-    TYPE(section_vals_type), POINTER         :: force_env_section, &
-                                                qmmm_section, subsys_section
+    TYPE(section_vals_type), POINTER         :: force_env_section, qmmm_section, &
+                                                subsys_section
     LOGICAL, INTENT(IN)                      :: use_motion_section
     TYPE(cp_subsys_type), OPTIONAL, POINTER  :: prev_subsys
     LOGICAL, INTENT(in), OPTIONAL            :: ignore_outside_box
     TYPE(cp_error_type), INTENT(inout)       :: error
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_create_force_env_low', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_create', &
       routineP = moduleN//':'//routineN
 
     CHARACTER(len=default_string_length), &
@@ -560,17 +559,22 @@ CONTAINS
 
        CALL cell_release(qm_cell_small, error)
 
-       CALL qmmm_env_create(qmmm_env, qs_env, fist_env, qmmm_env_qm, error)
-       CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_qmmm,error=error)
-       CALL qmmm_env_qm_release(qmmm_env_qm, error)
-       CALL qmmm_env_mm_release(qmmm_env_mm, error)
-       CALL qs_env_release(qs_env, error)
-       CALL fist_env_release(fist_env, error)
+       ! assemble the actuall qmmm_env
+       ALLOCATE(qmmm_env)
+       qmmm_env%ref_count = 1
+       qmmm_env%qs_env => qs_env
+       qmmm_env%fist_env => fist_env
+       qmmm_env%qm => qmmm_env_qm
 
+       ! The qmmm_env inherits our ref_cout for qmmm_env_qm, fist_env, qs_env
+       ! An expection is qmmm_env_mm, because it's buried in the fist_env
+       CALL qmmm_env_mm_release(qmmm_env_mm, error)
+
+       CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_qmmm,error=error)
        DEALLOCATE(qm_atom_type)
     END IF
     CALL timestop(handle)
 
-  END SUBROUTINE qmmm_create_force_env_low
+  END SUBROUTINE qmmm_env_create
 
 END MODULE qmmm_create

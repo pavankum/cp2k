@@ -44,6 +44,7 @@ MODULE qmmm_util
   PUBLIC :: apply_qmmm_walls_reflective,&
             apply_qmmm_walls,&
             apply_qmmm_translate,&
+            apply_qmmm_translate_low,&
             apply_qmmm_wrap,&
             apply_qmmm_unwrap,&
             spherical_cutoff_factor,&
@@ -134,7 +135,7 @@ CONTAINS
     CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
     CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    IF (qmmm_env%qm%do_force_mixing) THEN
+    IF (qmmm_env%do_force_mixing) THEN
        CALL cp_assert(iwall_type == do_qmmm_wall_none, &
          cp_warning_level,cp_assertion_failed,routineP,&
          "Reflective walls for QM/MM are not implemented (or useful) when "//&
@@ -242,7 +243,7 @@ CONTAINS
     CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
     CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    IF (qmmm_env%qm%do_force_mixing) THEN
+    IF (qmmm_env%do_force_mixing) THEN
        CALL cp_assert(.FALSE., &
           cp_warning_level,cp_assertion_failed,routineP,&
           "Quadratic walls for QM/MM are not implemented (or useful), when "//&
@@ -434,7 +435,7 @@ CONTAINS
     SELECT CASE(force_env%in_use)
 
     CASE(use_qmmm)
-      IF (.NOT.force_env%qmmm_env%qm%do_force_mixing) THEN
+      IF (.NOT.force_env%qmmm_env%do_force_mixing) THEN
         CALL apply_qmmm_translate_low(force_env%qmmm_env,error)
       ELSE IF (SIZE(force_env%sub_force_env) == 2) THEN
         ! want to center extended, and make core consistent with that

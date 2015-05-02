@@ -16,6 +16,20 @@ MODULE qmmm_types
   USE qs_environment_types,            ONLY: qs_env_release,&
                                              qs_env_retain,&
                                              qs_environment_type
+  USE qs_energy_types,                 ONLY: qs_energy_type
+  USE fist_energy_types,               ONLY: fist_energy_type
+  USE fist_environment_types,          ONLY: fist_env_get,&
+                                             fist_env_release,&
+                                             fist_environment_type
+  USE cp_subsys_types,                 ONLY: cp_subsys_get,&
+                                             cp_subsys_type,&
+                                             pack_subsys_particles
+  USE qs_energy_types,                 ONLY: qs_energy_type
+  USE qs_environment_types,            ONLY: get_qs_env,&
+                                             qs_env_release,&
+                                             qs_environment_type
+  USE kinds,                           ONLY: dp
+
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -23,54 +37,56 @@ MODULE qmmm_types
 
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmm_types'
 
-  PUBLIC :: qmmm_env_type, qmmm_env_retain, qmmm_env_release, qmmm_env_create
+  PUBLIC :: qmmm_env_type, qmmm_env_retain, qmmm_env_release, qmmm_env_get
 
- ! *****************************************************************************
+  ! *****************************************************************************
   TYPE qmmm_env_type
      INTEGER                                                 :: ref_count = -1
      TYPE(qs_environment_type), POINTER                      :: qs_env => Null()
      TYPE(fist_environment_type), POINTER                    :: fist_env => Null()
      TYPE(qmmm_env_qm_type), POINTER                         :: qm => Null()
+     LOGICAL                                                 :: do_force_mixing = .FALSE.
   END TYPE qmmm_env_type
 
 CONTAINS
 
 ! *****************************************************************************
-!> \brief TODO
-!> \param qmmm_env ...
-!> \param qs_env ...
-!> \param fist_env ...
-!> \param qmmm_env_qm ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE qmmm_env_create(qmmm_env, qs_env, fist_env, qmmm_env_qm, error)
+  SUBROUTINE qmmm_env_get(qmmm_env,subsys,potential_energy,kinetic_energy,error)
     TYPE(qmmm_env_type), POINTER             :: qmmm_env
-    TYPE(qs_environment_type), POINTER       :: qs_env
-    TYPE(fist_environment_type), POINTER     :: fist_env
-    TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env_qm
+    TYPE(cp_subsys_type), OPTIONAL, POINTER  :: subsys
+    REAL(KIND=dp), INTENT(OUT), OPTIONAL     :: potential_energy, &
+                                                kinetic_energy
     TYPE(cp_error_type), INTENT(inout)       :: error
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_create', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_get', &
       routineP = moduleN//':'//routineN
 
-    IF(ASSOCIATED(qmmm_env)) STOP "qmmm_env_create: qmmm_env already associated"
-    IF(.NOT. ASSOCIATED(qs_env)) STOP "qmmm_env_create: qs_env not associated"
-    IF(.NOT. ASSOCIATED(fist_env)) STOP "qmmm_env_create: fist_env not associated"
-    IF(.NOT. ASSOCIATED(qmmm_env_qm)) STOP "qmmm_env_create: qmmm_env_qm not associated"
+    LOGICAL                                  :: failure
+    TYPE(qs_energy_type), POINTER            :: qs_energy
+    TYPE(fist_energy_type), POINTER          :: thermo
+    failure=.FALSE.
+    NULLIFY(qs_energy, thermo)
 
-    ALLOCATE(qmmm_env)
-    qmmm_env%ref_count = 1
-    qmmm_env%qs_env => qs_env
-    qmmm_env%fist_env => fist_env
-    qmmm_env%qm => qmmm_env_qm
+    CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    CALL qs_env_retain(qs_env, error)
-    CALL fist_env_retain(fist_env, error)
-    CALL qmmm_env_qm_retain(qmmm_env_qm, error)
+    IF (PRESENT(kinetic_energy)) THEN
+        CALL fist_env_get(qmmm_env%fist_env,thermo=thermo,error=error)
+        kinetic_energy = thermo%kin
+    END IF
+    IF (PRESENT(subsys)) THEN
+        CALL fist_env_get(qmmm_env%fist_env,subsys=subsys,error=error)
+    ENDIF
+    IF (PRESENT(potential_energy)) THEN
+         ! get the underlying energies from primary subsys.  This is the only subsys
+         ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
+         CALL fist_env_get(qmmm_env%fist_env, thermo=thermo, error=error)
+         CALL get_qs_env(qmmm_env%qs_env,energy=qs_energy,error=error)
+         potential_energy = thermo%pot + qs_energy%total
+    ENDIF
+  END SUBROUTINE qmmm_env_get
 
-  END SUBROUTINE qmmm_env_create
 
 ! *****************************************************************************
 !> \brief ...

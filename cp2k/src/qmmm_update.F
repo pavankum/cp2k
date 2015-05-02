@@ -24,7 +24,7 @@ MODULE qmmm_update
                                              section_vals_get_subs_vals,&
                                              section_vals_release,&
                                              section_vals_type
-  USE qmmm_create,                     ONLY: qmmm_create_force_env_low
+  USE qmmm_create,                     ONLY: qmmm_env_create
   USE qmmm_force_mixing,               ONLY: setup_force_mixing_qmmm_sections,&
                                              update_force_mixing_labels
   USE qmmm_types_low,                  ONLY: force_mixing_core_subsys,&
@@ -135,19 +135,19 @@ CPSourceFileRef,&
         subsys_section => section_vals_get_subs_vals(force_env%force_env_section,"SUBSYS",error=error)
         NULLIFY(sub_force_env(force_mixing_core_subsys)%force_env)
         ![ADAPT] no sure about use_motion_section
-        CALL qmmm_create_force_env_low(sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env, &
+        CALL qmmm_env_create(sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env, &
           force_env%root_section, force_env%para_env, force_env%globenv,&
           force_env%force_env_section, qmmm_core_section, subsys_section, use_motion_section=.TRUE., &
           prev_subsys=subsys, ignore_outside_box = .TRUE., error=error)
         NULLIFY(sub_force_env(force_mixing_extended_subsys)%force_env)
-        CALL qmmm_create_force_env_low(sub_force_env(force_mixing_extended_subsys)%force_env%qmmm_env, &
+        CALL qmmm_env_create(sub_force_env(force_mixing_extended_subsys)%force_env%qmmm_env, &
           force_env%root_section, force_env%para_env, force_env%globenv,&
           force_env%force_env_section, qmmm_extended_section, subsys_section, use_motion_section=.TRUE., &
           prev_subsys=subsys, ignore_outside_box = .TRUE., error=error)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! [NB] need to copy wiener process data, since it's not recreated when
-        ! fist subsys is recreated by qmmm_create_force_env_low
+        ! fist subsys is recreated by qmmm_env_create
 
         CALL force_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env, subsys=subsys, error=error)
         CALL cp_subsys_get(subsys, atomic_kinds=atomic_kinds, local_particles=local_particles, error=error)
@@ -187,7 +187,7 @@ CPSourceFileRef,&
         CALL qmmm_env_qm_retain(force_env%qmmm_env%qm, error=error)
 
         ! set a flag to identify when force mixing is active
-        force_env%qmmm_env%qm%do_force_mixing = .TRUE.
+        force_env%qmmm_env%do_force_mixing = .TRUE.
 
       ENDIF
 
