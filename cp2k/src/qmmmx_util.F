@@ -10,6 +10,31 @@
 !> \author Noam Bernstein
 ! *****************************************************************************
 MODULE qmmmx_util
+ USE cp_subsys_types,                 ONLY: cp_subsys_get
+  USE cell_types,                      ONLY: cell_copy,&
+                                             cell_type
+  USE cp_subsys_types,                 ONLY: cp_subsys_type
+  USE fist_environment_types,          ONLY: fist_env_get
+  USE force_env_types,                 ONLY: force_env_get,&
+                                             force_env_type,&
+                                             use_qmmm, use_qmmmx
+  USE input_constants,                 ONLY: do_qmmm_wall_none,&
+                                             do_qmmm_wall_quadratic,&
+                                             do_qmmm_wall_reflective
+  USE input_section_types,             ONLY: section_vals_get,&
+                                             section_vals_get_subs_vals,&
+                                             section_vals_type,&
+                                             section_vals_val_get
+  USE kinds,                           ONLY: dp
+  USE mathconstants,                   ONLY: pi
+  USE particle_methods,                ONLY: write_fist_particle_coordinates,&
+                                             write_qs_particle_coordinates
+  USE particle_types,                  ONLY: particle_type
+  USE qmmm_types,                      ONLY: qmmm_env_type
+  USE qmmmx_types,                     ONLY: qmmmx_env_type
+  USE qs_energy_types,                 ONLY: qs_energy_type
+  USE qs_environment_types,            ONLY: get_qs_env
+  USE qs_kind_types,                   ONLY: qs_kind_type
   USE cp_para_types,                   ONLY: cp_para_env_type
   USE atomic_kind_types,               ONLY: atomic_kind_type,&
                                              get_atomic_kind,&
@@ -53,11 +78,108 @@ MODULE qmmmx_util
   LOGICAL, PRIVATE :: debug_this_module=.FALSE.
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmmx_util'
 
-  PUBLIC :: setup_force_mixing_qmmm_sections, update_force_mixing_labels
+  PUBLIC :: setup_force_mixing_qmmm_sections, update_force_mixing_labels,&
+            apply_qmmmx_translate
 
 
 !***
 CONTAINS
+
+
+! *****************************************************************************
+!> \brief Apply translation to the full system in order to center the QM
+!>      system into the QM box
+!> \param force_env ...
+!> \param error variable to control error logging, stopping,...
+!>        see module cp_error_handling
+!> \par History
+!>      08.2007 created [tlaino] - Zurich University
+!> \author Teodoro Laino
+! *****************************************************************************
+  SUBROUTINE apply_qmmmx_translate(qmmmx_env,error)
+    TYPE(qmmmx_env_type), POINTER            :: qmmmx_env
+    TYPE(cp_error_type), INTENT(inout)       :: error
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'apply_qmmmx_translate', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: ip
+    INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
+    LOGICAL                                  :: failure
+    REAL(dp), POINTER                        :: charges(:)
+    TYPE(cell_type), POINTER                 :: cell_core, cell_extended
+    TYPE(cp_subsys_type), POINTER            :: subsys_core, subsys_extended, &
+                                                subsys_fist, subsys_qs
+    TYPE(particle_type), DIMENSION(:), &
+      POINTER                                :: particles_core, &
+                                                particles_extended, &
+                                                particles_mm, particles_qm
+    TYPE(qs_kind_type), DIMENSION(:), &
+      POINTER                                :: qs_kind_set
+    TYPE(section_vals_type), POINTER         :: subsys_section
+
+    NULLIFY(qs_kind_set)
+
+    WRITE (*,*) "TODO: apply_qmmmx_translate not implemented"
+
+    !SELECT CASE(force_env%in_use)
+    !
+    !CASE(use_qmmm)
+    !  IF (.NOT.force_env%qmmm_env%do_force_mixing) THEN
+    !    CALL apply_qmmm_translate_low(force_env%qmmm_env,error)
+    !  ELSE IF (SIZE(force_env%sub_force_env) == 2) THEN
+    !    ! want to center extended, and make core consistent with that
+    !    CALL apply_qmmm_translate_low(force_env%sub_force_env(force_mixing_extended_subsys)%force_env%qmmm_env,error)
+    !
+    !    ! translate core fist particles
+    !    CALL force_env_get(force_env%sub_force_env(force_mixing_extended_subsys)%force_env,&
+    !                      subsys=subsys_extended,cell=cell_extended,error=error)
+    !    CALL force_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env,&
+    !                      subsys=subsys_core,cell=cell_core,error=error)
+    !    particles_extended => subsys_extended%particles%els
+    !    particles_core => subsys_core%particles%els
+    !    DO ip=1,SIZE(particles_extended)
+    !       particles_core(ip)%r = particles_extended(ip)%r
+    !    END DO
+    !    CALL cell_copy(cell_extended, cell_core, error)
+    !
+    !    ! also update core QM particles (like in apply_qmmm_translate_low)
+    !    CALL fist_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%fist_env,&
+    !                     subsys=subsys_fist,error=error)
+    !    CALL get_qs_env(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qs_env,&
+    !                     cp_subsys=subsys_qs,error=error)
+    !    qm_atom_index   => force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qm%qm_atom_index
+    !    particles_qm => subsys_qs%particles%els
+    !    particles_mm => subsys_fist%particles%els
+    !    CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
+    !    DO ip=1,SIZE(qm_atom_index)
+    !       particles_qm(ip)%r=particles_mm(qm_atom_index(ip))%r
+    !    END DO
+    !
+    !    IF (debug_this_module) THEN
+    !      CALL get_qs_env(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qs_env,&
+    !                        cp_subsys=subsys_core,cell=cell_core,error=error)
+    !      particles_core => subsys_core%particles%els
+    !      subsys_section => section_vals_get_subs_vals(force_env%force_env_section, &
+    !                                                          "SUBSYS",error=error)
+    !      CALL get_qs_env(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%qs_env,&
+    !                      qs_kind_set=qs_kind_set,error=error)
+    !      CALL write_qs_particle_coordinates(particles_core,qs_kind_set,subsys_section,&
+    !                                         "QM/MM core calc first QM, then MM (0 charges)",error)
+    !      CALL fist_env_get(force_env%sub_force_env(force_mixing_core_subsys)%force_env%qmmm_env%fist_env,&
+    !                        subsys=subsys_core,cell=cell_core,error=error)
+    !      particles_core => subsys_core%particles%els
+    !      ALLOCATE(charges(SIZE(particles_core)))
+    !      charges = 0.0_dp
+    !      CALL write_fist_particle_coordinates(particles_core,subsys_section,charges,error)
+    !      DEALLOCATE(charges)
+    !    ENDIF
+    !
+    !  ELSE
+    !     CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
+    !  ENDIF
+    !END SELECT
+  END SUBROUTINE apply_qmmmx_translate
 
 ! *****************************************************************************
 !> \brief ...

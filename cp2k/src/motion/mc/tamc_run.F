@@ -1028,7 +1028,7 @@ SUBROUTINE qs_tamc(force_env, globenv,averages,error)
 !!!! this bit should vanish once I understand what the hell is with it
 
 !     ! Do some checks on coordinates and box
-     CALL apply_qmmm_walls_reflective(force_env%qmmm_env, error=error)
+     CALL apply_qmmm_walls_reflective(force_env, error=error)
 
      CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules,molecules_new=molecules,&

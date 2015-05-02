@@ -39,7 +39,7 @@ MODULE qmmm_force
                                              qmmm_link_Imomm_forces
   USE qmmm_types,                      ONLY: qmmm_env_type
   USE qmmm_types_low,                  ONLY: qmmm_links_type
-  USE qmmm_util,                       ONLY: apply_qmmm_walls, apply_qmmm_translate_low
+  USE qmmm_util,                       ONLY: apply_qmmm_walls, apply_qmmm_translate
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env
   USE qs_force,                        ONLY: qs_calc_energy_force
@@ -115,7 +115,7 @@ CONTAINS
     CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
     ! Possibly translate the system
-    CALL apply_qmmm_translate_low(qmmm_env,error)
+    CALL apply_qmmm_translate(qmmm_env,error)
 
     CALL fist_env_get(qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
     CALL get_qs_env(qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)

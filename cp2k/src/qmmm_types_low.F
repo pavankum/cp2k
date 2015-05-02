@@ -38,11 +38,6 @@ MODULE qmmm_types_low
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.TRUE.
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmm_types_low'
   INTEGER, SAVE, PRIVATE :: last_qmmm_env_id_nr=0
-  INTEGER, PARAMETER, PUBLIC           :: primary_subsys = 1
-  !INTEGER, PARAMETER, PUBLIC           :: fist_subsys = 1,&
-  !                                        qs_subsys   = 2
-  INTEGER, PARAMETER, PUBLIC           :: force_mixing_extended_subsys   = 1,&
-                                          force_mixing_core_subsys = 2
   INTEGER, PARAMETER, PUBLIC :: force_mixing_label_none = -1,&
                                 force_mixing_label_QM_core_list     = 10,&
                                 force_mixing_label_QM_core          = 9,&

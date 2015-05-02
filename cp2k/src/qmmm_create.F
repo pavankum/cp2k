@@ -63,8 +63,8 @@ MODULE qmmm_create
   USE qmmm_pw_grid,                    ONLY: qmmm_pw_grid_init
   USE qmmm_types,                      ONLY: qmmm_env_type, qmmm_env_release
   USE qmmm_types_low,                  ONLY: &
-       add_set_release, add_set_type, force_mixing_core_subsys, &
-       force_mixing_extended_subsys, qmmm_env_mm_create, qmmm_env_mm_type, &
+       add_set_release, add_set_type, &
+       qmmm_env_mm_create, qmmm_env_mm_type, &
        qmmm_env_qm_create, qmmm_env_qm_type, qmmm_links_type,&
        qmmm_env_qm_release, qmmm_env_mm_release
   USE qs_environment,                  ONLY: qs_init
@@ -154,18 +154,17 @@ CONTAINS
     TYPE(section_vals_type), POINTER         :: multipole_section, print_gen, &
                                                 print_section, qmmm_periodic
 
-!TYPE(force_env_p_type), DIMENSION(:), &
-!  POINTER                                :: sub_force_env
-
     CALL timeset(routineN,handle)
     failure=.FALSE.
-
-    NULLIFY(qm_atom_index, mm_atom_index, qm_atom_type,   &
-         qmmm_env_qm, subsys_mm,subsys_qm, mm_cell, qm_cell_small,       &
-         mm_atom_chrg,mm_el_pot_radius, qmmm_env_mm, fist_env, qmmm_env, &
-         mm_link_atoms, mm_link_scale_factor, qmmm_links, added_charges, &
-         fist_scale_charge_link, print_section, fist_nonbond_env, &
-         print_gen, logger, mm_el_pot_radius_corr, super_cell, pw_env)
+    WRITE (*,*) "OLE1"
+    NULLIFY(qm_atom_index, mm_atom_index, qm_atom_type)
+    NULLIFY(qmmm_env_qm, subsys_mm,subsys_qm, mm_cell, qm_cell_small)
+    NULLIFY(mm_atom_chrg,mm_el_pot_radius, qmmm_env_mm, fist_env)
+    NULLIFY(qmmm_env)
+    NULLIFY(mm_link_atoms, mm_link_scale_factor, qmmm_links, added_charges)
+    NULLIFY(fist_scale_charge_link, print_section, fist_nonbond_env)
+    NULLIFY(print_gen, logger, mm_el_pot_radius_corr, super_cell, pw_env)
+    WRITE (*,*) "OLE2"
     logger => cp_error_get_logger(error)
     IF (.NOT. failure) THEN
        ! citations
