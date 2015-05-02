@@ -847,7 +847,7 @@ CPSourceFileRef,&
     ! Possibly translate the system
     CALL apply_qmmm_translate(force_env, error)
 
-    IF (force_env%qmmm_env%do_force_mixing) STOP "qmmm_force_mixing not supporte, yet"
+    STOP "qmmm_force_mixing not supporte, yet"
 
     CALL qmmm_calc_energy_force(force_env%qmmm_env,calc_force,consistent_energies,linres,error)
 

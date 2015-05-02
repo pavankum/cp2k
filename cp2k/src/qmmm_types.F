@@ -41,11 +41,10 @@ MODULE qmmm_types
 
   ! *****************************************************************************
   TYPE qmmm_env_type
-     INTEGER                                                 :: ref_count = -1
+     INTEGER                                                 :: ref_count = 1
      TYPE(qs_environment_type), POINTER                      :: qs_env => Null()
      TYPE(fist_environment_type), POINTER                    :: fist_env => Null()
      TYPE(qmmm_env_qm_type), POINTER                         :: qm => Null()
-     LOGICAL                                                 :: do_force_mixing = .FALSE.
   END TYPE qmmm_env_type
 
 CONTAINS

@@ -9,7 +9,8 @@
 !>      2.2012 created [noam]
 !> \author Noam Bernstein
 ! *****************************************************************************
-MODULE qmmm_force_mixing
+MODULE qmmmx_util
+  USE cp_para_types,                   ONLY: cp_para_env_type
   USE atomic_kind_types,               ONLY: atomic_kind_type,&
                                              get_atomic_kind,&
                                              set_atomic_kind
@@ -50,7 +51,7 @@ MODULE qmmm_force_mixing
   PRIVATE
 
   LOGICAL, PRIVATE :: debug_this_module=.FALSE.
-  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmm_force_mixing'
+  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmmx_util'
 
   PUBLIC :: setup_force_mixing_qmmm_sections, update_force_mixing_labels
 
@@ -70,8 +71,7 @@ CONTAINS
 !>      02.2012 created [noam]
 !> \author Noam Bernstein
 ! *****************************************************************************
-   SUBROUTINE update_force_mixing_labels(force_env, subsys, qmmm_section, labels_changed, error)
-    TYPE(force_env_type), POINTER            :: force_env
+   SUBROUTINE update_force_mixing_labels(subsys, qmmm_section, labels_changed, error)
     TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(section_vals_type), POINTER         :: qmmm_section
     LOGICAL, OPTIONAL                        :: labels_changed
@@ -96,6 +96,7 @@ CONTAINS
     REAL(dp), POINTER                        :: r_buf(:), r_core(:), r_qm(:)
     TYPE(cell_type), POINTER                 :: cell
     TYPE(fist_neighbor_type), POINTER        :: nlist
+    TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(mol_new_list_type), POINTER         :: molecules
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
@@ -154,7 +155,7 @@ IF (debug_this_module) PRINT *, "BOB got cur_labels ",SIZE(cur_labels)
 
     ! neighbor list for various hysteretic distance calls
     NULLIFY(cell)
-    CALL force_env_get(force_env, cell=cell, error=error)
+    CALL cp_subsys_get(subsys, cell=cell, error=error)
     NULLIFY(nlist)
     CALL make_neighbor_list(force_mixing_section, subsys, cell, MAX(r_core(2), r_qm(2), r_buf(2)), nlist, error)
 
@@ -300,7 +301,8 @@ IF (debug_this_module) PRINT *, "BOB buffer new_labels ",new_labels(1:n_new)
      CALL fist_neighbor_deallocate(nlist,error)
 
      ![NB] perhap be controlled by some &PRINT section?
-     IF (force_env%para_env%ionode) THEN
+     CALL cp_subsys_get(subsys, para_env=para_env, error=error)
+     IF (para_env%ionode) THEN
        WRITE(unit=*, fmt='(A,A,I6,A,I5,A,I5,A,I5)') &
           "QMMM FORCE MIXING final count (not including links): ",&
           " N_QM core_list ", COUNT(new_labels == force_mixing_label_QM_core_list), &
@@ -919,4 +921,4 @@ ENDIF
 CPSourceFileRef)
   END SUBROUTINE get_force_mixing_indices
 
-END MODULE qmmm_force_mixing
+END MODULE qmmmx_util

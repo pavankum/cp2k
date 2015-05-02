@@ -112,6 +112,8 @@ MODULE f77_interface
                                              pw_cuda_init
   USE qmmm_create,                     ONLY: qmmm_env_create
   USE qmmm_types,                      ONLY: qmmm_env_type, qmmm_env_release
+  USE qmmmx_create,                    ONLY: qmmmx_env_create
+  USE qmmmx_types,                     ONLY: qmmmx_env_type, qmmmx_env_release
   USE qs_environment,                  ONLY: qs_init
   USE qs_environment_types,            ONLY: qs_env_create,&
                                              qs_env_release,&
@@ -668,6 +670,7 @@ CONTAINS
     TYPE(cp_para_env_type), POINTER          :: my_para_env, para_env
     TYPE(eip_environment_type), POINTER      :: eip_env
     TYPE(qmmm_env_type), POINTER             :: qmmm_env
+    TYPE(qmmmx_env_type), POINTER            :: qmmmx_env
     TYPE(enumeration_type), POINTER          :: enum
     TYPE(f_env_p_type), DIMENSION(:), &
       POINTER                                :: f_envs_old
@@ -887,10 +890,11 @@ CPSourceFileRef,&
              CALL qmmm_env_release(qmmm_env,error=my_error)
 
           CASE (do_qmmmx)
-             STOP "qmmmx create force env not implemented yet"
-             !CALL qmmm_create_force_env( my_force_env, root_section, my_para_env, globenv,&
-             !     force_env_section=force_env_section, subsys_section=subsys_section,&
-             !     use_motion_section=use_motion_section, error=my_error)
+             CALL qmmmx_env_create(qmmmx_env, root_section, para_env, globenv,&
+                  force_env_section, subsys_section, use_motion_section, error=my_error)
+             CALL force_env_create(my_force_env,root_section, qmmmx_env=qmmmx_env, para_env=para_env,&
+                  globenv=globenv, force_env_section=force_env_section, error=my_error)
+             CALL qmmmx_env_release(qmmmx_env,error=my_error)
 
           CASE (do_eip)
              CALL eip_env_create(eip_env, error=my_error)

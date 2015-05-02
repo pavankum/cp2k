@@ -9,7 +9,7 @@
 !>      5.2004 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-MODULE qmmm_update
+MODULE qmmmx_update
   USE atomic_kind_list_types,          ONLY: atomic_kind_list_type
   USE cp_subsys_types,                 ONLY: cp_subsys_get,&
                                              cp_subsys_type
@@ -25,7 +25,7 @@ MODULE qmmm_update
                                              section_vals_release,&
                                              section_vals_type
   USE qmmm_create,                     ONLY: qmmm_env_create
-  USE qmmm_force_mixing,               ONLY: setup_force_mixing_qmmm_sections,&
+  USE qmmmx_util,                      ONLY: setup_force_mixing_qmmm_sections,&
                                              update_force_mixing_labels
   USE qmmm_types_low,                  ONLY: force_mixing_core_subsys,&
                                              force_mixing_extended_subsys,&
@@ -40,7 +40,7 @@ MODULE qmmm_update
   PRIVATE
 
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.TRUE.
-  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmm_update'
+  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmmx_update'
 
   PUBLIC :: qmmm_update_force_mixing_env
 
@@ -115,7 +115,7 @@ CONTAINS
     IF (force_mixing_active) THEN
 
        CALL force_env_get(force_env, subsys=subsys, error=error)
-       CALL update_force_mixing_labels(force_env, subsys, qmmm_section, labels_changed=labels_changed, error=error)
+       CALL update_force_mixing_labels(subsys, qmmm_section, labels_changed=labels_changed, error=error)
        IF (.NOT. labels_changed) THEN
          RETURN
        ENDIF
@@ -185,9 +185,6 @@ CPSourceFileRef,&
         ! duplicate things that are pointed to in force_env_create when doing qmmm
         force_env%qmmm_env%qm => sub_force_env(primary_subsys)%force_env%qmmm_env%qm
         CALL qmmm_env_qm_retain(force_env%qmmm_env%qm, error=error)
-
-        ! set a flag to identify when force mixing is active
-        force_env%qmmm_env%do_force_mixing = .TRUE.
 
       ENDIF
 
@@ -272,4 +269,4 @@ CPSourceFileRef,&
 
   END SUBROUTINE copy_wiener_process
 
-END MODULE qmmm_update
+END MODULE qmmmx_update

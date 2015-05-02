@@ -83,117 +83,9 @@ MODULE qmmm_create
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.TRUE.
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmm_create'
 
-  PUBLIC :: qmmm_create_force_env, qmmm_env_create
+  PUBLIC :: qmmm_env_create
 
 CONTAINS
-
-! *****************************************************************************
-!> \brief ...
-!> \param force_env ...
-!> \param root_section ...
-!> \param para_env ...
-!> \param globenv ...
-!> \param force_env_section ...
-!> \param subsys_section ...
-!> \param use_motion_section ...
-!> \param dummy_force_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!> \par History
-!>      02.2012 created [noam]
-!> \author Noam Bernstein
-! *****************************************************************************
-  SUBROUTINE  qmmm_create_force_env(force_env, root_section, para_env, globenv,&
-       force_env_section, subsys_section, use_motion_section, dummy_force_env, error)
-    TYPE(force_env_type), POINTER            :: force_env
-    TYPE(section_vals_type), POINTER         :: root_section
-    TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(global_environment_type), POINTER   :: globenv
-    TYPE(section_vals_type), POINTER         :: force_env_section, &
-                                                subsys_section
-    LOGICAL, INTENT(IN)                      :: use_motion_section
-    TYPE(force_env_type), OPTIONAL, POINTER  :: dummy_force_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_create_force_env', &
-      routineP = moduleN//':'//routineN
-
-    INTEGER                                  :: stat
-    LOGICAL                                  :: failure, force_mixing_active
-    TYPE(cp_subsys_type), POINTER            :: subsys
-    TYPE(force_env_p_type), DIMENSION(:), &
-      POINTER                                :: sub_force_env
-    TYPE(force_env_type), POINTER            :: use_dummy_force_env
-    TYPE(section_vals_type), POINTER         :: qmmm_core_section, &
-                                                qmmm_extended_section, &
-                                                qmmm_force_mixing, &
-                                                qmmm_section
-    TYPE(qmmm_env_type), POINTER             :: qmmm_env
-
-
-    qmmm_section => section_vals_get_subs_vals(force_env_section,"QMMM",error=error)
-    qmmm_force_mixing => section_vals_get_subs_vals(qmmm_section,"FORCE_MIXING",error=error)
-    CALL section_vals_get(qmmm_force_mixing,explicit=force_mixing_active,error=error)
-
-    IF (force_mixing_active) THEN
-        STOP "qmmm_create_force_env: mixing does not work yet"
-    !    IF (PRESENT(dummy_force_env)) THEN
-    !      use_dummy_force_env => dummy_force_env
-    !    ELSE
-    !      CALL qmmm_create_force_env_low(use_dummy_force_env, &
-    !        root_section, para_env, globenv,&
-    !        force_env_section, qmmm_section, subsys_section, use_motion_section, &
-    !        ignore_outside_box = .TRUE., error=error)
-    !    ENDIF
-    !    CALL force_env_get(use_dummy_force_env, subsys=subsys, error=error)
-    !
-    !   ![NB]
-    !   ! check that nothing accesses via root or force_env sections
-    !   ALLOCATE(sub_force_env(2),stat=stat)
-    !   CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-    !
-    !   CALL update_force_mixing_labels(use_dummy_force_env, subsys, qmmm_section, error=error)
-    !
-    !   ! using CUR_INDICES and CUR_LABELS, create appropriate QM_KIND sections for two QM/MM calculations
-    !   CALL setup_force_mixing_qmmm_sections(subsys, qmmm_section, qmmm_core_section, qmmm_extended_section,error=error)
-    !
-    !    NULLIFY(sub_force_env(force_mixing_core_subsys)%force_env)
-    !    CALL qmmm_create_force_env_low(sub_force_env(force_mixing_core_subsys)%force_env, &
-    !      root_section, para_env, globenv,&
-    !      force_env_section, qmmm_core_section, subsys_section, use_motion_section, &
-    !      ignore_outside_box = .TRUE., error=error)
-    !    NULLIFY(sub_force_env(force_mixing_extended_subsys)%force_env)
-    !    CALL qmmm_create_force_env_low(sub_force_env(force_mixing_extended_subsys)%force_env, &
-    !      root_section, para_env, globenv,&
-    !      force_env_section, qmmm_extended_section, subsys_section, use_motion_section, &
-    !      ignore_outside_box = .TRUE., error=error)
-    !
-    !    CALL section_vals_release(qmmm_core_section, error=error)
-    !    CALL section_vals_release(qmmm_extended_section, error=error)
-    !
-    !    IF (.NOT. PRESENT(dummy_force_env)) THEN ! allocated it above, now release
-    !      CALL force_env_release(use_dummy_force_env, error=error)
-    !    ENDIF
-    ELSE
-      CALL qmmm_env_create(qmmm_env, root_section, para_env, globenv,&
-           force_env_section, qmmm_section, subsys_section, use_motion_section, error=error)
-      CALL force_env_create(force_env,root_section, qmmm_env=qmmm_env, para_env=para_env,&
-           globenv=globenv, force_env_section=force_env_section, error=error)
-      CALL qmmm_env_release(qmmm_env,error=error)
-    ENDIF
-
-     !STOP "TODO:   qmmm_create_force_env"
-     !CALL force_env_get(sub_force_env(primary_subsys)%force_env,qmmm_env=qmmm_env_qm,error=error)
-     !CALL force_env_create(force_env, root_section, sub_force_env=sub_force_env,&
-     !     qmmm_env=qmmm_env_qm, &
-     !     para_env=para_env, globenv=globenv, force_env_section= force_env_section,&
-     !     error=error)
-
-     ! set a flag to identify when force mixing is active
-     CALL force_env_get(force_env,qmmm_env=qmmm_env,error=error)
-     qmmm_env%do_force_mixing = force_mixing_active
-
-  END SUBROUTINE qmmm_create_force_env
 
 ! *****************************************************************************
 !> \brief ...
@@ -561,7 +453,6 @@ CONTAINS
 
        ! assemble the actuall qmmm_env
        ALLOCATE(qmmm_env)
-       qmmm_env%ref_count = 1
        qmmm_env%qs_env => qs_env
        qmmm_env%fist_env => fist_env
        qmmm_env%qm => qmmm_env_qm

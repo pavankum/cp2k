@@ -48,7 +48,7 @@ MODULE force_env_types
   USE qmmm_types,                      ONLY: qmmm_env_release,&
                                              qmmm_env_type, qmmm_env_get
   USE qmmmx_types,                     ONLY: qmmmx_env_release,&
-                                             qmmmx_env_type
+                                             qmmmx_env_type, qmmmx_env_get
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_env_release,&
@@ -389,27 +389,11 @@ CONTAINS
                             kinetic_energy=kinetic_energy,&
                             error=error)
        CASE (use_qmmmx)
-            STOP "TODO write qmmmx_env_get()"
-            !IF (PRESENT(kinetic_energy)) THEN
-            !    CALL fist_env_get(force_env%qmmm_env%fist_env,thermo=thermo,error=error)
-            !    kinetic_energy = thermo%kin
-            !END IF
-            !IF (PRESENT(subsys)) THEN
-            !    CALL fist_env_get(force_env%qmmm_env%fist_env,subsys=subsys,error=error)
-            !ENDIF
-            !IF (PRESENT(potential_energy)) THEN
-            !     ! get the underlying energies from primary subsys.  This is the only subsys
-            !     ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
-            !     IF (force_env%qmmm_env%do_force_mixing) THEN
-            !         STOP "force_env_get: can not get energy for force_mixing, yet"
-            !         !CALL force_env_get(force_env%sub_force_env(primary_subsys)%force_env,&
-            !         !                   potential_energy=potential_energy, error=error)
-            !     ELSE
-            !        CALL fist_env_get(force_env%qmmm_env%fist_env, thermo=thermo, error=error)
-            !        CALL get_qs_env(force_env%qmmm_env%qs_env,energy=qs_energy,error=error)
-            !        potential_energy = thermo%pot + qs_energy%total
-            !     ENDIF
-            !ENDIF
+          CALL qmmmx_env_get(force_env%qmmmx_env,&
+                             subsys=subsys,&
+                             potential_energy=potential_energy,&
+                             kinetic_energy=kinetic_energy,&
+                             error=error)
        CASE (use_mixed_force)
           CPPrecondition(ASSOCIATED(force_env%mixed_env),cp_failure_level,routineP,error,failure)
 !          CPPreconditionNoFail(.NOT.PRESENT(qs_env),cp_warning_level,routineP,error)

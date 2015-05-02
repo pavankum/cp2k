@@ -7,9 +7,32 @@
 !> \author Ole Schuett
 ! *****************************************************************************
 MODULE qmmmx_types
+ USE fist_environment_types,          ONLY: fist_env_release,&
+                                             fist_env_retain,&
+                                             fist_environment_type
+  USE qmmm_types_low,                  ONLY: qmmm_env_qm_release,&
+                                             qmmm_env_qm_retain,&
+                                             qmmm_env_qm_type
+  USE qs_environment_types,            ONLY: qs_env_release,&
+                                             qs_env_retain,&
+                                             qs_environment_type
+  USE qs_energy_types,                 ONLY: qs_energy_type
+  USE fist_energy_types,               ONLY: fist_energy_type
+  USE fist_environment_types,          ONLY: fist_env_get,&
+                                             fist_env_release,&
+                                             fist_environment_type
+  USE cp_subsys_types,                 ONLY: cp_subsys_get,&
+                                             cp_subsys_type,&
+                                             pack_subsys_particles
+  USE qs_energy_types,                 ONLY: qs_energy_type
+  USE qs_environment_types,            ONLY: get_qs_env,&
+                                             qs_env_release,&
+                                             qs_environment_type
   USE qmmm_types,                      ONLY: qmmm_env_release,&
                                              qmmm_env_retain,&
-                                             qmmm_env_type
+                                             qmmm_env_type,&
+                                             qmmm_env_get
+  USE kinds,                           ONLY: dp
 
 #include "./common/cp_common_uses.f90"
 
@@ -18,11 +41,11 @@ MODULE qmmmx_types
 
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmmx_types'
 
-  PUBLIC :: qmmmx_env_type, qmmmx_env_retain, qmmmx_env_release, qmmmx_env_create
+  PUBLIC :: qmmmx_env_type, qmmmx_env_get, qmmmx_env_retain, qmmmx_env_release
 
   ! *****************************************************************************
   TYPE qmmmx_env_type
-     INTEGER                                                 :: ref_count = -1
+     INTEGER                                                 :: ref_count = 1
      TYPE(qmmm_env_type), POINTER                            :: core => Null()
      TYPE(qmmm_env_type), POINTER                            :: ext => Null()
   END TYPE qmmmx_env_type
@@ -30,37 +53,33 @@ MODULE qmmmx_types
 CONTAINS
 
 ! *****************************************************************************
-!> \brief TODO
-!> \param qmmm_env ...
-!> \param qs_env ...
-!> \param fist_env ...
-!> \param qmmm_env_qm ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE qmmmx_env_create(qmmmx_env,  error)
-    TYPE(qmmmx_env_type), POINTER            :: qmmmx_env
-    TYPE(qmmm_env_type), POINTER             :: qmmm_core
-    TYPE(qmmm_env_type), POINTER             :: qmmm_ext
+  SUBROUTINE qmmmx_env_get(qmmmx_env,subsys,potential_energy,kinetic_energy,error)
+    TYPE(qmmmx_env_type), POINTER             :: qmmmx_env
+    TYPE(cp_subsys_type), OPTIONAL, POINTER  :: subsys
+    REAL(KIND=dp), INTENT(OUT), OPTIONAL     :: potential_energy, &
+                                                kinetic_energy
     TYPE(cp_error_type), INTENT(inout)       :: error
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'qmmmx_env_create', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'qmmmx_env_get', &
       routineP = moduleN//':'//routineN
 
-    IF(ASSOCIATED(qmmmx_env)) STOP "qmmmx_env_create: qmmmx_env already associated"
-    IF(.NOT. ASSOCIATED(qmmm_core)) STOP "qmmmx_env_create: qmmm_core not associated"
-    IF(.NOT. ASSOCIATED(qmmm_ext)) STOP "qmmmx_env_create: qmmm_ext not associated"
+    LOGICAL                                  :: failure
+    TYPE(qs_energy_type), POINTER            :: qs_energy
+    TYPE(fist_energy_type), POINTER          :: thermo
+    failure=.FALSE.
+    NULLIFY(qs_energy, thermo)
 
-    ALLOCATE(qmmmx_env)
-    qmmmx_env%ref_count = 1
-    qmmmx_env%core => qmmm_core
-    qmmmx_env%ext => qmmm_ext
+    CPPrecondition(ASSOCIATED(qmmmx_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(qmmmx_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    CALL qmmm_env_retain(qmmm_core, error)
-    CALL qmmm_env_retain(qmmm_ext, error)
+    CALL qmmm_env_get(qmmmx_env%core, kinetic_energy=kinetic_energy,subsys=subsys, error=error)
 
-  END SUBROUTINE qmmmx_env_create
+    ! get the underlying energies from primary subsys.  This is the only subsys
+    ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
+    CALL qmmm_env_get(qmmmx_env%ext, potential_energy=potential_energy, error=error)
+  END SUBROUTINE qmmmx_env_get
+
 
 ! *****************************************************************************
 !> \brief ...
