@@ -57,8 +57,10 @@
  * - #define LIBXSTREAM_TRACE 0: disables trace information
  * - #define LIBXSTREAM_TRACE 1: enabled for debug builds
  * - #define LIBXSTREAM_TRACE 2: enabled
+ * If the trace information is enabled, the environment variable
+ * LIBXSTREAM_VERBOSITY can be used to adjust the verbosity level.
  */
-#define LIBXSTREAM_TRACE
+#define LIBXSTREAM_TRACE 2
 
 /**
  * Enables asynchronous offloads.
@@ -69,7 +71,7 @@
  * - #define LIBXSTREAM_ASYNC 2: compiler streams
  * - #define LIBXSTREAM_ASYNC 3: native (KNL) - not implemented yet / must be disabled
  */
-#define LIBXSTREAM_ASYNC 0
+#define LIBXSTREAM_ASYNC
 
 /** Not implemented yet. Must be disabled. */
 /*#define LIBXSTREAM_ASYNCHOST*/
@@ -83,10 +85,10 @@
 /** Alignment in Byte (actual alignment might be smaller). */
 #define LIBXSTREAM_MAX_ALIGN (2 * 1024 * 1024)
 
-/** Maximum number of devices. */
+/** Maximum number of devices (POT). */
 #define LIBXSTREAM_MAX_NDEVICES 4
 
-/** Maximum number of streams per device. */
+/** Maximum number of streams per device (POT). */
 #define LIBXSTREAM_MAX_NSTREAMS 32
 
 /** Maximum dimensionality of arrays. */
@@ -95,8 +97,8 @@
 /** Maximum number of arguments in offload structure. */
 #define LIBXSTREAM_MAX_NARGS 16
 
-/** Maximum number of executions in the queue. */
-#define LIBXSTREAM_MAX_QSIZE 1024
+/** Maximum number of executions in the queue (POT). */
+#define LIBXSTREAM_MAX_QSIZE 256
 
 /** Maximum number of host threads. */
 #define LIBXSTREAM_MAX_NTHREADS 512
@@ -105,53 +107,26 @@
 #define LIBXSTREAM_MAX_NLOCKS 16
 
 /**
- * Number of times a locked stream must be discovered to be
- * "not alive" before unlocking the stream in question.
+ * Number of CPU cycles to actively wait. A positive value translates to cpu cycles
+ * whereas a negative value translates into milliseconds. A value of zero designates
+ * a passive wait rather than polling for a condition. For example:
+ * #define LIBXSTREAM_SPIN_CYCLES 200000000
  */
-#define LIBXSTREAM_LOCK_RETRY 3
-
-/** Enables non-recursive locks. */
-#define LIBXSTREAM_LOCK_NONRECURSIVE
-
-/** Number of milliseconds a lock can stall. */
-#define LIBXSTREAM_WAIT_LOCK_MS 200
-
-/** Number of cycles to actively wait. */
-#define LIBXSTREAM_WAIT_ACTIVE_CYCLES 10000
+#define LIBXSTREAM_SPIN_CYCLES 200000000
 
 /**
- * Thread-local signals allow for some more concurrency
- * when forming the signal/wait dependency chain.
+ * Duration a thread may sleep when waiting. A value of zero yields the thread.
+ * For a non-zero value, a non-zero LIBXSTREAM_SPIN_CYCLES is highly recommended.
+ * For example:
+ * #define LIBXSTREAM_SLEEP_MS 20.
  */
-/*#define LIBXSTREAM_THREADLOCAL_SIGNALS*/
+#define LIBXSTREAM_SLEEP_MS 20
 
-/** Instructs the library to wait for each enqueued work item. */
-/*#define LIBXSTREAM_SYNCHRONOUS*/
-
-/** Synchronize on memory allocation/deallocation events. */
-/*#define LIBXSTREAM_SYNCMEM*/
+/** Allows client-side to sleep when waiting. */
+#define LIBXSTREAM_SLEEP_CLIENT
 
 /** Prefers OpenMP based locking primitives. */
 /*#define LIBXSTREAM_PREFER_OPENMP*/
-
-/**
- * Below preprocessor symbols fixup some platform specifics.
- */
-#if !defined(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES)
-# define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#endif
-#if !defined(_CRT_SECURE_NO_DEPRECATE)
-# define _CRT_SECURE_NO_DEPRECATE 1
-#endif
-#if !defined(_USE_MATH_DEFINES)
-# define _USE_MATH_DEFINES 1
-#endif
-#if !defined(WIN32_LEAN_AND_MEAN)
-# define WIN32_LEAN_AND_MEAN 1
-#endif
-#if !defined(NOMINMAX)
-# define NOMINMAX 1
-#endif
 
 #endif /*LIBXSTREAM_CONFIG_EXTERNAL*/
 #endif /*LIBXSTREAM_CONFIG_H*/

@@ -29,7 +29,8 @@
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
-#include "libxstream_queue.hpp"
+#include "libxstream_workqueue.hpp"
+#include "libxstream_workitem.hpp"
 
 #include <libxstream_begin.h>
 #include <algorithm>
@@ -40,7 +41,48 @@
 #include <libxstream_end.h>
 
 
-libxstream_queue::libxstream_queue()
+void libxstream_workqueue::entry_type::push(libxstream_workitem& workitem)
+{
+  delete m_dangling;
+  const bool async = 0 == (LIBXSTREAM_CALL_WAIT & workitem.flags());
+  const bool enone = 0 == (LIBXSTREAM_CALL_ERROR & workitem.flags());
+  libxstream_workitem *const item = async ? workitem.clone() : &workitem;
+  m_status = enone ? LIBXSTREAM_ERROR_NONE : LIBXSTREAM_ERROR_CONDITION;
+  m_dangling = async ? item : 0;
+  m_item = item;
+}
+
+
+int libxstream_workqueue::entry_type::wait() const
+{
+#if defined(LIBXSTREAM_SLEEP_CLIENT)
+  size_t cycle = 0;
+  while (0 != m_item) this_thread_wait(cycle);
+#else
+  while (0 != m_item) this_thread_yield();
+#endif
+  const int result = m_status;
+  m_status = LIBXSTREAM_ERROR_NONE;
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
+}
+
+
+void libxstream_workqueue::entry_type::execute()
+{
+  (*m_item)(*this);
+}
+
+
+void libxstream_workqueue::entry_type::pop()
+{
+  m_item = 0;
+  LIBXSTREAM_ASSERT(0 != m_queue);
+  m_queue->pop();
+}
+
+
+libxstream_workqueue::libxstream_workqueue()
   : m_index(0)
 #if defined(LIBXSTREAM_STDFEATURES)
   , m_size(new std::atomic<size_t>(0))
@@ -48,24 +90,20 @@ libxstream_queue::libxstream_queue()
   , m_size(new size_t(0))
 #endif
 {
-  std::fill_n(m_buffer, LIBXSTREAM_MAX_QSIZE, static_cast<void*>(0));
+  std::fill_n(m_buffer, LIBXSTREAM_MAX_QSIZE, entry_type(this, 0));
 }
 
 
-libxstream_queue::~libxstream_queue()
+libxstream_workqueue::~libxstream_workqueue()
 {
 #if defined(LIBXSTREAM_DEBUG)
-  size_t dangling = 0;
+  size_t pending = 0;
   for (size_t i = 0; i < LIBXSTREAM_MAX_QSIZE; ++i) {
-    const void* item = m_buffer[i];
-    if (0 != item) {
-      m_buffer[i] = 0;
-      ++dangling;
-      delete item;
-    }
+    pending += (0 == m_buffer[i].item()) ? 0 : 1;
+    delete m_buffer[i].dangling();
   }
-  if (0 < dangling) {
-    LIBXSTREAM_PRINT_WARN("%lu work item%s dangling!", static_cast<unsigned long>(dangling), 1 < dangling ? "s are" : " is");
+  if (0 < pending) {
+    LIBXSTREAM_PRINT(1, "%lu work item%s pending!", static_cast<unsigned long>(pending), 1 < pending ? "s are" : " is");
   }
 #endif
 #if defined(LIBXSTREAM_STDFEATURES)
@@ -76,52 +114,75 @@ libxstream_queue::~libxstream_queue()
 }
 
 
-size_t libxstream_queue::size() const
+size_t libxstream_workqueue::size() const
 {
+  const size_t index = m_index;
 #if defined(LIBXSTREAM_STDFEATURES)
   const size_t offset = *static_cast<const std::atomic<size_t>*>(m_size);
 #else
   const size_t offset = *static_cast<const size_t*>(m_size);
 #endif
-  const size_t index = m_index;
-  const void *const entry = m_buffer[offset%LIBXSTREAM_MAX_QSIZE];
-  return 0 != entry ? (offset - index) : (std::max<size_t>(offset - index, 1) - 1);
+  const entry_type& entry = m_buffer[LIBXSTREAM_MOD(index, LIBXSTREAM_MAX_QSIZE)];
+  return 0 != entry.item() ? (offset - index) : (std::max<size_t>(offset - index, 1) - 1);
 }
 
 
-void** libxstream_queue::allocate_push()
+libxstream_workqueue::entry_type& libxstream_workqueue::allocate_entry_mt()
 {
-  void** result = 0;
+  entry_type* result = 0;
 #if defined(LIBXSTREAM_STDFEATURES)
-  result = m_buffer + ((*static_cast<std::atomic<size_t>*>(m_size))++ % LIBXSTREAM_MAX_QSIZE);
+  result = m_buffer + LIBXSTREAM_MOD((*static_cast<std::atomic<size_t>*>(m_size))++, LIBXSTREAM_MAX_QSIZE);
 #elif defined(_OPENMP)
   size_t size1 = 0;
+  size_t& size = *static_cast<size_t*>(m_size);
 # if (201107 <= _OPENMP)
 #   pragma omp atomic capture
 # else
 #   pragma omp critical
 # endif
-  size1 = ++m_size;
-  result = m_buffer + ((size1 - 1) % LIBXSTREAM_MAX_QSIZE);
+  size1 = ++size;
+  result = m_buffer + LIBXSTREAM_MOD(size1 - 1, LIBXSTREAM_MAX_QSIZE);
 #else // generic
-  libxstream_lock_acquire(m_lock);
-  result = m_buffer + (m_size++ % LIBXSTREAM_MAX_QSIZE);
-  libxstream_lock_release(m_lock);
+  size_t& size = *static_cast<size_t*>(m_size);
+  libxstream_lock *const lock = libxstream_lock_get(this);
+  libxstream_lock_acquire(lock);
+  result = m_buffer + LIBXSTREAM_MOD(size++, LIBXSTREAM_MAX_QSIZE);
+  libxstream_lock_release(lock);
 #endif
-  LIBXSTREAM_ASSERT(0 != result);
+  LIBXSTREAM_ASSERT(0 != result && result->queue() == this);
 
-#if defined(LIBXSTREAM_DEBUG)
-  if (0 != *result) {
-    LIBXSTREAM_PRINT_WARN0("queuing work is stalled!");
+  if (0 != result->item()) {
+    LIBXSTREAM_PRINT0(1, "queuing work is stalled!");
+    do { // stall if capacity is exceeded
+      this_thread_sleep();
+    }
+    while (0 != result->item());
   }
+
+  return *result;
+}
+
+
+libxstream_workqueue::entry_type& libxstream_workqueue::allocate_entry()
+{
+  entry_type* result = 0;
+#if defined(LIBXSTREAM_STDFEATURES)
+  result = m_buffer + LIBXSTREAM_MOD(static_cast<std::atomic<size_t>*>(m_size)->fetch_add(1, std::memory_order_relaxed), LIBXSTREAM_MAX_QSIZE);
+#else
+  size_t& size = *static_cast<size_t*>(m_size);
+  result = m_buffer + LIBXSTREAM_MOD(size++, LIBXSTREAM_MAX_QSIZE);
 #endif
-  // stall if LIBXSTREAM_MAX_QSIZE is exceeded
-  while (0 != *result) {
-    this_thread_yield();
+  LIBXSTREAM_ASSERT(0 != result && result->queue() == this);
+
+  if (0 != result->item()) {
+    LIBXSTREAM_PRINT0(1, "queuing work is stalled!");
+    do { // stall if capacity is exceeded
+      this_thread_sleep();
+    }
+    while (0 != result->item());
   }
 
-  LIBXSTREAM_ASSERT(0 == *result);
-  return result;
+  return *result;
 }
 
 #endif // defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)

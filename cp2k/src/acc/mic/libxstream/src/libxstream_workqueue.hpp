@@ -28,42 +28,63 @@
 ******************************************************************************/
 /* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#ifndef LIBXSTREAM_QUEUE_HPP
-#define LIBXSTREAM_QUEUE_HPP
+#ifndef LIBXSTREAM_WORKQUEUE_HPP
+#define LIBXSTREAM_WORKQUEUE_HPP
 
 #include "libxstream.hpp"
 
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
 
 
-class libxstream_queue {
+class libxstream_workitem;
+
+
+class libxstream_workqueue {
 public:
-  libxstream_queue();
-  ~libxstream_queue();
+  class entry_type {
+  public:
+    entry_type(libxstream_workqueue* queue = 0, libxstream_workitem* item = reinterpret_cast<libxstream_workitem*>(-1))
+      : m_queue(queue), m_dangling(0), m_item(item), m_status((0 != queue && 0 != item) ? LIBXSTREAM_ERROR_NONE : LIBXSTREAM_ERROR_CONDITION)
+    {}
+  public:
+    bool valid() const { return reinterpret_cast<libxstream_workitem*>(-1) != m_item; }
+    const libxstream_workqueue* queue() const { return m_queue; }
+    const libxstream_workitem* dangling() const { return m_dangling; }
+    const libxstream_workitem* item() const { return m_item; }
+    libxstream_workitem* item() { return m_item; }
+    int status() const { return m_status; }
+    int& status() { return m_status; }
+    void push(libxstream_workitem& workitem);
+    int wait() const;
+    void execute();
+    void pop();
+  private:
+    libxstream_workqueue* m_queue;
+    const libxstream_workitem* m_dangling;
+    libxstream_workitem* m_item;
+    mutable int m_status;
+  };
+
+public:
+  libxstream_workqueue();
+  ~libxstream_workqueue();
 
 public:
   size_t size() const;
-  void** allocate_push();
 
-  void* get() const { // not thread-safe!
-    return m_buffer[m_index%LIBXSTREAM_MAX_QSIZE];
-  }
+  entry_type& allocate_entry_mt();
+  entry_type& allocate_entry();
 
-  void pop() { // not thread-safe!
-    LIBXSTREAM_ASSERT(!empty());
-    m_buffer[m_index%LIBXSTREAM_MAX_QSIZE] = 0;
-    ++m_index;
-  }
+  entry_type& get() { return m_buffer[LIBXSTREAM_MOD(m_index, LIBXSTREAM_MAX_QSIZE)]; }
+  entry_type get() const { return m_buffer[LIBXSTREAM_MOD(m_index, LIBXSTREAM_MAX_QSIZE)]; }
 
-  bool empty() const {
-    return 0 == get();
-  }
+  void pop() { ++m_index; }
 
 private:
-  void* m_buffer[LIBXSTREAM_MAX_QSIZE];
+  entry_type m_buffer[LIBXSTREAM_MAX_QSIZE];
   size_t m_index;
   void* m_size;
 };
 
 #endif // defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
-#endif // LIBXSTREAM_QUEUE_HPP
+#endif // LIBXSTREAM_WORKQUEUE_HPP

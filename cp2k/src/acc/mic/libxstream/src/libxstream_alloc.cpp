@@ -30,9 +30,11 @@
 ******************************************************************************/
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
 #include "libxstream_alloc.hpp"
+#include "libxstream_workitem.hpp"
 
 #include <libxstream_begin.h>
 #include <algorithm>
+#include <cstring>
 #include <libxstream_end.h>
 
 #if defined(__MKL)
@@ -183,7 +185,7 @@ int libxstream_real_allocate(void** memory, size_t size, size_t alignment)
 #if defined(LIBXSTREAM_DEBUG)
       LIBXSTREAM_USE_SINK(&alignment);
       if (char *const buffer = new char[size]) {
-        std::fill_n(buffer, size, 0);
+        memset(buffer, 0, size);
         *memory = buffer;
       }
       else {
@@ -247,6 +249,7 @@ int libxstream_real_allocate(void** memory, size_t size, size_t alignment)
   }
 #endif
 
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;
 }
 
@@ -320,6 +323,7 @@ int libxstream_virt_allocate(void** memory, size_t size, size_t alignment, const
   }
 #endif
 
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;
 }
 
@@ -341,6 +345,7 @@ int libxstream_virt_deallocate(const void* memory)
 #endif
   }
 
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;
 }
 

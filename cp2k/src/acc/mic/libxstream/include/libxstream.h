@@ -97,8 +97,6 @@ LIBXSTREAM_EXPORT_C int libxstream_set_active_device(int device);
 
 /** Query the memory metrics of the device (valid to pass one NULL pointer). */
 LIBXSTREAM_EXPORT_C int libxstream_mem_info(int device, size_t* allocatable, size_t* physical);
-/** Query the real pointer on the device side; both pointers are equal for the host device. */
-LIBXSTREAM_EXPORT_C int libxstream_mem_pointer(int device, const void* memory, const void** real);
 /** Allocate aligned memory (0: automatic alignment) on the device (-1: host, 0<: coprocessor). */
 LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_t size, size_t alignment);
 /** Deallocate memory; shall match the device where the memory was allocated. */
@@ -114,22 +112,18 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2d(const void* src, void* dst, size_t
 
 /** Query the range of valid priorities (inclusive bounds). */
 LIBXSTREAM_EXPORT_C int libxstream_stream_priority_range(int* least, int* greatest);
-/** Create a stream on a device (demux<0: auto-locks, 0: manual, demux>0: sync.). */
-LIBXSTREAM_EXPORT_C int libxstream_stream_create(libxstream_stream** stream, int device, int demux/*DEPRECATED*/, int priority, const char* name);
+/** Create a stream on a given device. */
+LIBXSTREAM_EXPORT_C int libxstream_stream_create(libxstream_stream** stream, int device, int priority, const char* name);
 /** Destroy a stream; pending work must be completed if results are needed. */
 LIBXSTREAM_EXPORT_C int libxstream_stream_destroy(const libxstream_stream* stream);
 /** Wait for a stream to complete pending work; NULL to synchronize all streams. */
 LIBXSTREAM_EXPORT_C int libxstream_stream_sync(libxstream_stream* stream);
+/** Wait for a stream to complete pending work (blocking); NULL to synchronize all streams. */
+LIBXSTREAM_EXPORT_C int libxstream_stream_wait(libxstream_stream* stream);
 /** Wait for an event inside of the specified stream; a NULL-stream designates all streams. */
-LIBXSTREAM_EXPORT_C int libxstream_stream_wait_event(const libxstream_stream* stream, const libxstream_event* event);
-/** Lock a stream such that the caller thread can safely enqueue work. */
-LIBXSTREAM_EXPORT_C int libxstream_stream_lock(libxstream_stream* stream);                        /*DEPRECATED*/
-/** Unlock a stream such that another thread can acquire the stream. */
-LIBXSTREAM_EXPORT_C int libxstream_stream_unlock(libxstream_stream* stream);                      /*DEPRECATED*/
+LIBXSTREAM_EXPORT_C int libxstream_stream_wait_event(libxstream_stream* stream, libxstream_event* event);
 /** Query the device the given stream is constructed for. */
 LIBXSTREAM_EXPORT_C int libxstream_stream_device(const libxstream_stream* stream, int* device);
-/** Query the demux property the given stream is constructed for. */
-LIBXSTREAM_EXPORT_C int libxstream_stream_demux(const libxstream_stream* stream, int* demux);     /*DEPRECATED*/
 
 /** Create an event; event can be recorded multiple times. */
 LIBXSTREAM_EXPORT_C int libxstream_event_create(libxstream_event** event);
@@ -140,23 +134,19 @@ LIBXSTREAM_EXPORT_C int libxstream_event_record(libxstream_event* event, libxstr
 /** Check whether an event has occurred or not (non-blocking). */
 LIBXSTREAM_EXPORT_C int libxstream_event_query(const libxstream_event* event, libxstream_bool* occurred);
 /** Wait for an event to complete i.e., work queued prior to recording the event will be completed. */
-LIBXSTREAM_EXPORT_C int libxstream_event_synchronize(libxstream_event* event);
+LIBXSTREAM_EXPORT_C int libxstream_event_wait(libxstream_event* event);
 
-/** Create a function signature with a certain maximum number of arguments. */
-LIBXSTREAM_EXPORT_C int libxstream_fn_create_signature(libxstream_argument** signature, size_t nargs);
-/** Destroy a function signature; does not release the bound data. */
-LIBXSTREAM_EXPORT_C int libxstream_fn_destroy_signature(const libxstream_argument* signature);
-/** Reset function signature to start over with less arguments (arity). */
-LIBXSTREAM_EXPORT_C int libxstream_fn_clear_signature(libxstream_argument* signature);
 /** Receive thread-local signature with capacity of LIBXSTREAM_MAX_NARGS. */
 LIBXSTREAM_EXPORT_C int libxstream_fn_signature(libxstream_argument** signature);
+/** Reset function signature to start over with less arguments (arity). */
+LIBXSTREAM_EXPORT_C int libxstream_fn_clear_signature(libxstream_argument* signature);
 /** Construct an input argument from device data, dimensionality, and shape. */
 LIBXSTREAM_EXPORT_C int libxstream_fn_input(libxstream_argument* signature, size_t arg, const void* in, libxstream_type type, size_t dims, const size_t shape[]);
 /** Construct an output argument from device data, dimensionality, and shape. */
 LIBXSTREAM_EXPORT_C int libxstream_fn_output(libxstream_argument* signature, size_t arg, void* out, libxstream_type type, size_t dims, const size_t shape[]);
 /** Construct an in-out argument from device data, dimensionality, and shape. */
 LIBXSTREAM_EXPORT_C int libxstream_fn_inout(libxstream_argument* signature, size_t arg, void* inout, libxstream_type type, size_t dims, const size_t shape[]);
-/** Query the capacity of the function signature. */
+/** Query the capacity of the function signature (maximum possible arity). */
 LIBXSTREAM_EXPORT_C int libxstream_fn_nargs(const libxstream_argument* signature, size_t* nargs);
 /** Call a user function along with the signature. */
 LIBXSTREAM_EXPORT_C int libxstream_fn_call(libxstream_function function, const libxstream_argument* signature, libxstream_stream* stream, int flags);
@@ -187,6 +177,13 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_size(const libxstr
 LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_elemsize(const libxstream_argument* signature, size_t arg, size_t* size);
 /** Query the data size of the argument (Byte). A NULL-signature designates the call context. */
 LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_datasize(const libxstream_argument* signature, size_t arg, size_t* size);
+
+/** Query the internal verbosity level. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_verbosity(int* level);
+/** Set the internal verbosity level. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_set_verbosity(int level);
+/** Prints to the standard error stream. Locks the stream in order to avoid intermixed characters. */
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_print(int verbosity, const char* message, ...);
 
 #if defined(__cplusplus)
 template<typename TYPE> struct libxstream_map_to { static libxstream_type type() {/** select a type by type-size; bool goes here! */

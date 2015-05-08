@@ -31,24 +31,21 @@
 #ifndef LIBXSTREAM_EVENT_HPP
 #define LIBXSTREAM_EVENT_HPP
 
-#include "libxstream.hpp"
+#include "libxstream_workqueue.hpp"
 
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
 
 
-struct libxstream_event {
+struct/*!class*/ libxstream_event {
 public:
   libxstream_event();
+  ~libxstream_event();
 
 public:
-  // Number of streams the event was recorded for.
-  size_t expected() const;
-
-  // Reset the event.
-  int reset();
+  void swap(libxstream_event& other) throw();
 
   // Enqueue this event into the given stream; reset to start over.
-  int enqueue(libxstream_stream& stream, bool reset);
+  int enqueue(libxstream_stream& stream, bool reset, bool sync = false);
 
   // Query whether the event already happened or not.
   int query(bool& occurred, const libxstream_stream* exclude = 0) const;
@@ -57,18 +54,9 @@ public:
   int wait(const libxstream_stream* exclude = 0);
 
 private:
-  class slot_type {
-    libxstream_stream* m_stream;
-    mutable libxstream_signal m_pending;
-  public:
-    slot_type(): m_stream(0), m_pending(0) {}
-    slot_type(int thread, libxstream_stream& stream);
-    const libxstream_stream* stream() const { return m_stream; }
-    libxstream_stream* stream() { return m_stream; }
-    libxstream_signal pending() const { return m_pending; }
-    void pending(libxstream_signal signal) { m_pending = signal; }
-  } m_slots[LIBXSTREAM_MAX_NDEVICES*LIBXSTREAM_MAX_NSTREAMS];
-  size_t m_expected;
+  typedef libxstream_workqueue::entry_type* slot_type;
+  slot_type m_slots[LIBXSTREAM_MAX_NTHREADS][(LIBXSTREAM_MAX_NDEVICES)*(LIBXSTREAM_MAX_NSTREAMS)];
+  size_t m_expected[LIBXSTREAM_MAX_NTHREADS];
 };
 
 #endif // defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
