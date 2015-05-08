@@ -99,13 +99,13 @@ public:
   void acquire(const void* address) {
     const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNMENT);
     // non-pot: omp_set_lock(m_lock + id % LIBMICSMM_SYNCHRONIZATION);
-    omp_set_lock(m_lock + (id & (LIBMICSMM_SYNCHRONIZATION - 1)));
+    omp_set_lock(m_lock + LIBXSTREAM_MOD(id, LIBMICSMM_SYNCHRONIZATION));
   }
 
   void release(const void* address) {
     const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNMENT);
     // non-pot: omp_unset_lock(m_lock + id % LIBMICSMM_SYNCHRONIZATION);
-    omp_unset_lock(m_lock + (id & (LIBMICSMM_SYNCHRONIZATION - 1)));
+    omp_unset_lock(m_lock + LIBXSTREAM_MOD(id, LIBMICSMM_SYNCHRONIZATION));
   }
 
 private:
@@ -307,7 +307,7 @@ LIBXSTREAM_TARGET(mic) void work_planned(const U *LIBXSTREAM_RESTRICT stack, siz
       for (U kc0 = stack[n+5], kc1 = (((n + N) < nstacksize) ? stack[n+N+5] : (kc0 + 1)); kc0 == kc1; n += N, kc0 = kc1, kc1 = stack[n+N+5]);
       colspan[++size] = n + N;
     }
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): parallel=%lu", static_cast<unsigned long>(size));
+    LIBXSTREAM_PRINT(3, "libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): parallel=%lu", static_cast<unsigned long>(size));
 
 #if defined(_OPENMP)
 #   pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
@@ -340,10 +340,10 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
 {
   size_t stacksize = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
-  LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu max_m=%i max_n=%i max_k=%i", static_cast<unsigned long>(stacksize),
+  LIBXSTREAM_PRINT(3, "libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu max_m=%i max_n=%i max_k=%i", static_cast<unsigned long>(stacksize),
     LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
 
-#if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
+#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
   const double start = omp_get_wtime();
 #endif
 
@@ -356,7 +356,7 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
   LIBXSTREAM_ASSERT(false/*TODO: not yet implemented.*/);
 #endif
 
-#if defined(LIBXSTREAM_PRINT) && defined(_OPENMP)
+#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
   static double duration = 0, flops = 0;
   const double stop = omp_get_wtime();
   if (start < stop) {
@@ -364,7 +364,7 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
     duration += stop - start;
 #   pragma omp atomic
     flops += 2.0 * LIBXSTREAM_GETVAL(max_m) * LIBXSTREAM_GETVAL(max_n) * LIBXSTREAM_GETVAL(max_k) * stacksize;
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): %.f GFLOP/s", flops / (1E9 * duration));
+    LIBXSTREAM_PRINT(3, "libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): %.f GFLOP/s", flops / (1E9 * duration));
   }
 #endif
 }
@@ -374,7 +374,7 @@ template<typename T, bool Complex, typename U>
 int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
   U def_mnk, void* stream)
 {
-  LIBXSTREAM_PRINT_INFO("libsmm_acc_process (host): type=%s homogeneous=%s stack=0x%llx a=0x%llx b=0x%llx c=0x%llx stream=0x%llx",
+  LIBXSTREAM_PRINT(3, "libsmm_acc_process (host): type=%s homogeneous=%s stack=0x%llx a=0x%llx b=0x%llx c=0x%llx stream=0x%llx",
     dbcsr_elem<T,Complex>::name(), 1 == def_mnk ? "true" : "false", reinterpret_cast<unsigned long long>(stack),
     reinterpret_cast<unsigned long long>(a_data), reinterpret_cast<unsigned long long>(b_data), reinterpret_cast<unsigned long long>(c_data),
     reinterpret_cast<unsigned long long>(stream));
@@ -415,7 +415,7 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #endif
 #if defined(LIBMICSMM_RECONFIGURE)
   const int mflops = static_cast<int>(2E-6 * stacksize * max_m * max_n * max_k + 0.5);
-  int result = (LIBMICSMM_MIN_MFLOPS_PERSTACK) <= mflops ? LIBXSTREAM_ERROR_NONE : 1/*LIBXSTREAM_NOT_SUPPORTED*/;
+  int result = (LIBMICSMM_MIN_MFLOPS_PERSTACK) <= mflops ? LIBXSTREAM_ERROR_NONE : LIBXSTREAM_NOT_SUPPORTED;
 #else
   int result = LIBXSTREAM_ERROR_NONE;
 #endif
@@ -428,7 +428,7 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #if 0
         result = libmicsmm_process_private::process<float,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
 #else
-        result = 1/*LIBXSTREAM_NOT_SUPPORTED*/;
+        result = LIBXSTREAM_NOT_SUPPORTED;
 #endif
         result = LIBXSTREAM_ERROR_CONDITION;
       } break;

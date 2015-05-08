@@ -56,8 +56,8 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 {
   size_t stacksize = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
-  LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu m=%i n=%i", static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
-#if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
+  LIBXSTREAM_PRINT(3, "libsmm_acc_transpose (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu m=%i n=%i", static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
+#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
   const double start = omp_get_wtime();
 #endif
 
@@ -88,7 +88,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #endif
   }
 
-#if defined(LIBXSTREAM_DEBUG) && defined(_OPENMP)
+#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
   static double duration = 0, problemsize = 0;
   const double stop = omp_get_wtime();
   if (start < stop) {
@@ -96,7 +96,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
     duration += stop - start;
 #   pragma omp atomic
     problemsize += 2ul * LIBXSTREAM_GETVAL(m) * LIBXSTREAM_GETVAL(n) * sizeof(T) * stacksize;
-    LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (" LIBXSTREAM_DEVICE_NAME "): %.f GB/s", problemsize / (1E9 * duration));
+    LIBXSTREAM_PRINT(3, "libsmm_acc_transpose (" LIBXSTREAM_DEVICE_NAME "): %.f GB/s", problemsize / (1E9 * duration));
   }
 #endif
 }
@@ -105,7 +105,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 template<typename T, bool Complex, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
 {
-  LIBXSTREAM_PRINT_INFO("libsmm_acc_transpose (host): type=%s offset=%i buffer=0x%llx stream=0x%llx", dbcsr_elem<T,COmplex>::name(), offset, 
+  LIBXSTREAM_PRINT(3, "libsmm_acc_transpose (host): type=%s offset=%i buffer=0x%llx stream=0x%llx", dbcsr_elem<T,COmplex>::name(), offset, 
     reinterpret_cast<unsigned long long>(buffer), reinterpret_cast<unsigned long long>(stream)));
   LIBXSTREAM_CHECK_CONDITION(
     stack && 0 <= offset && 0 <= nblocks
