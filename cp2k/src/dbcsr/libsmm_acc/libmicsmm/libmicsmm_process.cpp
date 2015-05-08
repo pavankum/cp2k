@@ -307,8 +307,9 @@ LIBXSTREAM_TARGET(mic) void work_planned(const U *LIBXSTREAM_RESTRICT stack, siz
       for (U kc0 = stack[n+5], kc1 = (((n + N) < nstacksize) ? stack[n+N+5] : (kc0 + 1)); kc0 == kc1; n += N, kc0 = kc1, kc1 = stack[n+N+5]);
       colspan[++size] = n + N;
     }
+#if 0
     LIBXSTREAM_PRINT(3, "libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): parallel=%lu", static_cast<unsigned long>(size));
-
+#endif
 #if defined(_OPENMP)
 #   pragma omp parallel for schedule(LIBMICSMM_SCHEDULE)
 #endif
@@ -340,10 +341,11 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
 {
   size_t stacksize = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
+#if 0
   LIBXSTREAM_PRINT(3, "libsmm_acc_process (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu max_m=%i max_n=%i max_k=%i", static_cast<unsigned long>(stacksize),
     LIBXSTREAM_GETVAL(max_m), LIBXSTREAM_GETVAL(max_n), LIBXSTREAM_GETVAL(max_k));
-
-#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
+#endif
+#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2)) && 0
   const double start = omp_get_wtime();
 #endif
 
@@ -356,7 +358,7 @@ LIBXSTREAM_TARGET(mic) void context(const U *LIBXSTREAM_RESTRICT stack, LIBXSTRE
   LIBXSTREAM_ASSERT(false/*TODO: not yet implemented.*/);
 #endif
 
-#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
+#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2)) && 0
   static double duration = 0, flops = 0;
   const double stop = omp_get_wtime();
   if (start < stop) {

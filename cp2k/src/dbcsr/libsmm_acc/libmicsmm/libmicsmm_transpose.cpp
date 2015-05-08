@@ -56,8 +56,11 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 {
   size_t stacksize = 0;
   LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_shape(0/*current context*/, 0/*stack*/, &stacksize));
-  LIBXSTREAM_PRINT(3, "libsmm_acc_transpose (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu m=%i n=%i", static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
-#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
+#if 0
+  LIBXSTREAM_PRINT(3, "libsmm_acc_transpose (" LIBXSTREAM_DEVICE_NAME "): stacksize=%lu m=%i n=%i",
+    static_cast<unsigned long>(stacksize), LIBXSTREAM_GETVAL(m), LIBXSTREAM_GETVAL(n));
+#endif
+#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2)) && 0
   const double start = omp_get_wtime();
 #endif
 
@@ -88,7 +91,7 @@ LIBXSTREAM_TARGET(mic) void kernel(const U *LIBXSTREAM_RESTRICT stack, LIBXSTREA
 #endif
   }
 
-#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
+#if defined(_OPENMP) && defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2)) && 0
   static double duration = 0, problemsize = 0;
   const double stop = omp_get_wtime();
   if (start < stop) {
