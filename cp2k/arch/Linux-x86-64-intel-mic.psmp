@@ -313,6 +313,7 @@ else # sequential
 endif
 
 ifneq (0,$(RECONFIGURE))
+  DFLAGS  += -D__RECONFIGURE
   LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_mm_driver_
   DIAG_DISABLE := $(DIAG_DISABLE),11021
 endif

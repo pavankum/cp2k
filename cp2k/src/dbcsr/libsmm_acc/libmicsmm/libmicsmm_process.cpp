@@ -37,14 +37,16 @@ LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(sgemm)(
   const float*, float*, const int*);
 #endif
 
-#if defined(LIBMICSMM_RECONFIGURE)
+#if defined(__RECONFIGURE)
 LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*, void*);
+# if defined(LIBMICSMM_RECONFIGURE)
 LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*, void*);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers);
 extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
+# endif
 #endif
 
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
@@ -67,10 +69,11 @@ extern int LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
 #endif
 
 
+#if defined(__RECONFIGURE)
 LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver, void* error)
 {
   LIBXSTREAM_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver, error);
-#if defined(LIBMICSMM_RECONFIGURE)
+# if defined(LIBMICSMM_RECONFIGURE)
   const int stacksize = LIBMICSMM_STACKSIZE;
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize, error);
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams) = LIBMICSMM_POSTERIOR_STREAMS;
@@ -78,8 +81,9 @@ LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_con
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams) = LIBMICSMM_PRIORITY_STREAMS;
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers) = LIBMICSMM_PRIORITY_BUFFERS;
   LIBXSTREAM_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) = LIBMICSMM_MIN_NFLOPS_PERMM;
-#endif
+# endif
 }
+#endif
 
 
 namespace libmicsmm_process_private {
@@ -415,7 +419,7 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #if defined(LIBMICSMM_PRETRANSPOSE)
   LIBXSTREAM_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
 #endif
-#if defined(LIBMICSMM_RECONFIGURE)
+#if defined(__RECONFIGURE) && defined(LIBMICSMM_RECONFIGURE)
   const int mflops = static_cast<int>(2E-6 * stacksize * max_m * max_n * max_k + 0.5);
   int result = (LIBMICSMM_MIN_MFLOPS_PERSTACK) <= mflops ? LIBXSTREAM_ERROR_NONE : LIBXSTREAM_NOT_SUPPORTED;
 #else
