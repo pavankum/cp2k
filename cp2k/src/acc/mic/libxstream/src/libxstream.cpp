@@ -465,7 +465,7 @@ LIBXSTREAM_TARGET(mic) void this_thread_yield()
 #if defined(LIBXSTREAM_RUNTIME_SLEEP)
 # if defined(LIBXSTREAM_STDFEATURES) && defined(LIBXSTREAM_STDFEATURES_THREADX)
   std::this_thread::yield();
-# elif defined(__GNUC__)
+# elif defined(__GNUC__) && !defined(__MIC__)
   pthread_yield();
 # endif
 #else
@@ -557,7 +557,7 @@ LIBXSTREAM_EXPORT_C int libxstream_get_ndevices(size_t* ndevices)
   LIBXSTREAM_CHECK_CONDITION(0 <= idevices);
   *ndevices = static_cast<size_t>(idevices);
 #else
-  *ndevices = 1; // host
+  *ndevices = 0;
 #endif
 
 #if defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
@@ -574,25 +574,7 @@ LIBXSTREAM_EXPORT_C int libxstream_get_ndevices(size_t* ndevices)
 
 LIBXSTREAM_EXPORT_C int libxstream_get_active_device(int* device)
 {
-  LIBXSTREAM_CHECK_CONDITION(0 != device);
-  int result = LIBXSTREAM_ERROR_NONE, active_device = libxstream_internal::context.device();
-
-  if (-1 > active_device) {
-    active_device = libxstream_internal::context.global_device();
-
-    if (-1 > active_device) {
-      size_t ndevices = 0;
-      result = libxstream_get_ndevices(&ndevices);
-      active_device = static_cast<int>(ndevices - 1);
-      libxstream_internal::context.global_device(active_device);
-      libxstream_internal::context.device() = active_device;
-    }
-
-    LIBXSTREAM_PRINT(2, "get_active_device: device=%i (fallback) thread=%i", active_device, this_thread_id());
-  }
-
-  *device = active_device;
-
+  const int result = libxstream_stream_device(0, device);
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;
 }
@@ -600,17 +582,9 @@ LIBXSTREAM_EXPORT_C int libxstream_get_active_device(int* device)
 
 LIBXSTREAM_EXPORT_C int libxstream_set_active_device(int device)
 {
-  size_t ndevices = LIBXSTREAM_MAX_NDEVICES;
-  LIBXSTREAM_CHECK_CONDITION(-1 <= device && ndevices >= static_cast<size_t>(device + 1) && LIBXSTREAM_ERROR_NONE == libxstream_get_ndevices(&ndevices) && ndevices >= static_cast<size_t>(device + 1));
-
-  if (-1 > libxstream_internal::context.global_device()) {
-    libxstream_internal::context.global_device(device);
-  }
-
-  libxstream_internal::context.device() = device;
-  LIBXSTREAM_PRINT(2, "set_active_device: device=%i thread=%i", device, this_thread_id());
-
-  return LIBXSTREAM_ERROR_NONE;
+  const int result = libxstream_stream_create(0, device, 0, 0);
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
@@ -638,7 +612,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_info(int device, size_t* allocatable, siz
       libxstream_internal::mem_info(memory_physical, memory_allocatable);
     }
   }
-  LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT, work, device, &memory_physical, &memory_allocatable);
+  LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_DEVICE | LIBXSTREAM_CALL_WAIT, work, device, &memory_physical, &memory_allocatable);
 
   const int result = work.wait();
   LIBXSTREAM_CHECK_CONDITION(0 < memory_physical && 0 < memory_allocatable);
@@ -671,7 +645,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_
         const size_t size = val<const size_t,2>();
 #       pragma offload_transfer target(mic:LIBXSTREAM_ASYNC_DEVICE) nocopy(buffer: length(size) LIBXSTREAM_OFFLOAD_ALLOC)
       }
-      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT, work, device, buffer, size);
+      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_DEVICE | LIBXSTREAM_CALL_WAIT, work, device, buffer, size);
       result = work.wait();
       LIBXSTREAM_CHECK_ERROR(result);
       *memory = buffer;
@@ -687,13 +661,14 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_
 
     if (LIBXSTREAM_ERROR_NONE == result && 0 != buffer) {
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ALLOC_PINNED)
-      LIBXSTREAM_ASYNC_BEGIN(0, device, buffer, size)
+      LIBXSTREAM_ASYNC_BEGIN
       {
         const char* buffer = ptr<const char,1>();
         const size_t size = val<const size_t,2>();
 #       pragma offload_transfer target(mic) host_pin(buffer: length(size))
       }
-      LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_WAIT, result);
+      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_DEVICE | LIBXSTREAM_CALL_WAIT, work, device, buffer, size);
+      result = work.wait();
       LIBXSTREAM_CHECK_ERROR(result);
 #endif
       *memory = buffer;
@@ -733,7 +708,8 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_deallocate(int device, const void* memory
 #       pragma offload_transfer target(mic:LIBXSTREAM_ASYNC_DEVICE) nocopy(memory: length(0) LIBXSTREAM_OFFLOAD_FREE)
         LIBXSTREAM_ASYNC_RETURN(libxstream_virt_deallocate(memory));
       }
-      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT, work, device, memory);
+      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_DEVICE, work, device, memory);
+      result = work.status();
     }
     else {
 #else
@@ -741,14 +717,15 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_deallocate(int device, const void* memory
       libxstream_use_sink(&device);
 #endif
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ALLOC_PINNED)
-      LIBXSTREAM_ASYNC_BEGIN(0, device, memory)
+      LIBXSTREAM_ASYNC_BEGIN
       {
         const char* memory = ptr<const char,1>();
         LIBXSTREAM_PRINT(2, "mem_deallocate: device=%i buffer=0x%llx", LIBXSTREAM_ASYNC_DEVICE, reinterpret_cast<unsigned long long>(memory));
 #       pragma offload_transfer target(mic) host_unpin(memory: length(0))
         LIBXSTREAM_CHECK_CALL_ASSERT(status(libxstream_real_deallocate(memory)));
       }
-      LIBXSTREAM_ASYNC_END(LIBXSTREAM_CALL_DEFAULT, result);
+      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_DEVICE, work, device, memory);
+      result = work.status();
 #else
       LIBXSTREAM_PRINT(2, "mem_deallocate: device=%i buffer=0x%llx", device, reinterpret_cast<unsigned long long>(memory));
       result = libxstream_real_deallocate(memory);
@@ -763,7 +740,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_deallocate(int device, const void* memory
 
 LIBXSTREAM_EXPORT_C int libxstream_memset_zero(void* memory, size_t size, libxstream_stream* stream)
 {
-  LIBXSTREAM_ASSERT(0 != memory && 0 != stream);
+  LIBXSTREAM_ASSERT(0 != memory);
   LIBXSTREAM_ASYNC_BEGIN
   {
     char* dst = ptr<char,0>();
@@ -792,13 +769,15 @@ LIBXSTREAM_EXPORT_C int libxstream_memset_zero(void* memory, size_t size, libxst
   }
   LIBXSTREAM_ASYNC_END(stream, LIBXSTREAM_CALL_DEFAULT, work, memory, size);
 
-  return work.status();
+  const int result = work.status();
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
 LIBXSTREAM_EXPORT_C int libxstream_memcpy_h2d(const void* host_mem, void* dev_mem, size_t size, libxstream_stream* stream)
 {
-  LIBXSTREAM_CHECK_CONDITION(host_mem && dev_mem && host_mem != dev_mem && stream);
+  LIBXSTREAM_CHECK_CONDITION(0 != host_mem && 0 != dev_mem && host_mem != dev_mem);
   LIBXSTREAM_ASYNC_BEGIN
   {
     const char *const src = ptr<const char,0>();
@@ -837,13 +816,15 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_h2d(const void* host_mem, void* dev_me
   }
   LIBXSTREAM_ASYNC_END(stream, LIBXSTREAM_CALL_DEFAULT, work, host_mem, dev_mem, size);
 
-  return work.status();
+  const int result = work.status();
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
 LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2h(const void* dev_mem, void* host_mem, size_t size, libxstream_stream* stream)
 {
-  LIBXSTREAM_CHECK_CONDITION(dev_mem && host_mem && dev_mem != host_mem && stream);
+  LIBXSTREAM_CHECK_CONDITION(0 != dev_mem && 0 != host_mem && dev_mem != host_mem);
   LIBXSTREAM_ASYNC_BEGIN
   {
     const char* src = ptr<const char,0>();
@@ -870,13 +851,15 @@ LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2h(const void* dev_mem, void* host_me
   }
   LIBXSTREAM_ASYNC_END(stream, LIBXSTREAM_CALL_DEFAULT, work, dev_mem, host_mem, size);
 
-  return work.status();
+  const int result = work.status();
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
 LIBXSTREAM_EXPORT_C int libxstream_memcpy_d2d(const void* src, void* dst, size_t size, libxstream_stream* stream)
 {
-  LIBXSTREAM_CHECK_CONDITION(src && dst && stream);
+  LIBXSTREAM_CHECK_CONDITION(0 != src && 0 != dst);
   int result = LIBXSTREAM_ERROR_NONE;
 
   if (src != dst) {
@@ -937,21 +920,33 @@ LIBXSTREAM_EXPORT_C int libxstream_stream_priority_range(int* least, int* greate
 
 LIBXSTREAM_EXPORT_C int libxstream_stream_create(libxstream_stream** stream, int device, int priority, const char* name)
 {
-  LIBXSTREAM_CHECK_CONDITION(stream);
-  libxstream_stream *const s = new libxstream_stream(device, priority, name);
-  LIBXSTREAM_ASSERT(s);
-  *stream = s;
+  if (stream) {
+    libxstream_stream *const s = new libxstream_stream(device, priority, name);
+    LIBXSTREAM_ASSERT(s);
+    *stream = s;
 
 #if defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
-  if (name && *name) {
-    LIBXSTREAM_PRINT(2, "stream_create: stream=0x%llx (%s) device=%i priority=%i",
-      reinterpret_cast<unsigned long long>(*stream), name, device, priority);
+    if (name && *name) {
+      LIBXSTREAM_PRINT(2, "stream_create: stream=0x%llx (%s) device=%i priority=%i",
+        reinterpret_cast<unsigned long long>(*stream), name, device, priority);
+    }
+    else {
+      LIBXSTREAM_PRINT(2, "stream_create: stream=0x%llx device=%i priority=%i",
+        reinterpret_cast<unsigned long long>(*stream), device, priority);
+    }
+#endif
   }
   else {
-    LIBXSTREAM_PRINT(2, "stream_create: stream=0x%llx device=%i priority=%i",
-      reinterpret_cast<unsigned long long>(*stream), device, priority);
+    size_t ndevices = LIBXSTREAM_MAX_NDEVICES;
+    LIBXSTREAM_CHECK_CONDITION(-1 <= device && ndevices >= static_cast<size_t>(device + 1) && LIBXSTREAM_ERROR_NONE == libxstream_get_ndevices(&ndevices) && ndevices >= static_cast<size_t>(device + 1));
+
+    if (-1 > libxstream_internal::context.global_device()) {
+      libxstream_internal::context.global_device(device);
+    }
+
+    libxstream_internal::context.device() = device;
+    LIBXSTREAM_PRINT(2, "set_active_device: device=%i thread=%i", device, this_thread_id());
   }
-#endif
 
   return LIBXSTREAM_ERROR_NONE;
 }
@@ -980,7 +975,8 @@ LIBXSTREAM_EXPORT_C int libxstream_stream_destroy(const libxstream_stream* strea
 
 LIBXSTREAM_EXPORT_C int libxstream_stream_sync(libxstream_stream* stream)
 {
-#if defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
+  // TODO: print in order
+#if defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2)) && 0
   if (0 != stream) {
 # if defined(LIBXSTREAM_DEBUG)
     const char *const name = stream->name();
@@ -998,13 +994,16 @@ LIBXSTREAM_EXPORT_C int libxstream_stream_sync(libxstream_stream* stream)
   }
 #endif
 
-  return stream ? stream->sync(false, 0) : libxstream_stream::sync_all(false);
+  const int result = stream ? stream->sync(false, 0) : libxstream_stream::sync_all(false);
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
 LIBXSTREAM_EXPORT_C int libxstream_stream_wait(libxstream_stream* stream)
 {
-#if defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
+  // TODO: print in order
+#if defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2)) && 0
   if (0 != stream) {
 # if defined(LIBXSTREAM_DEBUG)
     const char *const name = stream->name();
@@ -1018,29 +1017,64 @@ LIBXSTREAM_EXPORT_C int libxstream_stream_wait(libxstream_stream* stream)
     }
   }
   else {
-    LIBXSTREAM_PRINT0(2, "stream_wait: synchronize all streams");
+    LIBXSTREAM_PRINT0(2, "stream_wait: wait for all streams");
   }
 #endif
 
-  // LIBXSTREAM_FALSE != wait ? true : false
-  return stream ? stream->sync(true, 0) : libxstream_stream::sync_all(true);
+  const int result = stream ? stream->sync(true, 0) : libxstream_stream::sync_all(true);
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
 LIBXSTREAM_EXPORT_C int libxstream_stream_wait_event(libxstream_stream* stream, libxstream_event* event)
 {
-  LIBXSTREAM_PRINT(2, "stream_wait_event: stream=0x%llx event=0x%llx", reinterpret_cast<unsigned long long>(stream), reinterpret_cast<unsigned long long>(event));
-  LIBXSTREAM_CHECK_CONDITION(0 != stream && 0 != event);
-  return stream->wait(*event);
+  // TODO: print in order
+  //LIBXSTREAM_PRINT(2, "stream_wait_event: stream=0x%llx event=0x%llx", reinterpret_cast<unsigned long long>(stream), reinterpret_cast<unsigned long long>(event));
+  LIBXSTREAM_CHECK_CONDITION(0 != event);
+  const int result = stream ? stream->wait(*event) : event->wait();
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
 LIBXSTREAM_EXPORT_C int libxstream_stream_device(const libxstream_stream* stream, int* device)
 {
-  LIBXSTREAM_CHECK_CONDITION(stream && device);
-  *device = stream->device();
-  LIBXSTREAM_PRINT(3, "stream_device: stream=0x%llx device=%i", reinterpret_cast<unsigned long long>(stream), *device);
-  return LIBXSTREAM_ERROR_NONE;
+  LIBXSTREAM_CHECK_CONDITION(0 != device);
+  int result = LIBXSTREAM_ERROR_NONE;
+
+  if (stream) {
+    *device = stream->device();
+    LIBXSTREAM_PRINT(3, "stream_device: stream=0x%llx device=%i", reinterpret_cast<unsigned long long>(stream), *device);
+  }
+  else {
+    int active_device = libxstream_internal::context.device();
+
+    if (-1 > active_device) {
+      active_device = libxstream_internal::context.global_device();
+
+      if (-1 > active_device) {
+        size_t ndevices = 0;
+        result = libxstream_get_ndevices(&ndevices);
+        active_device = static_cast<int>(ndevices - 1);
+        libxstream_internal::context.global_device(active_device);
+        libxstream_internal::context.device() = active_device;
+      }
+
+#if defined(LIBXSTREAM_TRACE) && ((1 == ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 < ((2*LIBXSTREAM_TRACE+1)/2))
+      static LIBXSTREAM_TLS bool print = true;
+      if (print) { // once
+        LIBXSTREAM_PRINT(2, "get_active_device: device=%i (fallback) thread=%i", active_device, this_thread_id());
+        print = false;
+      }
+#endif
+    }
+
+    *device = active_device;
+  }
+
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
@@ -1068,7 +1102,9 @@ LIBXSTREAM_EXPORT_C int libxstream_event_destroy(const libxstream_event* event)
 LIBXSTREAM_EXPORT_C int libxstream_event_record(libxstream_event* event, libxstream_stream* stream)
 {
   LIBXSTREAM_PRINT(2, "event_record: event=0x%llx stream=0x%llx", reinterpret_cast<unsigned long long>(event), reinterpret_cast<unsigned long long>(stream));
-  return stream ? event->enqueue(*stream, true) : libxstream_stream::enqueue(*event);
+  const int result = stream ? event->enqueue(*stream, true) : libxstream_stream::enqueue(*event);
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
@@ -1123,7 +1159,9 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_input(libxstream_argument* signature, size
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
 #endif
-  return libxstream_construct(signature, arg, libxstream_argument::kind_input, in, type, dims, shape);
+  const int result = libxstream_construct(signature, arg, libxstream_argument::kind_input, in, type, dims, shape);
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
@@ -1134,7 +1172,9 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_output(libxstream_argument* signature, siz
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
 #endif
-  return libxstream_construct(signature, arg, libxstream_argument::kind_output, out, type, dims, shape);
+  const int result = libxstream_construct(signature, arg, libxstream_argument::kind_output, out, type, dims, shape);
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
@@ -1145,7 +1185,9 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_inout(libxstream_argument* signature, size
   size_t nargs = 0;
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_fn_nargs(signature, &nargs) && arg < nargs);
 #endif
-  return libxstream_construct(signature, arg, libxstream_argument::kind_inout, inout, type, dims, shape);
+  const int result = libxstream_construct(signature, arg, libxstream_argument::kind_inout, inout, type, dims, shape);
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
@@ -1166,9 +1208,11 @@ LIBXSTREAM_EXPORT_C int libxstream_fn_nargs(const libxstream_argument* signature
 
 LIBXSTREAM_EXPORT_C int libxstream_fn_call(libxstream_function function, const libxstream_argument* signature, libxstream_stream* stream, int flags)
 {
-  LIBXSTREAM_CHECK_CONDITION(0 != function && 0 != stream);
+  LIBXSTREAM_CHECK_CONDITION(0 != function);
   const libxstream_workqueue::entry_type& work = libxstream_offload(function, signature, stream, flags);
-  return 0 != (LIBXSTREAM_CALL_WAIT & flags) ? work.wait() : work.status();
+  const int result = 0 != (LIBXSTREAM_CALL_WAIT & flags) ? work.wait() : work.status();
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  return result;
 }
 
 
@@ -1200,22 +1244,17 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_typesize(libxstrea
 }
 
 
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_autotype(size_t typesize, libxstream_type* autotype)
+LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_autotype(size_t typesize, libxstream_type start, libxstream_type* autotype)
 {
   LIBXSTREAM_CHECK_CONDITION(0 != autotype);
   size_t size = 0;
-  int i = 0;
 
-  do {
+  for (int i = static_cast<libxstream_type>(start); i <= LIBXSTREAM_TYPE_VOID; ++i) {
     *autotype = static_cast<libxstream_type>(i);
-    if (LIBXSTREAM_ERROR_NONE == libxstream_get_typesize(*autotype, &size) && typesize != size) {
-      ++i;
-    }
-    else {
+    if (LIBXSTREAM_ERROR_NONE != libxstream_get_typesize(*autotype, &size) || typesize == size) {
       i = LIBXSTREAM_TYPE_INVALID; // break
     }
   }
-  while (i <= LIBXSTREAM_TYPE_VOID);
 
   return LIBXSTREAM_ERROR_NONE;
 }
@@ -1344,7 +1383,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_get_string(const libxs
   else { // 0 == argument.dims && 0 != data
     libxstream_type type = argument.type;
     if (LIBXSTREAM_TYPE_VOID == type) {
-      LIBXSTREAM_CHECK_CALL(libxstream_get_autotype(*argument.shape, &type));
+      LIBXSTREAM_CHECK_CALL(libxstream_get_autotype(*argument.shape, LIBXSTREAM_TYPE_CHAR, &type));
     }
 
     switch(type) {

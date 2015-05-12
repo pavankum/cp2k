@@ -98,10 +98,11 @@
     void virtual_run(libxstream_workqueue::entry_type& LIBXSTREAM_ASYNC_QENTRY) { \
       const libxstream_signal LIBXSTREAM_ASYNC_PENDING = LIBXSTREAM_ASYNC_STREAM ? LIBXSTREAM_ASYNC_STREAM->pending(thread()) : 0; \
       const libxstream_signal workitem_signal = LIBXSTREAM_ASYNC_STREAM ? LIBXSTREAM_ASYNC_STREAM->signal() : 0; \
-      int LIBXSTREAM_ASYNC_DEVICE = LIBXSTREAM_ASYNC_STREAM ? LIBXSTREAM_ASYNC_STREAM->device() : val<int,0>(); \
+      int LIBXSTREAM_ASYNC_DEVICE = LIBXSTREAM_ASYNC_STREAM ? LIBXSTREAM_ASYNC_STREAM->device() : (0 != (LIBXSTREAM_CALL_DEVICE & flags()) ? val<int,0>() : -2); \
+      if (-1 > (LIBXSTREAM_ASYNC_DEVICE)) LIBXSTREAM_ASYNC_RETURN(libxstream_get_active_device(&LIBXSTREAM_ASYNC_DEVICE)); \
       LIBXSTREAM_ASYNC_DECL; libxstream_use_sink(&LIBXSTREAM_ASYNC_QENTRY); libxstream_use_sink(&LIBXSTREAM_ASYNC_DEVICE); libxstream_use_sink(&LIBXSTREAM_ASYNC_PENDING); do
 #define LIBXSTREAM_ASYNC_END(STREAM, FLAGS, NAME, ...) while(libxstream_not_constant(LIBXSTREAM_FALSE)); \
-      if (LIBXSTREAM_ASYNC_STREAM && workitem_signal != workitem_signal_consumed) { \
+      if (LIBXSTREAM_ASYNC_STREAM && (workitem_signal != workitem_signal_consumed/* || 0 > LIBXSTREAM_ASYNC_DEVICE*/)) { \
         LIBXSTREAM_ASYNC_STREAM->pending(thread(), workitem_signal); \
       } \
     } \
@@ -112,7 +113,7 @@
     LIBXSTREAM_UNIQUE(LIBXSTREAM_CONCATENATE(NAME,argv)) + 1, __FUNCTION__); \
   libxstream_workqueue::entry_type& LIBXSTREAM_ASYNC_INTERNAL(NAME) = LIBXSTREAM_UNIQUE(LIBXSTREAM_CONCATENATE(NAME,item)).stream() \
     ? LIBXSTREAM_UNIQUE(LIBXSTREAM_CONCATENATE(NAME,item)).stream()->enqueue(LIBXSTREAM_UNIQUE(LIBXSTREAM_CONCATENATE(NAME,item))) \
-    : libxstream_enqueue(LIBXSTREAM_UNIQUE(LIBXSTREAM_CONCATENATE(NAME,item))); \
+    : libxstream_enqueue(&LIBXSTREAM_UNIQUE(LIBXSTREAM_CONCATENATE(NAME,item))); \
   const libxstream_workqueue::entry_type& NAME = LIBXSTREAM_ASYNC_INTERNAL(NAME); \
   libxstream_use_sink(&NAME)
 
@@ -204,7 +205,7 @@ private:
 };
 
 
-libxstream_workqueue::entry_type& libxstream_enqueue(libxstream_workitem& workitem);
+libxstream_workqueue::entry_type& libxstream_enqueue(libxstream_workitem* workitem);
 
 #endif // defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
 #endif // LIBXSTREAM_WORKITEM_HPP
