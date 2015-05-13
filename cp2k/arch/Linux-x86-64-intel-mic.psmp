@@ -226,21 +226,21 @@ ifneq (1,$(MKL))
     else # static
       ifneq (0,$(PAR))
         MIC_LDFLAGS += -offload-option,mic,ld," \
-          $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
           --start-group \
+            $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
             $(MKLROOT)/lib/mic/libmkl_intel_lp64.a \
             $(MKLROOT)/lib/mic/libmkl_core.a \
             $(MKLROOT)/lib/mic/libmkl_intel_thread.a \
-          --end-group \
-          $(MKLROOT)/lib/mic/libmkl_blacs_intelmpi_lp64.a"
+            $(MKLROOT)/lib/mic/libmkl_blacs_intelmpi_lp64.a \
+          --end-group"
         LIBS += \
-          $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a \
           -Wl,--start-group \
+            $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a \
             $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a \
             $(MKLROOT)/lib/intel64/libmkl_core.a \
             $(MKLROOT)/lib/intel64/libmkl_intel_thread.a \
-          -Wl,--end-group \
-          $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_lp64.a
+            $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_lp64.a \
+          -Wl,--end-group
       else
         MIC_LDFLAGS += -offload-option,mic,ld," \
           --start-group \
@@ -278,21 +278,21 @@ else # sequential
   else # static
     ifneq (0,$(PAR))
       MIC_LDFLAGS += -offload-option,mic,ld," \
-        $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
         --start-group \
+          $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
           $(MKLROOT)/lib/mic/libmkl_intel_lp64.a \
           $(MKLROOT)/lib/mic/libmkl_core.a \
           $(MKLROOT)/lib/mic/libmkl_sequential.a \
-        --end-group \
-        $(MKLROOT)/lib/mic/libmkl_blacs_intelmpi_lp64.a"
+          $(MKLROOT)/lib/mic/libmkl_blacs_intelmpi_lp64.a \
+        --end-group"
       LIBS += \
-        $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a \
         -Wl,--start-group \
+          $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a \
           $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a \
           $(MKLROOT)/lib/intel64/libmkl_core.a \
           $(MKLROOT)/lib/intel64/libmkl_sequential.a \
-        -Wl,--end-group \
-        $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_lp64.a
+          $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_lp64.a \
+        -Wl,--end-group
     else
       MIC_LDFLAGS += -offload-option,mic,ld," \
         --start-group \
