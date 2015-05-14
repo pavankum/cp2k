@@ -149,7 +149,9 @@ else
 endif
 
 ifneq (0,$(SMP))
-  OPTFLAGS += -openmp
+  FCFLAGS   += -threads
+  LDFLAGS   += -threads
+  OPTFLAGS  += -openmp
 endif
 
 ifneq (,$(LIBINTROOT))
