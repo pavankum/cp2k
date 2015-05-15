@@ -60,7 +60,7 @@ public:
     : m_istreams(0)
   {
     std::fill_n(m_signals, LIBXSTREAM_MAX_NDEVICES, 0);
-    std::fill_n(m_streams, LIBXSTREAM_MAX_NDEVICES * LIBXSTREAM_MAX_NSTREAMS, static_cast<value_type>(0));
+    std::fill_n(m_streams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS), static_cast<value_type>(0));
   }
 
   ~registry_type() {
@@ -115,7 +115,7 @@ public:
   }
 
   size_t max_nstreams() const {
-    return std::min<size_t>(m_istreams, LIBXSTREAM_MAX_NDEVICES * LIBXSTREAM_MAX_NSTREAMS);
+    return std::min<size_t>(m_istreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
   }
 
   size_t nstreams(int device, const libxstream_stream* end = 0) const {
@@ -199,7 +199,7 @@ public:
     for (size_t i = start + offset; i < end; ++i) {
       const value_type stream = m_streams[/*i%n*/i<n?i:(i-n)];
 
-      if (0 != stream && stream->queue()) {
+      if (0 != stream /*&& stream->queue()*/) {
         const libxstream_event *const events = stream->events();
         bool occurred = true;
 
@@ -381,7 +381,7 @@ libxstream_stream::libxstream_stream(int device, int priority, const char* name)
 
 libxstream_stream::~libxstream_stream()
 {
-  LIBXSTREAM_CHECK_CALL_ASSERT(sync(true/*wait*/, 0/*all*/));
+  LIBXSTREAM_CHECK_CALL_ASSERT(sync(false/*no wait*/, 0/*all*/));
 
   using namespace libxstream_stream_internal;
   volatile registry_type::value_type *const end = registry.streams() + registry.max_nstreams();
