@@ -61,9 +61,7 @@ int acc_stream_destroy(void* stream)
 
 int acc_stream_sync(void* stream)
 {
-  const char *const env = getenv("LIBMICACC_NONBLOCKING");
-  const int non_blocking = (env && *env) ? atoi(env) : 0;
-  const int result = (0 == non_blocking ? libxstream_stream_wait : libxstream_stream_sync)((libxstream_stream*)stream);
+  const int result = libxstream_stream_wait((libxstream_stream*)stream);
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;
 }
