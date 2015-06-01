@@ -1702,11 +1702,11 @@ MODULE rpa_ri_gpw
 
       ALLOCATE(Eigenval_scf(nmo),STAT=stat)
       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-      Eigenval_scf=Eigenval
+      Eigenval_scf(:) = Eigenval(:)
 
       ALLOCATE(Eigenval_last(nmo),STAT=stat)
       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-      Eigenval_last=Eigenval
+      Eigenval_last(:) = Eigenval(:)
 
       ! in the case of HF_diag approach of X. Blase (PRB 83, 115103 (2011), Sec. IV), we subtract the
       ! XC potential and add exact exchange
@@ -2457,7 +2457,7 @@ MODULE rpa_ri_gpw
           Lambda_Re(1) = Lambda_Re(1) - REAL(func_val) + REAL(vec_Sigma_c_gw(n_level_gw,num_fit_points))
           Lambda_Im(1) = Lambda_Im(1) - AIMAG(func_val) + AIMAG(vec_Sigma_c_gw(n_level_gw,num_fit_points))
   
-          Lambda_without_offset = Lambda
+          Lambda_without_offset(:) = Lambda(:)
 
           DO iii=1, num_var
             Lambda(iii)=CMPLX(Lambda_Re(iii),Lambda_Im(iii),KIND=dp)
@@ -2622,7 +2622,7 @@ MODULE rpa_ri_gpw
         CALL mp_sum(z_value,para_env%group)
         CALL mp_sum(m_value,para_env%group)
 
-        Eigenval_last=Eigenval
+        Eigenval_last(:) = Eigenval(:)
 
  
         IF(count_ev_sc_GW<10) THEN
@@ -3291,8 +3291,8 @@ MODULE rpa_ri_gpw
 !> \brief Calculate the matrix mat_N_gw containing the second derivatives
 !>        with respect to the fitting parameters. The second derivatives are
 !>        calculated numerically by finite differences.
-!> \param N_ij ...
-!> \param Lambda ...
+!> \param N_ij matrix element
+!> \param Lambda fitting parameters
 !> \param Sigma_c ...
 !> \param vec_omega_fit_gw ...
 !> \param i ...
@@ -3302,8 +3302,6 @@ MODULE rpa_ri_gpw
 !> \param n_level_gw ...
 !> \param h  ...
 !> \param error ...
-!> \param Lambda: fitting parameters UNMATCHED_PROCEDURE_ARGUMENT: please check 
-!> \param N_ij: matrix element UNMATCHED_PROCEDURE_ARGUMENT: please check 
 ! *****************************************************************************
     SUBROUTINE calc_mat_N(N_ij,Lambda,Sigma_c,vec_omega_fit_gw,i,j,&
                           num_poles,num_fit_points,n_level_gw,h,error)
@@ -3339,12 +3337,12 @@ MODULE rpa_ri_gpw
       im_unit=(0.0_dp,1.0_dp)
 
       !test
-      Lambda_tmp=Lambda
+      Lambda_tmp(:) = Lambda(:)
       CALL calc_chi2(chi2,Lambda_tmp,Sigma_c,vec_omega_fit_gw,num_poles,&
                      num_fit_points,n_level_gw,error)
 
       ! Fitting parameters with offset h
-      Lambda_tmp=Lambda
+      Lambda_tmp(:) = Lambda(:)
       IF(MODULO(i,2)==0) THEN
         Lambda_tmp(i/2)=Lambda_tmp(i/2)+h*re_unit
       ELSE
@@ -3398,14 +3396,13 @@ MODULE rpa_ri_gpw
 ! *****************************************************************************
 !> \brief Calculate chi2
 !> \param chi2 ...
-!> \param Lambda ...
+!> \param Lambda fitting parameters
 !> \param Sigma_c ...
 !> \param vec_omega_fit_gw ...
 !> \param num_poles ...
 !> \param num_fit_points ...
 !> \param n_level_gw ...
 !> \param error ...
-!> \param Lambda: fitting parameters UNMATCHED_PROCEDURE_ARGUMENT: please check 
 ! *****************************************************************************
     SUBROUTINE calc_chi2(chi2,Lambda,Sigma_c,vec_omega_fit_gw,num_poles,&
                          num_fit_points,n_level_gw,error)
@@ -3446,14 +3443,13 @@ MODULE rpa_ri_gpw
 ! *****************************************************************************
 !> \brief Calculate the maximum deviation between the fit and the computed self-ener 
 !> \param max_dev ...
-!> \param Lambda ...
+!> \param Lambda fitting parameters
 !> \param Sigma_c ...
 !> \param vec_omega_fit_gw ...
 !> \param num_poles ...
 !> \param num_fit_points ...
 !> \param n_level_gw ...
 !> \param error ...
-!> \param Lambda: fitting parameters UNMATCHED_PROCEDURE_ARGUMENT: please check 
 ! *****************************************************************************
     SUBROUTINE calc_max_dev(max_dev,Lambda,Sigma_c,vec_omega_fit_gw,num_poles,&
                          num_fit_points,n_level_gw,error)
@@ -3496,16 +3492,12 @@ MODULE rpa_ri_gpw
 
 ! *****************************************************************************
 !> \brief Evaluate fit function 
-!> \param func_val ...
-!> \param Lambda ...
-!> \param omega ...
-!> \param e_fermi ...
+!> \param func_val result of fit evaluation
+!> \param Lambda fitting parameters
+!> \param omega real or complex energy
+!> \param e_fermi the Fermi level
 !> \param num_poles ...
 !> \param error ...
-!> \param Lambda: fitting parameters UNMATCHED_PROCEDURE_ARGUMENT: please check 
-!> \param e_fermi: the Fermi level UNMATCHED_PROCEDURE_ARGUMENT: please check 
-!> \param func_val: result of fit evaluation UNMATCHED_PROCEDURE_ARGUMENT: please check 
-!> \param omega: real or complex energy UNMATCHED_PROCEDURE_ARGUMENT: please check 
 ! *****************************************************************************
     SUBROUTINE evaluate_fit_function(func_val,Lambda,omega,e_fermi,num_poles,error)
     COMPLEX(KIND=dp)                         :: func_val
