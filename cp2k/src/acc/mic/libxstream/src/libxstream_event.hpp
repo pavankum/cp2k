@@ -39,25 +39,36 @@
 struct/*!class*/ libxstream_event {
 public:
   libxstream_event();
+  libxstream_event(const libxstream_event& other);
+
   ~libxstream_event();
 
 public:
+  libxstream_event& operator=(const libxstream_event& rhs) {
+    libxstream_event tmp(rhs);
+    swap(tmp);
+    return *this;
+  }
+
   void swap(libxstream_event& other);
 
   // Enqueue this event into the given stream; reset to start over.
-  int enqueue(libxstream_stream& stream, bool reset, bool sync = true);
+  int record(libxstream_stream& stream, bool reset);
 
   // Query whether the event already happened or not.
-  int query(bool& occurred, const libxstream_stream* exclude = 0) const;
+  int query(bool& occurred, const libxstream_stream* exclude = 0, bool all = false) const;
 
-  // Wait for the event to happen.
-  int wait(const libxstream_stream* exclude = 0);
+  // Wait for the event to happen; optionally exclude events related to a given stream.
+  int wait(const libxstream_stream* exclude, bool any, bool all = false);
+
+  // Wait for the event to happen using a barrier i.e., waiting within the given stream.
+  int wait_stream(libxstream_stream* stream, bool all = false);
 
 private:
-  libxstream_event(const libxstream_event&);
-
   typedef libxstream_workqueue::entry_type* slot_type;
-  slot_type* slot(size_t i);
+  slot_type* entries(int thread);
+  int entries_query(int thread, bool& occurred, const libxstream_stream* exclude) const;
+  int entries_wait(int thread, const libxstream_stream* exclude, bool any);
 
 private:
   slot_type** m_slots;
