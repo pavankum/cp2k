@@ -124,8 +124,7 @@ CONTAINS
 ! *****************************************************************************
   RECURSIVE SUBROUTINE fes_write(unit_nr, idim, fes,  pos,  ndim, ngrid,&
          dp_grid, x0, ndw, l_fes_int, array)
-    INTEGER, INTENT(IN)                      :: unit_nr
-    INTEGER, INTENT(IN)                      :: idim
+    INTEGER, INTENT(IN)                      :: unit_nr, idim
     REAL(KIND=dp), DIMENSION(:), POINTER     :: fes
     INTEGER, DIMENSION(:), POINTER           :: pos
     INTEGER, INTENT(IN)                      :: ndim
@@ -553,7 +552,7 @@ CONTAINS
     END DO
 
     WRITE(*,*)"MEP saved on <mep.data> file."
-    CALL open_file(unit_number=unit_nr,file_name="mep.data",file_status='unknown',file_form='formatted')
+    CALL open_file(unit_number=unit_nr,file_name="mep.data",file_action="WRITE",file_status="UNKNOWN",file_form="FORMATTED")
     DO irep=1,nreplica
        ! compute energy and derivative for each single point of the replica
        ipos= FLOOR((pos(:,irep)-x0)/dp_grid)+1
