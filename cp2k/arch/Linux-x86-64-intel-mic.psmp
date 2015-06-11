@@ -48,15 +48,15 @@ AR       = xiar -r
 #   INDICES_K="$(echo $(seq 1 24))"
 # $ make clean
 #
-#LIBXSMMROOT = $(HOME)/libxsmm
+LIBXSMMROOT = $(TOOLSRC)/build_libsmm/libxsmm
 
-# LIBXSTREAM: cp2k/src/acc/mic/libxstream or https://github.com/hfp/libxstream
+# LIBXSTREAM: cp2k/tools/mic/libxstream or https://github.com/hfp/libxstream
 # Please note that CP2K redistributes a tested version of LIBXSTREAM.
 #
 # $ make
 # $ make clean
 #
-#LIBXSTREAMROOT = $(HOME)/libxstream
+LIBXSTREAMROOT = $(TOOLSRC)/mic/libxstream
 
 # Diagnostic message to be turned off
 DIAG_DISABLE = 8290,8291,10010,10212,11060
@@ -169,23 +169,20 @@ endif
 ifneq (,$(LIBXSTREAMROOT))
   DFLAGS  += -D__LIBXSTREAM
   IFLAGS  += -I$(LIBXSTREAMROOT)/include
-else
-  DFLAGS  += -D__LIBXSTREAM
-  IFLAGS  += -I$(SRCDIR)/acc/mic/libxstream/include
+endif
+
+ifneq (,$(LIBXSMMROOT))
+  DFLAGS  += -D__LIBXSMM
+  IFLAGS  += -I$(LIBXSMMROOT)/include
+  LIBS    += $(LIBXSMMROOT)/lib/intel64/libxsmm.a
+  #MIC_CXFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
+  #MIC_CCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
+  #MIC_FCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
+  #MIC_LDFLAGS += -offload-option,mic,ld,"$(LIBXSMMROOT)/lib/mic/libxsmm.a"
 endif
 
 ifneq (0,$(ACC))
   DFLAGS += -D__ACC -D__DBCSR_ACC
-
-  ifneq (,$(LIBXSMMROOT))
-    DFLAGS  += -D__LIBXSMM
-    IFLAGS  += -I$(LIBXSMMROOT)/include
-    LIBS    += $(LIBXSMMROOT)/lib/intel64/libxsmm.a
-    #MIC_CXFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
-    #MIC_CCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
-    #MIC_FCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
-    #MIC_LDFLAGS += -offload-option,mic,ld,"$(LIBXSMMROOT)/lib/mic/libxsmm.a"
-  endif
 
   ifeq (0,$(OCL))
     DFLAGS += -D__ACC_MIC
