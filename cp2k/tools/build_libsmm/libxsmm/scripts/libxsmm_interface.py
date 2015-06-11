@@ -1,5 +1,6 @@
+#! /usr/bin/env python
 ###############################################################################
-## Copyright (c) 2013-2014, Intel Corporation                                ##
+## Copyright (c) 2013-2015, Intel Corporation                                ##
 ## All rights reserved.                                                      ##
 ##                                                                           ##
 ## Redistribution and use in source and binary forms, with or without        ##
@@ -29,65 +30,14 @@
 ## Christopher Dahnken (Intel Corp.), Hans Pabst (Intel Corp.),
 ## Alfio Lazzaro (CRAY Inc.), and Gilles Fourestey (CSCS)
 ###############################################################################
-import math
+import libxsmm_utilities
 import sys
 
-def createigemm(M,N,K,RowMajor):
-    if RowMajor==1:
-        Rows, Cols = N, M
-        l1, l2 = "b", "a"
-    else:
-        Rows, Cols = M, N
-        l1, l2 = "a", "b"
-    iparts=int(math.floor(Rows/8))
-    fparts=Rows%8
-    if fparts==0:
-        mnparts=iparts
-    else:
-        mnparts=iparts+1
-    print "#include <immintrin.h>"
-    print "#include <xsmm_knc_util.h>"
-    print " "
 
-    print "void dc_smm_dnn_"+str(M)+"_"+str(N)+"_"+str(K)+"(const double* a, const double* b, double* c) {"
-    print "#ifdef __MIC__"
-    print "  int i;"
-    for k in range(0,K):
-        print "  __m512d xa"+str(k)+";"
-        print "  __m512d xb"+str(k)+";"
-    print "  __m512d xc0;"
-
-    for mn in range(0,8*mnparts,8):
-        mnm=min(mn+7,Rows-1)
-        maskval=(1<<(mnm-mn+1))-1
-        for k in range(0,K):
-            print "  x"+l1+str(k)+" = _MM512_MASK_LOADU_PD(&"+l1+"["+str(Rows*k)+"+"+str(mn)+"]," +str(maskval)+");"
-        print "  for(i=0;i<"+str(Cols)+";++i) {"
-        print "    xc0 = _MM512_MASK_LOADU_PD(&c[i*"+str(Rows)+"+"+str(mn)+"]," +str(maskval)+");"
-        for k in range(0,K):
-            print "    x"+l2+str(k)+"=_mm512_set1_pd("+l2+"[i*"+str(K)+"+"+str(k)+"]);"
-        for k in range(0,K):
-            print "    xc0=_mm512_mask3_fmadd_pd(xa"+str(k)+",xb"+str(k)+",xc0," +str(maskval)+");"
-        print "    _MM512_MASK_STOREU_PD(&c[i*"+str(Rows)+"+"+str(mn)+"],xc0," +str(maskval)+");"
-        print "  }"
-    print "#else"
-    print "  int m, n, k;"
-    print "  for (m=0; m<"+str(M)+"; m++) {"
-    print "    for (n=0; n<"+str(N)+"; n++) {"
-    print "      for (k=0; k<"+str(K)+"; k++) {"
-    if RowMajor==1:
-        print "        c[m*"+str(N)+"+n]+=a[m*"+str(K)+"+k]*b[k*"+str(N)+"+n];"
-    else:
-        print "        c[n*"+str(M)+"+m]+=a[k*"+str(M)+"+m]*b[n*"+str(K)+"+k];"
-    print "      }"
-    print "    }"
-    print "  }"
-    print "#endif"
-    print "}"
-    print " "
-
-
-if (len(sys.argv)==5):
-    createigemm(int(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3]),int(sys.argv[4]))
-else:
-    createigemm(int(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3]),0)
+if __name__ == '__main__':
+    argc = len(sys.argv)
+    if (1 < argc):
+        for mnk in sys.argv[1:]:
+            print "LIBXSMM_EXTERN_C LIBXSMM_TARGET(mic) void libxsmm_smm_" + mnk + "(const float* a, const float* b, float* c);"
+            print "LIBXSMM_EXTERN_C LIBXSMM_TARGET(mic) void libxsmm_dmm_" + mnk + "(const double* a, const double* b, double* c);"
+            print
