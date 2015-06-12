@@ -1,5 +1,5 @@
 /******************************************************************************
-** Copyright (c) 2013-2014, Intel Corporation                                **
+** Copyright (c) 2013-2015, Intel Corporation                                **
 ** All rights reserved.                                                      **
 **                                                                           **
 ** Redistribution and use in source and binary forms, with or without        **
@@ -26,34 +26,105 @@
 ** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS        **
 ** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.              **
 ******************************************************************************/
-/* Christopher Dahnken (Intel Corp.), Hans Pabst (Intel Corp.),
- * Alfio Lazzaro (CRAY Inc.), and Gilles Fourestey (CSCS)
+/* Hans Pabst (Intel Corp.)
 ******************************************************************************/
-#include <immintrin.h>
-#include <stdio.h>
+#ifndef LIBXSMM_ISA_H
+#define LIBXSMM_ISA_H
 
-#ifdef __MIC__
-inline __m512d _MM512_LOADU_PD(const double* a) {
-  __m512d va= _mm512_setzero_pd();
-  va=_mm512_loadunpacklo_pd(va, &a[0]);
-  va=_mm512_loadunpackhi_pd(va, &a[8]);
-  return va;
-}
+#include <libxsmm_macros.h>
 
-inline void _MM512_STOREU_PD(double* a,__m512d v) {
-  _mm512_packstorelo_pd(&a[0], v);
-  _mm512_packstorehi_pd(&a[8], v);
-}
-
-inline __m512d _MM512_MASK_LOADU_PD(const double* a, char mask) {
-  __m512d va= _mm512_setzero_pd();
-  va=_mm512_mask_loadunpacklo_pd(va, mask, &a[0]);
-  va=_mm512_mask_loadunpackhi_pd(va, mask, &a[8]);
-  return va;
-}
-
-inline void _MM512_MASK_STOREU_PD(double* a,__m512d v, char mask) {
-  _mm512_mask_packstorelo_pd(&a[0], mask, v);
-  _mm512_mask_packstorehi_pd(&a[8], mask, v);
-}
+#if defined(LIBXSTREAM_OFFLOAD)
+# pragma offload_attribute(push,target(mic))
+# include <immintrin.h>
+# pragma offload_attribute(pop)
+#else
+# include <immintrin.h>
 #endif
+
+#define MM_PREFETCH_L1(A) \
+  _mm_prefetch((const char*)(A), _MM_HINT_T0)
+#define MM_PREFETCH_L2(A) \
+  _mm_prefetch((const char*)(A), _MM_HINT_T1)
+#define MM_PREFETCH_NT(A) \
+  _mm_prefetch((const char*)(A), _MM_HINT_NTA)
+#define MM_PREFETCH_EX(A) \
+  _mm_prefetch((const char*)(A), _MM_HINT_ET0)
+#define MM_PREFETCH_EXNT(A) \
+  _mm_prefetch((const char*)(A), _MM_HINT_ENTA)
+
+#if defined(__AVX512F__)
+
+#if !defined(_MM_HINT_NONE)
+# define _MM_HINT_NONE 0
+#endif
+#if !defined(_MM_HINT_NT)
+# define _MM_HINT_NT 1
+#endif
+
+#define MM512_SET1_PD(V) \
+  _mm512_set1_pd(V)
+#define MM512_FMADD_PD(U, V, W) \
+  _mm512_fmadd_pd(U, V, W)
+#define MM512_FMADD_MASK_PD(U, V, W, MASK) \
+  _mm512_mask3_fmadd_pd(U, V, W, MASK)
+
+#define MM512_LOAD_PD(A, HINT) \
+  _mm512_load_pd(A)
+#define MM512_LOAD_MASK_PD(A, MASK, HINT) \
+  _mm512_maskz_load_pd(MASK, A)
+#define MM512_LOADU_PD(A, HINT) \
+  _mm512_loadu_pd(A)
+#define MM512_LOADU_MASK_PD(A, MASK, HINT) \
+  _mm512_maskz_loadu_pd(MASK, A)
+
+#define MM512_STORE_PD(A, V, HINT) \
+  _mm512_store_pd(A, V)
+#define MM512_STORENRNGO_PD(A, V) \
+  _mm512_stream_pd(A, V)
+#define MM512_STORE_MASK_PD(A, V, MASK, HINT) \
+  _mm512_mask_store_pd(A, MASK, V)
+#define MM512_STOREU_PD(A, V, HINT) \
+  _mm512_storeu_pd(A, V)
+#define MM512_STOREU_MASK_PD(A, V, MASK, HINT) \
+  _mm512_mask_storeu_pd(A, MASK, V)
+
+#elif defined(__MIC__)
+
+LIBXSMM_INLINE LIBXSMM_TARGET(mic) __m512d MM512_GET_PD() {
+  __m512d value; return value;
+}
+#define MM512_SET1_PD(V) \
+  _mm512_set1_pd(V)
+#define MM512_FMADD_PD(U, V, W) \
+  _mm512_fmadd_pd(U, V, W)
+#define MM512_FMADD_MASK_PD(U, V, W, MASK) \
+  _mm512_mask3_fmadd_pd(U, V, W, MASK)
+
+#define MM512_LOAD_PD(A, HINT) \
+  _mm512_extload_pd(A, _MM_UPCONV_PD_NONE, _MM_BROADCAST64_NONE, HINT)
+#define MM512_LOAD_MASK_PD(A, MASK, HINT) \
+  _mm512_mask_extload_pd(_mm512_setzero_pd(), MASK, A, _MM_UPCONV_PD_NONE, _MM_BROADCAST64_NONE, HINT)
+#define MM512_LOADU_PD(A, HINT) \
+  _mm512_extloadunpackhi_pd( \
+    _mm512_extloadunpacklo_pd(MM512_GET_PD(), A, _MM_UPCONV_PD_NONE, HINT), \
+    (A) + 8, _MM_UPCONV_PD_NONE, HINT)
+#define MM512_LOADU_MASK_PD(A, MASK, HINT) \
+  _mm512_mask_extloadunpackhi_pd( \
+    _mm512_mask_extloadunpacklo_pd(_mm512_setzero_pd(), MASK, A, _MM_UPCONV_PD_NONE, HINT), \
+    MASK, (A) + 8, _MM_UPCONV_PD_NONE, HINT)
+
+#define MM512_STORE_PD(A, V, HINT) \
+  _mm512_extstore_pd(A, V, _MM_DOWNCONV_PD_NONE, HINT)
+#define MM512_STORENRNGO_PD(A, V) \
+  _mm512_storenrngo_pd(A, V)
+#define MM512_STORE_MASK_PD(A, V, MASK, HINT) \
+  _mm512_mask_extstore_pd(A, MASK, V, _MM_DOWNCONV_PD_NONE, HINT)
+#define MM512_STOREU_PD(A, V, HINT) \
+  _mm512_extpackstorelo_pd(A, V, _MM_DOWNCONV_PD_NONE, HINT); \
+  _mm512_extpackstorehi_pd((A) + 8, V, _MM_DOWNCONV_PD_NONE, HINT)
+#define MM512_STOREU_MASK_PD(A, V, MASK, HINT) \
+  _mm512_mask_extpackstorelo_pd(A, MASK, V, _MM_DOWNCONV_PD_NONE, HINT); \
+  _mm512_mask_extpackstorehi_pd((A) + 8, MASK, V, _MM_DOWNCONV_PD_NONE, HINT)
+
+#endif /*__MIC__*/
+#endif /*LIBXSMM_ISA_H*/
