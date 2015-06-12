@@ -45,9 +45,9 @@ void libxstream_workqueue::entry_type::push(libxstream_workitem& workitem)
 {
   delete m_dangling;
   const bool async = 0 == (LIBXSTREAM_CALL_WAIT & workitem.flags());
-  const bool event = 0 == (LIBXSTREAM_CALL_EVENT & workitem.flags());
+  const bool witem = 0 == (LIBXSTREAM_CALL_EVENT & workitem.flags());
   libxstream_workitem *const item = async ? workitem.clone() : &workitem;
-  m_status = event ? LIBXSTREAM_ERROR_NONE : LIBXSTREAM_ERROR_CONDITION;
+  m_status = witem ? LIBXSTREAM_ERROR_NONE : LIBXSTREAM_ERROR_CONDITION;
   m_dangling = async ? item : 0;
   m_item = item;
 }
@@ -58,7 +58,7 @@ int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
   int result = LIBXSTREAM_ERROR_CONDITION;
 
   if (any_status) {
-    if (any) {
+    if (any || !valid()) {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
       size_t cycle = 0;
       while (0 != m_item) this_thread_wait(cycle);
@@ -66,25 +66,24 @@ int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
       while (0 != m_item) this_thread_yield();
 #endif
     }
-    else {
+    else if (0 != m_item && m_item->thread() != this_thread_id()) {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
       size_t cycle = 0;
 #endif
-      const libxstream_workitem* workitem = m_item;
-      while (0 != workitem && workitem->detached()) {
+      do {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
         this_thread_wait(cycle);
 #else
         this_thread_yield();
 #endif
-        workitem = m_item;
       }
+      while (0 != m_item);
     }
 
     result = m_status;
   }
   else {
-    if (any) {
+    if (any || !valid()) {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
       size_t cycle = 0;
       while (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status) this_thread_wait(cycle);
@@ -92,25 +91,24 @@ int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
       while (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status) this_thread_yield();
 #endif
     }
-    else {
+    else if (0 != m_item && m_item->thread() != this_thread_id()) {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
       size_t cycle = 0;
 #endif
-      const libxstream_workitem* workitem = m_item;
-      while ((0 != workitem && workitem->detached()) || LIBXSTREAM_ERROR_NONE != m_status) {
+      do {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
         this_thread_wait(cycle);
 #else
         this_thread_yield();
 #endif
-        workitem = m_item;
       }
+      while (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status);
     }
 
     result = m_status;
   }
 
-  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  //LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;
 }
 

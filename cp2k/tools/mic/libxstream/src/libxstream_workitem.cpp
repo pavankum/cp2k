@@ -68,13 +68,14 @@ public:
 
   ~scheduler_type() {
     if (running()) {
+      m_terminated = true;
+
       // terminates the background thread
       entry_type& entry = m_global_queue.allocate_entry();
       delete entry.dangling();
       entry = entry_type(&m_global_queue);
       entry.wait();
 
-      m_terminated = true;
 #if defined(LIBXSTREAM_STDFEATURES)
       m_thread.detach();
 #else
@@ -90,9 +91,9 @@ public:
 public:
   bool running() const {
 #if defined(LIBXSTREAM_STDFEATURES)
-    return m_thread.joinable();
+    return m_thread.joinable() && !m_terminated;
 #else
-    return 0 != m_thread;
+    return 0 != m_thread && !m_terminated;
 #endif
   }
 
@@ -122,12 +123,8 @@ public:
 
     if (0 == result || 0 == result->item()) { // no item in global queue
       libxstream_stream *const stream = libxstream_stream::schedule(m_stream);
-      libxstream_workqueue *const queue = stream ? stream->queue(1/*retry*/) : 0;
+      result = stream ? stream->work() : 0;
       m_stream = stream;
-
-      if (0 != queue) {
-        result = queue->front();
-      }
     }
 
     return result;
@@ -205,11 +202,7 @@ libxstream_workitem::libxstream_workitem(libxstream_stream* stream, int flags, s
   , m_event(0)
   , m_pending(0)
   , m_flags(flags)
-#if defined(LIBXSTREAM_SYNCHRONIZATION)
   , m_thread(this_thread_id())
-#else
-  , m_thread(0)
-#endif
 #if defined(LIBXSTREAM_DEBUG)
   , m_name(name)
 #endif
@@ -259,6 +252,7 @@ libxstream_workitem::~libxstream_workitem()
 
 libxstream_workitem* libxstream_workitem::clone() const
 {
+  LIBXSTREAM_ASSERT(0 == (LIBXSTREAM_CALL_WAIT & m_flags));
   libxstream_workitem *const instance = virtual_clone();
   LIBXSTREAM_ASSERT(0 != instance);
   return instance;
@@ -267,6 +261,7 @@ libxstream_workitem* libxstream_workitem::clone() const
 
 void libxstream_workitem::operator()(libxstream_workqueue::entry_type& entry)
 {
+  LIBXSTREAM_ASSERT(this == entry.item());
   virtual_run(entry);
 }
 
