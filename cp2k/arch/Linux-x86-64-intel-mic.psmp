@@ -166,12 +166,6 @@ ifneq (,$(LIBXCROOT))
   LIBS    += $(LIBXCROOT)/lib/libxcf90.a $(LIBXCROOT)/lib/libxc.a
 endif
 
-ifneq (,$(LIBXSTREAMROOT))
-  DFLAGS  += -D__LIBXSTREAM
-  IFLAGS  += -I$(LIBXSTREAMROOT)/include
-  LIBXSTREAM_BUILD := $(shell cd $(LIBXSTREAMROOT) >&2 ; $(MAKE) >&2)
-endif
-
 ifneq (,$(LIBXSMMROOT))
   DFLAGS  += -D__LIBXSMM
   IFLAGS  += -I$(LIBXSMMROOT)/include
@@ -180,6 +174,13 @@ ifneq (,$(LIBXSMMROOT))
   #MIC_CCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
   #MIC_FCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
   #MIC_LDFLAGS += -offload-option,mic,ld,"$(LIBXSMMROOT)/lib/mic/libxsmm.a"
+endif
+
+ifneq (,$(LIBXSTREAMROOT))
+  LIBXSTREAM_BUILD := $(shell cd $(LIBXSTREAMROOT) >&2 ; $(MAKE) >&2)
+  DFLAGS  += -D__LIBXSTREAM
+  IFLAGS  += -I$(LIBXSTREAMROOT)/include
+  LIBS    += $(LIBXSTREAMROOT)/lib/intel64/libxstream.a
 endif
 
 ifneq (0,$(ACC))
