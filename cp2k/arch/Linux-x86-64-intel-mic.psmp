@@ -169,6 +169,7 @@ endif
 ifneq (,$(LIBXSTREAMROOT))
   DFLAGS  += -D__LIBXSTREAM
   IFLAGS  += -I$(LIBXSTREAMROOT)/include
+  LIBXSTREAM_BUILD := $(shell cd $(LIBXSTREAMROOT) >&2 ; $(MAKE) >&2)
 endif
 
 ifneq (,$(LIBXSMMROOT))
