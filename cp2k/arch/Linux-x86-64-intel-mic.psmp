@@ -177,10 +177,10 @@ ifneq (,$(LIBXSMMROOT))
 endif
 
 ifneq (,$(LIBXSTREAMROOT))
-  LIBXSTREAM_BUILD := $(shell cd $(LIBXSTREAMROOT) >&2 ; $(MAKE) >&2)
+  LIBXSTREAM_BUILD := $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile BLDDIR=$(OBJDIR)/libxstream LIBDIR=$(LIBDIR)/libxstream >&2)
   DFLAGS  += -D__LIBXSTREAM
   IFLAGS  += -I$(LIBXSTREAMROOT)/include
-  LIBS    += $(LIBXSTREAMROOT)/lib/intel64/libxstream.a
+  LIBS    += $(LIBDIR)/libxstream/libxstream.a
 endif
 
 ifneq (0,$(ACC))
