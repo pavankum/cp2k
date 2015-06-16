@@ -251,8 +251,8 @@ LIBXSTREAM_TARGET(mic) libxstream_lock* libxstream_lock_create()
   pthread_mutexattr_t attributes;
   pthread_mutexattr_init(&attributes);
   pthread_mutexattr_settype(&attributes, PTHREAD_MUTEX_NORMAL);
-  pthread_mutex_t typed_lock;
-  pthread_mutex_init(&typed_lock, &attributes);
+  pthread_mutex_t *const typed_lock = new pthread_mutex_t;
+  pthread_mutex_init(typed_lock, &attributes);
 #else // Windows
   const HANDLE typed_lock = CreateMutex(0/*default*/, FALSE/*unlocked*/, 0/*unnamed*/);
 #endif
@@ -290,11 +290,16 @@ LIBXSTREAM_TARGET(mic) void libxstream_lock_destroy(libxstream_lock* lock)
 # endif
   delete typed_lock;
 #elif defined(_OPENMP)
-  omp_lock_t typed_lock = libxstream_internal::bitwise_cast<omp_lock_t>(lock);
-  omp_destroy_lock(&typed_lock);
+  if (0 != lock) {
+    omp_lock_t typed_lock = libxstream_internal::bitwise_cast<omp_lock_t>(lock);
+    omp_destroy_lock(&typed_lock);
+  }
 #elif defined(__GNUC__)
-  pthread_mutex_t typed_lock = libxstream_internal::bitwise_cast<pthread_mutex_t>(lock);
-  pthread_mutex_destroy(&typed_lock);
+  if (0 != lock) {
+    pthread_mutex_t *const typed_lock = static_cast<pthread_mutex_t*>(lock);
+    pthread_mutex_destroy(typed_lock);
+    delete typed_lock;
+  }
 #else // Windows
   const HANDLE typed_lock = static_cast<HANDLE>(lock);
   CloseHandle(typed_lock);
@@ -321,8 +326,8 @@ LIBXSTREAM_TARGET(mic) void libxstream_lock_acquire(libxstream_lock* lock)
   omp_lock_t typed_lock = libxstream_internal::bitwise_cast<omp_lock_t>(lock);
   omp_set_lock(&typed_lock);
 #elif defined(__GNUC__)
-  pthread_mutex_t typed_lock = libxstream_internal::bitwise_cast<pthread_mutex_t>(lock);
-  pthread_mutex_lock(&typed_lock);
+  pthread_mutex_t *const typed_lock = static_cast<pthread_mutex_t*>(lock);
+  pthread_mutex_lock(typed_lock);
 #else // Windows
   const HANDLE typed_lock = static_cast<HANDLE>(lock);
   WaitForSingleObject(typed_lock, INFINITE);
@@ -345,8 +350,8 @@ LIBXSTREAM_TARGET(mic) void libxstream_lock_release(libxstream_lock* lock)
   omp_lock_t typed_lock = libxstream_internal::bitwise_cast<omp_lock_t>(lock);
   omp_unset_lock(&typed_lock);
 #elif defined(__GNUC__)
-  pthread_mutex_t typed_lock = libxstream_internal::bitwise_cast<pthread_mutex_t>(lock);
-  pthread_mutex_unlock(&typed_lock);
+  pthread_mutex_t *const typed_lock = static_cast<pthread_mutex_t*>(lock);
+  pthread_mutex_unlock(typed_lock);
 #else // Windows
   const HANDLE typed_lock = static_cast<HANDLE>(lock);
   ReleaseMutex(typed_lock);
@@ -370,8 +375,8 @@ LIBXSTREAM_TARGET(mic) bool libxstream_lock_try(libxstream_lock* lock)
   omp_lock_t typed_lock = libxstream_internal::bitwise_cast<omp_lock_t>(lock);
   const bool result = 0 != omp_test_lock(&typed_lock);
 #elif defined(__GNUC__)
-  pthread_mutex_t typed_lock = libxstream_internal::bitwise_cast<pthread_mutex_t>(lock);
-  const bool result =  0 == pthread_mutex_trylock(&typed_lock);
+  pthread_mutex_t *const typed_lock = static_cast<pthread_mutex_t*>(lock);
+  const bool result =  0 == pthread_mutex_trylock(typed_lock);
 #else // Windows
   const HANDLE typed_lock = static_cast<HANDLE>(lock);
   const bool result = WAIT_OBJECT_0 == WaitForSingleObject(typed_lock, INFINITE);
@@ -598,9 +603,13 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_
       {
         const char* buffer = ptr<const char,1>();
         const size_t size = val<const size_t,2>();
+
+        LIBXSTREAM_PRINT(2, "mem_allocate: device=%i buffer=0x%llx size=%lu", LIBXSTREAM_ASYNC_DEVICE,
+          reinterpret_cast<unsigned long long>(buffer), static_cast<unsigned long>(size));
+
 #       pragma offload_transfer target(mic:LIBXSTREAM_ASYNC_DEVICE) nocopy(buffer: length(size) LIBXSTREAM_OFFLOAD_ALLOC)
       }
-      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT, work, device, *memory, size);
+      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_DEVICE, work, device, *memory, size);
       result = work.status();
     }
   }
@@ -609,6 +618,9 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_
   {
     libxstream_use_sink(&device);
 #endif
+    LIBXSTREAM_PRINT(2, "mem_allocate: device=%i buffer=0x%llx size=%lu", device,
+      reinterpret_cast<unsigned long long>(*memory), static_cast<unsigned long>(size));
+
     result = libxstream_real_allocate(memory, size, alignment);
 
     if (LIBXSTREAM_ERROR_NONE == result) {
@@ -619,14 +631,11 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_allocate(int device, void** memory, size_
         const size_t size = val<const size_t,2>();
 #       pragma offload_transfer target(mic) host_pin(buffer: length(size))
       }
-      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT, work, device, *memory, size);
+      LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_DEVICE, work, device, *memory, size);
       result = work.status();
 #endif
     }
   }
-
-  LIBXSTREAM_PRINT(2, "mem_allocate: device=%i buffer=0x%llx size=%lu", device,
-    reinterpret_cast<unsigned long long>(*memory), static_cast<unsigned long>(size));
 
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;

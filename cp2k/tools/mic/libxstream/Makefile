@@ -76,11 +76,6 @@ ifneq (,$(filter icpc icc,$(CXX) $(CC)))
 			CXXFLAGS += -ipo
 			CFLAGS += -ipo
 		endif
-		ifneq ($(OMP),0)
-			CXXFLAGS += -openmp
-			CFLAGS += -openmp
-			LDFLAGS += -openmp
-		endif
 		ifeq ($(AVX),1)
 			CXXFLAGS += -xAVX
 			CFLAGS += -xAVX
@@ -98,8 +93,12 @@ ifneq (,$(filter icpc icc,$(CXX) $(CC)))
 		CXXFLAGS += -O0 -g3 -gdwarf-2 -debug inline-debug-info
 		CFLAGS += -O0 -g3 -gdwarf-2 -debug inline-debug-info
 	else
-		CXXFLAGS += -O0 -g -openmp
-		CFLAGS += -O0 -g -openmp
+		CXXFLAGS += -O0 -g
+		CFLAGS += -O0 -g
+	endif
+	ifneq ($(OMP),0)
+		CXXFLAGS += -openmp
+		CFLAGS += -openmp
 		LDFLAGS += -openmp
 	endif
 	ifeq (0,$(OFFLOAD))
@@ -122,11 +121,6 @@ else # GCC assumed
 		CXXFLAGS += -O2
 		CFLAGS += -O2
 		DFLAGS += -DNDEBUG
-		ifneq ($(OMP),0)
-			CXXFLAGS += -fopenmp
-			CFLAGS += -fopenmp
-			LDFLAGS += -fopenmp
-		endif
 		ifeq ($(AVX),1)
 			CXXFLAGS += -mavx
 			CFLAGS += -mavx
@@ -146,6 +140,11 @@ else # GCC assumed
 	else
 		CXXFLAGS += -O0 -g
 		CFLAGS += -O0 -g
+	endif
+	ifneq ($(OMP),0)
+		CXXFLAGS += -fopenmp
+		CFLAGS += -fopenmp
+		LDFLAGS += -fopenmp
 	endif
 	ifneq ($(OS),Windows_NT)
 		CXXFLAGS += -fPIC
@@ -167,9 +166,9 @@ ifeq (,$(CFLAGS))
 endif
 
 ifneq ($(STATIC),0)
-	LIBEXT := a
+	LIBEXT = a
 else
-	LIBEXT := so
+	LIBEXT = so
 endif
 
 parent = $(subst ?, ,$(firstword $(subst /, ,$(subst $(NULL) ,?,$(patsubst ./%,%,$1)))))
@@ -195,14 +194,28 @@ $(BLDDIR)/%-cpp.o: $(SRCDIR)/%.cpp $(HEADERS) $(ROOTDIR)/Makefile
 
 .PHONY: clean
 clean:
+ifneq ($(abspath $(call parent,$(BLDDIR))),$(ROOTDIR))
+ifneq ($(abspath $(call parent,$(BLDDIR))),$(abspath .))
+	@rm -rf $(call parent,$(BLDDIR))
+else
 	@rm -f $(OBJECTS)
+endif
+else
+	@rm -f $(OBJECTS)
+endif
 
 .PHONY: realclean
-realclean:
-	@rm -rf $(call parent,$(BLDDIR))
+realclean: clean
+ifneq ($(abspath $(call parent,$(OUTDIR))),$(ROOTDIR))
+ifneq ($(abspath $(call parent,$(OUTDIR))),$(abspath .))
 	@rm -rf $(call parent,$(OUTDIR))
+else
+	@rm -f $(OUTDIR)/$(OUTNAME)
+endif
+else
+	@rm -f $(OUTDIR)/$(OUTNAME)
+endif
 
-install: all
+install: all clean
 	@cp -r $(INCDIR) . 2> /dev/null || true
-	@rm -rf $(call parent,$(BLDDIR))
 
