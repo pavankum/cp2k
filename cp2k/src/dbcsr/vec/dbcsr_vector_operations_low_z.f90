@@ -57,10 +57,10 @@
     CHARACTER(LEN=*), PARAMETER :: routineN = 'dbcsr_matrix_vector_mult', &
       routineP = moduleN//':'//routineN
 
-    INTEGER                                  :: col, col_size, mypcol, &
+    INTEGER                                  :: col, mypcol, &
                                                 myprow, nblk_col, nblk_row, &
                                                 ncols, pcol_group, nrows, &
-                                                prow_group, row, row_size, &
+                                                prow_group, row, &
                                                 handle, handle1, ithread 
     LOGICAL                                  :: transposed
     COMPLEX(kind=real_8), DIMENSION(:), POINTER          :: data_vec
@@ -83,8 +83,9 @@
 ! Create pointers to the content of the vectors, this is simply done for efficiency in the later steps
 ! However, it restricts the sparsity of the vector as it assumes the sparsity pattern does not change
     CALL dbcsr_get_info(matrix=work_row, nblkcols_total=nblk_col)
-    CALL dbcsr_get_info(matrix=work_col, nblkrows_total=nblk_row, nfullcols_local=ncols)
+    CALL dbcsr_get_info(matrix=work_col, nblkrows_total=nblk_row)
     ALLOCATE(blk_map_row(nblk_col));  ALLOCATE(blk_map_col(nblk_row))
+
     CALL assign_row_vec_block_ptr_z(work_row, blk_map_row, error)
     CALL assign_col_vec_block_ptr_z(work_col, blk_map_col, error)
 
@@ -95,15 +96,15 @@
     CALL dbcsr_set(work_col, CMPLX(0.0, 0.0, real_8), error=error)
 
 ! Perform the local multiply. Here we exploit, that we have the blocks replicated on the mpi processes
-! It is important to note, that the input and result vector are sitributed differently (row wise, col wise respectively)
+! It is important to note, that the input and result vector are distributed differently (row wise, col wise respectively)
     CALL dbcsr_error_set(routineN//"_local_mm", handle1, error)
 
-!$OMP PARALLEL DEFAULT(NONE) PRIVATE(row,col,iter,data_d,row_size,col_size,transposed,ithread) &
-!$OMP          SHARED(matrix,blk_map_row,blk_map_col,ncols)
+!$OMP PARALLEL DEFAULT(NONE) PRIVATE(row,col,iter,data_d,transposed,ithread) &
+!$OMP          SHARED(matrix,blk_map_row,blk_map_col)
     !$ ithread = omp_get_thread_num ()
     CALL dbcsr_iterator_start(iter, matrix, shared=.FALSE.)
     DO WHILE (dbcsr_iterator_blocks_left(iter))
-       CALL dbcsr_iterator_next_block(iter, row, col, data_d, transposed, row_size=row_size, col_size=col_size)
+       CALL dbcsr_iterator_next_block(iter, row, col, data_d, transposed)
        IF(blk_map_col(row)%assigned_thread .NE. ithread ) CYCLE
        blk_map_col(row)%ptr=blk_map_col(row)%ptr+MATMUL(data_d,TRANSPOSE(blk_map_row(col)%ptr))
     END DO
@@ -113,7 +114,7 @@
     CALL dbcsr_error_stop(handle1, error)
 
 ! sum all the data onto the first processor col where the original vector is stored
-    data_vec => dbcsr_get_data_p (work_col%m%data_area, coersion=CMPLX(0.0, 0.0, real_8))
+    data_vec => dbcsr_get_data_p (work_col%m%data_area, select_data_type=CMPLX(0.0, 0.0, real_8))
     CALL dbcsr_get_info(matrix=work_col, nfullrows_local=nrows, nfullcols_local=ncols)
     CALL mp_sum(data_vec(1:nrows*ncols), prow_group)
 
@@ -121,7 +122,7 @@
 ! from the replicated to the original vector. Let's play it safe and use the iterator
     CALL dbcsr_iterator_start(iter, vec_out)
     DO WHILE (dbcsr_iterator_blocks_left(iter))
-       CALL dbcsr_iterator_next_block(iter, row, col, vec_res, transposed, row_size=row_size)
+       CALL dbcsr_iterator_next_block(iter, row, col, vec_res, transposed)
        IF(ASSOCIATED(blk_map_col(row)%ptr))THEN
           vec_res(:, :)= beta*vec_res(:, :)+alpha*blk_map_col(row)%ptr(:, :)     
        ELSE
@@ -179,7 +180,7 @@
     mypcol=distri%d%mp_env%mp%mypcol; myprow=distri%d%mp_env%mp%myprow
 
 ! Perform the local multiply. Here we exploit, that we have the blocks replicated on the mpi processes
-! It is important to note, that the input and result vector are sitributed differently (row wise, col wise respectively)
+! It is important to note, that the input and result vector are distributed differently (row wise, col wise respectively)
     CALL dbcsr_get_info(matrix=work_row, nblkcols_total=nblk_col)
     CALL dbcsr_get_info(matrix=work_col, nblkrows_total=nblk_row)
     ALLOCATE(blk_map_row(nblk_col));  ALLOCATE(blk_map_col(nblk_row))
@@ -197,7 +198,7 @@
     END DO
     CALL dbcsr_iterator_stop(iter)
 ! Replicate the data on all processore in the row
-    data_vec => dbcsr_get_data_p (work_col%m%data_area, coersion=CMPLX(0.0, 0.0, real_8))
+    data_vec => dbcsr_get_data_p (work_col%m%data_area, select_data_type=CMPLX(0.0, 0.0, real_8))
     CALL mp_bcast(data_vec, 0, prow_group)
 
 ! Perform the local multiply. Here it is obvious why the vectors are replicated on the mpi rows and cols
@@ -224,7 +225,7 @@
     CALL dbcsr_error_stop(handle1, error)
 
 ! sum all the data within a processor column to obtain the replicated result
-    data_vec => dbcsr_get_data_p (work_row%m%data_area, coersion=CMPLX(0.0, 0.0, real_8))
+    data_vec => dbcsr_get_data_p (work_row%m%data_area, select_data_type=CMPLX(0.0, 0.0, real_8))
 ! we use the replicated vector but the final answer is only summed to proc_col 0 for effiniency
     CALL dbcsr_get_info(matrix=work_row, nfullrows_local=nrows, nfullcols_local=ncols)
     CALL mp_sum(data_vec(1:nrows*ncols), pcol_group)
@@ -291,8 +292,8 @@
 
 ! Copy the local vector to the replicated on the first processor column (this is where vec_in lives)
     CALL dbcsr_get_info(matrix=rep_col_vec, nfullrows_local=nrows, nfullcols_local=ncols)
-    data_vec_rep => dbcsr_get_data_p (rep_col_vec%m%data_area, coersion=CMPLX(0.0, 0.0, real_8))
-    data_vec => dbcsr_get_data_p (vec_in%m%data_area, coersion=CMPLX(0.0, 0.0, real_8))
+    data_vec_rep => dbcsr_get_data_p (rep_col_vec%m%data_area, select_data_type=CMPLX(0.0, 0.0, real_8))
+    data_vec => dbcsr_get_data_p (vec_in%m%data_area, select_data_type=CMPLX(0.0, 0.0, real_8))
     IF(mypcol==0)data_vec_rep(1:nrows*ncols)=data_vec(1:nrows*ncols)
 ! Replicate the data along the row
     CALL mp_bcast(data_vec_rep(1:nrows*ncols), 0, prow_group)
@@ -315,7 +316,7 @@
     END DO
     CALL dbcsr_iterator_stop(iter)
     CALL dbcsr_get_info(matrix=rep_row_vec, nfullrows_local=nrows, nfullcols_local=ncols)
-    data_vec_rep => dbcsr_get_data_p (rep_row_vec%m%data_area, coersion=CMPLX(0.0, 0.0, real_8))
+    data_vec_rep => dbcsr_get_data_p (rep_row_vec%m%data_area, select_data_type=CMPLX(0.0, 0.0, real_8))
     CALL mp_sum(data_vec_rep(1:ncols*nrows), pcol_group)
 
     CALL dbcsr_error_stop(handle, error)
@@ -375,7 +376,7 @@
     END DO
     CALL dbcsr_iterator_stop(iter)
     CALL dbcsr_get_info(matrix=rep_col_vec, nfullrows_local=nrows, nfullcols_local=ncols)
-    data_vec_rep => dbcsr_get_data_p (rep_col_vec%m%data_area, coersion=CMPLX(0.0, 0.0, real_8))
+    data_vec_rep => dbcsr_get_data_p (rep_col_vec%m%data_area, select_data_type=CMPLX(0.0, 0.0, real_8))
     CALL mp_sum(data_vec_rep(1:nrows*ncols), prow_group)
 
     CALL dbcsr_error_stop(handle, error)
@@ -567,7 +568,7 @@
     CALL dbcsr_error_stop(handle1, error)
 
     ! sum all the data within a processor column to obtain the replicated result from lower
-    data_vec => dbcsr_get_data_p (result_row%m%data_area, coersion=CMPLX(0.0, 0.0, real_8))
+    data_vec => dbcsr_get_data_p (result_row%m%data_area, select_data_type=CMPLX(0.0, 0.0, real_8))
     CALL dbcsr_get_info(matrix=result_row, nfullrows_local=nrows, nfullcols_local=ncols)
 
     CALL mp_sum(data_vec(1:nrows*ncols), pcol_group)
