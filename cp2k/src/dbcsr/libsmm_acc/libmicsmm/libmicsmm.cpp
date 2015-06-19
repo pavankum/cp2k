@@ -11,6 +11,10 @@
 
 #include "libmicsmm.hpp"
 
+#include <libxstream_begin.h>
+#include <cstdlib>
+#include <libxstream_end.h>
+
 
 #if defined(__RECONFIGURE)
 LIBXSTREAM_EXTERN_C void LIBXSTREAM_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*, void*);
