@@ -47,6 +47,9 @@
 #endif
 #include <libxstream_end.h>
 
+// check whether a signal is really pending; update internal state
+//#define LIBXSTREAM_WORKITEM_CHECK_PENDING
+
 
 namespace libxstream_workitem_internal {
 
@@ -241,6 +244,12 @@ libxstream_workitem::libxstream_workitem(libxstream_stream* stream, int flags, s
 #endif
   }
 
+#if defined(LIBXSTREAM_OFFLOAD) && (0 != LIBXSTREAM_OFFLOAD) && !defined(__MIC__) && defined(LIBXSTREAM_ASYNC) && (1 < (2*LIBXSTREAM_ASYNC+1)/2) && defined(LIBXSTREAM_WORKITEM_CHECK_PENDING)
+  if (0 != m_wait && 0 != _Offload_signaled(device(), reinterpret_cast<void*>(m_wait))) {
+    m_wait = 0;
+  }
+#endif
+
   libxstream_workitem_internal::scheduler.start();
 }
 
@@ -257,6 +266,16 @@ libxstream_workitem* libxstream_workitem::clone() const
   libxstream_workitem *const instance = virtual_clone();
   LIBXSTREAM_ASSERT(0 != instance);
   return instance;
+}
+
+
+int libxstream_workitem::device() const
+{
+  int result = m_stream ? m_stream->device() : (0 != (LIBXSTREAM_CALL_DEVICE & m_flags) ? val<int,0>() : -2);
+  if (-1 > result) {
+    LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_get_active_device(&result));
+  }
+  return result;
 }
 
 
