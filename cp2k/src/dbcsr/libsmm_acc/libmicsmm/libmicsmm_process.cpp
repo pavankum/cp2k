@@ -39,9 +39,8 @@ LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(sgemm)(
 
 #define LIBMICSMM_MAX_RESULT_SIZE (LIBMICSMM_MAX_M * LIBMICSMM_MAX_N)
 #if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM)
-# if (0 < (LIBXSMM_ALIGNED_STORES))
-#   define LIBMICSMM_ALIGNMENT LIBXSMM_ALIGNED_STORES
-# endif
+# define LIBMICSMM_ALIGNED_STORES LIBXSMM_ALIGNED_STORES
+# define LIBMICSMM_ALIGNED_MAX LIBXSMM_ALIGNED_MAX
 # define LIBMICSMM_LOOP_MAX_M LIBXSMM_MAX_M
 # define LIBMICSMM_LOOP_AVG_M LIBXSMM_AVG_M
 # define LIBMICSMM_LOOP_MAX_N LIBXSMM_MAX_N
@@ -52,8 +51,11 @@ LIBXSTREAM_EXTERN_C LIBXSTREAM_TARGET(mic) void LIBXSTREAM_FSYMBOL(sgemm)(
 # define LIBMICSMM_LOOP_MAX_N LIBMICSMM_MAX_N
 # define LIBMICSMM_LOOP_AVG_N 23
 #endif
-#if !defined(LIBMICSMM_ALIGNMENT)
-# define LIBMICSMM_ALIGNMENT LIBXSTREAM_MAX_SIMD
+#if !defined(LIBMICSMM_ALIGNED_MAX)
+# define LIBMICSMM_ALIGNED_MAX LIBXSTREAM_MAX_SIMD
+#endif
+#if !defined(LIBMICSMM_ALIGNED_STORES)
+# define LIBMICSMM_ALIGNED_STORES LIBMICSMM_ALIGNED_MAX
 #endif
 
 
@@ -72,13 +74,13 @@ public:
 
 public:
   void acquire(const void* address) {
-    const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNMENT);
+    const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNED_MAX);
     // non-pot: omp_set_lock(m_lock + id % LIBMICSMM_SYNCHRONIZATION);
     omp_set_lock(m_lock + LIBXSTREAM_MOD(id, LIBMICSMM_SYNCHRONIZATION));
   }
 
   void release(const void* address) {
-    const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNMENT);
+    const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBMICSMM_ALIGNED_MAX);
     // non-pot: omp_unset_lock(m_lock + id % LIBMICSMM_SYNCHRONIZATION);
     omp_unset_lock(m_lock + LIBXSTREAM_MOD(id, LIBMICSMM_SYNCHRONIZATION));
   }
@@ -106,19 +108,13 @@ public:
     : m_xmm_function(0), m_smm_function(smm_type::bmm)
 #endif
     , m_m(m), m_n(n), m_k(k)
-#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
-    , m_ldc(LIBXSTREAM_ALIGN_VALUE(U, T, m, LIBXSMM_ALIGNED_STORES))
-#else
-    , m_ldc(m)
-#endif
+    , m_ldc(LIBXSTREAM_ALIGN_VALUE(U, T, m, LIBMICSMM_ALIGNED_STORES))
   {}
 
 public:
   void zero_c(T *LIBXSTREAM_RESTRICT c) const {
     const U size = m_n * m_ldc;
-#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
-    LIBXSMM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
-#endif
+    LIBXSTREAM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNED_STORES);
     LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_LOOP_MAX_M*LIBMICSMM_LOOP_MAX_N, LIBMICSMM_LOOP_AVG_M*LIBMICSMM_LOOP_AVG_N)
     for (U i = 0; i < size; ++i) c[i] = 0;
   }
@@ -132,9 +128,7 @@ public:
 # endif
 #endif
     {
-#if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM) && (0 < (LIBXSMM_ALIGNED_STORES))
-      LIBXSMM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNMENT);
-#endif
+      LIBXSTREAM_ASSUME_ALIGNED(c, LIBMICSMM_ALIGNED_STORES);
       for (U j = 0; j < m_n; ++j) {
         LIBXSTREAM_PRAGMA_LOOP_COUNT(1, LIBMICSMM_LOOP_MAX_M, LIBMICSMM_LOOP_AVG_M)
         for (U i = 0; i < m_m; ++i) {
@@ -209,13 +203,13 @@ LIBXSTREAM_TARGET(mic) void work_basic(const U *LIBXSTREAM_RESTRICT stack, size_
 {
 #if defined(_OPENMP)
 # if defined(LIBMICSMM_THREADPRIVATE) && (1 == (2*LIBMICSMM_THREADPRIVATE+1)/2) // OpenMP TLS
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNED_MAX);
 # pragma omp threadprivate(tmp)
 # else // alternative TLS
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNED_MAX);
 # endif
 #else // without OpenMP nothing needs to be thread-local due to a single-threaded program
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNED_MAX);
 #endif
   const int nstacksize = static_cast<int>(stacksize * N);
 
@@ -224,7 +218,7 @@ LIBXSTREAM_TARGET(mic) void work_basic(const U *LIBXSTREAM_RESTRICT stack, size_
 #endif
   for (int n = 0; n < nstacksize; n += ((LIBMICSMM_NLOCAL) * N)) {
 #if !defined(LIBMICSMM_THREADPRIVATE) && defined(_OPENMP)
-    LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+    LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNED_MAX);
 #endif
     const int end = n + std::min(static_cast<int>((LIBMICSMM_NLOCAL) * N), nstacksize - n);
     U i = n, kc = stack[n+5], next = kc;
@@ -262,13 +256,13 @@ LIBXSTREAM_TARGET(mic) void work_planned(const U *LIBXSTREAM_RESTRICT stack, siz
 {
 #if defined(_OPENMP)
 # if defined(LIBMICSMM_THREADPRIVATE) && (1 == (2*LIBMICSMM_THREADPRIVATE+1)/2) // OpenMP TLS
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNED_MAX);
 # pragma omp threadprivate(tmp)
 # else // alternative TLS
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static LIBXSTREAM_TLS T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNED_MAX);
 # endif
 #else // without OpenMP nothing needs to be thread-local due to a single-threaded program
-  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+  LIBXSTREAM_TARGET(mic) LIBXSTREAM_ALIGNED(static T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNED_MAX);
 #endif
   const U nstacksize = static_cast<U>(stacksize * N);
   const U plansize = 32768;
@@ -293,7 +287,7 @@ LIBXSTREAM_TARGET(mic) void work_planned(const U *LIBXSTREAM_RESTRICT stack, siz
       const U kc = stack[j0+5] - 1;
       LIBXSTREAM_ASSERT(j1 <= nstacksize);
 #if !defined(LIBMICSMM_THREADPRIVATE) && defined(_OPENMP)
-      LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNMENT);
+      LIBXSTREAM_ALIGNED(T tmp[LIBMICSMM_MAX_RESULT_SIZE], LIBMICSMM_ALIGNED_MAX);
 #endif
       smm.zero_c(tmp);
 
