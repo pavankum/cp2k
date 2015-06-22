@@ -49,7 +49,11 @@ public:
   static int priority_range_least();
   static int priority_range_greatest();
 
+  static int device(const libxstream_stream* stream);
+
   static libxstream_signal signal(const libxstream_stream* stream);
+  static libxstream_signal pending(const libxstream_stream* stream);
+  static void pending(libxstream_stream* stream, libxstream_signal signal);
 
   static int enqueue(libxstream_event& event, const libxstream_stream* exclude = 0);
   static libxstream_stream* schedule(const libxstream_stream* exclude);
@@ -62,11 +66,10 @@ public:
   ~libxstream_stream();
 
 public:
+  int priority() const  { return m_priority; }
+
   const libxstream_workqueue::entry_type* work() const { return m_queue.front(); }
   libxstream_workqueue::entry_type* work() { return m_queue.front(); }
-
-  int device() const    { return m_device; }
-  int priority() const  { return m_priority; }
 
   libxstream_workqueue::entry_type& enqueue(libxstream_workitem& workitem);
 
@@ -77,25 +80,28 @@ public:
    */
   int wait(bool any);
 
-  libxstream_signal pending() const;
-
 #if defined(LIBXSTREAM_OFFLOAD) && (0 != LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (3 == (2*LIBXSTREAM_ASYNC+1)/2)
   _Offload_stream handle() const;
 #endif
 
-#if defined(LIBXSTREAM_TRACE) && 0 != ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)
-  const char* name() const { return m_name; }
+  const char* name() const {
+#if defined(LIBXSTREAM_TRACE) && ((1 < ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 == ((2*LIBXSTREAM_TRACE+1)/2))
+    return *m_name ? m_name : 0;
+#else
+    return 0;
 #endif
+  }
 
 private:
   libxstream_stream(const libxstream_stream& other);
   libxstream_stream& operator=(const libxstream_stream& other);
 
 private:
-#if defined(LIBXSTREAM_TRACE) && 0 != ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)
+#if defined(LIBXSTREAM_TRACE) && ((1 < ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 == ((2*LIBXSTREAM_TRACE+1)/2))
   char m_name[128];
 #endif
   libxstream_workqueue m_queue;
+  libxstream_signal m_pending;
   int m_device;
   int m_priority;
 

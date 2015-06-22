@@ -47,7 +47,7 @@ void libxstream_workqueue::entry_type::push(libxstream_workitem& workitem)
   const bool async = 0 == (LIBXSTREAM_CALL_WAIT & workitem.flags());
   const bool witem = 0 == (LIBXSTREAM_CALL_EVENT & workitem.flags());
   libxstream_workitem *const item = async ? workitem.clone() : &workitem;
-  m_status = witem ? LIBXSTREAM_ERROR_NONE : LIBXSTREAM_ERROR_CONDITION;
+  m_status = witem ? LIBXSTREAM_ERROR_NONE : LIBXSTREAM_NOT_AWORKITEM;
   m_dangling = async ? item : 0;
   m_item = item;
 }
@@ -55,7 +55,7 @@ void libxstream_workqueue::entry_type::push(libxstream_workitem& workitem)
 
 int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
 {
-  int result = LIBXSTREAM_ERROR_CONDITION;
+  int result = LIBXSTREAM_ERROR_NONE;
 
   if (any_status) {
     if (any || !valid()) {
@@ -79,8 +79,6 @@ int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
       }
       while (0 != m_item);
     }
-
-    result = m_status;
   }
   else {
     if (any || !valid()) {
@@ -104,11 +102,13 @@ int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
       }
       while (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status);
     }
+  }
 
+  if (LIBXSTREAM_NOT_AWORKITEM != m_status) {
     result = m_status;
   }
 
-  //LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
+  LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;
 }
 
@@ -131,12 +131,12 @@ void libxstream_workqueue::entry_type::pop()
 
 
 libxstream_workqueue::libxstream_workqueue()
-  : m_index(0)
 #if defined(LIBXSTREAM_STDFEATURES)
-  , m_size(new std::atomic<size_t>(0))
+  : m_position(new std::atomic<size_t>(0))
 #else
-  , m_size(new size_t(0))
+  : m_position(new size_t(0))
 #endif
+  , m_index(0)
 {
   std::fill_n(m_buffer, LIBXSTREAM_MAX_QSIZE, entry_type(this, 0));
 }
@@ -155,21 +155,10 @@ libxstream_workqueue::~libxstream_workqueue()
   }
 #endif
 #if defined(LIBXSTREAM_STDFEATURES)
-  delete static_cast<std::atomic<size_t>*>(m_size);
+  delete static_cast<std::atomic<size_t>*>(m_position);
 #else
-  delete static_cast<size_t*>(m_size);
+  delete static_cast<size_t*>(m_position);
 #endif
-}
-
-
-size_t libxstream_workqueue::size() const
-{
-#if defined(LIBXSTREAM_STDFEATURES)
-  const size_t atomic_size = *static_cast<const std::atomic<size_t>*>(m_size);
-#else
-  const size_t atomic_size = *static_cast<const size_t*>(m_size);
-#endif
-  return atomic_size - m_index;
 }
 
 
@@ -177,10 +166,10 @@ libxstream_workqueue::entry_type& libxstream_workqueue::allocate_entry_mt()
 {
   entry_type* result = 0;
 #if defined(LIBXSTREAM_STDFEATURES)
-  result = m_buffer + LIBXSTREAM_MOD((*static_cast<std::atomic<size_t>*>(m_size))++, LIBXSTREAM_MAX_QSIZE);
+  result = m_buffer + LIBXSTREAM_MOD((*static_cast<std::atomic<size_t>*>(m_position))++, LIBXSTREAM_MAX_QSIZE);
 #elif defined(_OPENMP)
   size_t size1 = 0;
-  size_t& size = *static_cast<size_t*>(m_size);
+  size_t& size = *static_cast<size_t*>(m_position);
 # if (201107 <= _OPENMP)
 # pragma omp atomic capture
 # else
@@ -189,7 +178,7 @@ libxstream_workqueue::entry_type& libxstream_workqueue::allocate_entry_mt()
   size1 = ++size;
   result = m_buffer + LIBXSTREAM_MOD(size1 - 1, LIBXSTREAM_MAX_QSIZE);
 #else // generic
-  size_t& size = *static_cast<size_t*>(m_size);
+  size_t& size = *static_cast<size_t*>(m_position);
   libxstream_lock *const lock = libxstream_lock_get(this);
   libxstream_lock_acquire(lock);
   result = m_buffer + LIBXSTREAM_MOD(size++, LIBXSTREAM_MAX_QSIZE);
@@ -213,9 +202,9 @@ libxstream_workqueue::entry_type& libxstream_workqueue::allocate_entry()
 {
   entry_type* result = 0;
 #if defined(LIBXSTREAM_STDFEATURES)
-  result = m_buffer + LIBXSTREAM_MOD(static_cast<std::atomic<size_t>*>(m_size)->fetch_add(1, std::memory_order_relaxed), LIBXSTREAM_MAX_QSIZE);
+  result = m_buffer + LIBXSTREAM_MOD(static_cast<std::atomic<size_t>*>(m_position)->fetch_add(1, std::memory_order_relaxed), LIBXSTREAM_MAX_QSIZE);
 #else
-  size_t& size = *static_cast<size_t*>(m_size);
+  size_t& size = *static_cast<size_t*>(m_position);
   result = m_buffer + LIBXSTREAM_MOD(size++, LIBXSTREAM_MAX_QSIZE);
 #endif
   LIBXSTREAM_ASSERT(0 != result && result->queue() == this);
@@ -229,6 +218,17 @@ libxstream_workqueue::entry_type& libxstream_workqueue::allocate_entry()
   }
 
   return *result;
+}
+
+
+size_t libxstream_workqueue::position() const
+{
+#if defined(LIBXSTREAM_STDFEATURES)
+  const size_t atomic_position = *static_cast<const std::atomic<size_t>*>(m_position);
+#else
+  const size_t atomic_position = *static_cast<const size_t*>(m_position);
+#endif
+  return atomic_position;
 }
 
 #endif // defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)

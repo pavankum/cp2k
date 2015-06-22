@@ -237,11 +237,8 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_not_constant(int value
 #   if !defined(LIBXSTREAM_STDFEATURES_THREADX)
 #     define LIBXSTREAM_STDFEATURES_THREADX
 #   endif
-# elif ((40500 <= (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)) && (1L == __cplusplus))
-#   if !defined(LIBXSTREAM_STDFEATURES)
-#     define LIBXSTREAM_STDFEATURES
-#   endif
-# elif (defined(__INTEL_COMPILER) && defined(__GXX_EXPERIMENTAL_CXX0X__))
+# elif (((40500 <= (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)) && (1L == __cplusplus)) \
+    || (defined(__INTEL_COMPILER) && defined(__GXX_EXPERIMENTAL_CXX0X__)))
 #   if !defined(LIBXSTREAM_STDFEATURES)
 #     define LIBXSTREAM_STDFEATURES
 #   endif
@@ -255,6 +252,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_not_constant(int value
 #define LIBXSTREAM_TRUE  1
 #define LIBXSTREAM_FALSE 0
 
+#define LIBXSTREAM_NOT_AWORKITEM     2
 #define LIBXSTREAM_NOT_SUPPORTED     1
 #define LIBXSTREAM_ERROR_NONE        0
 #define LIBXSTREAM_ERROR_RUNTIME    -1

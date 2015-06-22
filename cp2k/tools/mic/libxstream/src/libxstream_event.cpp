@@ -117,7 +117,7 @@ int libxstream_event::record(libxstream_stream& stream, bool reset)
     int& status = LIBXSTREAM_ASYNC_QENTRY.status();
 #if defined(LIBXSTREAM_OFFLOAD)
     if (0 <= LIBXSTREAM_ASYNC_DEVICE) {
-      if (LIBXSTREAM_ASYNC_READY) {
+      if (0 == (LIBXSTREAM_ASYNC_PENDING)) {
 #       pragma offload LIBXSTREAM_ASYNC_TARGET_SIGNAL //out(status)
         {
           status = LIBXSTREAM_ERROR_NONE;
@@ -260,6 +260,10 @@ int libxstream_event::wait_stream(libxstream_stream* stream)
     const libxstream_event& event = *ptr<const libxstream_event,0>();
     int result = LIBXSTREAM_ERROR_NONE;
     bool occurred = true;
+
+    LIBXSTREAM_PRINT(2, "stream_wait_event: stream=0x%llx event=0x%llx",
+      reinterpret_cast<unsigned long long>(LIBXSTREAM_ASYNC_STREAM),
+      reinterpret_cast<unsigned long long>(&event));
 
     if (0 == this->event()) {
       this->event(&event);
