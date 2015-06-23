@@ -159,7 +159,7 @@ ifneq (,$(LIBXSMMROOT))
 endif
 
 ifneq (,$(LIBXSTREAMROOT))
-  LIBXSTREAM_BUILD = $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile \
+  LIBXSTREAM_BUILD := $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile \
     BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
     DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) \
