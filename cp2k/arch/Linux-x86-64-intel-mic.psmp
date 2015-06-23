@@ -104,6 +104,9 @@ endif
 ifeq (,$(DBG))
   DBG := 0
 endif
+ifeq (,$(IPO))
+  IPO := 0
+endif
 ifeq (,$(RECONFIGURE))
   RECONFIGURE := 1
 endif
