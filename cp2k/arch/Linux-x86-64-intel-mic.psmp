@@ -216,6 +216,7 @@ ifneq (0,$(ACC))
     LIBS    += -L/usr/lib64 -lOpenCL -lrt
   endif
 else
+  LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
   RECONFIGURE := 0
 endif
 
