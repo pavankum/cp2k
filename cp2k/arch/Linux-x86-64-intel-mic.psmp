@@ -73,7 +73,11 @@ ifeq (,$(ACC))
   ACC := 1
 endif
 ifeq (,$(MIC))
-  MIC := 1
+  ifeq (0,$(OFFLOAD))
+    MIC := 0
+  else
+    MIC := 1
+  endif
 endif
 # workaround for issue "cannot find address of function"
 #ifeq (,$(ATTRIBUTE))
