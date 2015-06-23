@@ -184,9 +184,10 @@ ifneq (,$(LIBXSMMROOT))
 endif
 
 ifneq (,$(LIBXSTREAMROOT))
-  LIBXSTREAM_BUILD := $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile DBG=$(DBG) \
+  LIBXSTREAM_BUILD := $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile \
     BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
+    DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
   >&2)
   DFLAGS  += -D__LIBXSTREAM
   IFLAGS  += -I$(LIBXSTREAMROOT)/include
