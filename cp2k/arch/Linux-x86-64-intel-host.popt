@@ -2,7 +2,7 @@
 #
 ROOT := $(dir $(word $(words $(MAKEFILE_LIST)), $(MAKEFILE_LIST)))
 ACC := 0
-SMP := 0
+OMP := 0
 
 include $(ROOT)Linux-x86-64-intel-mic.psmp
 

@@ -63,62 +63,34 @@ DIAG_DISABLE = 8290,8291,10010,10212,11060
 
 # DEFAULTS
 #
-ifeq (,$(PAR))
-  PAR := 1
-endif
-ifeq (,$(SMP))
-  SMP := 1
-endif
-ifeq (,$(ACC))
-  ACC := 1
-endif
-ifeq (0,$(ACC))
-  OFFLOAD := 0
-endif
-ifeq (,$(MIC))
-  ifeq (0,$(OFFLOAD))
-    MIC := 0
-  else
-    MIC := 1
-  endif
-endif
-# workaround for issue "cannot find address of function"
-#ifeq (,$(ATTRIBUTE))
-#  ATTRIBUTE := mic
-#  DIAG_DISABLE := $(DIAG_DISABLE),2571,3218
-#endif
-ifeq (,$(MKL))
-  MKL := 2
-endif
-ifeq (,$(MKL_STATIC))
-  MKL_STATIC := 1
-endif
+MPI ?= 1
+OMP ?= 1
+ACC ?= 1
+OCL ?= 0
+DBG ?= 0
+IPO ?= 0
+MKL ?= 2
+MKL_STATIC ?= 1
+RECONFIGURE ?= 1
+OFFLOAD ?= $(ACC)
+
 ifeq (1,$(MKL_DIRECT))
-  MKL_STATIC := 1
+  MKL_STATIC = 1
   # always using MKL_DIRECT_CALL_SEQ since it is nested
   DFLAGS += -DMKL_DIRECT_CALL_SEQ
 endif
-ifeq (,$(OCL))
-  OCL := 0
-endif
-ifeq (,$(DBG))
-  DBG := 0
-endif
-ifeq (,$(IPO))
-  IPO := 0
-endif
-ifeq (,$(RECONFIGURE))
-  RECONFIGURE := 1
-endif
+
+# workaround for issue "cannot find address of function"
+#ATTRIBUTE = mic
+#DIAG_DISABLE := $(DIAG_DISABLE),2571,3218
 
 # initial build flags
-CPPFLAGS  := $(NULL)
-CXXFLAGS  := -std=c++0x
-CFLAGS    := 
-FCFLAGS   := -free -fpp -heap-arrays
-LDFLAGS   := 
-OPTFLAGS  := $(NULL)
-
+CPPFLAGS  = $(NULL)
+CXXFLAGS  = -std=c++0x
+CFLAGS    = #
+FCFLAGS   = -free -fpp -heap-arrays
+LDFLAGS   = #
+OPTFLAGS  = $(NULL)
 
 ifeq (0,$(DBG))
   OPTFLAGS  += -O2
@@ -141,13 +113,13 @@ else
   endif
 endif
 
-ifneq (0,$(PAR))
+ifneq (0,$(MPI))
   CXX = mpiicpc
   CC  = mpiicc
   FC  = mpiifort
   LD  = mpiifort
   DFLAGS += -D__parallel -D__BLACS -D__SCALAPACK
-  ifneq (1,$(PAR))
+  ifneq (1,$(MPI))
     DFLAGS += -D__MPI_VERSION=3
     DFLAGS += -D__SCALAPACK2
   endif
@@ -158,7 +130,7 @@ else
   LD  = ifort
 endif
 
-ifneq (0,$(SMP))
+ifneq (0,$(OMP))
   FCFLAGS   += -threads
   LDFLAGS   += -threads
   OPTFLAGS  += -openmp
@@ -187,10 +159,10 @@ ifneq (,$(LIBXSMMROOT))
 endif
 
 ifneq (,$(LIBXSTREAMROOT))
-  LIBXSTREAM_BUILD := $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile \
+  LIBXSTREAM_BUILD = $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile \
     BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
-    DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
+    DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) \
   >&2)
   DFLAGS  += -D__LIBXSTREAM
   IFLAGS  += -I$(LIBXSTREAMROOT)/include
@@ -202,12 +174,12 @@ ifneq (0,$(ACC))
 
   ifeq (0,$(OCL))
     DFLAGS += -D__ACC_MIC
-    ifeq (0,$(MIC))
+    ifeq (0,$(OFFLOAD))
       OPTFLAGS += -no-offload
       LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
-    else # also true if MIC is not defined
+    else # also true if OFFLOAD is not defined
       #OPTFLAGS += -offload=mandatory
-      # enable OpenMP for MIC regardless of wether SMP is enabled or not
+      # enable OpenMP for OFFLOAD regardless of wether OMP is enabled or not
       MIC_CXFLAGS += -offload-option,mic,compiler,"-openmp"
       MIC_CCFLAGS += -offload-option,mic,compiler,"-openmp"
       MIC_FCFLAGS += -offload-option,mic,compiler,"-openmp"
@@ -223,10 +195,10 @@ ifneq (0,$(ACC))
     LIBS    += -L/usr/lib64 -lOpenCL -lrt
   endif
 else
-  ifeq (0,$(MIC))
+  ifeq (0,$(OFFLOAD))
     OPTFLAGS += -no-offload
     LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
-    RECONFIGURE := 0
+    RECONFIGURE = 0
   endif
 endif
 
@@ -236,7 +208,7 @@ ifneq (1,$(MKL))
     IFLAGS  +=-I$(MKLROOT)/include -I$(MKLROOT)/include/fftw
     ifneq (1,$(MKL_STATIC))
       LIBS += -L$(MKLROOT)/lib/intel64
-      ifneq (0,$(PAR))
+      ifneq (0,$(MPI))
         MIC_LDFLAGS += -offload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64"
         LIBS += -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64
       else
@@ -244,7 +216,7 @@ ifneq (1,$(MKL))
         LIBS += -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread
       endif
     else # static
-      ifneq (0,$(PAR))
+      ifneq (0,$(MPI))
         MIC_LDFLAGS += -offload-option,mic,ld," \
           --start-group \
             $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
@@ -276,7 +248,7 @@ ifneq (1,$(MKL))
           -Wl,--end-group
       endif
     endif
-    ifeq (0,$(SMP))
+    ifeq (0,$(OMP))
       MIC_LDFLAGS += -offload-option,mic,ld,"-liomp5"
       LIBS += -liomp5
     endif
@@ -288,7 +260,7 @@ else # sequential
   IFLAGS  +=-I$(MKLROOT)/include -I$(MKLROOT)/include/fftw
   ifneq (1,$(MKL_STATIC))
     LIBS += -L$(MKLROOT)/lib/intel64
-    ifneq (0,$(PAR))
+    ifneq (0,$(MPI))
       MIC_LDFLAGS += -offload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64"
       LIBS += -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64
     else
@@ -296,7 +268,7 @@ else # sequential
       LIBS += -lmkl_intel_lp64 -lmkl_core -lmkl_sequential
     endif
   else # static
-    ifneq (0,$(PAR))
+    ifneq (0,$(MPI))
       MIC_LDFLAGS += -offload-option,mic,ld," \
         --start-group \
           $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
@@ -352,7 +324,7 @@ LDFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE)
 
 LIBS += -lstdc++
 ifneq (0,$(ACC))
-  ifneq (0,$(MIC))
+  ifneq (0,$(OFFLOAD))
     LIBS      += $(MIC_LDFLAGS)
     CXXFLAGS  += $(MIC_CXFLAGS)
     CFLAGS    += $(MIC_CCFLAGS)
