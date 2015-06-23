@@ -193,6 +193,7 @@ ifneq (0,$(ACC))
     DFLAGS += -D__ACC_MIC
     ifeq (0,$(MIC))
       OPTFLAGS += -no-offload
+      LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
     else # also true if MIC is not defined
       #OPTFLAGS += -offload=mandatory
       # enable OpenMP for MIC regardless of wether SMP is enabled or not
