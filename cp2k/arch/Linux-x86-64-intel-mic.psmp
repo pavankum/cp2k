@@ -72,6 +72,9 @@ endif
 ifeq (,$(ACC))
   ACC := 1
 endif
+ifeq (0,$(ACC))
+  OFFLOAD := 0
+endif
 ifeq (,$(MIC))
   ifeq (0,$(OFFLOAD))
     MIC := 0
@@ -216,8 +219,11 @@ ifneq (0,$(ACC))
     LIBS    += -L/usr/lib64 -lOpenCL -lrt
   endif
 else
-  LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
-  RECONFIGURE := 0
+  ifeq (0,$(MIC))
+    OPTFLAGS += -no-offload
+    LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
+    RECONFIGURE := 0
+  endif
 endif
 
 ifneq (1,$(MKL))
