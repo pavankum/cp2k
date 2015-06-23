@@ -70,19 +70,10 @@ OCL ?= 0
 DBG ?= 0
 IPO ?= 0
 MKL ?= 2
+MKL_DIRECT ?= 0
 MKL_STATIC ?= 1
 RECONFIGURE ?= 1
 OFFLOAD ?= $(ACC)
-
-ifeq (1,$(MKL_DIRECT))
-  MKL_STATIC = 1
-  # always using MKL_DIRECT_CALL_SEQ since it is nested
-  DFLAGS += -DMKL_DIRECT_CALL_SEQ
-endif
-
-# workaround for issue "cannot find address of function"
-#ATTRIBUTE = mic
-#DIAG_DISABLE := $(DIAG_DISABLE),2571,3218
 
 # initial build flags
 CPPFLAGS  = $(NULL)
@@ -91,6 +82,10 @@ CFLAGS    = #
 FCFLAGS   = -free -fpp -heap-arrays
 LDFLAGS   = #
 OPTFLAGS  = $(NULL)
+
+# workaround for issue "cannot find address of function"
+#ATTRIBUTE = mic
+#DIAG_DISABLE := $(DIAG_DISABLE),2571,3218
 
 ifeq (0,$(DBG))
   OPTFLAGS  += -O2
@@ -177,6 +172,7 @@ ifneq (0,$(ACC))
     ifeq (0,$(OFFLOAD))
       OPTFLAGS += -no-offload
       LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
+      RECONFIGURE = 0
     else # also true if OFFLOAD is not defined
       #OPTFLAGS += -offload=mandatory
       # enable OpenMP for OFFLOAD regardless of wether OMP is enabled or not
@@ -200,6 +196,12 @@ else
     LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
     RECONFIGURE = 0
   endif
+endif
+
+ifeq (1,$(MKL_DIRECT))
+  MKL_STATIC = 1
+  # always using MKL_DIRECT_CALL_SEQ since it is nested
+  DFLAGS += -DMKL_DIRECT_CALL_SEQ
 endif
 
 ifneq (1,$(MKL))
