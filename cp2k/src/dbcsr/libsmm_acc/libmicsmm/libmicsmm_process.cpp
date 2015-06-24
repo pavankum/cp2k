@@ -155,7 +155,7 @@ private:
 #if defined(LIBMICSMM_LIBXSMM) && defined(__LIBXSMM)
     LIBXSTREAM_ASSERT((LIBXSMM_MAX_MNK) < (m * n * k));
     libxsmm_blasmm(m, n, k, a, b, c);
-    libxstream_use_sink(&ldc);
+    libxstream_sink(&ldc);
 #else
     blasmm(m, n, k, ldc, a, b, c);
 #endif
