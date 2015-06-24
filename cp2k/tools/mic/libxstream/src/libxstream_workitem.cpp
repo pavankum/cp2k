@@ -31,6 +31,7 @@
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
 #include "libxstream_workitem.hpp"
 #include "libxstream_event.hpp"
+#include "libxstream_alloc.hpp"
 
 #include <libxstream_begin.h>
 #include <algorithm>
@@ -50,7 +51,7 @@
 
 namespace libxstream_workitem_internal {
 
-class scheduler_type {
+static/*IPO*/ class scheduler_type {
 public:
   typedef libxstream_workqueue::entry_type entry_type;
 
@@ -64,7 +65,9 @@ public:
     , m_thread(0)
 #endif
     , m_terminated(false)
-  {}
+  {
+    libxstream_alloc_init();
+  }
 
   ~scheduler_type() {
     if (running()) {
@@ -190,8 +193,7 @@ private:
   HANDLE m_thread;
 #endif
   bool m_terminated;
-};
-static/*IPO*/ scheduler_type scheduler;
+} scheduler;
 
 } // namespace libxstream_workitem_internal
 
@@ -202,12 +204,12 @@ libxstream_workitem::libxstream_workitem(libxstream_stream* stream, int flags, s
   , m_thread(this_thread_id())
   , m_flags(flags)
   , m_event(0)
-#if defined(LIBXSTREAM_DEBUG)
+#if defined(LIBXSTREAM_INTERNAL_DEBUG)
   , m_name(name)
 #endif
 {
-#if !defined(LIBXSTREAM_DEBUG)
-  libxstream_use_sink(name);
+#if !defined(LIBXSTREAM_INTERNAL_DEBUG)
+  libxstream_sink(name);
 #endif
   if (2 == argc && (argv[0].signature() || argv[1].signature())) {
     const libxstream_argument* signature = 0;
@@ -233,7 +235,7 @@ libxstream_workitem::libxstream_workitem(libxstream_stream* stream, int flags, s
     LIBXSTREAM_ASSERT(argc <= (LIBXSTREAM_MAX_NARGS));
     for (size_t i = 0; i < argc; ++i) m_signature[i] = argv[i];
     LIBXSTREAM_CHECK_CALL_ASSERT(libxstream_construct(m_signature, argc, libxstream_argument::kind_invalid, 0, LIBXSTREAM_TYPE_INVALID, 0, 0));
-#if defined(LIBXSTREAM_DEBUG)
+#if defined(LIBXSTREAM_INTERNAL_DEBUG)
     size_t arity = 0;
     LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == libxstream_get_arity(m_signature, &arity) && arity == argc);
 #endif

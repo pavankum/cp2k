@@ -85,7 +85,7 @@ public:
 #endif
 
   const char* name() const {
-#if defined(LIBXSTREAM_TRACE) && ((1 < ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 == ((2*LIBXSTREAM_TRACE+1)/2))
+#if defined(LIBXSTREAM_INTERNAL_TRACE)
     return *m_name ? m_name : 0;
 #else
     return 0;
@@ -97,7 +97,7 @@ private:
   libxstream_stream& operator=(const libxstream_stream& other);
 
 private:
-#if defined(LIBXSTREAM_TRACE) && ((1 < ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 == ((2*LIBXSTREAM_TRACE+1)/2))
+#if defined(LIBXSTREAM_INTERNAL_TRACE)
   char m_name[128];
 #endif
   libxstream_workqueue m_queue;
@@ -122,7 +122,7 @@ const libxstream_stream* cast_to_stream(const libxstream_stream& stream);
 libxstream_stream* cast_to_stream(libxstream_stream& stream);
 
 template<typename T> libxstream_stream* cast_to_stream(T stream) {
-  libxstream_use_sink(&stream);
+  libxstream_sink(&stream);
   LIBXSTREAM_ASSERT(0 == stream);
   return static_cast<libxstream_stream*>(0);
 }

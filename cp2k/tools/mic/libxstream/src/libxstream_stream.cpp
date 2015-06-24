@@ -33,6 +33,7 @@
 #include "libxstream_workqueue.hpp"
 #include "libxstream_workitem.hpp"
 #include "libxstream_event.hpp"
+#include "libxstream_alloc.hpp"
 
 #include <libxstream_begin.h>
 #include <algorithm>
@@ -59,6 +60,7 @@ public:
   registry_type()
     : m_istreams(0)
   {
+    libxstream_alloc_init();
     std::fill_n(m_signals, LIBXSTREAM_MAX_NDEVICES, 0);
     std::fill_n(m_streams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS), static_cast<value_type>(0));
   }
@@ -66,7 +68,7 @@ public:
   ~registry_type() {
     const size_t n = max_nstreams();
     for (size_t i = 0; i < n; ++i) {
-#if defined(LIBXSTREAM_DEBUG)
+#if defined(LIBXSTREAM_INTERNAL_DEBUG)
       if (0 != m_streams[i]) {
         LIBXSTREAM_PRINT(1, "stream=0x%llx (%s) is dangling!", reinterpret_cast<unsigned long long>(m_streams[i]), m_streams[i]->name());
       }
@@ -227,52 +229,65 @@ public:
     return result;
   }
 
-  int wait_all(int device, bool any) {
+  int wait_all(int device, bool any) { // TODO: implement waiting for global stream
     int result = LIBXSTREAM_ERROR_NONE;
     const size_t n = max_nstreams();
 
     if (0 < n) {
-#if defined(LIBXSTREAM_TRACE) && ((1 < ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 == ((2*LIBXSTREAM_TRACE+1)/2))
-      LIBXSTREAM_PRINT0(2, "stream_wait: wait for all streams");
-#endif
-      size_t i = 0;
-      do {
-        if (const value_type stream = m_streams[i]) {
-          const int stream_device = libxstream_stream::device(stream);
-          if (stream_device == device) {
-            result = stream->wait(any);
-            LIBXSTREAM_CHECK_ERROR(result);
-          }
+#if defined(LIBXSTREAM_OFFLOAD) && (0 != LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (3 == (2*LIBXSTREAM_ASYNC+1)/2)
+      if (0 <= device) {
+        LIBXSTREAM_ASYNC_BEGIN
+        {
+          LIBXSTREAM_PRINT0(2, "stream_wait: wait for all streams");
+#         pragma offload_wait target(mic) stream(0)
         }
-        ++i;
+        LIBXSTREAM_ASYNC_END(0, LIBXSTREAM_CALL_DEFAULT | LIBXSTREAM_CALL_DEVICE | (any ? LIBXSTREAM_CALL_WAIT : 0), work, device);
+        result = work.wait(any);
       }
-      while(i < n);
-    }
-    else {
-      result = wait_all(any);
+      else
+#endif
+      {
+        size_t i = 0;
+        LIBXSTREAM_PRINT0(2, "stream_wait: wait for all streams");
+        do {
+          if (const value_type stream = m_streams[i]) {
+            const int stream_device = libxstream_stream::device(stream);
+            if (stream_device == device) {
+              result = stream->wait(any);
+              LIBXSTREAM_CHECK_ERROR(result);
+            }
+          }
+          ++i;
+        }
+        while(i < n);
+      }
     }
 
     LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
     return result;
   }
 
-  int wait_all(bool any) {
+  int wait_all(bool any) { // TODO: implement waiting for global stream
     int result = LIBXSTREAM_ERROR_NONE;
     const size_t n = max_nstreams();
 
     if (0 < n) {
-#if defined(LIBXSTREAM_TRACE) && ((1 < ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 == ((2*LIBXSTREAM_TRACE+1)/2))
-      LIBXSTREAM_PRINT0(2, "stream_wait: wait for all streams");
-#endif
+      bool devices[(LIBXSTREAM_MAX_NDEVICES)+1];
       size_t i = 0;
+      LIBXSTREAM_PRINT0(2, "stream_wait: wait for all streams");
+      std::fill_n(devices, (LIBXSTREAM_MAX_NDEVICES)+1, false);
       do {
         if (const value_type stream = m_streams[i]) {
-          result = stream->wait(any);
-          LIBXSTREAM_CHECK_ERROR(result);
+          const int device = libxstream_stream::device(stream);
+          devices[device+1] = true;
         }
         ++i;
       }
       while(i < n);
+
+      for (i = 0; i <= (LIBXSTREAM_MAX_NDEVICES) && LIBXSTREAM_ERROR_NONE == result; ++i) {
+        result = devices[i] ? wait_all(static_cast<int>(i) - 1, any) : LIBXSTREAM_ERROR_NONE;
+      }
     }
 
     LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
@@ -399,7 +414,7 @@ libxstream_stream::libxstream_stream(int device, int priority, const char* name)
   m_priority = std::max(priority_greatest, std::min(priority_least, priority));
   LIBXSTREAM_PRINT(m_priority != priority ? 2 : 0, "stream priority %i has been clamped to %i", priority, m_priority);
 
-#if defined(LIBXSTREAM_TRACE) && ((1 < ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 == ((2*LIBXSTREAM_TRACE+1)/2))
+#if defined(LIBXSTREAM_INTERNAL_TRACE)
   if (name && 0 != *name) {
     const size_t length = std::min(std::char_traits<char>::length(name), sizeof(m_name) - 1);
     std::copy(name, name + length, m_name);
@@ -409,7 +424,7 @@ libxstream_stream::libxstream_stream(int device, int priority, const char* name)
     m_name[0] = 0;
   }
 #else
-  libxstream_use_sink(name);
+  libxstream_sink(name);
 #endif
 
   using namespace libxstream_stream_internal;
@@ -449,7 +464,7 @@ int libxstream_stream::wait(bool any)
 {
   LIBXSTREAM_ASYNC_BEGIN
   {
-#if defined(LIBXSTREAM_TRACE) && ((1 < ((2*LIBXSTREAM_TRACE+1)/2) && defined(LIBXSTREAM_DEBUG)) || 1 == ((2*LIBXSTREAM_TRACE+1)/2))
+#if defined(LIBXSTREAM_INTERNAL_TRACE)
     if (LIBXSTREAM_ASYNC_STREAM->name()) {
       LIBXSTREAM_PRINT(2, "stream_wait: stream=0x%llx (%s)", reinterpret_cast<unsigned long long>(LIBXSTREAM_ASYNC_STREAM), LIBXSTREAM_ASYNC_STREAM->name());
     }
