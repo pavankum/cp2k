@@ -18,10 +18,14 @@ MODULE input_section_types
        cp_sll_val_get_length, cp_sll_val_get_rest, cp_sll_val_insert_el_at, &
        cp_sll_val_next, cp_sll_val_p_type, cp_sll_val_rm_el_at, &
        cp_sll_val_set_el_at, cp_sll_val_type
-  USE input_keyword_types,             ONLY: &
-       enable_color_tags, keyword_describe, keyword_describe_html, &
-       keyword_p_type, keyword_release, keyword_retain, keyword_type, &
-       keyword_typo_match, write_keyword_xml
+  USE input_keyword_types,             ONLY: keyword_describe,&
+                                             keyword_describe_html,&
+                                             keyword_p_type,&
+                                             keyword_release,&
+                                             keyword_retain,&
+                                             keyword_type,&
+                                             keyword_typo_match,&
+                                             write_keyword_xml
   USE input_val_types,                 ONLY: lchar_t,&
                                              no_t,&
                                              val_create,&
@@ -64,8 +68,7 @@ MODULE input_section_types
             section_vals_get, section_vals_get_subs_vals, section_vals_val_get, section_vals_list_get,&
             section_vals_write, section_vals_add_values, section_vals_get_subs_vals2,&
             section_vals_val_set, section_vals_val_unset, section_vals_get_subs_vals3,&
-            section_vals_set_subs_vals, section_vals_duplicate, section_vals_remove_values,&
-            section_vals_check_release
+            section_vals_set_subs_vals, section_vals_duplicate, section_vals_remove_values
   PUBLIC :: write_section_xml
 
   PUBLIC :: section_get_ival,&
@@ -87,7 +90,6 @@ MODULE input_section_types
 !> \note
 !>      - frozen: if the section has been frozen (and no keyword/subsections
 !>        can be added)
-!>      - required: if the section is required
 !>      - repeats: if the section can be repeated more than once in the same
 !>        context
 !>      - id_nr: identification number (different in each instance)
@@ -102,7 +104,7 @@ MODULE input_section_types
 !> \author fawzi
 ! *****************************************************************************
   TYPE section_type
-     LOGICAL :: frozen, required, repeats, supported_feature
+     LOGICAL :: frozen, repeats
      INTEGER :: id_nr,ref_count, n_keywords, n_subsections
      CHARACTER(len=default_string_length)        :: name
      CHARACTER,DIMENSION(:),POINTER              :: description=>Null()
@@ -143,23 +145,19 @@ CONTAINS
 !> \param n_subsections a hint about how many sections will be added to this
 !>        structure, defaults to 0
 !> \param repeats if this section can repeat (defaults to false)
-!> \param required if this section is required (and thus it cannot be
-!>        totally default). Defaults to false.
 !> \param citations ...
-!> \param supported_feature ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE section_create(section,name,description,n_keywords,&
-       n_subsections, repeats, required, citations, supported_feature, error)
+       n_subsections, repeats, citations, error)
     TYPE(section_type), POINTER              :: section
     CHARACTER(len=*), INTENT(in)             :: name, description
     INTEGER, INTENT(in), OPTIONAL            :: n_keywords, n_subsections
-    LOGICAL, INTENT(in), OPTIONAL            :: repeats, required
+    LOGICAL, INTENT(in), OPTIONAL            :: repeats
     INTEGER, DIMENSION(:), INTENT(IN), &
       OPTIONAL                               :: citations
-    LOGICAL, INTENT(in), OPTIONAL            :: supported_feature
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'section_create', &
@@ -196,12 +194,8 @@ CONTAINS
        END DO
 
        section%frozen=.FALSE.
-       section%required=.FALSE.
-       section%supported_feature=.FALSE.
        section%repeats=.FALSE.
-       IF (PRESENT(required)) section%required=required
        IF (PRESENT(repeats)) section%repeats=repeats
-       IF (PRESENT(supported_feature)) section%supported_feature=supported_feature
 
        NULLIFY(section%citations)
        IF (PRESENT(citations)) THEN
@@ -328,14 +322,9 @@ CONTAINS
        ENDIF
     ENDIF
     IF (section%repeats) THEN
-       message=TRIM(message)//" This section can be repeated and "
+       message=TRIM(message)//" This section can be repeated."
     ELSE
-       message=TRIM(message)//" This section can not be repeated and "
-    END IF
-    IF (section%required) THEN
-       message=TRIM(message)//" can not be optional."
-    ELSE
-       message=TRIM(message)//" can be optional."
+       message=TRIM(message)//" This section can not be repeated."
     END IF
 
   END FUNCTION get_section_info
@@ -433,7 +422,6 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'section_describe_html', &
       routineP = moduleN//':'//routineN
 
-    CHARACTER(LEN=100)                       :: color_tag
     CHARACTER(LEN=1000)                      :: local_prefix
     CHARACTER(LEN=256), DIMENSION(50), SAVE  :: location, name
     CHARACTER(LEN=default_path_length)       :: message
@@ -453,11 +441,7 @@ CONTAINS
        WRITE(unit_nr,FMT='(A)') &
             '<META NAME="keywords" contents="scientific,computing,chemistry,physics,'//&
             'documentation,help,manual,Fortran,parallel">'
-       color_tag='<font color="#000000">'
-       IF (enable_color_tags.AND.section%supported_feature) THEN
-          color_tag='<font color="#00CC00">'
-       END IF
-       WRITE(unit_nr,FMT='(A)') "<H1> Section "//TRIM(color_tag)//section%name//"</font> </H1>"
+       WRITE(unit_nr,FMT='(A)') "<H1> Section "//section%name//" </H1>"
        WRITE(unit_nr,FMT='(A)') ' <A HREF="index.html">Index of all sections</A>. This section is located at '
        DO idepth=1,depth
           WRITE(unit_nr,FMT='(A)',ADVANCE="NO") '<A HREF="'//TRIM(location(idepth))//'">'//TRIM(name(idepth))//'</A>%'
@@ -486,13 +470,9 @@ CONTAINS
        IF (section%n_subsections>0) THEN
           WRITE(unit_nr,FMT='(A)') "<UL>"
           DO isub=1,section%n_subsections
-             color_tag='<font color="#0000FF">'
-             IF (enable_color_tags.AND.section%subsections(isub)%section%supported_feature) THEN
-                color_tag='<font color="#00CC00">'
-             END IF
              WRITE(unit_nr,FMT='(A)') &
                   '<LI><A HREF="'//TRIM(local_prefix)//"~"//TRIM(section%subsections(isub)%section%name)//".html"//'">'// &
-                  TRIM(color_tag)//TRIM(section%subsections(isub)%section%name)//'</font> </A>'
+                  TRIM(section%subsections(isub)%section%name)//' </A>'
           END DO
           WRITE(unit_nr,FMT='(A)') "</UL>"
        ELSE
@@ -506,13 +486,9 @@ CONTAINS
           WRITE(unit_nr,FMT='(A)') "<UL>"
           DO ikeyword=-1,section%n_keywords
              IF (ASSOCIATED(section%keywords(ikeyword)%keyword)) THEN
-                color_tag='<font color="#0000FF">'
-                IF (enable_color_tags.AND.section%keywords(ikeyword)%keyword%supported_feature) THEN
-                   color_tag='<font color="#00CC00">'
-                END IF
                 WRITE(unit_nr,FMT='(A)') &
                      '<LI><A HREF="#'//TRIM(section%keywords(ikeyword)%keyword%names(1))//'">'//&
-                     TRIM(color_tag)//TRIM(section%keywords(ikeyword)%keyword%names(1))//"</font> </A>"
+                     TRIM(section%keywords(ikeyword)%keyword%names(1))//" </A>"
              END IF
           END DO
           WRITE(unit_nr,FMT='(A)') "</UL>"
@@ -555,7 +531,6 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'section_describe_index_html', &
       routineP = moduleN//':'//routineN
 
-    CHARACTER(LEN=100)                       :: color_tag
     CHARACTER(LEN=1000)                      :: local_prefix
     INTEGER                                  :: isub
     LOGICAL                                  :: failure
@@ -564,12 +539,8 @@ CONTAINS
     IF (ASSOCIATED(section)) THEN
        CPPrecondition(section%ref_count>0,cp_failure_level,routineP,error,failure)
        local_prefix=TRIM(prefix//"~"//TRIM(section%name))
-       color_tag='<font color="#0000FF">'
-       IF (enable_color_tags.AND.section%supported_feature) THEN
-          color_tag='<font color="#00CC00">'
-       END IF
        WRITE(unit_nr,FMT='(A)') &
-            '<LI><A HREF="'//TRIM(local_prefix)//'.html">'//TRIM(color_tag)//TRIM(section%name)//"</font></A>"
+            '<LI><A HREF="'//TRIM(local_prefix)//'.html">'//TRIM(section%name)//"</A>"
        IF (section%n_subsections>0) THEN
           WRITE(unit_nr,FMT='(A)') "<UL>"
           DO isub=1,section%n_subsections
@@ -749,7 +720,6 @@ CONTAINS
 !> \brief returns various attibutes of a section object
 !> \param section the section you want informations about
 !> \param frozen ...
-!> \param required ...
 !> \param repeats ...
 !> \param id_nr ...
 !> \param ref_count ...
@@ -764,10 +734,10 @@ CONTAINS
 !> \note
 !>       give direct access to keywords and subsections?
 ! *****************************************************************************
-  SUBROUTINE section_get(section,frozen, required, repeats,id_nr,ref_count, &
+  SUBROUTINE section_get(section,frozen, repeats,id_nr,ref_count, &
        name,description,citations,error)
     TYPE(section_type), POINTER              :: section
-    LOGICAL, INTENT(out), OPTIONAL           :: frozen, required, repeats
+    LOGICAL, INTENT(out), OPTIONAL           :: frozen, repeats
     INTEGER, INTENT(out), OPTIONAL           :: id_nr, ref_count
     CHARACTER(len=*), INTENT(out), OPTIONAL  :: name, description
     INTEGER, DIMENSION(:), OPTIONAL, POINTER :: citations
@@ -784,7 +754,6 @@ CONTAINS
     CPPrecondition(section%ref_count>0,cp_failure_level,routineP,error,failure)
     IF (.NOT. failure) THEN
        IF (PRESENT(frozen)) frozen=section%frozen
-       IF (PRESENT(required)) required=section%required
        IF (PRESENT(repeats)) repeats=section%repeats
        IF (PRESENT(id_nr)) id_nr=section%id_nr
        IF (PRESENT(ref_count)) ref_count=section%ref_count
@@ -1486,7 +1455,6 @@ CONTAINS
 !> \param i_vals ...
 !> \param r_vals ...
 !> \param c_vals ...
-!> \param ignore_required ...
 !> \param explicit ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
@@ -1494,7 +1462,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE section_vals_val_get(section_vals,keyword_name,i_rep_section,&
        i_rep_val,n_rep_val,val,l_val,i_val,r_val,c_val,l_vals,i_vals,r_vals,&
-       c_vals,ignore_required,explicit,error)
+       c_vals,explicit,error)
     TYPE(section_vals_type), POINTER         :: section_vals
     CHARACTER(len=*), INTENT(in)             :: keyword_name
     INTEGER, INTENT(in), OPTIONAL            :: i_rep_section, i_rep_val
@@ -1510,7 +1478,6 @@ CONTAINS
       POINTER                                :: r_vals
     CHARACTER(LEN=default_string_length), &
       DIMENSION(:), OPTIONAL, POINTER        :: c_vals
-    LOGICAL, INTENT(in), OPTIONAL            :: ignore_required
     LOGICAL, INTENT(out), OPTIONAL           :: explicit
     TYPE(cp_error_type), INTENT(inout)       :: error
 
@@ -1519,8 +1486,7 @@ CONTAINS
 
     INTEGER                                  :: ik, irk, irs, len_key, &
                                                 my_index, tmp_index
-    LOGICAL                                  :: failure, my_ignore_required, &
-                                                valRequested
+    LOGICAL                                  :: failure, valRequested
     TYPE(cp_error_type)                      :: sub_error
     TYPE(cp_sll_val_type), POINTER           :: vals
     TYPE(keyword_type), POINTER              :: keyword
@@ -1533,8 +1499,6 @@ CONTAINS
     CPPrecondition(ASSOCIATED(section_vals),cp_failure_level,routineP,error,failure)
     CPPrecondition(section_vals%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    my_ignore_required=.FALSE.
-    IF (PRESENT(ignore_required)) my_ignore_required=ignore_required
     my_index=INDEX(keyword_name,'%')+1
     len_key=LEN_TRIM(keyword_name)
     IF (my_index>1) THEN
@@ -1582,8 +1546,7 @@ CONTAINS
           IF (PRESENT(n_rep_val)) n_rep_val=cp_sll_val_get_length(vals,error=error)
           IF (.NOT.ASSOCIATED(vals)) THEN
              ! this keyword was not parsed
-             IF ((.NOT.keyword%required.or.my_ignore_required)&
-                  .AND. ASSOCIATED(keyword%default_value)) THEN
+             IF (ASSOCIATED(keyword%default_value)) THEN
                 my_val => keyword%default_value
                 IF (PRESENT(n_rep_val)) n_rep_val=1
              END IF
@@ -1592,14 +1555,7 @@ CONTAINS
                   irk,error=error)
              IF (PRESENT(explicit)) explicit = .TRUE.
           END IF
-       ELSE IF (.NOT.my_ignore_required.AND.section%required) THEN
-          CALL cp_assert(.FALSE.,&
-               cp_failure_level,cp_assertion_failed,routineP,&
-               "section "//TRIM(section%name)//&
-               " is required, and needed but was not found",&
-               error,failure)
-       ELSE IF ((my_ignore_required.or..NOT.keyword%required).AND.&
-            ASSOCIATED(keyword%default_value)) THEN
+       ELSE IF (ASSOCIATED(keyword%default_value)) THEN
           IF (PRESENT(n_rep_val)) n_rep_val=1
           my_val => keyword%default_value
        END IF
@@ -1715,14 +1671,12 @@ CONTAINS
 !> \param i_vals_ptr ...
 !> \param r_vals_ptr ...
 !> \param c_vals_ptr ...
-!> \param ignore_required ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE section_vals_val_set(section_vals,keyword_name,i_rep_section,i_rep_val,&
-       val,l_val,i_val,r_val,c_val,l_vals_ptr,i_vals_ptr,r_vals_ptr,c_vals_ptr,&
-       ignore_required,error)
+       val,l_val,i_val,r_val,c_val,l_vals_ptr,i_vals_ptr,r_vals_ptr,c_vals_ptr,error)
     TYPE(section_vals_type), POINTER         :: section_vals
     CHARACTER(len=*), INTENT(in)             :: keyword_name
     INTEGER, INTENT(in), OPTIONAL            :: i_rep_section, i_rep_val
@@ -1737,7 +1691,6 @@ CONTAINS
       POINTER                                :: r_vals_ptr
     CHARACTER(LEN=default_string_length), &
       DIMENSION(:), OPTIONAL, POINTER        :: c_vals_ptr
-    LOGICAL, INTENT(in), OPTIONAL            :: ignore_required
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'section_vals_val_set', &
@@ -1745,8 +1698,7 @@ CONTAINS
 
     INTEGER                                  :: ik, irk, irs, len_key, &
                                                 my_index, tmp_index
-    LOGICAL                                  :: failure, my_ignore_required, &
-                                                valSet
+    LOGICAL                                  :: failure, valSet
     TYPE(cp_error_type)                      :: sub_error
     TYPE(cp_sll_val_type), POINTER           :: vals
     TYPE(keyword_type), POINTER              :: keyword
@@ -1759,8 +1711,6 @@ CONTAINS
     CPPrecondition(ASSOCIATED(section_vals),cp_failure_level,routineP,error,failure)
     CPPrecondition(section_vals%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    my_ignore_required=.FALSE.
-    IF (PRESENT(ignore_required)) my_ignore_required=ignore_required
     my_index=INDEX(keyword_name,'%')+1
     len_key=LEN_TRIM(keyword_name)
     IF (my_index>1) THEN
@@ -1957,117 +1907,6 @@ CONTAINS
   END SUBROUTINE section_vals_val_unset
 
 ! *****************************************************************************
-!> \brief Checks if all sections or keywords defined have been supported for
-!>      release version
-!> \param section_vals the section to check for released features
-!> \param enable_unsupported_features ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!> \author Teodoro Laino [tlaino] - University of Zurich - 01.2008
-!> \note
-!>      skips required sections which weren't read
-! *****************************************************************************
-  RECURSIVE SUBROUTINE section_vals_check_release(section_vals,enable_unsupported_features,error)
-    TYPE(section_vals_type), POINTER         :: section_vals
-    LOGICAL, INTENT(IN)                      :: enable_unsupported_features
-    TYPE(cp_error_type), INTENT(inout)       :: error
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'section_vals_check_release', &
-      routineP = moduleN//':'//routineN
-
-    INTEGER                                  :: i_rep_s, ik, isec, nr, nval, &
-                                                output_unit
-    LOGICAL                                  :: check_key, defaultSection, &
-                                                failure
-    TYPE(cp_error_type)                      :: suberror
-    TYPE(cp_logger_type), POINTER            :: logger
-    TYPE(cp_sll_val_type), POINTER           :: new_pos, vals
-    TYPE(keyword_type), POINTER              :: keyword
-    TYPE(section_type), POINTER              :: section
-    TYPE(section_vals_type), POINTER         :: sval
-
-    failure=.FALSE.
-    NULLIFY(logger)
-    logger => cp_error_get_logger(error)
-    output_unit= cp_logger_get_default_io_unit(logger)
-
-    CPPrecondition(ASSOCIATED(section_vals),cp_failure_level,routineP,error,failure)
-    CPPrecondition(section_vals%ref_count>0,cp_failure_level,routineP,error,failure)
-    CALL cp_error_init(suberror,template_error=error)
-    IF (.NOT. failure) THEN
-       CALL section_vals_get(section_vals, n_repetition=nr, section=section, error=error)
-       DO i_rep_s=1,nr
-          defaultSection=(SIZE(section_vals%values,2)==0)
-          IF (.NOT.(section%required.AND.defaultSection)) THEN
-             IF (.NOT.section%supported_feature) THEN
-                IF (output_unit>0) THEN
-                   WRITE(output_unit,'(/)')
-                   WRITE(output_unit,'(T2,"RELEASE_ERROR|",1X,A)')&
-                        "Section <"//TRIM(section%name)//"> is not supported for CP2K release version."
-                   IF (enable_unsupported_features) THEN
-                      WRITE(output_unit,'(T2,"RELEASE_ERROR|",1X,A)')&
-                           "Calculation continues but the results could be totally meaningless!"
-                   ELSE
-                      WRITE(output_unit,'(T2,"RELEASE_ERROR|",1X,A)')&
-                           "You may consider to enable the keyword: GLOBAL%ENABLE_UNSUPPORTED_FEATURES or"
-                      WRITE(output_unit,'(T2,"RELEASE_ERROR|",1X,A)')"download a Development Version!"
-                   END IF
-                END IF
-                IF (.NOT.enable_unsupported_features)  failure = .TRUE.
-             END IF
-             DO ik=-1,section%n_keywords
-                keyword => section%keywords(ik)%keyword
-                IF (ASSOCIATED(keyword)) THEN
-                   CALL section_vals_val_get(section_vals,keyword%names(1),i_rep_s,n_rep_val=nval,error=error)
-                   check_key = .FALSE.
-                   IF (i_rep_s<=SIZE(section_vals%values,2)) THEN
-                      vals  => section_vals%values(ik,i_rep_s)%list
-                      new_pos => vals
-                      IF (ASSOCIATED(new_pos)) THEN
-                         ! Keyword was parsed
-                         check_key = .TRUE.
-                      END IF
-                   ELSEIF (.NOT.keyword%required.AND.ASSOCIATED(keyword%default_value)) THEN
-                      ! Keyword was not parsed but a default value is present
-                      check_key = .TRUE.
-                   END IF
-                   IF ((check_key).AND.(.NOT.keyword%supported_feature)) THEN
-                      IF (output_unit>0) THEN
-                         WRITE(output_unit,'(T2,"RELEASE_ERROR|",2X,A)')&
-                              "Keyword <"//TRIM(keyword%names(1))//"> is not supported for CP2K release version."
-                         IF (enable_unsupported_features) THEN
-                            WRITE(output_unit,'(T2,"RELEASE_ERROR|",2X,A)')&
-                                 "Calculation continues but the results could be totally meaningless!"
-                         ELSE
-                            WRITE(output_unit,'(T2,"RELEASE_ERROR|",2X,A)')&
-                                 "You may consider to enable the keyword: GLOBAL%ENABLE_UNSUPPORTED_FEATURES or"
-                            WRITE(output_unit,'(T2,"RELEASE_ERROR|",2X,A)')"download a Development Version!"
-                         END IF
-                      END IF
-                      IF (.NOT.enable_unsupported_features)  failure = .TRUE.
-                   END IF
-                END IF
-             END DO
-             IF (.NOT.failure) THEN
-                IF (ASSOCIATED(section_vals%subs_vals)) THEN
-                   DO isec=1,SIZE(section_vals%subs_vals,1)
-                      sval => section_vals%subs_vals(isec,i_rep_s)%section_vals
-                      IF (ASSOCIATED(sval)) THEN
-                         ! Section was parsed
-                         CALL section_vals_check_release(sval,enable_unsupported_features,error)
-                      END IF
-                   END DO
-                END IF
-             END IF
-             CPPrecondition(.NOT.failure,cp_failure_level,routineP,error,failure)
-          END IF
-       END DO
-    END IF
-    CALL cp_error_dealloc_ref(suberror)
-
-  END SUBROUTINE section_vals_check_release
-
-! *****************************************************************************
 !> \brief writes the values in the given section in a way that is suitable to
 !>      the automatic parsing
 !> \param section_vals the section to write out
@@ -2127,7 +1966,7 @@ CONTAINS
                 END IF
              END IF
              defaultSection=(SIZE(section_vals%values,2)==0)
-             IF (.NOT.(section%required.AND.defaultSection)) THEN
+             IF (.NOT.defaultSection) THEN
                 IF (.NOT.my_hide_root) indent = indent + 2
                 WRITE(myfmt,*)indent,"X"
                 CALL compress(myfmt,full=.TRUE.)
@@ -2148,7 +1987,7 @@ CONTAINS
                                END IF
                                IF (.NOT.ASSOCIATED(new_pos)) THEN
                                   ! this keyword was not parsed
-                                  IF (.NOT.keyword%required.AND. ASSOCIATED(keyword%default_value)) THEN
+                                  IF (ASSOCIATED(keyword%default_value)) THEN
                                      val => keyword%default_value
                                      IF (my_hide_defaults) CYCLE
                                   END IF
@@ -2175,7 +2014,7 @@ CONTAINS
                                     TRIM(section%name),error=error, failure=failure)
                                IF (failure) EXIT
                             END DO
-                         ELSEIF (.NOT.keyword%required.AND. ASSOCIATED(keyword%default_value)) THEN
+                         ELSEIF (ASSOCIATED(keyword%default_value)) THEN
                             ! Section was not parsed but default for the keywords may exist
                             IF (my_hide_defaults) CYCLE
                             val => keyword%default_value
@@ -2242,7 +2081,7 @@ CONTAINS
     CHARACTER(LEN=*), PARAMETER :: routineN = 'write_section_xml', &
       routineP = moduleN//':'//routineN
 
-    CHARACTER(LEN=3)                         :: repeats, required
+    CHARACTER(LEN=3)                         :: repeats
     CHARACTER(LEN=8)                         :: short_string
     INTEGER                                  :: i, l0, l1, l2
     LOGICAL                                  :: failure
@@ -2259,12 +2098,6 @@ CONTAINS
        l1 = level + 1
        l2 = level + 2
 
-       IF (section%required) THEN
-          required = "yes"
-       ELSE
-          required = "no "
-       END IF
-
        IF (section%repeats) THEN
           repeats = "yes"
        ELSE
@@ -2272,8 +2105,7 @@ CONTAINS
        END IF
 
        WRITE (UNIT=unit_number,FMT="(A)")&
-            REPEAT(" ",l0)//"<SECTION required="""//TRIM(required)//&
-            """ repeats="""//TRIM(repeats)//""">",&
+            REPEAT(" ",l0)//"<SECTION repeats="""//TRIM(repeats)//""">",&
             REPEAT(" ",l1)//"<NAME>"//TRIM(section%name)//"</NAME>",&
             REPEAT(" ",l1)//"<DESCRIPTION>"//&
             TRIM(substitute_special_xml_tokens(a2s(section%description)))&

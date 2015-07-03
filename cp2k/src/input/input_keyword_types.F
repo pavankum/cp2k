@@ -40,7 +40,6 @@ MODULE input_keyword_types
 
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.TRUE.
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'input_keyword_types'
-  LOGICAL, PARAMETER, PUBLIC  :: enable_color_tags=.FALSE.
 
   INTEGER, PARAMETER, PUBLIC :: usage_string_length=default_string_length*2
   INTEGER, SAVE, PRIVATE :: last_keyword_id=0
@@ -72,8 +71,6 @@ MODULE input_keyword_types
 !> \param n_var number of values that should be parsed (-1=unknown)
 !> \param repeats if the keyword can be present more than once in the
 !>        section
-!> \param required if the keyword is required (leaving it out will give an
-!>        error)
 !> \param enum enumeration that defines the mapping between integers and
 !>        strings
 !> \param unit the default unit this keyword is read in (to automatically
@@ -94,7 +91,7 @@ MODULE input_keyword_types
      CHARACTER,DIMENSION(:),POINTER :: description => Null()
      INTEGER, POINTER, DIMENSION(:) :: citations
      INTEGER :: type_of_var,n_var
-     LOGICAL :: repeats, required, supported_feature
+     LOGICAL :: repeats
      TYPE(enumeration_type), POINTER :: enum
      TYPE(cp_unit_type), POINTER :: unit
      TYPE(val_type), POINTER :: default_value
@@ -113,7 +110,6 @@ CONTAINS
 !> \param n_var ...
 !> \param repeats ...
 !> \param variants ...
-!> \param required ...
 !> \param default_val ...
 !> \param default_l_val ...
 !> \param default_r_val ...
@@ -140,19 +136,18 @@ CONTAINS
 !> \param enum_desc ...
 !> \param unit_str ...
 !> \param citations ...
-!> \param supported_feature ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE keyword_create(keyword, name, description, usage, type_of_var,&
-       n_var,repeats,variants,required,default_val,&
+       n_var,repeats,variants,default_val,&
        default_l_val, default_r_val, default_lc_val, default_c_val, default_i_val,&
        default_l_vals, default_r_vals, default_c_vals, default_i_vals,&
        lone_keyword_val, lone_keyword_l_val, lone_keyword_r_val, lone_keyword_c_val,&
        lone_keyword_i_val, lone_keyword_l_vals, lone_keyword_r_vals, &
        lone_keyword_c_vals, lone_keyword_i_vals, enum_c_vals, enum_i_vals, &
-       enum,enum_strict,enum_desc,unit_str,citations,supported_feature,error)
+       enum,enum_strict,enum_desc,unit_str,citations,error)
     TYPE(keyword_type), POINTER              :: keyword
     CHARACTER(len=*), INTENT(in)             :: name, description
     CHARACTER(len=*), INTENT(in), OPTIONAL   :: usage
@@ -160,7 +155,6 @@ CONTAINS
     LOGICAL, INTENT(in), OPTIONAL            :: repeats
     CHARACTER(len=*), DIMENSION(:), &
       INTENT(in), OPTIONAL                   :: variants
-    LOGICAL, INTENT(in), OPTIONAL            :: required
     TYPE(val_type), OPTIONAL, POINTER        :: default_val
     LOGICAL, INTENT(in), OPTIONAL            :: default_l_val
     REAL(KIND=DP), INTENT(in), OPTIONAL      :: default_r_val
@@ -199,7 +193,6 @@ CONTAINS
     CHARACTER(len=*), INTENT(in), OPTIONAL   :: unit_str
     INTEGER, DIMENSION(:), INTENT(in), &
       OPTIONAL                               :: citations
-    LOGICAL, INTENT(in), OPTIONAL            :: supported_feature
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'keyword_create', &
@@ -260,10 +253,6 @@ CONTAINS
 
        keyword%repeats=.FALSE.
        IF (PRESENT(repeats)) keyword%repeats=repeats
-       keyword%required=.FALSE.
-       IF (PRESENT(required)) keyword%required=required
-       keyword%supported_feature=.FALSE.
-       IF (PRESENT(supported_feature)) keyword%supported_feature=supported_feature
 
        NULLIFY(keyword%enum)
        IF (PRESENT(enum)) THEN
@@ -509,7 +498,6 @@ CONTAINS
 !> \param n_var ...
 !> \param default_value ...
 !> \param lone_keyword_value ...
-!> \param required ...
 !> \param repeats ...
 !> \param enum ...
 !> \param citations ...
@@ -518,7 +506,7 @@ CONTAINS
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE keyword_get(keyword,names,usage,description,type_of_var,n_var,&
-       default_value, lone_keyword_value,required,repeats,enum,citations,error)
+       default_value, lone_keyword_value,repeats,enum,citations,error)
     TYPE(keyword_type), POINTER              :: keyword
     CHARACTER(len=default_string_length), &
       DIMENSION(:), OPTIONAL, POINTER        :: names
@@ -526,7 +514,7 @@ CONTAINS
     INTEGER, INTENT(out), OPTIONAL           :: type_of_var, n_var
     TYPE(val_type), OPTIONAL, POINTER        :: default_value, &
                                                 lone_keyword_value
-    LOGICAL, INTENT(out), OPTIONAL           :: required, repeats
+    LOGICAL, INTENT(out), OPTIONAL           :: repeats
     TYPE(enumeration_type), OPTIONAL, &
       POINTER                                :: enum
     INTEGER, DIMENSION(:), OPTIONAL, POINTER :: citations
@@ -548,7 +536,6 @@ CONTAINS
        IF (PRESENT(type_of_var)) type_of_var=keyword%type_of_var
        IF (PRESENT(n_var)) n_var=keyword%n_var
        IF (PRESENT(repeats)) repeats=keyword%repeats
-       IF (PRESENT(required)) required=keyword%required
        IF (PRESENT(default_value)) default_value => keyword%default_value
        IF (PRESENT(lone_keyword_value)) lone_keyword_value => keyword%lone_keyword_value
        IF (PRESENT(enum)) enum => keyword%enum
@@ -561,7 +548,7 @@ CONTAINS
 !> \param keyword the keyword to describe
 !> \param unit_nr the unit to write to
 !> \param level the description level (0 no description, 1 name
-!>        2: +usage, 3: +variants+description+default_value+required+repeats
+!>        2: +usage, 3: +variants+description+default_value+repeats
 !>        4: +type_of_var)
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
@@ -687,11 +674,6 @@ CONTAINS
              WRITE(unit_nr,"('lone_keyword  : ')",advance="NO")
              CALL val_write(keyword%lone_keyword_value,unit_nr=unit_nr,error=error)
           END IF
-          IF (keyword%required) THEN
-             WRITE(unit_nr,"('  This keyword is required')",advance="NO")
-          ELSE
-             WRITE(unit_nr,"('  This keyword is optional')",advance="NO")
-          END IF
           IF (keyword%repeats) THEN
              WRITE(unit_nr,"(' and it can be repeated more than once')",advance="NO")
           END IF
@@ -723,7 +705,7 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'keyword_describe_html', &
       routineP = moduleN//':'//routineN
 
-    CHARACTER(len=default_string_length)     :: c_string, color_tag, my_unit
+    CHARACTER(len=default_string_length)     :: c_string, my_unit
     INTEGER                                  :: i, iref
     LOGICAL                                  :: any_description, failure
 
@@ -732,20 +714,12 @@ CONTAINS
     CPPrecondition(ASSOCIATED(keyword),cp_failure_level,routineP,error,failure)
     CPPrecondition(keyword%ref_count>0,cp_failure_level,routineP,error,failure)
     IF (.NOT. failure) THEN
-       color_tag='<font color="#000000">'
-       IF (enable_color_tags.AND.keyword%supported_feature) THEN
-          color_tag='<font color="#00CC00">'
-       END IF
        WRITE(unit_nr,'(a)') '<TR><TD WITDH="20%">'// &
-            '<A NAME="'//TRIM(keyword%names(1))//'"><u>'//TRIM(color_tag)//TRIM(keyword%names(1))//'</font></u></A>'// &
+            '<A NAME="'//TRIM(keyword%names(1))//'"><u>'//TRIM(keyword%names(1))//'</u></A>'// &
             '<TD WIDTH="80%">'
        WRITE(unit_nr,'(a)') '<TR><TD WIDTH="20%"><TD WIDTH="80%">'//TRIM(keyword%usage)
        WRITE(unit_nr,'(a)') '<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>'//TRIM(a2s(keyword%description))//'</i>'
-       IF (keyword%required) THEN
-          WRITE(unit_nr,"(a)",advance="NO") '<TR><TD WIDTH="10%"><TD> This required keyword '
-       ELSE
-          WRITE(unit_nr,"(a)",advance="NO") '<TR><TD WIDTH="10%"><TD> This optional keyword '
-       END IF
+       WRITE(unit_nr,"(a)",advance="NO") '<TR><TD WIDTH="10%"><TD> This keyword '
        SELECT CASE(keyword%type_of_var)
        CASE (logical_t)
           IF (keyword%n_var==-1) THEN
@@ -892,7 +866,7 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     CHARACTER(LEN=1000)                      :: string
-    CHARACTER(LEN=3)                         :: repeats, required
+    CHARACTER(LEN=3)                         :: repeats
     CHARACTER(LEN=8)                         :: short_string
     INTEGER                                  :: i, l0, l1, l2, l3, l4
     LOGICAL                                  :: failure
@@ -911,12 +885,6 @@ CONTAINS
        l3 = level + 3
        l4 = level + 4
 
-       IF (keyword%required) THEN
-          required = "yes"
-       ELSE
-          required = "no "
-       END IF
-
        IF (keyword%repeats) THEN
           repeats = "yes"
        ELSE
@@ -927,18 +895,15 @@ CONTAINS
 
        IF (keyword%names(1) == "_SECTION_PARAMETERS_") THEN
           WRITE (UNIT=unit_number,FMT="(A)")&
-               REPEAT(" ",l0)//"<SECTION_PARAMETERS required="""//TRIM(required)//&
-               """ repeats="""//TRIM(repeats)//""">",&
+               REPEAT(" ",l0)//"<SECTION_PARAMETERS repeats="""//TRIM(repeats)//""">",&
                REPEAT(" ",l1)//"<NAME type=""default"">SECTION_PARAMETERS</NAME>"
        ELSE IF (keyword%names(1) == "_DEFAULT_KEYWORD_") THEN
           WRITE (UNIT=unit_number,FMT="(A)")&
-               REPEAT(" ",l0)//"<DEFAULT_KEYWORD required="""//TRIM(required)//&
-               """ repeats="""//TRIM(repeats)//""">",&
+               REPEAT(" ",l0)//"<DEFAULT_KEYWORD repeats="""//TRIM(repeats)//""">",&
                REPEAT(" ",l1)//"<NAME type=""default"">DEFAULT_KEYWORD</NAME>"
        ELSE
           WRITE (UNIT=unit_number,FMT="(A)")&
-               REPEAT(" ",l0)//"<KEYWORD required="""//TRIM(required)//&
-               """ repeats="""//TRIM(repeats)//""">",&
+               REPEAT(" ",l0)//"<KEYWORD repeats="""//TRIM(repeats)//""">",&
                REPEAT(" ",l1)//"<NAME type=""default"">"//&
                TRIM(keyword%names(1))//"</NAME>"
        END IF

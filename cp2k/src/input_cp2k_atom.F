@@ -75,20 +75,20 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="ATOM",&
             description="Section handling input for atomic calculations.",&
-            n_keywords=1, n_subsections=1, repeats=.FALSE., required=.TRUE.,&
-            supported_feature=.FALSE.,error=error)
+            n_keywords=1, n_subsections=1, repeats=.FALSE., &
+            error=error)
        NULLIFY(keyword, subsection)
 
        CALL keyword_create(keyword, name="ATOMIC_NUMBER",&
             description="Specify the atomic number",&
-            default_i_val=1, supported_feature=.FALSE.,error=error)
+            default_i_val=1, error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
        CALL keyword_create(keyword, name="ELEMENT",&
             description="Specify the element to be calculated",&
             usage="ELEMENT char",n_var=1,type_of_var=char_t,&
-            default_c_val="H", supported_feature=.FALSE.,error=error)
+            default_c_val="H", error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -103,7 +103,7 @@ CONTAINS
                           "Perform energy optimization",&
                           "Perform basis optimization",&
                           "Perform pseudopotential optimization"),&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -118,7 +118,7 @@ CONTAINS
             enum_desc=s2a("Use analytical method",&
                           "Use semi-analytical method",&
                           "Use numerical method"),&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -133,13 +133,13 @@ CONTAINS
             enum_desc=s2a("Use analytical method",&
                           "Use semi-analytical method",&
                           "Use numerical method"),&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
        CALL keyword_create(keyword, name="CORE",&
             description="Specifies the core electrons for a pseudopotential",&
-            usage="CORE 1s2 ... or CORE [Ne] or CORE none for 0 electron cores", required=.TRUE., repeats=.FALSE.,&
+            usage="CORE 1s2 ... or CORE [Ne] or CORE none for 0 electron cores",  repeats=.FALSE.,&
             n_var=-1,type_of_var=char_t, error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
@@ -147,21 +147,21 @@ CONTAINS
        CALL keyword_create(keyword, name="ELECTRON_CONFIGURATION",&
             description="Specifies the electron configuration. "//&
             "Optional the multiplicity (m) and a core state [XX] can be declared",&
-            usage="ELECTRON_CONFIGURATION (1) [Ne] 3s2 ... ", required=.TRUE., repeats=.TRUE.,&
+            usage="ELECTRON_CONFIGURATION (1) [Ne] 3s2 ... ",  repeats=.TRUE.,&
             n_var=-1,type_of_var=char_t, error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
        CALL keyword_create(keyword, name="MAX_ANGULAR_MOMENTUM",&
             description="Specifies the largest angular momentum calculated [0-3]",&
-            usage="MAX_ANGULAR_MOMENTUM 3", required=.FALSE., repeats=.FALSE.,&
-            default_i_val=3, supported_feature=.FALSE.,error=error)
+            usage="MAX_ANGULAR_MOMENTUM 3",  repeats=.FALSE.,&
+            default_i_val=3, error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
        CALL keyword_create(keyword, name="CALCULATE_STATES",&
             description="Specifies the number of states calculated per l value",&
-            usage="CALCULATE_STATES  5 5 5 3 ", required=.FALSE., repeats=.FALSE.,&
+            usage="CALCULATE_STATES  5 5 5 3 ",  repeats=.FALSE.,&
             default_i_val=0, n_var=-1,type_of_var=integer_t, error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
@@ -222,7 +222,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="print",&
             description="Section of possible print options specific of the ATOM code.",&
-            n_keywords=0, n_subsections=1, repeats=.FALSE., required=.TRUE.,&
+            n_keywords=0, n_subsections=1, repeats=.FALSE., &
             error=error)
 
        NULLIFY(print_key, keyword)
@@ -375,7 +375,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="AE_BASIS",&
             description="Section of basis set information for all-electron calculations.",&
-            n_keywords=0, n_subsections=0, repeats=.FALSE., required=.FALSE.,&
+            n_keywords=0, n_subsections=0, repeats=.FALSE., &
             error=error)
 
        CALL atom_basis_section(section,error)
@@ -405,7 +405,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="PP_BASIS",&
             description="Section of basis set information for pseudopotential calculations.",&
-            n_keywords=0, n_subsections=0, repeats=.FALSE., required=.FALSE.,&
+            n_keywords=0, n_subsections=0, repeats=.FALSE., &
             error=error)
 
        CALL atom_basis_section(section,error)
@@ -452,7 +452,7 @@ CONTAINS
                           "Contracted Gaussian type orbitals",&
                           "Slater-type orbitals",&
                           "Numerical basis type"),&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -544,7 +544,7 @@ CONTAINS
             variants=s2a("ORBITAL_BASIS_SET","ORB_BASIS"),&
             description="The contracted Gaussian basis set",&
             usage="BASIS_SET DZVP", default_c_val=" ", &
-            n_var=1, required=.FALSE., error=error)
+            n_var=1,  error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -607,7 +607,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="METHOD",&
             description="Section of information on method to use.",&
-            n_keywords=0, n_subsections=2, repeats=.TRUE., required=.TRUE.,&
+            n_keywords=0, n_subsections=2, repeats=.TRUE., &
             error=error)
 
        CALL keyword_create(keyword, name="METHOD_TYPE",&
@@ -630,7 +630,7 @@ CONTAINS
                           "Restricted Hartree-Fock electronic structure method",&
                           "Unrestricted Hartree-Fock electronic structure method",&
                           "Restricted open-shell Hartree-Fock electronic structure method"),&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -658,7 +658,7 @@ CONTAINS
                           "Use Douglas-Kroll-Hess Hamiltonian of order 3",&
                           "Use Douglas-Kroll-Hess Hamiltonian of order 4",&
                           "Use Douglas-Kroll-Hess Hamiltonian of order 5"),&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -703,7 +703,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="ZMP",&
              description="Section used to specify ZMP Potentials.",&
-             n_keywords=3, n_subsections=0, repeats=.FALSE., required=.FALSE.,&
+             n_keywords=3, n_subsections=0, repeats=.FALSE., &
              error=error)
 
        CALL keyword_create(keyword, name="FILE_DENSITY",&
@@ -765,7 +765,7 @@ CONTAINS
        CALL section_create(section,name="RESTART",&
              description="Section used to specify the restart option in the ZMP"//&
                          "procedure, and the file that must be read.",&
-             n_keywords=1, n_subsections=0, repeats=.FALSE., required=.FALSE.,&
+             n_keywords=1, n_subsections=0, repeats=.FALSE., &
              error=error)
 
        CALL keyword_create(keyword, name="FILE_RESTART",&
@@ -803,7 +803,7 @@ CONTAINS
     IF (.NOT. failure) THEN
       CALL section_create(section,name="EXTERNAL_VXC",&
             description="Section used to specify exernal VXC Potentials.",&
-            n_keywords=1, n_subsections=0, repeats=.FALSE., required=.FALSE.,&
+            n_keywords=1, n_subsections=0, repeats=.FALSE., &
             error=error)
 
       CALL keyword_create(keyword, name="FILE_VXC",&
@@ -847,41 +847,41 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="OPTIMIZATION",&
             description="Section of information on optimization thresholds and algorithms.",&
-            n_keywords=0, n_subsections=1, repeats=.FALSE., required=.FALSE.,&
+            n_keywords=0, n_subsections=1, repeats=.FALSE., &
             error=error)
 
        CALL keyword_create(keyword, name="MAX_ITER",&
             description="Maximum number of iterations for optimization",&
             usage="MAX_ITER  50", default_i_val=200,&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
        CALL keyword_create(keyword, name="EPS_SCF",&
             description="Convergence criterion for SCF",&
             usage="EPS_SCF 1.e-10", default_r_val=1.e-6_dp,&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
        CALL keyword_create(keyword, name="DAMPING",&
             description="Damping parameter for extrapolation method",&
             usage="DAMPING 0.4", default_r_val=0.4_dp,&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
        CALL keyword_create(keyword, name="EPS_DIIS",&
             description="Starting DIIS method at convergence to EPS_DIIS",&
             usage="EPS_DIIS  0.01", default_r_val=10000._dp,&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
        CALL keyword_create(keyword, name="N_DIIS",&
             description="Maximum number of DIIS vectors",&
             usage="N_DIIS  6", default_i_val=5,&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -913,7 +913,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="POTENTIAL",&
             description="Section of information on potential.",&
-            n_keywords=0, n_subsections=1, repeats=.FALSE., required=.FALSE.,&
+            n_keywords=0, n_subsections=1, repeats=.FALSE., &
             error=error)
 
        CALL keyword_create(keyword, name="CONFINEMENT",&
@@ -921,7 +921,7 @@ CONTAINS
             usage="CONFINEMENT prefactor range exponent", &
             default_r_vals=(/ 0._dp, 4._dp, 2._dp /),&
             repeats=.FALSE., n_var=-1,&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -934,7 +934,7 @@ CONTAINS
             enum_i_vals= (/ no_pseudo, gth_pseudo /),&
             enum_desc=s2a("Do not use pseudopotentials",&
                           "Use Goedecker-Teter-Hutter pseudopotentials"),&
-            supported_feature=.FALSE.,error=error)
+            error=error)
        CALL section_add_keyword(section,keyword,error=error)
        CALL keyword_release(keyword,error=error)
 
@@ -983,7 +983,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="GTH_POTENTIAL",&
             description="Section used to specify Potentials.",&
-            n_keywords=1, n_subsections=0, repeats=.FALSE., required=.TRUE.,&
+            n_keywords=1, n_subsections=0, repeats=.FALSE., &
             error=error)
        NULLIFY(keyword)
        CALL keyword_create(keyword, name="_DEFAULT_KEYWORD_",&
@@ -1016,7 +1016,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="basis",&
             description="Section used to specify a general basis set for QM calculations.",&
-            n_keywords=1, n_subsections=0, repeats=.FALSE., required=.TRUE.,&
+            n_keywords=1, n_subsections=0, repeats=.FALSE., &
             error=error)
        NULLIFY(keyword)
        CALL keyword_create(keyword, name="_DEFAULT_KEYWORD_",&
@@ -1049,7 +1049,7 @@ CONTAINS
     IF (.NOT. failure) THEN
        CALL section_create(section,name="powell",&
             description="Section defines basic parameters for Powell optimization",&
-            n_keywords=4, n_subsections=0, repeats=.FALSE., required=.FALSE.,&
+            n_keywords=4, n_subsections=0, repeats=.FALSE., &
             error=error)
 
        NULLIFY(keyword)
