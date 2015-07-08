@@ -789,11 +789,19 @@ CONTAINS
       ! Methods such as purification must thus be avoided... which is OK, as the density matrix computed in pexsi is
       ! a finite temperature one, and thus not idempotent
       ls_scf_env%s_inversion_type=ls_s_inversion_none
+      ! PEXSI needs the sparsity pattern of S to be fixed by the upper bound ~ Int[|phi_a||phi_b|], 
+      ! they can not be filtered based on magnitude, as small elements in S (e.g. symmetry) do not necessarily
+      ! correspond to small elements in the density matrix, with non-zero contributions to the total density.
+      ! the easiest way to make sure S is untouched is to set eps_filter to zero (which should be inconsequential,
+      ! as a run based on pexsi should execute exactly zero multiplications)
       ls_scf_env%eps_filter = 0.0_dp
     ENDIF
 
-    ! Turn off S inversion for transport
-    IF (ls_scf_env%do_transport) ls_scf_env%s_inversion_type = ls_s_inversion_none 
+    ! Turn off S inversion and set eps_filter to zero for transport
+    IF (ls_scf_env%do_transport) THEN
+      ls_scf_env%s_inversion_type = ls_s_inversion_none 
+      ls_scf_env%eps_filter = 0.0_dp
+    END IF
 
     SELECT CASE(ls_scf_env%s_inversion_type)
     CASE(ls_s_inversion_sign_sqrt)
