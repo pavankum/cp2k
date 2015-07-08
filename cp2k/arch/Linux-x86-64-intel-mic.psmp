@@ -200,7 +200,6 @@ endif
 
 ifeq (1,$(MKL_DIRECT))
   MKL_STATIC = 1
-  # always using MKL_DIRECT_CALL_SEQ since it is nested
   DFLAGS += -DMKL_DIRECT_CALL_SEQ
 endif
 
@@ -208,7 +207,7 @@ ifneq (1,$(MKL))
   ifneq (0,$(MKL)) # smp
     DFLAGS  += -D__MKL -D__FFTSG -D__FFTW3
     IFLAGS  +=-I$(MKLROOT)/include -I$(MKLROOT)/include/fftw
-    ifneq (1,$(MKL_STATIC))
+    ifeq (0,$(MKL_STATIC))
       LIBS += -L$(MKLROOT)/lib/intel64
       ifneq (0,$(MPI))
         MIC_LDFLAGS += -offload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64"
@@ -260,7 +259,7 @@ ifneq (1,$(MKL))
 else # sequential
   DFLAGS  += -D__MKL -D__FFTSG -D__FFTW3
   IFLAGS  +=-I$(MKLROOT)/include -I$(MKLROOT)/include/fftw
-  ifneq (1,$(MKL_STATIC))
+  ifeq (0,$(MKL_STATIC))
     LIBS += -L$(MKLROOT)/lib/intel64
     ifneq (0,$(MPI))
       MIC_LDFLAGS += -offload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64"
