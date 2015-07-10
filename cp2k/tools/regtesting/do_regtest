@@ -3,176 +3,62 @@
 ###################################################################################
 # do_regtest some info [Joost VandeVondele, 2005-02-25]
 # Major revision of the script [Marko Misic, PRACE, July - August 2013]
-#
-# Regression testing cp2k ...
-#    - maintain code quality
-#    - helps rapid development and refactoring
-#
-# What does a regtest do
-#    - automatically update cp2k with the current SVN version (including new tests)
-#    - performs a realclean build of the source
-#    - executes a list of tests
-#    - compares the results (outputs) with those of the last known result (reference)
-#    - produces a summary
-#
-# How to set up a regtest
-#    - you must be able to build and run cp2k on the given machine, the rest should be 'easy'
-#    - decide on a directory for doing the regtest, there will be plenty of files in this dir
-#      (after a while) so make it something like $HOME/rt
-#    - checkout a version of cp2k into $HOME/rt.
-#      If you set up your svn account so that you don't need to provide
-#      a passwd for doing svn update, things will be more convenient later on.
-#    - set up the arch files so that you can cleanly build cp2k (test this)
-#    - cp $HOME/rt/cp2k/tools/do_regtest $HOME/rt
-#    - modify the do_regtest script to match your local environment (e.g. specify
-#      if you wish a sdbg or a sopt build, which compiler, gmake, ....) see below
-#    - execute './do_regtest' regularly (i.e. after comitting new code)
-#
-# Interpretation of the results
-#  test can be:
-#    - 'OK' if the results match those of a previous run precisely. The execution time is also given.
-#    - 'NEW' if they have not been executed previously. The reference result is generated
-#      automatically in this run. Tests can also be 'NEW' if they have been reset, i.e. been newly
-#      added to the TEST_FILES_RESET files.
-#    - 'RUNTIME FAILURE' if they stopped unexpectedly (e.g. core dump, or stop)
-#    - 'WRONG RESULT' if they produce a result that deviates (even a tiny bit) from an old reference
-#  the last two options generally mean that a bug has been introduced, which requires investigation.
-#  since regtesting only yields information relative to a previously known result, it is most useful
-#  to do a regtest before and after you make changes. To allow per-test numerical difference higher
-#  than that set as a default, add third column in appropriete TEST_FILES file with a relative value
-#  of the difference.
-#
-# Adding/resetting/creating tests to the testsuite
-#  these is fully controlled by the following files in the cp2k/tests directories
-#  TEST_DIRS  : is just a list of directories that contain tests. You can add your directory here.
-#  TEST_FILES : the list of input files that need to be executed. You can add your file name here.
-#                adding a comment about what it tests might help later debugging problems if a regtest
-#                fails
-#  TEST_FILES_RESET : you can add files for which the reference output became invalid (e.g. bug fix)
-#                      to this list fo files. However be absolutely sure that the change is due to
-#                      a bug fix, do not reset these that fail because of unclear reasons. Try to add
-#                      a comment to the svn message and/or the file itself
-#  TEST_TYPES : this file allows you to create a new test type. I.e. to specify for which words should
-#                be grepped and what field should be used in the numerical comparison.
-#
-# Command line switches to the do_regtest script (also configurable from within the script)
-#  -nosvn   : do not access the SVN for any updating, makes regtesting fully local
-#  -quick   : rebuild the code if needed, but do not perform a realclean before (noquick is not needed anymore)
-#  -noreset : do not reset the reference outputs automatically
-#  -svndate string : specify any string to svn update (most likely used as "2005-02-17")
-#  -skipdir string : this switch can repeat, exclude certain dirs from regtesting, useful to
-#                    speed-up regtesting after very localised changes (e.g. -skipdir QS/regtest)
-#  -restrictdir string : this switch can repeat, restrict regtesting to certain dirs, useful to
-#                        speed-up regtesting after very localised changes (e.g. -restrictdir QS/regtest)
-#  -config string : loads a site/compiler/environment specific configuration
-#  -retest : regtesting will be restricted only to those directories that contained failed tests
-#            in the previous run
-#  -noemptycheck : use this to force regression testing even if no changes exist in SVN
-#  -nobuild : do not build cp2k, but use one built by the user (turns on quick option automatically)
-#  -skiptest : skip the regression test, but do SVN update and compilation if requested
-#
-# Possible exit statuses:
-# -  end_test 0   : clean exit with testing
-# -  end_test 1   : problem with svn update
-# -  end_test 3   : problem with realclean
-# -  end_test 4   : build errors
-# -  end_test 5   : problem with retest option - no TEST directory with latest test results found
-# -  end_test 6   : problem with retest option - no error summary exists in the last TEST directory
-# -  end_test 7   : reference directory is locked
-# -  end_test 8   : ctrl-C (SIGINT) and various other signals trapped
-# -  end_test 100 : no svn changes since last run - clean exit without testing
-#
-# Script configuration. The value of the follow variables can be redefined, see below
-#   dir_base, FORT_C_NAME, cp2k_version, dir_triplet, cp2k_dir, cp2k_prefix, cp2k_postfix,
-#   make, awk, datum_full, datum_short, default_err_tolerance
-#   nosvn, quick, svndate, noreset, ndirtoskip, skip_dirs, restrict_dir, ndirtorestrict, doretest
-#
-########################################################################################################
-#
-# THESE VARIABLES WILL NEED CHANGING FOR YOUR LOCAL CONFIGURATION
-#
-# - dir_base: the base directory for testing (e.g. $HOME/rt)
-# - FORT_C_NAME: compiler selection (e.g. intel)
-# - cp2k_version: sopt,sdbg,popt....
-# - dir_triplet: the result of tools/get_arch_name, where the executable can be found
-# - cp2k_dir: normally cp2k
-# - maxtasks: Maximum number of CP2K threads to execute concurrently (== total number of CPU cores to be used for regtesting)
-# - emptycheck: useful for automatic testers, no testing if nothing changed in SVN (YES|NO)
-# - leakcheck: if using gfortran with the LeakSanitizer, set this variable to "YES" in order to get memory leak checking
-#
-# The following variable definitions can now be loaded from a
-# site-specific configuration using the -config option. Create one
-# configuration file for each architecture/compiler using these as a
-# template (and don't forget to include a modified cp2k_prefix for MPI
-# runs as well!).
-export LC_ALL=C
-export FORT_C_NAME=gfortran
-# Might consider following export to be done, too
-export MPI_F90=mpif90
-dir_base=$PWD
-cp2k_version=sopt
-dir_triplet=Linux-x86-64-${FORT_C_NAME}
-export ARCH=${dir_triplet}
-cp2k_dir=cp2k
-maxtasks=1
-numprocs=1
-export OMP_NUM_THREADS=1
-emptycheck="NO"
-leakcheck="NO"
-
-# This is the default tolerance used in regression testing
-default_err_tolerance="1.0E-14"
-
-#
-# The following variables typically need no changes on Linux machine, but might need changes on
-# other an OS
-#
-
-# *** how to execute an input file [ cp2k_prefix input cp2k_postfix ]
-# Leave empty for serial, uncomment for parallel
-cp2k_run_prefix=""
-#cp2k_run_prefix="mpiexec -np ${numprocs}"
-cp2k_run_postfix=""
-#cp2k_prefix="poe ${dir_base}/${cp2k_dir}/exe/${dir_triplet}/cp2k.${cp2k_version}"
-#cp2k_postfix="-llfile ${dir_base}/llfile"
-
-# *** make and awk
-make=make
-#make=gmake
-awk=awk
-#awk=nawk
-
-# *** a short and long version of the data, in a format that SVN understands
-datum_full=`date --iso-8601="seconds"`
-datum_short=`date '+%F_%H-%M-%S'`
-
-# *** default settings for command line switches
-quick="noquick"
-noreset="reset"
-ndirstoskip=0
-skip_dirs[1]=""
-ndirstorestrict=0
-restrict_dirs[1]=""
-doretest="no"
-nosvn="svn"
-nobuild="build"
-skiptest="noskiptest"
-svndate="$datum_full"
-
 ###################################################################################
-#
-# From here on no changes to the script should be needed
-#
+
 ###################################################################################
 #
 # command line argument passing
 #
 ###################################################################################
+export LC_ALL=C
 
+# init
+dir_base=$PWD
 full_time_t1=`date +%s`
+datum_full=`date --iso-8601="seconds"`
+datum_short=`date '+%F_%H-%M-%S'`
+ndirstoskip=0
+skip_dirs[1]=""
+ndirstorestrict=0
+restrict_dirs[1]=""
+default_err_tolerance="1.0E-14"
 
+# parse options
 while [ $# -ge 1 ]; do
  case $1 in
+ # load system-specific configuration file, which can directly change all variables in this script.. powerful ;-)
+ -c|-config)
+  [[ -f $2 ]] || { echo "ERROR: Configuration file $2 not found"; exit 1; }
+  source $2   || { echo "ERROR: Sourcing of the configuration file $2 failed" ; exit 1; }
+  shift;;
+ # make VERSION=...
+ -version)
+  cp2k_version=$2
+  shift ;;
+ # make ARCH=...
+ -arch)
+  dir_triplet=$2
+  shift ;;
+ # location of cp2k relative the the current working directory (i.e. ${dir_base}/${cp2k_dir}/exe can be found)
+ -cp2kdir)
+  cp2k_dir=$2
+  shift ;;
+ # MPI ranks
+ -mpiranks)
+  numprocs=$2 
+  shift;;
+ # OMP threads
+ -ompthreads)
+  numthreads=$2 
+  shift;;
+ # maximum total number of tasks (processes)
+ -maxtasks)
+  maxtasks=$2
+  shift;;
+ # maximum time for a job [in s]
+ -jobmaxtime)
+  job_max_time=$2
+  shift;;
  # build a list of directories to skip
  -skipdir)
   let ndirstoskip=ndirstoskip+1
@@ -186,11 +72,6 @@ while [ $# -ge 1 ]; do
  # enable partial testing of only those directories that contain failed tests
  -retest)
   doretest="yes";;
- # load system-specific configuration
- -c|-config)
-  [[ -f $2 ]] || { echo "ERROR: Configuration file $2 not found"; exit 1; }
-  source $2   || { echo "ERROR: Sourcing of the configuration file $2 failed" ; exit 1; }
-  shift;;
  # do not update the SVN
  -nosvn)
   nosvn="nosvn";;
@@ -208,12 +89,60 @@ while [ $# -ge 1 ]; do
  # do not check if code has changed
  -noemptycheck)
   emptycheck="NO";;
- # do not build cp2k
- # turns on automatically quick option, so that do_regtest does not do realclean
+ # do not build cp2k, turns on automatically quick option, so that do_regtest does not do realclean
  -nobuild)
   quick="quick"; nobuild="nobuild";;
+ # do not test, actually.
  -skiptest)
   skiptest="skiptest";;
+ # print help
+ -help|-h|--help)
+  echo "Usage: do_regtest [OPTION]"
+  echo "Run the CP2K regression test suite"
+  echo "Example: do_regtest -c my_regtest.conf"
+  echo ""
+  echo "General:"
+  echo "  -h, -help, --help         print this help screen."
+  echo "  -c, -config FILE          read any of the following configuration switches from FILE."
+  echo "  -cp2kdir PATH             location of cp2k source tree relative to current working directory."
+  echo ""
+  echo "Svn:"
+  echo "  -svndate DATE             checkout svn revision of given DATE. Default: use trunk."
+  echo "  -nosvn                    do not run svn update. Default: off."
+  echo "  -noemptycheck             run tests even when no changes in svn were made. Default: on."
+  echo ""
+  echo "Build:"
+  echo "  -version VERSION          VERSION passed to make. Default: sopt."
+  echo "  -arch ARCH                ARCH passed to make. Default: Linux-x86-64-gfortran."
+  echo "  -quick                    rebuild if needed, but without realclean. Default: off."
+  echo "  -nobuild                  do not build cp2k, rely on user's build. Default: off."
+  echo ""
+  echo "Runtime:"
+  echo "  -mpiranks NRANKS          number of mpi-ranks. Default: 2 for parallel versions, 1 for serial."
+  echo "  -ompthreads NTHREADS      number of OpenMP threads. Default: 2 for smp versions otherwise 1."
+  echo "  -maxtasks NPROCS          total number of processor to use. Default: \`nproc --all\`."
+  echo "  -jobmaxtime SECONDS       maximum execution time of a single test. Default 600."
+  echo ""
+  echo "Testing:"
+  echo "  -noreset                  do not reset the reference outputs. Default: off."
+  echo "  -skiptest                 do not run test, only svn update and build. Default: off."
+  echo "  -skipdir TESTDIR          do not run tests in TESTDIR. This switch can repeated."
+  echo "  -restrictdir TESTDIR      run only tests in TESTDIR. This switch can repeated."
+  echo "  -retest                   run only tests in directories, which had failing tests in previous run."
+  echo ""
+  echo "Exit codes:"
+  echo "    0   clean exit with testing"
+  echo "    1   problem with svn update"
+  echo "    3   problem with realclean"
+  echo "    4   build errors"
+  echo "    5   problem with retest option - no TEST directory with latest test results found"
+  echo "    6   problem with retest option - no error summary exists in the last TEST directory"
+  echo "    7   reference directory is locked"
+  echo "    8   ctrl-C (SIGINT) and various other signals trapped"
+  echo "  100   no svn changes since last run - clean exit without testing"
+  echo ""
+  echo "For more information visit: <http://cp2k.org/dev:regtesting>"
+  exit 0;;
  # stop on invalid flag
  -*)
   echo "ERROR: Invalid command line flag $1 found"
@@ -226,19 +155,67 @@ while [ $# -ge 1 ]; do
  shift
 done
 
-if [ "${ARCH}" ]; then
-    ARCH_SPEC="ARCH=${ARCH}"
-fi
+###################################################################################
+#
+# default settings for various flags, if not defined by flags or conf files
+#
+###################################################################################
+cp2k_version=${cp2k_version:-sopt}
+dir_triplet=${dir_triplet:-Linux-x86-64-gfortran}
+job_max_time=${job_max_time:-600}
+emptycheck=${emptycheck:-"NO"}
+leakcheck=${leakcheck:-"NO"}
+doretest=${doretest:-"no"}
+nosvn=${nosvn:-"svn"}
+nobuild=${nobuild:-"build"}
+cp2k_run_postfix=${cp2k_run_postfix:-""}
+make=${make:-make}
+awk=${awk:-awk}
+quick=${quick:-"noquick"}
+noreset=${noreset:-"reset"}
+skiptest=${skiptest:-"noskiptest"}
+svndate=${svndat:-"$datum_full"}
+#
+# guessing the number of tasks / threads / ranks
+#
+# by default we use all proc of the machine
+maxtasksdefault=`nproc --all`
+maxtasks=${maxtasks:-${maxtasksdefault}}
+#
+case $cp2k_version in
+  popt|pdbg|psmp)
+    numprocs=${numprocs:-2}
+    cp2k_run_prefix=${cp2k_run_prefix:-"mpiexec -np ${numprocs}"}
+    ;;
+  *)
+    numprocs=${numprocs:-1}
+    cp2k_run_prefix=${cp2k_run_prefix:-""}
+    ;;
+esac
+#
+case $cp2k_version in
+  ssmp|psmp)
+    numthreads=${numthreads:-2}
+    ;;
+  *)
+    numthreads=${numthreads:-1}
+    ;;
+esac
 
-# *** how to execute an input file [ cp2k_prefix input cp2k_postfix ]
-# Unless cp2k_prefix is overridden in the sourced -config file, the
-# default is used.
+export OMP_NUM_THREADS=${numthreads}
+
+# 
+# these should not be needed
+# 
+ARCH_SPEC="ARCH=${ARCH}"
 cp2k_prefix=${cp2k_prefix:-"${cp2k_run_prefix} ${dir_base}/${cp2k_dir}/exe/${dir_triplet}/cp2k.${cp2k_version}"}
 cp2k_postfix=${cp2k_postfix:-"${cp2k_run_postfix}"}
 
-# allow the config file to set the maximum allowed time. Useful for valgrind runs
-job_max_time=${job_max_time:-"600"}
-
+###################################################################################
+#
+# the rest should be internals.
+#
+###################################################################################
 ###################################################################################
 #
 # set up the initial directory structures
@@ -264,7 +241,8 @@ error_description_file=${dir_out}/error_summary
 memory_description_file=${dir_out}/memory_summary
 >${memory_description_file}
 summary=${dir_out}/summary.txt
-printf "Summary of the regression tester run from ${datum_short} using ${FORT_C_NAME}\n" >${summary}
+printf "Summary of the regression tester run from ${datum_short} using ${dir_triplet} ${cp2k_version} \n" >${summary}
+
 
 ###################################################################################
 #
@@ -663,6 +641,20 @@ echo "*************************** testing started ******************************
 echo " started on " `date`
 echo " checking version ${svndate} "
 echo " configuration: ${dir_triplet}-${cp2k_version} "
+echo " regtesting location summary file: $summary"
+echo " regtesting location error_summary file: $error_description_file"
+echo " regtesting location memory_summary file: $memory_description_file"
+echo " regtesting location output dir: $dir_out"
+echo " regtesting location last dir: $dir_last"
+#
+# should include all flags, ideally
+#
+echo "---------------------------- Settings ------------------------------------"
+echo "maxtasks         = ${maxtasks}"
+echo "numprocs         = ${numprocs}"
+echo "OMP_NUM_THREADS  = ${OMP_NUM_THREADS}"
+echo "cp2k_run_prefix  = ${cp2k_run_prefix}"
+echo "cp2k_run_postfix = ${cp2k_run_postfix}"
 echo "--------------------------- SVN ------------------------------------------"
 
 if [[ ${nosvn} != "nosvn" ]]; then
@@ -751,12 +743,6 @@ fi
 
 # from here failures are likely to be bugs in cp2k
 if [[ ${nobuild} != "nobuild" ]]; then
-   echo "---------------------------- Settings ------------------------------------"
-   echo "maxtasks         = ${maxtasks}"
-   echo "numprocs         = ${numprocs}"
-   echo "OMP_NUM_THREADS  = ${OMP_NUM_THREADS}"
-   echo "cp2k_run_prefix  = ${cp2k_run_prefix}"
-   echo "cp2k_run_postfix = ${cp2k_run_postfix}"
    echo "--------------------------- ARCH-file ------------------------------------"
    cat ${dir_base}/${cp2k_dir}/arch/${ARCH}.${cp2k_version}
    echo "-------------------------- Build-Tools -----------------------------------"
