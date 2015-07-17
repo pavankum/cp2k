@@ -148,7 +148,7 @@ def create_dispatch_bsearch(mnklist):
     create_dispatch_bsearch_function("d", mnklist)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     argc = len(sys.argv)
     if (3 < argc):
         threshold, sparsity = int(sys.argv[1]), int(sys.argv[2])
@@ -177,4 +177,5 @@ if __name__ == '__main__':
         print "  return 0;"
         print "}"
     else:
+        sys.tracebacklimit = 0
         raise ValueError(sys.argv[0] + ": wrong number of arguments!")

@@ -1,3 +1,72 @@
+/******************************************************************************
+** Copyright (c) 2013-2015, Intel Corporation                                **
+** All rights reserved.                                                      **
+**                                                                           **
+** Redistribution and use in source and binary forms, with or without        **
+** modification, are permitted provided that the following conditions        **
+** are met:                                                                  **
+** 1. Redistributions of source code must retain the above copyright         **
+**    notice, this list of conditions and the following disclaimer.          **
+** 2. Redistributions in binary form must reproduce the above copyright      **
+**    notice, this list of conditions and the following disclaimer in the    **
+**    documentation and/or other materials provided with the distribution.   **
+** 3. Neither the name of the copyright holder nor the names of its          **
+**    contributors may be used to endorse or promote products derived        **
+**    from this software without specific prior written permission.          **
+**                                                                           **
+** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS       **
+** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT         **
+** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR     **
+** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT      **
+** HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,    **
+** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED  **
+** TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR    **
+** PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF    **
+** LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING      **
+** NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS        **
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.              **
+******************************************************************************/
+/* Hans Pabst (Intel Corp.)
+******************************************************************************/
+#ifndef LIBXSMM_H
+#define LIBXSMM_H
+
+#include "libxsmm_macros.h"
+
+#if defined(MKL_DIRECT_CALL_SEQ) || defined(MKL_DIRECT_CALL)
+# if defined(LIBXSMM_OFFLOAD)
+#   pragma offload_attribute(push,target(mic))
+#   include <mkl.h>
+#   pragma offload_attribute(pop)
+# else
+#   include <mkl.h>
+# endif
+#else
+LIBXSMM_EXTERN_C LIBXSMM_TARGET(mic) void LIBXSMM_FSYMBOL(dgemm)(
+  const char*, const char*, const int*, const int*, const int*,
+  const double*, const double*, const int*, const double*, const int*,
+  const double*, double*, const int*);
+LIBXSMM_EXTERN_C LIBXSMM_TARGET(mic) void LIBXSMM_FSYMBOL(sgemm)(
+  const char*, const char*, const int*, const int*, const int*,
+  const float*, const float*, const int*, const float*, const int*,
+  const float*, float*, const int*);
+#endif
+
+/** Parameters the library was built for. */
+#define LIBXSMM_ALIGNMENT $ALIGNMENT
+#define LIBXSMM_ALIGNED_STORES $ALIGNED_STORES
+#define LIBXSMM_ALIGNED_LOADS $ALIGNED_LOADS
+#define LIBXSMM_ALIGNED_MAX $ALIGNED_MAX
+#define LIBXSMM_ROW_MAJOR $ROW_MAJOR
+#define LIBXSMM_COL_MAJOR $COL_MAJOR
+#define LIBXSMM_MAX_MNK $MAX_MNK
+#define LIBXSMM_MAX_M $MAX_M
+#define LIBXSMM_MAX_N $MAX_N
+#define LIBXSMM_MAX_K $MAX_K
+#define LIBXSMM_AVG_M $AVG_M
+#define LIBXSMM_AVG_N $AVG_N
+#define LIBXSMM_AVG_K $AVG_K
+
 #if (0 != LIBXSMM_ROW_MAJOR)
 # define LIBXSMM_LD(M, N) N
 #else
@@ -5,10 +74,10 @@
 #endif
 #if (1 < LIBXSMM_ALIGNED_STORES)
 # define LIBXSMM_ASSUME_ALIGNED_STORES(A) LIBXSMM_ASSUME_ALIGNED(A, LIBXSMM_ALIGNED_STORES)
-# define LIBXSMM_LDC(REAL, UINT, M, N) LIBXSMM_ALIGN_VALUE(UINT, REAL, LIBXSMM_LD(M, N), LIBXSMM_ALIGNED_STORES)
+# define LIBXSMM_LDC(M, N, TYPESIZE) LIBXSMM_ALIGN_VALUE(LIBXSMM_LD(M, N), TYPESIZE, LIBXSMM_ALIGNED_STORES)
 #else
 # define LIBXSMM_ASSUME_ALIGNED_STORES(A)
-# define LIBXSMM_LDC(REAL, UINT, M, N) LIBXSMM_LD(M, N)
+# define LIBXSMM_LDC(M, N, TYPESIZE) LIBXSMM_LD(M, N)
 #endif
 #if (1 < LIBXSMM_ALIGNED_LOADS)
 # define LIBXSMM_ASSUME_ALIGNED_LOADS(A) LIBXSMM_ASSUME_ALIGNED(A, LIBXSMM_ALIGNED_LOADS)
@@ -16,29 +85,30 @@
 # define LIBXSMM_ASSUME_ALIGNED_LOADS(A)
 #endif
 
-#define LIBXSMM_MAX_SIMD LIBXSMM_MAX(LIBXSMM_ALIGNED_MAX / sizeof(float), 1)
+#define LIBXSMM_MAX_SIMD LIBXSMM_MAX(LIBXSMM_DIV2(LIBXSMM_ALIGNED_MAX, sizeof(float)), 1)
 #define LIBXSMM_MAX_SIZE LIBXSMM_MAX(LIBXSMM_MAX( \
-  LIBXSMM_LD(LIBXSMM_MAX_M, LIBXSMM_MAX_K) * LIBXSMM_UP(LIBXSMM_LD(LIBXSMM_MAX_K, LIBXSMM_MAX_M), LIBXSMM_MAX_SIMD),  \
-  LIBXSMM_LD(LIBXSMM_MAX_K, LIBXSMM_MAX_N) * LIBXSMM_UP(LIBXSMM_LD(LIBXSMM_MAX_N, LIBXSMM_MAX_K), LIBXSMM_MAX_SIMD)), \
-  LIBXSMM_LD(LIBXSMM_MAX_M, LIBXSMM_MAX_N) * LIBXSMM_UP(LIBXSMM_LD(LIBXSMM_MAX_N, LIBXSMM_MAX_M), LIBXSMM_MAX_SIMD))
+  LIBXSMM_LD(LIBXSMM_MAX_M, LIBXSMM_MAX_K) * LIBXSMM_UP2(LIBXSMM_LD(LIBXSMM_MAX_K, LIBXSMM_MAX_M), LIBXSMM_MAX_SIMD),  \
+  LIBXSMM_LD(LIBXSMM_MAX_K, LIBXSMM_MAX_N) * LIBXSMM_UP2(LIBXSMM_LD(LIBXSMM_MAX_N, LIBXSMM_MAX_K), LIBXSMM_MAX_SIMD)), \
+  LIBXSMM_LD(LIBXSMM_MAX_M, LIBXSMM_MAX_N) * LIBXSMM_UP2(LIBXSMM_LD(LIBXSMM_MAX_N, LIBXSMM_MAX_M), LIBXSMM_MAX_SIMD))
 
-#define LIBXSMM_BLASMM(REAL, UINT, M, N, K, A, B, C) { \
-  UINT libxsmm_m_ = LIBXSMM_LD(M, N), libxsmm_n_ = LIBXSMM_LD(N, M), libxsmm_k_ = (K); \
-  UINT libxsmm_ldc_ = LIBXSMM_LDC(REAL, UINT, M, N); \
+#define LIBXSMM_BLASMM(REAL, M, N, K, A, B, C) { \
+  int libxsmm_m_ = LIBXSMM_LD(M, N), libxsmm_n_ = LIBXSMM_LD(N, M), libxsmm_k_ = (K); \
+  int libxsmm_ldc_ = LIBXSMM_LDC(M, N, sizeof(REAL)); \
   REAL libxsmm_alpha_ = 1, libxsmm_beta_ = 1; \
   char libxsmm_trans_ = 'N'; \
   LIBXSMM_FSYMBOL(LIBXSMM_BLASPREC(, REAL, gemm))(&libxsmm_trans_, &libxsmm_trans_, \
-    &libxsmm_m_, &libxsmm_n_, &libxsmm_k_, \
-    &libxsmm_alpha_, (REAL*)LIBXSMM_LD(A, B), &libxsmm_m_, (REAL*)LIBXSMM_LD(B, A), &libxsmm_k_, \
+    &libxsmm_m_, &libxsmm_n_, &libxsmm_k_, &libxsmm_alpha_, \
+    (REAL*)LIBXSMM_LD(A, B), &libxsmm_m_, \
+    (REAL*)LIBXSMM_LD(B, A), &libxsmm_k_, \
     &libxsmm_beta_, (C), &libxsmm_ldc_); \
 }
 
 #if defined(MKL_DIRECT_CALL_SEQ) || defined(MKL_DIRECT_CALL)
-# define LIBXSMM_IMM(REAL, UINT, M, N, K, A, B, C) LIBXSMM_BLASMM(REAL, UINT, M, N, K, A, B, C)
+# define LIBXSMM_IMM(REAL, UINT, M, N, K, A, B, C) LIBXSMM_BLASMM(REAL, M, N, K, A, B, C)
 #else
 # define LIBXSMM_IMM(REAL, UINT, M, N, K, A, B, C) { \
     const REAL *const libxsmm_a_ = LIBXSMM_LD(B, A), *const libxsmm_b_ = LIBXSMM_LD(A, B); \
-    const UINT libxsmm_ldc_ = LIBXSMM_LDC(REAL, UINT, M, N); \
+    const UINT libxsmm_ldc_ = LIBXSMM_LDC(M, N, sizeof(REAL)); \
     UINT libxsmm_i_, libxsmm_j_, libxsmm_k_; \
     REAL *const libxsmm_c_ = (C); \
     LIBXSMM_ASSUME_ALIGNED_STORES(libxsmm_c_); \
@@ -78,7 +148,7 @@
     } \
   } \
   else { \
-    LIBXSMM_BLASMM(REAL, int, M, N, K, A, B, C); \
+    LIBXSMM_BLASMM(REAL, M, N, K, A, B, C); \
   }
 
 /** Type of a function generated for a specific M, N, and K. */
@@ -111,14 +181,14 @@ LIBXSMM_INLINE LIBXSMM_TARGET(mic) void libxsmm_dimm(int m, int n, int k, const 
 
 /** Non-dispatched matrix-matrix multiplication using BLAS; single-precision. */
 LIBXSMM_INLINE LIBXSMM_TARGET(mic) void libxsmm_sblasmm(int m, int n, int k, const float *LIBXSMM_RESTRICT a, const float *LIBXSMM_RESTRICT b, float *LIBXSMM_RESTRICT c) {
-  LIBXSMM_BLASMM(float, int, m, n, k, a, b, c);
+  LIBXSMM_BLASMM(float, m, n, k, a, b, c);
 }
 
 /** Non-dispatched matrix-matrix multiplication using BLAS; double-precision. */
 LIBXSMM_INLINE LIBXSMM_TARGET(mic) void libxsmm_dblasmm(int m, int n, int k, const double *LIBXSMM_RESTRICT a, const double *LIBXSMM_RESTRICT b, double *LIBXSMM_RESTRICT c) {
-  LIBXSMM_BLASMM(double, int, m, n, k, a, b, c);
+  LIBXSMM_BLASMM(double, m, n, k, a, b, c);
 }
-
+$MNK_INTERFACE_LIST
 #if defined(__cplusplus)
 
 /** Dispatched matrix-matrix multiplication. */
@@ -155,3 +225,5 @@ public:
 };
 
 #endif /*__cplusplus*/
+
+#endif /*LIBXSMM_H*/

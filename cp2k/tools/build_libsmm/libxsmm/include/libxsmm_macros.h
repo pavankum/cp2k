@@ -108,9 +108,11 @@
 
 #define LIBXSMM_MIN(A, B) ((A) < (B) ? (A) : (B))
 #define LIBXSMM_MAX(A, B) ((A) < (B) ? (B) : (A))
-#define LIBXSMM_MOD(A, B) ((A) & ((B) - 1)) /*B: pot!*/
-#define LIBXSMM_DIV(A, B) ((A) >> (LIBXSMM_NBITS(B) - 1)) /*B: pot!*/
-#define LIBXSMM_UP(A, B) ((((A) + (B) - 1) / (B)) * (B))
+#define LIBXSMM_MOD2(N, POT) ((N) & ((POT) - 1))
+#define LIBXSMM_MUL2(N, POT) ((N) << (LIBXSMM_NBITS(POT) - 1))
+#define LIBXSMM_DIV2(N, POT) ((N) >> (LIBXSMM_NBITS(POT) - 1))
+#define LIBXSMM_UP2(N, POT) LIBXSMM_MUL2(LIBXSMM_DIV2((N) + (POT) - 1, POT), POT)
+#define LIBXSMM_UP(N, UP) ((((N) + (UP) - 1) / (UP)) * (UP))
 
 #if defined(_WIN32) && !defined(__GNUC__)
 # define LIBXSMM_ATTRIBUTE(A) __declspec(A)
@@ -136,10 +138,8 @@
 #   define LIBXSMM_ASSUME(EXPRESSION)
 # endif
 #endif
-#define LIBXSMM_ALIGN_VALUE(DST_TYPE, SRC_TYPE, VALUE, ALIGNMENT) ((DST_TYPE)((-( \
-  -((intptr_t)(VALUE) * ((intptr_t)sizeof(SRC_TYPE))) & \
-  -((intptr_t)(LIBXSMM_MAX(ALIGNMENT, 1))))) / sizeof(SRC_TYPE)))
-#define LIBXSMM_ALIGN(TYPE, PTR, ALIGNMENT) LIBXSMM_ALIGN_VALUE(TYPE, char, PTR, ALIGNMENT)
+#define LIBXSMM_ALIGN_VALUE(N, TYPESIZE, ALIGNMENT) (LIBXSMM_UP2((N) * (TYPESIZE), ALIGNMENT) / (TYPESIZE))
+#define LIBXSMM_ALIGN(POINTER, ALIGNMENT) ((POINTER) + (LIBXSMM_ALIGN_VALUE((uintptr_t)(POINTER), 1, ALIGNMENT) - ((uintptr_t)(POINTER))) / sizeof(*(POINTER)))
 
 #if defined(_WIN32) && !defined(__GNUC__)
 # define LIBXSMM_TLS LIBXSMM_ATTRIBUTE(thread)

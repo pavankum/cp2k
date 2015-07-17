@@ -20,9 +20,6 @@ AVX ?= 0
 # Embed InterProcedural Optimization information into libraries
 IPO ?= 0
 
-# Use assembly kernel generator
-GENASM ?= 1
-
 # Specify an alignment (Bytes)
 ALIGNMENT ?= 64
 
@@ -64,10 +61,12 @@ else
 	MIC ?= 0
 endif
 
-ICPC = $(notdir $(shell which icpc 2> /dev/null))
-ICC = $(notdir $(shell which icc 2> /dev/null))
-GPP = $(notdir $(shell which g++ 2> /dev/null))
-GCC = $(notdir $(shell which gcc 2> /dev/null))
+ICPC    = $(notdir $(shell which icpc     2> /dev/null))
+ICC     = $(notdir $(shell which icc      2> /dev/null))
+IFORT   = $(notdir $(shell which ifort    2> /dev/null))
+GPP     = $(notdir $(shell which g++      2> /dev/null))
+GCC     = $(notdir $(shell which gcc      2> /dev/null))
+GFC     = $(notdir $(shell which gfortran 2> /dev/null))
 
 ifneq (,$(ICPC))
 	CXX = $(ICPC)
@@ -87,23 +86,35 @@ ifneq (,$(ICC))
 else
 	CC = $(GCC)
 endif
+ifneq (,$(IFORT))
+	FC = $(IFORT)
+else
+	FC = $(GFC)
+endif
 ifneq ($(CXX),)
 	LD = $(CXX)
 endif
 ifeq ($(LD),)
 	LD = $(CC)
 endif
+ifeq ($(LD),)
+	LD = $(FC)
+endif
 
-ifneq (,$(filter icpc icc,$(CXX) $(CC)))
+ifneq (,$(filter icpc icc ifort,$(CXX) $(CC) $(FC)))
 	CXXFLAGS += -fPIC -Wall -std=c++0x
 	CFLAGS += -fPIC -Wall -std=c99
+	FCFLAGS += -fPIC
+	LDFLAGS += -fPIC
 	ifeq (0,$(DBG))
 		CXXFLAGS += -fno-alias -ansi-alias -O2
 		CFLAGS += -fno-alias -ansi-alias -O2
+		FCFLAGS += -O2
 		DFLAGS += -DNDEBUG
 		ifneq ($(IPO),0)
 			CXXFLAGS += -ipo
 			CFLAGS += -ipo
+			FCFLAGS += -ipo
 		endif
 		ifeq ($(AVX),1)
 			TARGET = -xAVX
@@ -117,32 +128,45 @@ ifneq (,$(filter icpc icc,$(CXX) $(CC)))
 	else ifneq (1,$(DBG))
 		CXXFLAGS += -O0 -g3 -gdwarf-2 -debug inline-debug-info
 		CFLAGS += -O0 -g3 -gdwarf-2 -debug inline-debug-info
+		FCFLAGS += -O0 -g
 	else
 		CXXFLAGS += -O0 -g
 		CFLAGS += -O0 -g
+		FCFLAGS += -O0 -g
 	endif
 	ifneq ($(OMP),0)
 		CXXFLAGS += -openmp
 		CFLAGS += -openmp
+		FCFLAGS += -openmp
 		LDFLAGS += -openmp
 	endif
 	ifeq (0,$(OFFLOAD))
 		CXXFLAGS += -no-offload
 		CFLAGS += -no-offload
+		FCFLAGS += -no-offload
 	endif
-	LDFLAGS += -fPIC
 	ifneq ($(STATIC),0)
-		ifneq ($(STATIC),)
-			LDFLAGS += -no-intel-extensions -static-intel
-		endif
+		SLDFLAGS += -no-intel-extensions -static-intel
 	endif
+	FCMODDIRFLAG = -module
 else # GCC assumed
+	VERSION = $(shell $(GCC) --version | grep "gcc (GCC)" | sed "s/gcc (GCC) \([0-9]\+\.[0-9]\+\.[0-9]\+\).*$$/\1/")
+	VERSION_MAJOR = $(shell echo "$(VERSION)" | cut -d"." -f1)
+	VERSION_MINOR = $(shell echo "$(VERSION)" | cut -d"." -f2)
+	VERSION_PATCH = $(shell echo "$(VERSION)" | cut -d"." -f3)
 	MIC = 0
-	CXXFLAGS += -Wall -Wno-unused-function -std=c++0x
+	CXXFLAGS += -Wall -std=c++0x -Wno-unused-function
 	CFLAGS += -Wall -Wno-unused-function
+	ifneq ($(OS),Windows_NT)
+		CXXFLAGS += -fPIC
+		CFLAGS += -fPIC
+		FCFLAGS += -fPIC
+		LDFLAGS += -fPIC
+	endif
 	ifeq (0,$(DBG))
 		CXXFLAGS += -O2 -ftree-vectorize -ffast-math -funroll-loops
 		CFLAGS += -O2 -ftree-vectorize -ffast-math -funroll-loops
+		FCFLAGS += -O2 -ftree-vectorize -ffast-math -funroll-loops
 		DFLAGS += -DNDEBUG
 		ifeq ($(AVX),1)
 			TARGET = -mavx
@@ -156,34 +180,34 @@ else # GCC assumed
 	else ifneq (1,$(DBG))
 		CXXFLAGS += -O0 -g3 -gdwarf-2
 		CFLAGS += -O0 -g3 -gdwarf-2
+		FCFLAGS += -O0 -g3 -gdwarf-2
 	else
 		CXXFLAGS += -O0 -g
 		CFLAGS += -O0 -g
+		FCFLAGS += -O0 -g
 	endif
 	ifneq ($(OMP),0)
 		CXXFLAGS += -fopenmp
 		CFLAGS += -fopenmp
+		FCFLAGS += -fopenmp
 		LDFLAGS += -fopenmp
 	endif
-	ifneq ($(OS),Windows_NT)
-		CXXFLAGS += -fPIC
-		CFLAGS += -fPIC
-		LDFLAGS += -fPIC
-	endif
 	ifneq ($(STATIC),0)
-		ifneq ($(STATIC),)
-			LDFLAGS += -static
-		endif
+		SLDFLAGS += -static
 	endif
+	FCMODDIRFLAG = -J
 endif
 
-ifeq ($(CXXFLAGS),)
+ifeq (,$(CXXFLAGS))
 	CXXFLAGS = $(CFLAGS)
 endif
-ifeq ($(CFLAGS),)
+ifeq (,$(CFLAGS))
 	CFLAGS = $(CXXFLAGS)
 endif
-ifeq ($(LDFLAGS),)
+ifeq (,$(FCFLAGS))
+	FCFLAGS = $(CFLAGS)
+endif
+ifeq (,$(LDFLAGS))
 	LDFLAGS = $(CFLAGS)
 endif
 
@@ -221,10 +245,18 @@ OBJFILES_HST = $(patsubst %,$(BLDDIR)/intel64/mm_%.o,$(INDICES))
 OBJFILES_MIC = $(patsubst %,$(BLDDIR)/mic/mm_%.o,$(INDICES))
 
 .PHONY: lib_all
-ifneq ($(MIC),0)
-lib_all: lib_hst lib_mic drytest
+ifeq ($(OFFLOAD),0)
+ifeq ($(MIC),0)
+lib_all: fheader drytest lib_hst
 else
-lib_all: lib_hst drytest
+lib_all: fheader drytest lib_hst lib_mic
+endif
+else
+ifeq ($(MIC),0)
+lib_all: fheader drytest lib_hst
+else
+lib_all: fheader drytest lib_hst lib_mic
+endif
 endif
 
 .PHONY: all
@@ -234,22 +266,29 @@ all: lib_all samples
 install: all clean
 
 .PHONY: header
-header: $(INCDIR)/libxsmm.h
-$(INCDIR)/libxsmm.h: $(ROOTDIR)/Makefile $(SRCDIR)/libxsmm.0.h $(SRCDIR)/libxsmm.1.h $(SRCDIR)/libxsmm.2.h
+header: cheader fheader
+
+.PHONY: cheader
+cheader: $(INCDIR)/libxsmm.h
+$(INCDIR)/libxsmm.h: $(ROOTDIR)/Makefile $(SCRDIR)/libxsmm_interface.py $(SCRDIR)/libxsmm_utilities.py $(SRCDIR)/libxsmm.template.h $(ROOTDIR)/include/libxsmm_macros.h
 	@mkdir -p $(dir $@)
 	@cp $(ROOTDIR)/include/libxsmm_macros.h $(INCDIR) 2> /dev/null || true
-	@cat $(SRCDIR)/libxsmm.0.h > $@
-	@python $(SCRDIR)/libxsmm_impl_mm.py $(ROW_MAJOR) \
+	@python $(SCRDIR)/libxsmm_interface.py $(SRCDIR)/libxsmm.template.h $(ROW_MAJOR) $(ALIGNMENT) \
 		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) \
 		$(shell echo $$((1!=$(ALIGNED_LOADS)?$(ALIGNED_LOADS):$(ALIGNMENT)))) \
-		$(ALIGNMENT) $(shell echo $$((0<$(THRESHOLD)?$(THRESHOLD):0))) $(INDICES) >> $@
-	@echo >> $@
-	@cat $(SRCDIR)/libxsmm.1.h >> $@
-	@echo >> $@
-	@python $(SCRDIR)/libxsmm_interface.py $(INDICES) >> $@
-	@cat $(SRCDIR)/libxsmm.2.h >> $@
+		$(shell echo $$((0<$(THRESHOLD)?$(THRESHOLD):0))) \
+		$(INDICES) > $@
 
-ifneq ($(GENASM),0)
+.PHONY: fheader
+fheader: $(INCDIR)/libxsmm.f90
+$(INCDIR)/libxsmm.f90: $(ROOTDIR)/Makefile $(SCRDIR)/libxsmm_interface.py $(SCRDIR)/libxsmm_utilities.py $(SRCDIR)/libxsmm.template.f90
+	@mkdir -p $(dir $@)
+	@python $(SCRDIR)/libxsmm_interface.py $(SRCDIR)/libxsmm.template.f90 $(ROW_MAJOR) $(ALIGNMENT) \
+		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) \
+		$(shell echo $$((1!=$(ALIGNED_LOADS)?$(ALIGNED_LOADS):$(ALIGNMENT)))) \
+		$(shell echo $$((0<$(THRESHOLD)?$(THRESHOLD):0))) \
+		$(INDICES) > $@
+
 .PHONY: compile_gen
 compile_gen: $(SRCFILES_GEN)
 $(BLDDIR)/%.o: $(SRCDIR)/%.cpp $(ROOTDIR)/Makefile
@@ -260,15 +299,10 @@ generator: $(OBJFILES_GEN)
 $(BINDIR)/generator: $(OBJFILES_GEN) $(ROOTDIR)/Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(OBJFILES_GEN) -o $@
-endif
 
 .PHONY: sources
 sources: $(SRCFILES)
-ifeq ($(GENASM),0)
-$(BLDDIR)/%.c: $(INCDIR)/libxsmm.h
-else
-$(BLDDIR)/%.c: $(INCDIR)/libxsmm.h $(BINDIR)/generator
-endif
+$(BLDDIR)/%.c: $(INCDIR)/libxsmm.h $(BINDIR)/generator $(SCRDIR)/libxsmm_utilities.py $(SCRDIR)/libxsmm_impl_mm.py
 	$(eval MVALUE := $(shell echo $* | cut --output-delimiter=' ' -d_ -f2))
 	$(eval NVALUE := $(shell echo $* | cut --output-delimiter=' ' -d_ -f3))
 	$(eval KVALUE := $(shell echo $* | cut --output-delimiter=' ' -d_ -f4))
@@ -289,13 +323,8 @@ endif
 	$(eval LDA := $(MVALUE2))
 	$(eval LDB := $(KVALUE))
 	@mkdir -p $(dir $@)
-ifeq ($(GENASM),0)
-	@python $(SCRDIR)/libxsmm_impl_mm.py $(ROW_MAJOR) \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) \
-		$(shell echo $$((1!=$(ALIGNED_LOADS)?$(ALIGNED_LOADS):$(ALIGNMENT)))) \
-		$(ALIGNMENT) -4 $(MVALUE) $(NVALUE) $(KVALUE) > $@
-else
 	@echo "#include <libxsmm.h>" > $@
+	@echo >> $@
 	@echo "#define LIBXSMM_GENTARGET_knc_dp" >> $@
 	@echo "#define LIBXSMM_GENTARGET_knc_sp" >> $@
 ifeq ($(GENTARGET),noarch)
@@ -346,33 +375,31 @@ endif
 		-e '/#error No kernel was compiled, lacking support for current architecture?/d' \
 		-e '/#pragma message ("KERNEL COMPILATION WARNING: compiling .\+ code on .\+ or newer architecture: " __FILE__)/d' \
 		$@
-	@python $(SCRDIR)/libxsmm_impl_mm.py $(ROW_MAJOR) $(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) \
-		$(shell echo $$((1!=$(ALIGNED_LOADS)?$(ALIGNED_LOADS):$(ALIGNMENT)))) $(ALIGNMENT) -1 $(MVALUE) $(NVALUE) $(KVALUE) >> $@
-endif
+	@python $(SCRDIR)/libxsmm_impl_mm.py $(ROW_MAJOR) $(MVALUE) $(NVALUE) $(KVALUE) >> $@
 
 .PHONY: main
 main: $(BLDDIR)/libxsmm.c
-$(BLDDIR)/libxsmm.c: $(INCDIR)/libxsmm.h
+$(BLDDIR)/libxsmm.c: $(INCDIR)/libxsmm.h $(SCRDIR)/libxsmm_dispatch.py
 	@mkdir -p $(dir $@)
 	@python $(SCRDIR)/libxsmm_dispatch.py $(THRESHOLD) $(SPARSITY) $(INDICES) > $@
 
 ifneq ($(MIC),0)
 .PHONY: compile_mic
 compile_mic: $(OBJFILES_MIC)
-$(BLDDIR)/mic/%.o: $(BLDDIR)/%.c $(INCDIR)/libxsmm.h $(SRCDIR)/libxsmm_isa.h
+$(BLDDIR)/mic/%.o: $(BLDDIR)/%.c $(INCDIR)/libxsmm.h
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DFLAGS) $(IFLAGS) -mmic -c $< -o $@
-$(BLDDIR)/mic/%.o: $(BLDDIR)/%.cpp $(INCDIR)/libxsmm.h $(SRCDIR)/libxsmm_isa.h
+$(BLDDIR)/mic/%.o: $(BLDDIR)/%.cpp $(INCDIR)/libxsmm.h
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(DFLAGS) $(IFLAGS) -mmic -c $< -o $@
 endif
 
 .PHONY: compile_hst
 compile_hst: $(OBJFILES_HST)
-$(BLDDIR)/intel64/%.o: $(BLDDIR)/%.c $(INCDIR)/libxsmm.h $(SRCDIR)/libxsmm_isa.h
+$(BLDDIR)/intel64/%.o: $(BLDDIR)/%.c $(INCDIR)/libxsmm.h
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DFLAGS) $(IFLAGS) $(TARGET) -c $< -o $@
-$(BLDDIR)/intel64/%.o: $(BLDDIR)/%.cpp $(INCDIR)/libxsmm.h $(SRCDIR)/libxsmm_isa.h
+$(BLDDIR)/intel64/%.o: $(BLDDIR)/%.cpp $(INCDIR)/libxsmm.h
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(DFLAGS) $(IFLAGS) $(TARGET) -c $< -o $@
 
@@ -401,7 +428,7 @@ $(OUTDIR)/intel64/libxsmm.$(LIBEXT): $(OBJFILES_HST)
 endif
 	@mkdir -p $(dir $@)
 ifeq ($(STATIC),0)
-	$(LD) -shared -o $@ $(LDFLAGS) $^
+	$(LD) -o $@ $^ -shared $(LDFLAGS)
 else
 	$(AR) -rs $@ $^
 endif
@@ -467,10 +494,10 @@ ifneq ($(abspath $(BLDDIR)),$(ROOTDIR))
 ifneq ($(abspath $(BLDDIR)),$(abspath .))
 	@rm -rf $(BLDDIR)
 else
-	@rm -f $(OBJECTS) $(BLDDIR)/libxsmm.c
+	@rm -f $(OBJECTS) $(BLDDIR)/libxsmm.c $(BLDDIR)/*.mod
 endif
 else
-	@rm -f $(OBJECTS) $(BLDDIR)/libxsmm.c
+	@rm -f $(OBJECTS) $(BLDDIR)/libxsmm.c $(BLDDIR)/*.mod
 endif
 
 .PHONY: realclean
@@ -494,6 +521,7 @@ else
 	@rm -f $(BINDIR)/generator
 endif
 	@rm -f $(SPLDIR)/cp2k/cp2k-perf.sh
+	@rm -f $(INCDIR)/libxsmm.f90
 	@rm -f $(INCDIR)/libxsmm.h
 
 install: all clean
