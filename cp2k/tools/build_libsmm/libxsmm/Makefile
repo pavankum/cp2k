@@ -168,6 +168,12 @@ else # GCC assumed
 		CFLAGS += -O2 -ftree-vectorize -ffast-math -funroll-loops
 		FCFLAGS += -O2 -ftree-vectorize -ffast-math -funroll-loops
 		DFLAGS += -DNDEBUG
+		ifneq ($(IPO),0)
+			CXXFLAGS += -flto -ffat-lto-objects
+			CFLAGS += -flto -ffat-lto-objects
+			FCFLAGS += -flto -ffat-lto-objects
+			LDFLAGS += -flto
+		endif
 		ifeq ($(AVX),1)
 			TARGET = -mavx
 		else ifeq ($(AVX),2)
@@ -413,7 +419,7 @@ $(OUTDIR)/mic/libxsmm.$(LIBEXT): $(OBJFILES_MIC)
 endif
 	@mkdir -p $(dir $@)
 ifeq ($(STATIC),0)
-	$(LD) -shared -o $@ $(LDFLAGS) $^
+	$(LD) -o $@ $^ -shared $(LDFLAGS) $(CLDFLAGS)
 else
 	$(AR) -rs $@ $^
 endif
@@ -428,7 +434,7 @@ $(OUTDIR)/intel64/libxsmm.$(LIBEXT): $(OBJFILES_HST)
 endif
 	@mkdir -p $(dir $@)
 ifeq ($(STATIC),0)
-	$(LD) -o $@ $^ -shared $(LDFLAGS)
+	$(LD) -o $@ $^ -shared $(LDFLAGS) $(CLDFLAGS)
 else
 	$(AR) -rs $@ $^
 endif
