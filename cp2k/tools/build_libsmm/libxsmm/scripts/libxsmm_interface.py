@@ -88,23 +88,33 @@ if __name__ == "__main__":
             print template.substitute(substitute)
         else:
             if (mnklist):
-                substitute["MNK_INTERFACE_LIST"] += "\n\n  INTERFACE"
+                substitute["MNK_INTERFACE_LIST"] += "\n"
                 for mnk in mnklist:
                     mnkstr = "_".join(map(str, mnk))
                     substitute["MNK_INTERFACE_LIST"] += "\n" \
-                        "    PURE SUBROUTINE LIBXSMM_SMM_" + mnkstr + "(a, b, c) BIND(C)\n" \
+                        "    PURE SUBROUTINE libxsmm_smm_" + mnkstr + "(a, b, c) BIND(C)\n" \
                         "      IMPORT :: C_PTR\n" \
                         "      TYPE(C_PTR), VALUE, INTENT(IN) :: a, b, c\n" \
                         "    END SUBROUTINE" \
                         "\n" \
-                        "    PURE SUBROUTINE LIBXSMM_DMM_" + mnkstr + "(a, b, c) BIND(C)\n" \
+                        "    PURE SUBROUTINE libxsmm_dmm_" + mnkstr + "(a, b, c) BIND(C)\n" \
                         "      IMPORT :: C_PTR\n" \
                         "      TYPE(C_PTR), VALUE, INTENT(IN) :: a, b, c\n" \
                         "    END SUBROUTINE"
-                substitute["MNK_INTERFACE_LIST"] += "\n  END INTERFACE"
-            substitute["SHAPE_A"] = "m,k" if (1 == aligned_loads) else "*,k"
-            substitute["SHAPE_B"] = "k,n" if (1 == aligned_loads) else "*,n"
-            substitute["SHAPE_C"] = "m,n" if (1 == aligned_stores) else "*,n"
+            substitute["SHAPE_AS1"] = "m" if (1 == aligned_loads) else "libxsmm_align_value(m,T,LIBXSMM_ALIGNED_LOADS)"
+            substitute["SHAPE_AS2"] = "k"
+            substitute["SHAPE_BS1"] = "k" if (1 == aligned_loads) else "libxsmm_align_value(k,T,LIBXSMM_ALIGNED_LOADS)"
+            substitute["SHAPE_BS2"] = "n"
+            substitute["SHAPE_AT1"] = substitute["SHAPE_BS2"]
+            substitute["SHAPE_AT2"] = substitute["SHAPE_BS1"]
+            substitute["SHAPE_BT1"] = substitute["SHAPE_AS2"]
+            substitute["SHAPE_BT2"] = substitute["SHAPE_AS1"]
+            if (0 == row_major):
+                substitute["SHAPE_C1"] = "m" if (1 == aligned_stores) else "libxsmm_align_value(m,T,LIBXSMM_ALIGNED_STORES)"
+                substitute["SHAPE_C2"] = "n"
+            else:
+                substitute["SHAPE_C1"] = "n" if (1 == aligned_stores) else "libxsmm_align_value(n,T,LIBXSMM_ALIGNED_STORES)"
+                substitute["SHAPE_C2"] = "m"
             print template.safe_substitute(substitute)
     else:
         sys.tracebacklimit = 0
