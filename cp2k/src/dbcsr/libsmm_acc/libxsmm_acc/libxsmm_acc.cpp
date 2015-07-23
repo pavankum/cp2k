@@ -26,13 +26,32 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_smm_process_mm_stack_d)(con
 
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_smm_process_mm_stack_s)(const void* stack_descr, const int* params, const int* stack_size, const float* a_data, const float* b_data, float* c_data, void* error)
 {
-  LIBXSMM_ACC_FSYMBOL(__real_smm_process_mm_stack_s)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
+  static const char *const env = getenv("LIBXSMM_ACC_INTERCEPT");
+  static const bool intercept = (env && *env) ? (0 != atoi(env)) : false/*default*/;
+
+  if (intercept) {
+#if 0
+    const int result = libsmm_acc_process(void *param_stack, stack_size, LIBXSMM_ACC_NPARAMS, DBCSR_ELEM_F32, a_data, b_data, c_data,
+      int m_max, int n_max, int k_max, int def_mnk, 0);
+#endif
+  }
+  else { // original code
+    LIBXSMM_ACC_FSYMBOL(__real_smm_process_mm_stack_s)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
+  }
 }
 
 
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_smm_process_mm_stack_d)(const void* stack_descr, const int* params, const int* stack_size, const double* a_data, const double* b_data, double* c_data, void* error)
 {
-  LIBXSMM_ACC_FSYMBOL(__real_smm_process_mm_stack_d)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
+  static const char *const env = getenv("LIBXSMM_ACC_INTERCEPT");
+  static const bool intercept = (env && *env) ? (0 != atoi(env)) : false/*default*/;
+
+  if (intercept) {
+    // TODO
+  }
+  else { // original code
+    LIBXSMM_ACC_FSYMBOL(__real_smm_process_mm_stack_d)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
+  }
 }
 #endif
 
@@ -49,11 +68,11 @@ extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
 
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver, void* error)
 {
-  // make sure to follow the original configuration procedure
+  // make sure to reconfigure *after* the original configuration procedure ran
   LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver, error);
 
   static const char *const env = getenv("LIBXSMM_ACC_RECONFIGURE");
-  static const bool reconfigure = (env && *env && 0 != atoi(env))
+  static const bool reconfigure = (env && *env) ? (0 != atoi(env)) : true/*default*/;
 
   if (reconfigure) {
     const int stacksize = LIBXSMM_ACC_STACKSIZE;
