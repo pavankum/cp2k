@@ -8,10 +8,10 @@
 //! **************************************************************************
 
 #if defined(__LIBXSMM) || (defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#include "libxsmm_acc.hpp"
 
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-#include "libxsmm_acc.hpp"
-#include <libxstream_begin.h>
+# include <libxstream_begin.h>
 #endif
 #include <cstdio>
 #if defined(_OPENMP)

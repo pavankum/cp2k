@@ -8,12 +8,13 @@
 //! **************************************************************************
 
 #if defined(__LIBXSMM) || (defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#include "libxsmm_acc.hpp"
 
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-# include "libxsmm_acc.hpp"
 # include <libxstream_begin.h>
 #endif
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #if defined(_OPENMP)
@@ -86,7 +87,7 @@ public:
     : m_xmm_function(0), m_smm_function(smm_type::bmm)
 #endif
     , m_m(m), m_n(n), m_k(k)
-    , m_ldc(LIBXSMM_ACC_ALIGN_VALUE(U, T, m, LIBXSMM_ACC_ALIGNED_STORES))
+    , m_ldc(LIBXSMM_ACC_ALIGN_VALUE(m, sizeof(T), LIBXSMM_ACC_ALIGNED_STORES))
   {}
 
 public:
@@ -297,7 +298,9 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
   const libxstream_function libxsmm_process_function = reinterpret_cast<libxstream_function>(context<LIBXSMM_ACC_NPARAMS,T,U>);
   LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_call(libxsmm_process_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
 #else
-  context<LIBXSMM_ACC_NPARAMS>(stack, &stacksize, &max_m, &max_n, &max_k, static_cast<const T*>(a), static_cast<const T*>(b), static_cast<T*>(c));
+  context<LIBXSMM_ACC_NPARAMS>(stack, &stacksize, &max_m, &max_n, &max_k,
+    static_cast<const T*>(a_data), static_cast<const T*>(b_data),
+    static_cast<T*>(c_data));
 #endif
 
   return LIBXSMM_ACC_ERROR_NONE;
