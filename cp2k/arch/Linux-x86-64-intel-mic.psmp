@@ -172,7 +172,7 @@ ifneq (,$(LIBXSMMROOT))
   >&2)
 
   DFLAGS  += -D__LIBXSMM
-  IFLAGS  += -I$(LIBDIR)/libxsmm/include
+  IFLAGS  += -I$(OBJDIR)/libxsmm/include
   LIBS    += $(LIBDIR)/libxsmm/lib/intel64/libxsmm.a
 
   ifeq (0,$(OFFLOAD))
