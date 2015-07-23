@@ -20,6 +20,10 @@
 
 
 #if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_smm_process_mm_stack_s)(const void*, const int*, const int*, const float*, const float*, float*, void*);
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_smm_process_mm_stack_d)(const void*, const int*, const int*, const double*, const double*, double*, void*);
+
+
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_smm_process_mm_stack_s)(const void* stack_descr, const int* params, const int* stack_size, const float* a_data, const float* b_data, float* c_data, void* error)
 {
   LIBXSMM_ACC_FSYMBOL(__real_smm_process_mm_stack_s)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
