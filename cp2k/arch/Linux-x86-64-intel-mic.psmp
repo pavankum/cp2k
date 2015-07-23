@@ -67,6 +67,7 @@ MPI ?= 1
 OMP ?= 1
 ACC ?= 1
 OCL ?= 0
+SYM ?= 0
 DBG ?= 0
 IPO ?= 0
 MKL ?= 2
@@ -101,10 +102,24 @@ ifeq (0,$(DBG))
     OPTFLAGS += -ipo-separate
   endif
 else
-  OPTFLAGS  += -O0 -g -traceback
-  DFLAGS    += -D__USE_CP2K_TRACE
+  OPTFLAGS  += -O0
   ifeq (2,$(DBG))
     FCFLAGS   += -fpe0 # debugging NaNs
+  endif
+  SYM = $(DBG)
+endif
+
+ifneq (0,$(SYM))
+  DFLAGS += -D__USE_CP2K_TRACE
+  OPTFLAGS  += -traceback
+  ifneq (1,$(SYM))
+    CXXFLAGS := -g3 -gdwarf-2 -debug inline-debug-info $(CXXFLAGS)
+    CFLAGS := -g3 -gdwarf-2 -debug inline-debug-info $(CFLAGS)
+    FCFLAGS := -g $(FCFLAGS)
+  else
+    CXXFLAGS := -g $(CXXFLAGS)
+    CFLAGS := -g $(CFLAGS)
+    FCFLAGS := -g $(FCFLAGS)
   endif
 endif
 
@@ -144,21 +159,27 @@ ifneq (,$(LIBXCROOT))
 endif
 
 ifneq (,$(LIBXSMMROOT))
+  LIBXSMM_BUILD := $(shell $(LIBXSMMROOT)/make.sh -cp2k -j \
+    BINDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
+    BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
+    OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
+    SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) \
+    OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
+  >&2)
+
   DFLAGS  += -D__LIBXSMM
   IFLAGS  += -I$(LIBXSMMROOT)/include
   LIBS    += $(LIBXSMMROOT)/lib/intel64/libxsmm.a
-  #MIC_CXFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
-  #MIC_CCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
-  #MIC_FCFLAGS += -offload-option,mic,compiler,"-Wl,$(LIBXSMMROOT)/lib/mic/libxsmm.a"
-  #MIC_LDFLAGS += -offload-option,mic,ld,"$(LIBXSMMROOT)/lib/mic/libxsmm.a"
 endif
 
 ifneq (,$(LIBXSTREAMROOT))
   LIBXSTREAM_BUILD := $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile \
     BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
-    DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) \
+    SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) \
+    OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
   >&2)
+
   DFLAGS  += -D__LIBXSTREAM
   IFLAGS  += -I$(LIBXSTREAMROOT)/include
   LIBS    += $(LIBDIR)/libxstream/libxstream.a
