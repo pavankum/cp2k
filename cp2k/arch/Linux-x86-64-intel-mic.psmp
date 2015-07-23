@@ -160,9 +160,10 @@ endif
 
 ifneq (,$(LIBXSMMROOT))
   LIBXSMM_BUILD := $(shell $(MAKE) -f $(LIBXSMMROOT)/Makefile \
-    BINDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
-    BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
-    OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
+    INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
+    BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
+    BINDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/bin \
+    OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib \
     SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) \
     OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
     ROW_MAJOR=0 ALIGNED_STORES=1 MNK=" \
@@ -195,8 +196,8 @@ ifneq (,$(LIBXSTREAMROOT))
   >&2)
 
   DFLAGS  += -D__LIBXSTREAM
-  IFLAGS  += -I$(LIBXSTREAMROOT)/include
-  LIBS    += $(LIBDIR)/libxstream/libxstream.a
+  IFLAGS  += -I$(LIBDIR)/libxstream/include
+  LIBS    += $(LIBDIR)/libxstream/lib/libxstream.a
 endif
 
 ifneq (0,$(ACC))
