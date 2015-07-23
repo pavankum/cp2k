@@ -98,7 +98,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     && data && stream);
 
   if (1 < m || 1 < n) {
-#if defined(__LIBXSTREAM)
+#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
     const size_t stacksize = nblocks;
     libxstream_argument* signature = 0;
     LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
@@ -109,7 +109,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
     LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 4,     data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
     const libxstream_function libxsmm_acc_transpose_function = reinterpret_cast<libxstream_function>(kernel<T,U>);
     LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_call(libxsmm_acc_transpose_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
-#else
+#else // defined(__LIBXSMM)
     kernel(stack + offset, &nblocks, &m, &n, static_cast<T*>(data))
 #endif
   }
@@ -119,7 +119,7 @@ int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* s
 
 } // namespace libxsmm_transpose_private
 
-#if defined(__LIBXSTREAM)
+#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 // workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
 const libxstream_function libxsmm_acc_transpose_function = reinterpret_cast<libxstream_function>(libxsmm_transpose_private::kernel<double,int>);
 #endif

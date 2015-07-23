@@ -283,7 +283,7 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
     && LIBXSMM_ACC_NPARAMS == nparams
     && 1 == def_mnk);
 
-#if defined(__LIBXSTREAM)
+#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
   const size_t shape = stacksize;
   libxstream_argument* signature = 0;
   LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
@@ -297,7 +297,7 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
   LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 7,     c_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
   const libxstream_function libxsmm_process_function = reinterpret_cast<libxstream_function>(context<LIBXSMM_ACC_NPARAMS,T,U>);
   LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_call(libxsmm_process_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
-#else
+#else // defined(__LIBXSMM)
   context<LIBXSMM_ACC_NPARAMS>(stack, &stacksize, &max_m, &max_n, &max_k,
     static_cast<const T*>(a_data), static_cast<const T*>(b_data),
     static_cast<T*>(c_data));
@@ -308,7 +308,7 @@ int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, c
 
 } // namespace libxsmm_process_private
 
-#if defined(__LIBXSTREAM)
+#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 // workaround for issue "cannot find address of function" (use unoptimized build or apply mic attribute globally)
 const libxstream_function libxsmm_process_function = reinterpret_cast<libxstream_function>(libxsmm_process_private::context<LIBXSMM_ACC_NPARAMS,double,int>);
 #endif

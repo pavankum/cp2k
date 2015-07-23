@@ -172,8 +172,8 @@ ifneq (,$(LIBXSMMROOT))
   >&2)
 
   DFLAGS  += -D__LIBXSMM
-  IFLAGS  += -I$(OBJDIR)/libxsmm/include
-  LIBS    += $(LIBDIR)/libxsmm/lib/intel64/libxsmm.a
+  IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
+  LIBS    += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/intel64/libxsmm.a
 
   ifeq (0,$(OFFLOAD))
     ifeq (0,$(ACC))
@@ -194,7 +194,7 @@ ifneq (,$(LIBXSTREAMROOT))
 
   DFLAGS  += -D__LIBXSTREAM
   IFLAGS  += -I$(LIBXSTREAMROOT)/include
-  LIBS    += $(LIBDIR)/libxstream/libxstream.a
+  LIBS    += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream/libxstream.a
 endif
 
 ifneq (0,$(ACC))
