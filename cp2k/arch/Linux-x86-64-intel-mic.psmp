@@ -183,7 +183,7 @@ ifneq (,$(LIBXSMMROOT))
 
   DFLAGS  += -D__LIBXSMM
   IFLAGS  += -I$(LIBXSMMROOT)/include
-  LIBS    += $(LIBDIR)/libxsmm/libxsmm.a
+  LIBS    += $(LIBDIR)/libxsmm/intel64/libxsmm.a
 endif
 
 ifneq (,$(LIBXSTREAMROOT))
