@@ -134,7 +134,7 @@ private:
 #if defined(__LIBXSMM)
     LIBXSMM_ACC_ASSERT((LIBXSMM_MAX_MNK) < (m * n * k));
     libxsmm_blasmm(m, n, k, a, b, c);
-# if defined(__LIBXSTREAM)
+# if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
     libxstream_sink(&ldc);
 # endif
 #else
