@@ -159,12 +159,26 @@ ifneq (,$(LIBXCROOT))
 endif
 
 ifneq (,$(LIBXSMMROOT))
-  LIBXSMM_BUILD := $(shell $(LIBXSMMROOT)/make.sh -cp2k -j \
+  LIBXSMM_BUILD := $(shell $(MAKE) -f $(LIBXSMMROOT)/Makefile \
     BINDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
     BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm \
     SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) \
     OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
+    ROW_MAJOR=0 ALIGNED_STORES=1 MNK=" \
+    23, \
+    6, \
+    14 16 29, \
+    14 32 29, \
+    5 32 13 24 26, \
+    9 32 22, \
+    32, \
+    64, \
+    78, \
+    16 29 55, \
+    32 29 55, \
+    12, \
+    13 26 28 32 45" \
   >&2)
 
   DFLAGS  += -D__LIBXSMM
