@@ -54,13 +54,13 @@ public:
   void acquire(const void* address) {
     const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBXSMM_ACC_ALIGNED_MAX);
     // non-pot: omp_set_lock(m_lock + id % LIBXSMM_ACC_SYNCHRONIZATION);
-    omp_set_lock(m_lock + LIBXSMM_ACC_MOD(id, LIBXSMM_ACC_SYNCHRONIZATION));
+    omp_set_lock(m_lock + LIBXSMM_ACC_MOD2(id, LIBXSMM_ACC_SYNCHRONIZATION));
   }
 
   void release(const void* address) {
     const uintptr_t id = reinterpret_cast<uintptr_t>(address) / (LIBXSMM_ACC_ALIGNED_MAX);
     // non-pot: omp_unset_lock(m_lock + id % LIBXSMM_ACC_SYNCHRONIZATION);
-    omp_unset_lock(m_lock + LIBXSMM_ACC_MOD(id, LIBXSMM_ACC_SYNCHRONIZATION));
+    omp_unset_lock(m_lock + LIBXSMM_ACC_MOD2(id, LIBXSMM_ACC_SYNCHRONIZATION));
   }
 
 private:
