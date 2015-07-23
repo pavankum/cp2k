@@ -36,25 +36,14 @@ AR       = xiar -r
 #LIBXCROOT = $(HOME)/libxc
 
 # LIBXSMM: cp2k/tools/build_libsmm/libxsmm or https://github.com/hfp/libxsmm
-# Please note that CP2K redistributes LIBXSMM and allows to build LIBXSMM
-# according to an auto-tuning process. Defining LIBXSMMROOT may interfere
-# with CP2K's version of LIBXSMM. To offload work to LIBXSMM (DBCSR/ACC/MIC),
-# define the preprocessor symbol CP2K_DBCSR_ACC_MIC_USE_LIBXSMM
-# (cp2k/src/dbcsr/libsmm_acc/libmicsmm/libmicsmm_config.h).
-#
-# $ make ROW_MAJOR=0 \
-#   INDICES_M="$(echo $(seq 1 24))" \
-#   INDICES_N="$(echo $(seq 1 24))" \
-#   INDICES_K="$(echo $(seq 1 24))"
-# $ make clean
+# Please note that CP2K redistributes a tested version of LIBXSMM
+# which is built automatically (if LIBXSMMROOT is set).
 #
 LIBXSMMROOT = $(TOOLSRC)/build_libsmm/libxsmm
 
 # LIBXSTREAM: cp2k/tools/mic/libxstream or https://github.com/hfp/libxstream
-# Please note that CP2K redistributes a tested version of LIBXSTREAM.
-#
-# $ make
-# $ make clean
+# Please note that CP2K redistributes a tested version of LIBXSTREAM
+# which is built automatically (if LIBXSTREAMROOT is set).
 #
 LIBXSTREAMROOT = $(TOOLSRC)/mic/libxstream
 
@@ -185,6 +174,14 @@ ifneq (,$(LIBXSMMROOT))
   DFLAGS  += -D__LIBXSMM
   IFLAGS  += -I$(LIBDIR)/libxsmm/include
   LIBS    += $(LIBDIR)/libxsmm/lib/intel64/libxsmm.a
+
+  ifeq (0,$(OFFLOAD))
+    ifeq (0,$(ACC))
+      # TODO: libxsmm_acc
+      #LDFLAGS += -Wl,--wrap=smm_process_mm_stack_s_
+      #LDFLAGS += -Wl,--wrap=smm_process_mm_stack_d_
+    endif
+  endif
 endif
 
 ifneq (,$(LIBXSTREAMROOT))

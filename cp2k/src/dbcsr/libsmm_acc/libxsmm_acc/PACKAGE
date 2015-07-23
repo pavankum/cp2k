@@ -1,0 +1,5 @@
+{
+"description": "Small Matrix Multiplications based on LIBXSMM",
+"archive": "libxsmm_acc",
+"requires": ["../include", "../../../acc/include", "../../../acc/mic", "../../base"]
+}
