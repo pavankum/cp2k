@@ -177,8 +177,8 @@ ifneq (,$(LIBXSMMROOT))
 
   ifeq (0,$(OFFLOAD))
     ifeq (0,$(ACC))
-      LDFLAGS += -Wl,--wrap=smm_process_mm_stack_s_
-      LDFLAGS += -Wl,--wrap=smm_process_mm_stack_d_
+      LDFLAGS += -Wl,--wrap=dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s_
+      LDFLAGS += -Wl,--wrap=dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d_
     endif
   endif
 endif
