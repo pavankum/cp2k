@@ -176,19 +176,6 @@ ifneq (,$(LIBXSMMROOT))
   LIBS    += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/intel64/libxsmm.a
 endif
 
-ifneq (,$(LIBXSTREAMROOT))
-  LIBXSTREAM_BUILD := $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile \
-    BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
-    OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
-    SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) \
-    OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
-  >&2)
-
-  DFLAGS  += -D__LIBXSTREAM
-  IFLAGS  += -I$(LIBXSTREAMROOT)/include
-  LIBS    += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream/libxstream.a
-endif
-
 ifneq (0,$(ACC))
   DFLAGS += -D__ACC -D__DBCSR_ACC
 
@@ -198,7 +185,7 @@ ifneq (0,$(ACC))
       OPTFLAGS += -no-offload
       LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
       RECONFIGURE = 0
-    else # also true if OFFLOAD is not defined
+    else # also true if OFFLOAD is undefined
       #OPTFLAGS += -offload=mandatory
       # enable OpenMP for OFFLOAD regardless of wether OMP is enabled or not
       MIC_CXFLAGS += -offload-option,mic,compiler,"-openmp"
@@ -221,6 +208,22 @@ else
     LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
     RECONFIGURE = 0
   endif
+
+  # save some build time
+  LIBXSTREAMROOT = $(NULL)
+endif
+
+ifneq (,$(LIBXSTREAMROOT))
+  LIBXSTREAM_BUILD := $(shell $(MAKE) -f $(LIBXSTREAMROOT)/Makefile \
+    BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
+    OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream \
+    SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) \
+    OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
+  >&2)
+
+  DFLAGS  += -D__LIBXSTREAM
+  IFLAGS  += -I$(LIBXSTREAMROOT)/include
+  LIBS    += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxstream/libxstream.a
 endif
 
 ifeq (1,$(MKL_DIRECT))
