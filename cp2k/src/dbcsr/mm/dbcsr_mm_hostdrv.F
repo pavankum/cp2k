@@ -277,25 +277,21 @@ CONTAINS
     CASE (mm_driver_xsmm)
        SELECT CASE (this%data_area%d%data_type)
        CASE (dbcsr_type_real_4)
-          CALL xsmm_process_mm_stack_s (stack_descr, params, &
-               stack_size, &
+          CALL xsmm_process_mm_stack_s (stack_descr, params, stack_size, &
                left%data_area%d%r_sp, right%data_area%d%r_sp, this%data_area%d%r_sp,&
-               error=error)
+               error)
        CASE (dbcsr_type_real_8)
-          CALL xsmm_process_mm_stack_d (stack_descr, params,&
-               stack_size,&
+          CALL xsmm_process_mm_stack_d (stack_descr, params, stack_size,&
                left%data_area%d%r_dp, right%data_area%d%r_dp, this%data_area%d%r_dp,&
-               error=error)
+               error)
        CASE (dbcsr_type_complex_4)
-          CALL smm_process_mm_stack_c (stack_descr, params,&
-               stack_size,&
+          CALL smm_process_mm_stack_c (stack_descr, params, stack_size,&
                left%data_area%d%c_sp, right%data_area%d%c_sp, this%data_area%d%c_sp,&
-               error=error)
+               error)
        CASE (dbcsr_type_complex_8)
-          CALL smm_process_mm_stack_z (stack_descr, params,&
-               stack_size,&
+          CALL smm_process_mm_stack_z (stack_descr, params, stack_size,&
                left%data_area%d%c_dp, right%data_area%d%c_dp, this%data_area%d%c_dp,&
-               error=error)
+               error)
        CASE default
           CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_caller_error,&
                routineN, "Invalid data type",__LINE__,error)
