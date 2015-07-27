@@ -142,6 +142,8 @@ MODULE dbcsr_config
   ! Which driver to use for matrix multiplications.
 #if defined (__DBCSR_ACC)
   INTEGER, SAVE :: mm_driver = mm_driver_acc
+#elif defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+  INTEGER, SAVE :: mm_driver = mm_driver_xsmm
 #else
   INTEGER, SAVE :: mm_driver = mm_driver_smm
 #endif
