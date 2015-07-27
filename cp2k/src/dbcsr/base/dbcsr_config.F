@@ -56,6 +56,9 @@ MODULE dbcsr_config
             mm_driver_blas,&
             mm_driver_matmul,&
             mm_driver_smm,&
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+            mm_driver_xsmm,&
+#endif
             mm_driver_acc
   PUBLIC :: mm_async
   PUBLIC :: mm_name_blas,&
@@ -83,12 +86,18 @@ MODULE dbcsr_config
   INTEGER, PARAMETER :: mm_driver_matmul     = 1
   INTEGER, PARAMETER :: mm_driver_blas       = 2
   INTEGER, PARAMETER :: mm_driver_smm        = 3
-  INTEGER, PARAMETER :: mm_driver_acc       = 5
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+  INTEGER, PARAMETER :: mm_driver_xsmm       = 4
+#endif
+  INTEGER, PARAMETER :: mm_driver_acc        = 5
 
   CHARACTER(len=*), PARAMETER :: mm_name_blas   = "BLAS",&
                                  mm_name_matmul = "MATMUL",&
                                  mm_name_smm    = "SMM",&
-                                 mm_name_acc   = "ACC"
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+                                 mm_name_xsmm   = "XSMM",&
+#endif
+                                 mm_name_acc    = "ACC"
 
   ! Then the capabilities are specified.
 
@@ -135,7 +144,11 @@ MODULE dbcsr_config
 #endif
 
   ! Which driver to use for matrix multiplications (on the host).
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+  INTEGER, SAVE :: mm_host_driver = mm_driver_xsmm
+#else
   INTEGER, SAVE :: mm_host_driver = mm_driver_smm
+#endif
 
   ! Whether an accelerator is used.
   LOGICAL, SAVE :: mm_async = .FALSE.
@@ -222,6 +235,10 @@ CONTAINS
        mm_driver = mm_driver_blas
     CASE (mm_driver_smm)
        mm_driver = mm_driver_smm
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+    CASE (mm_driver_xsmm)
+       mm_driver = mm_driver_xsmm
+#endif
     CASE (mm_driver_acc)
        CALL dbcsr_assert (has_acc,&
             dbcsr_fatal_level, dbcsr_caller_error, routineN,&
@@ -234,7 +251,11 @@ CONTAINS
     END SELECT
     mm_async = driver_is_async (mm_driver)
     IF (mm_async) THEN
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+       mm_host_driver = mm_driver_xsmm
+#else
        mm_host_driver = mm_driver_smm
+#endif
     ELSE
        mm_host_driver = mm_driver
     ENDIF

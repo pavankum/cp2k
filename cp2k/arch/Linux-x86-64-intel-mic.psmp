@@ -174,13 +174,6 @@ ifneq (,$(LIBXSMMROOT))
   DFLAGS  += -D__LIBXSMM
   IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
   LIBS    += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/intel64/libxsmm.a
-
-  ifeq (0,$(OFFLOAD))
-    ifeq (0,$(ACC))
-      LDFLAGS += -Wl,--wrap=dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s_
-      LDFLAGS += -Wl,--wrap=dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d_
-    endif
-  endif
 endif
 
 ifneq (,$(LIBXSTREAMROOT))

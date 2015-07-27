@@ -20,38 +20,28 @@
 
 
 #if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s)(const void*, const int*, const int*, const float*, const float*, float*, void*);
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d)(const void*, const int*, const int*, const double*, const double*, double*, void*);
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s)(const void*, const int*, const int*, const float*, const float*, float*, void*);
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d)(const void*, const int*, const int*, const double*, const double*, double*, void*);
 
 
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s)(const void* stack_descr, const int* params, const int* stack_size, const float* a_data, const float* b_data, float* c_data, void* error)
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s)(const void* stack_descr, const int* params, const int* stack_size, const float* a_data, const float* b_data, float* c_data, void* error)
 {
-  static const char *const env = getenv("LIBXSMM_ACC_INTERCEPT");
-  static const bool intercept = (env && *env) ? (0 != atoi(env)) : false/*default*/;
-
-  if (intercept) {
-#if 0
-    const int result = libsmm_acc_process(void *param_stack, stack_size, LIBXSMM_ACC_NPARAMS, DBCSR_ELEM_F32, a_data, b_data, c_data,
-      int m_max, int n_max, int k_max, int def_mnk, 0);
+#if 0 // TODO
+  const int result = libsmm_acc_process(void *param_stack, stack_size, LIBXSMM_ACC_NPARAMS, DBCSR_ELEM_F32, a_data, b_data, c_data,
+    int m_max, int n_max, int k_max, int def_mnk, 0);
+#else
+  LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
 #endif
-  }
-  else { // original code
-    LIBXSMM_ACC_FSYMBOL(__real_dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
-  }
 }
 
 
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d)(const void* stack_descr, const int* params, const int* stack_size, const double* a_data, const double* b_data, double* c_data, void* error)
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d)(const void* stack_descr, const int* params, const int* stack_size, const double* a_data, const double* b_data, double* c_data, void* error)
 {
-  static const char *const env = getenv("LIBXSMM_ACC_INTERCEPT");
-  static const bool intercept = (env && *env) ? (0 != atoi(env)) : false/*default*/;
-
-  if (intercept) {
+#if 0
     // TODO
-  }
-  else { // original code
-    LIBXSMM_ACC_FSYMBOL(__real_dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
-  }
+#else
+  LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
+#endif
 }
 #endif
 
