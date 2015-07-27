@@ -63,7 +63,11 @@ MKL ?= 2
 MKL_DIRECT ?= 0
 MKL_STATIC ?= 1
 RECONFIGURE ?= 1
+
 OFFLOAD ?= $(ACC)
+ifeq ($(OFFLOAD),0)
+	MIC ?= 0
+endif
 
 # initial build flags
 CPPFLAGS  = $(NULL)
