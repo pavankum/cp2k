@@ -64,6 +64,9 @@ MODULE dbcsr_config
   PUBLIC :: mm_name_blas,&
             mm_name_matmul,&
             mm_name_smm,&
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+            mm_name_xsmm,&
+#endif
             mm_name_acc
   PUBLIC :: use_mpi_rma, use_mpi_filtering, use_comm_thread, comm_thread_load
   PUBLIC :: max_elements_per_block, avg_elements_images
