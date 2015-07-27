@@ -93,6 +93,9 @@ MODULE cp_dbcsr_interface
        get_selected_ritz_vector, has_acc, has_mpi, heap_fill, heap_get_first, &
        heap_new, heap_release, heap_reset_first, heap_t, mm_driver_acc, &
        mm_driver_blas, mm_driver_matmul, mm_driver_smm, mm_name_acc, &
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+       mm_driver_xsmm, mm_name_xsmm, &
+#endif
        mm_name_blas, mm_name_matmul, mm_name_smm, multrec_limit, &
        set_arnoldi_initial_vector, setup_arnoldi_data, swap
   USE kinds,                           ONLY: default_string_length,&
@@ -227,6 +230,9 @@ MODULE cp_dbcsr_interface
             dbcsr_get_conf_mm_driver, dbcsr_get_conf_mpi_mem,&
             mm_driver_acc,&
             mm_driver_blas, mm_driver_matmul, mm_driver_smm,&
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+            mm_driver_xsmm, mm_name_xsmm,&
+#endif
             mm_name_acc, mm_name_blas, mm_name_matmul,&
             mm_name_smm, multrec_limit
   PUBLIC :: heap_fill,&

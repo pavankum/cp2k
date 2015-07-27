@@ -35,6 +35,9 @@ MODULE cp_dbcsr_cp2k_link
        dbcsr_set_conf_use_comm_thread, dbcsr_set_conf_use_mpi_filtering, &
        dbcsr_set_conf_use_mpi_rma, dbcsr_type_no_symmetry, has_acc, has_mpi, &
        mm_driver_acc, mm_driver_blas, mm_driver_matmul, mm_driver_smm, &
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+       mm_driver_xsmm, mm_name_xsmm, &
+#endif
        mm_name_acc, mm_name_blas, mm_name_matmul, mm_name_smm, multrec_limit
   USE input_constants,                 ONLY: use_orb_basis_set
   USE input_section_types,             ONLY: section_vals_get_subs_vals,&
@@ -199,7 +202,10 @@ CONTAINS
        CASE(mm_driver_blas)   ; mm_name = mm_name_blas
        CASE(mm_driver_matmul) ; mm_name = mm_name_matmul
        CASE(mm_driver_smm)    ; mm_name = mm_name_smm
-       CASE(mm_driver_acc)   ; mm_name = mm_name_acc
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+       CASE(mm_driver_xsmm)   ; mm_name = mm_name_xsmm
+#endif
+       CASE(mm_driver_acc)    ; mm_name = mm_name_acc
        END SELECT
        WRITE(UNIT=unit_num, FMT='(1X,A,T41,A40)')&
         "DBCSR| Multiplication driver", ADJUSTR(mm_name(1:40))
