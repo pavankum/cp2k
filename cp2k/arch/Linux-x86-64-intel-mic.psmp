@@ -188,7 +188,6 @@ ifneq (0,$(ACC))
     ifeq (0,$(OFFLOAD))
       OPTFLAGS += -no-offload
       LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
-      RECONFIGURE = 0
     else # also true if OFFLOAD is undefined
       #OPTFLAGS += -offload=mandatory
       # enable OpenMP for OFFLOAD regardless of wether OMP is enabled or not
@@ -210,7 +209,6 @@ else
   ifeq (0,$(OFFLOAD))
     OPTFLAGS += -no-offload
     LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
-    RECONFIGURE = 0
   endif
 
   # save some build time

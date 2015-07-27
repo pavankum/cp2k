@@ -96,14 +96,24 @@
  */
 #define LIBXSMM_ACC_SYNCHRONIZATION 1
 
-/** Determines if CP2K/ACC is reconfigured. */
-#define LIBXSMM_ACC_STACKSIZE 1000000
-#define LIBXSMM_ACC_POSTERIOR_STREAMS 1
-#define LIBXSMM_ACC_POSTERIOR_BUFFERS 1
-#define LIBXSMM_ACC_PRIORITY_STREAMS 1
-#define LIBXSMM_ACC_PRIORITY_BUFFERS 1
-#define LIBXSMM_ACC_MIN_MFLOPS_PERSTACK 120
-#define LIBXSMM_ACC_MIN_NFLOPS_PERMM 0
+#if defined(__RECONFIGURE)
+/** Reconfigure property if non-zero. */
+# define LIBXSMM_ACC_STACKSIZE 1000000
+# if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
+/** Reconfigure property if non-zero. */
+#   define LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS 1
+/** Reconfigure property if non-zero. */
+#   define LIBXSMM_ACC_ACCDRV_POSTERIOR_BUFFERS 1
+/** Reconfigure property if non-zero. */
+#   define LIBXSMM_ACC_ACCDRV_PRIORITY_STREAMS 1
+/** Reconfigure property if non-zero. */
+#   define LIBXSMM_ACC_ACCDRV_PRIORITY_BUFFERS 1
+/** Reconfigure property if non-zero. */
+#   define LIBXSMM_ACC_ACCDRV_MIN_MFLOPS_PERSTACK 120
+/** Reconfigure property if non-zero. */
+#   define LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM 0
+# endif
+#endif // defined(__RECONFIGURE)
 
 /*#define LIBXSMM_ACC_PRETRANSPOSE*/
 /*#define LIBXSMM_ACC_MKLTRANS*/
