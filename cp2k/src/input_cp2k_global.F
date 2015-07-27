@@ -696,7 +696,7 @@ CONTAINS
          default_i_val=dbcsr_get_conf_mm_driver(),&
          enum_c_vals=s2a(mm_name_blas,mm_name_matmul,mm_name_smm,&
 #if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
-                       mm_name_xsmm,&
+                         mm_name_xsmm,&
 #endif
                          mm_name_acc),&
          enum_i_vals=(/mm_driver_blas,mm_driver_matmul,mm_driver_smm,&
@@ -708,6 +708,9 @@ CONTAINS
                        "Fortran MATMUL",&
                        "Library optimised for Small Matrix Multiplies "//&
                        "(requires the SMM library at link time)",&
+#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+                       "LIBXSMM based Small Matrix Multiplies",&
+#endif
                        "ACC (requires an accelerator backend)"),&
          error=error)
     CALL section_add_keyword(section,keyword,error=error)
