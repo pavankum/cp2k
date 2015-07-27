@@ -55,9 +55,9 @@ LIBXSMM_ACC_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, doub
 
 
 template<typename T, typename U>
-LIBXSMM_ACC_TARGET(mic) void kernel(const U* stack, const U* stacksize, const U* pm, const U* pn, T* matrix)
+LIBXSMM_ACC_TARGET(mic) void kernel(const U* stack, const U* pstacksize, const U* pm, const U* pn, T* matrix)
 {
-  const U m = *pm, n = *pn;
+  const U stacksize = *pstacksize, m = *pm, n = *pn;
 
 #if defined(_OPENMP)
 # pragma omp parallel for schedule(LIBXSMM_ACC_SCHEDULE)
@@ -88,7 +88,7 @@ LIBXSMM_ACC_TARGET(mic) void kernel(const U* stack, const U* stacksize, const U*
 }
 
 
-template<typename T, bool Complex, typename U>
+template<typename T, libxsmm_acc_bool_type Complex, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
 {
   LIBXSMM_ACC_CHECK_CONDITION(
@@ -131,18 +131,18 @@ LIBXSMM_ACC_EXTERN_C int libsmm_acc_transpose(void* trs_stack, int offset, int n
 
 #if defined(LIBXSMM_ACC_PRETRANSPOSE)
   const int *const stack = static_cast<const int*>(trs_stack);
-  switch(static_cast<dbcsr_elem_type>(datatype)) {
-    case DBCSR_ELEM_F32: {
+  switch(static_cast<libxsmm_acc_elem_type>(datatype)) {
+    case LIBXSMM_ACC_ELEM_F32: {
       result = libxsmm_transpose_private::transpose<float,false>(stack, offset, nblks, m, n, buffer, stream);
     } break;
-    case DBCSR_ELEM_F64: {
+    case LIBXSMM_ACC_ELEM_F64: {
       result = libxsmm_transpose_private::transpose<double,false>(stack, offset, nblks, m, n, buffer, stream);
     } break;
-    case DBCSR_ELEM_C32: {
+    case LIBXSMM_ACC_ELEM_C32: {
       LIBXSMM_ACC_ASSERT(false/*TODO: not implemented yet*/);
       result = LIBXSMM_ACC_ERROR_CONDITION;
     } break;
-    case DBCSR_ELEM_C64: {
+    case LIBXSMM_ACC_ELEM_C64: {
       LIBXSMM_ACC_ASSERT(false/*TODO: not implemented yet*/);
       result = LIBXSMM_ACC_ERROR_CONDITION;
     } break;

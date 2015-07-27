@@ -273,7 +273,7 @@ LIBXSMM_ACC_TARGET(mic) void context(const U* stack, const U* stacksize, const U
 }
 
 
-template<typename T, bool Complex, typename U>
+template<typename T, libxsmm_acc_bool_type Complex, typename U>
 int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data, U def_mnk, void* stream)
 {
   LIBXSMM_ACC_CHECK_CONDITION(
@@ -329,8 +329,8 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
   if (LIBXSMM_ACC_ERROR_NONE == result) {
     const int *const stack = static_cast<const int*>(param_stack);
 
-    switch(static_cast<dbcsr_elem_type>(datatype)) {
-      case DBCSR_ELEM_F32: {
+    switch(static_cast<libxsmm_acc_elem_type>(datatype)) {
+      case LIBXSMM_ACC_ELEM_F32: {
 #if 0
         result = libxsmm_process_private::process<float,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
 #else
@@ -338,13 +338,13 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #endif
         result = LIBXSMM_ACC_ERROR_CONDITION;
       } break;
-      case DBCSR_ELEM_F64: {
+      case LIBXSMM_ACC_ELEM_F64: {
         result = libxsmm_process_private::process<double,false>(stack, stacksize, nparams, max_m, max_n, max_k, a_data, b_data, c_data, def_mnk, stream);
       } break;
-      case DBCSR_ELEM_C32: {
+      case LIBXSMM_ACC_ELEM_C32: {
         result = LIBXSMM_ACC_ERROR_CONDITION;
       } break;
-      case DBCSR_ELEM_C64: {
+      case LIBXSMM_ACC_ELEM_C64: {
         result = LIBXSMM_ACC_ERROR_CONDITION;
       } break;
       default:

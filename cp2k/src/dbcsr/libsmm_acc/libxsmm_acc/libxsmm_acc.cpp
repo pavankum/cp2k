@@ -20,28 +20,38 @@
 
 
 #if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s)(const void*, const int*, const int*, const float*, const float*, float*, void*);
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d)(const void*, const int*, const int*, const double*, const double*, double*, void*);
+namespace libxsmm_acc_private {
 
-
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_process_mm_stack_s)(const void* stack_descr, const int* params, const int* stack_size, const float* a_data, const float* b_data, float* c_data, void* error)
+template<typename T>
+void xsmm_process_mm_stack(const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize, const T* a, const T* b, T* c, void* error)
 {
-#if 0 // TODO
-  const int result = libsmm_acc_process(void *param_stack, stack_size, LIBXSMM_ACC_NPARAMS, DBCSR_ELEM_F32, a_data, b_data, c_data,
-    int m_max, int n_max, int k_max, int def_mnk, 0);
-#else
-  LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_smm_process_mm_stack_s)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
-#endif
+  int result = LIBXSMM_ACC_ERROR_CONDITION;
+
+  if (0 != descriptor && 0 != params && 0 != stacksize && 0 != a && 0 != b && 0 != c) {
+    result = libsmm_acc_process( // TODO: fix const-correctness in libsmm_acc.h
+      const_cast<int*>(params), *stacksize, LIBXSMM_ACC_NPARAMS, libxsmm_acc_elem<T,false>::type, const_cast<T*>(a), const_cast<T*>(b), c,
+      descriptor->max_m, descriptor->max_n, descriptor->max_k, descriptor->defined_mnk, 0/*stream*/);
+  }
+
+  if (0 != error && LIBXSMM_ACC_ERROR_NONE != result) {
+    exit(result); // TODO: rely on CP2K's error handling
+  }
+}
+
+} // namespace libxsmm_acc_private
+
+
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_process_mm_stack_s)(const libxsmm_acc_stackdesc_type* descriptor,
+  const int* params, const int* stacksize, const float* a, const float* b, float* c, void* error)
+{
+  libxsmm_acc_private::xsmm_process_mm_stack(descriptor, params, stacksize, a, b, c, error);
 }
 
 
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_process_mm_stack_d)(const void* stack_descr, const int* params, const int* stack_size, const double* a_data, const double* b_data, double* c_data, void* error)
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_process_mm_stack_d)(const libxsmm_acc_stackdesc_type* descriptor,
+  const int* params, const int* stacksize, const double* a, const double* b, double* c, void* error)
 {
-#if 0
-    // TODO
-#else
-  LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_smm_process_mm_stack_d)(stack_descr, params, stack_size, a_data, b_data, c_data, error);
-#endif
+  libxsmm_acc_private::xsmm_process_mm_stack(descriptor, params, stacksize, a, b, c, error);
 }
 #endif
 
@@ -62,7 +72,7 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
   LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver, error);
 
   static const char *const env = getenv("LIBXSMM_ACC_RECONFIGURE");
-  static const bool reconfigure = (env && *env) ? (0 != atoi(env)) : true/*default*/;
+  static const libxsmm_acc_bool_type reconfigure = (env && *env) ? (0 != atoi(env)) : true/*default*/;
 
   if (reconfigure) {
     const int stacksize = LIBXSMM_ACC_STACKSIZE;

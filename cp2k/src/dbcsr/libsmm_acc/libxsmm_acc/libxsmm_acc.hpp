@@ -11,9 +11,9 @@
 #define LIBXSMM_ACC_HPP
 
 #if defined(__LIBXSMM) || (defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#include "../include/libsmm_acc.h"
 
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-# include "../include/libsmm_acc.h"
 # include "../../../acc/mic/libmicacc.h"
 #endif
 
@@ -108,23 +108,31 @@
 /*#define LIBXSMM_ACC_PRETRANSPOSE*/
 /*#define LIBXSMM_ACC_MKLTRANS*/
 
+typedef bool libxsmm_acc_bool_type;
 
-typedef enum dbcsr_elem_type {
-  DBCSR_ELEM_UNKNOWN = 0,
-  DBCSR_ELEM_F32 = 1, DBCSR_ELEM_F64 = 3,
-  DBCSR_ELEM_C32 = 5, DBCSR_ELEM_C64 = 7
-} dbcsr_elem_type;
+/** Must match stack_descriptor_type. */
+struct libxsmm_acc_stackdesc_type {
+  int m, n, k, max_m, max_n, max_k;
+  libxsmm_acc_bool_type defined_mnk;
+};
 
-template<typename T, bool Complex> struct dbcsr_elem  { static const dbcsr_elem_type type = DBCSR_ELEM_UNKNOWN;
-                                                        static const char* name() { return "unknown"; } };
-template<> struct dbcsr_elem<float,false>             { static const dbcsr_elem_type type = DBCSR_ELEM_F32;
-                                                        static const char* name() { return "f32"; } };
-template<> struct dbcsr_elem<double,false>            { static const dbcsr_elem_type type = DBCSR_ELEM_F64;
-                                                        static const char* name() { return "f64"; } };
-template<> struct dbcsr_elem<float,true>              { static const dbcsr_elem_type type = DBCSR_ELEM_C32;
-                                                        static const char* name() { return "c32"; } };
-template<> struct dbcsr_elem<double,true>             { static const dbcsr_elem_type type = DBCSR_ELEM_C64;
-                                                        static const char* name() { return "c64"; } };
+enum libxsmm_acc_elem_type {
+  LIBXSMM_ACC_ELEM_UNKNOWN = 0,
+  LIBXSMM_ACC_ELEM_F32 = 1, LIBXSMM_ACC_ELEM_F64 = 3,
+  LIBXSMM_ACC_ELEM_C32 = 5, LIBXSMM_ACC_ELEM_C64 = 7
+};
+
+template<typename T, libxsmm_acc_bool_type Complex> struct libxsmm_acc_elem {
+                                                    static const libxsmm_acc_elem_type type = LIBXSMM_ACC_ELEM_UNKNOWN;
+                                                    static const char* name() { return "unknown"; } };
+template<> struct libxsmm_acc_elem<float,false>   { static const libxsmm_acc_elem_type type = LIBXSMM_ACC_ELEM_F32;
+                                                    static const char* name() { return "f32"; } };
+template<> struct libxsmm_acc_elem<double,false>  { static const libxsmm_acc_elem_type type = LIBXSMM_ACC_ELEM_F64;
+                                                    static const char* name() { return "f64"; } };
+template<> struct libxsmm_acc_elem<float,true>    { static const libxsmm_acc_elem_type type = LIBXSMM_ACC_ELEM_C32;
+                                                    static const char* name() { return "c32"; } };
+template<> struct libxsmm_acc_elem<double,true>   { static const libxsmm_acc_elem_type type = LIBXSMM_ACC_ELEM_C64;
+                                                    static const char* name() { return "c64"; } };
 
 #endif // defined(__LIBXSMM) || (defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
 #endif // LIBXSMM_ACC_HPP
