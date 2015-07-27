@@ -13,6 +13,7 @@
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # include <libxstream_begin.h>
 #endif
+#include <cstddef>
 #include <cassert>
 #if defined(LIBXSMM_ACC_OPENMP)
 # include <omp.h>
