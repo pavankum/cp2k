@@ -77,6 +77,11 @@
 /** Number of parameters per stack entry. */
 #define LIBXSMM_ACC_NPARAMS 7
 
+/** Nested parallelism. */
+#if defined(_OPENMP) && defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
+# define LIBXSMM_ACC_OPENMP
+#endif
+
 /**
  * Ensures an amortized synchronization overhead.
  * >0: maximum number of locally processed MM

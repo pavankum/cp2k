@@ -13,8 +13,8 @@
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # include <libxstream_begin.h>
 #endif
-#include <cstdio>
-#if defined(_OPENMP)
+#include <cassert>
+#if defined(LIBXSMM_ACC_OPENMP)
 # include <omp.h>
 #endif
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
@@ -59,7 +59,7 @@ LIBXSMM_ACC_TARGET(mic) void kernel(const U* stack, const U* pstacksize, const U
 {
   const U stacksize = *pstacksize, m = *pm, n = *pn;
 
-#if defined(_OPENMP)
+#if defined(LIBXSMM_ACC_OPENMP)
 # pragma omp parallel for schedule(LIBXSMM_ACC_SCHEDULE)
 #endif
   for (U s = 0; s < stacksize; ++s) {

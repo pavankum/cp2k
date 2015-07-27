@@ -16,8 +16,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
-#include <cstdio>
-#if defined(_OPENMP)
+#if defined(LIBXSMM_ACC_OPENMP)
 # include <omp.h>
 #endif
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
@@ -40,7 +39,7 @@ LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_TARGET(mic) void LIBXSMM_ACC_FSYMBOL(sgemm)(
 
 namespace libxsmm_process_private {
 
-#if defined(_OPENMP) && defined(LIBXSMM_ACC_SYNCHRONIZATION) && (1 < (LIBXSMM_ACC_SYNCHRONIZATION))
+#if defined(LIBXSMM_ACC_OPENMP) && defined(LIBXSMM_ACC_SYNCHRONIZATION) && (1 < (LIBXSMM_ACC_SYNCHRONIZATION))
 LIBXSMM_ACC_TARGET(mic) class LIBXSMM_ACC_TARGET(mic) lock_type {
 public:
   lock_type() {
@@ -99,7 +98,7 @@ public:
   }
 
   void copy_c(const T *LIBXSMM_ACC_RESTRICT c, T *LIBXSMM_ACC_RESTRICT out) const {
-#if defined(_OPENMP) && defined(LIBXSMM_ACC_SYNCHRONIZATION) && (0 < (LIBXSMM_ACC_SYNCHRONIZATION))
+#if defined(LIBXSMM_ACC_OPENMP) && defined(LIBXSMM_ACC_SYNCHRONIZATION) && (0 < (LIBXSMM_ACC_SYNCHRONIZATION))
 # if (1 == (LIBXSMM_ACC_SYNCHRONIZATION))
 #   pragma omp critical(libxsmm_process)
 # else
@@ -112,14 +111,14 @@ public:
         LIBXSMM_ACC_PRAGMA_LOOP_COUNT(1, LIBXSMM_ACC_LOOP_MAX_M, LIBXSMM_ACC_LOOP_AVG_M)
         for (U i = 0; i < m_m; ++i) {
           const T value = c[j*m_ldc+i];
-#if defined(_OPENMP) && (!defined(LIBXSMM_ACC_SYNCHRONIZATION) || (0 == (LIBXSMM_ACC_SYNCHRONIZATION)))
+#if defined(LIBXSMM_ACC_OPENMP) && (!defined(LIBXSMM_ACC_SYNCHRONIZATION) || (0 == (LIBXSMM_ACC_SYNCHRONIZATION)))
 #         pragma omp atomic
 #endif
           out[j*m_m+i] += value;
         }
       }
     }
-#if defined(_OPENMP) && defined(LIBXSMM_ACC_SYNCHRONIZATION) && (1 < (LIBXSMM_ACC_SYNCHRONIZATION))
+#if defined(LIBXSMM_ACC_OPENMP) && defined(LIBXSMM_ACC_SYNCHRONIZATION) && (1 < (LIBXSMM_ACC_SYNCHRONIZATION))
     lock.release(out);
 #endif
   }
@@ -184,7 +183,7 @@ LIBXSMM_ACC_TARGET(mic) void work_basic(const U *LIBXSMM_ACC_RESTRICT stack, siz
 {
   const int nstacksize = static_cast<int>(stacksize * N);
 
-#if defined(_OPENMP)
+#if defined(LIBXSMM_ACC_OPENMP)
 # pragma omp parallel for schedule(LIBXSMM_ACC_SCHEDULE)
 #endif
   for (int n = 0; n < nstacksize; n += ((LIBXSMM_ACC_NLOCAL) * N)) {
@@ -236,7 +235,7 @@ LIBXSMM_ACC_TARGET(mic) void work_planned(const U *LIBXSMM_ACC_RESTRICT stack, U
       colspan[++size] = n + N;
     }
 
-#if defined(_OPENMP)
+#if defined(LIBXSMM_ACC_OPENMP)
 #   pragma omp parallel for schedule(LIBXSMM_ACC_SCHEDULE)
 #endif
     for (int i = 0; i < size; ++i) {
