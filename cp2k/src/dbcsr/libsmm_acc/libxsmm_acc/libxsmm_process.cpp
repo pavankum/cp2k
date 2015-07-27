@@ -316,9 +316,9 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #if defined(LIBXSMM_ACC_PRETRANSPOSE)
   LIBXSMM_ACC_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
 #endif
-#if defined(__RECONFIGURE)
+#if defined(__RECONFIGURE) && defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
   const int mflops = static_cast<int>(2E-6 * stacksize * max_m * max_n * max_k + 0.5);
-  int result = (LIBXSMM_ACC_MIN_MFLOPS_PERSTACK) <= mflops ? LIBXSMM_ACC_ERROR_NONE : LIBXSMM_ACC_NOT_SUPPORTED;
+  int result = (LIBXSMM_ACC_ACCDRV_MIN_MFLOPS_PERSTACK) <= mflops ? LIBXSMM_ACC_ERROR_NONE : LIBXSMM_ACC_NOT_SUPPORTED;
 #else
   int result = LIBXSMM_ACC_ERROR_NONE;
 #endif
