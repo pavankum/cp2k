@@ -59,7 +59,7 @@ OCL ?= 0
 SYM ?= 0
 DBG ?= 0
 IPO ?= 0
-MKL ?= 2
+MKL ?= 1
 MKL_DIRECT ?= 0
 MKL_STATIC ?= 1
 RECONFIGURE ?= 1
@@ -152,27 +152,33 @@ ifneq (,$(LIBXCROOT))
 endif
 
 ifneq (,$(LIBXSMMROOT))
+  ifeq (,$(LIBXSMM_MNK))
+    ifeq (,$(MNK))
+      LIBXSMM_MNK := " \
+        23, \
+        6, \
+        14 16 29, \
+        14 32 29, \
+        5 32 13 24 26, \
+        9 32 22, \
+        32, \
+        64, \
+        78, \
+        16 29 55, \
+        32 29 55, \
+        12, \
+        13 26 28 32 45"
+    else
+      LIBXSMM_MNK := $(MNK)
+    endif
+  endif
   LIBXSMM_BUILD := $(shell $(MAKE) -f $(LIBXSMMROOT)/Makefile \
     INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
     BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
     BINDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/bin \
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib \
-    SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) \
-    OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
-    ROW_MAJOR=0 ALIGNED_STORES=1 MNK=" \
-    23, \
-    6, \
-    14 16 29, \
-    14 32 29, \
-    5 32 13 24 26, \
-    9 32 22, \
-    32, \
-    64, \
-    78, \
-    16 29 55, \
-    32 29 55, \
-    12, \
-    13 26 28 32 45" \
+    SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
+    ROW_MAJOR=0 ALIGNED_STORES=1 MNK=$(LIBXSMM_MNK) \
   >&2)
 
   DFLAGS  += -D__LIBXSMM
