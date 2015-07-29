@@ -61,7 +61,7 @@ LIBXSMM_ACC_TARGET(mic) void kernel(const U* stack, const U* pstacksize, const U
   const U stacksize = *pstacksize, m = *pm, n = *pn;
 
 #if defined(LIBXSMM_ACC_OPENMP)
-# pragma omp parallel for schedule(LIBXSMM_ACC_SCHEDULE)
+# pragma omp parallel for LIBXSMM_ACC_SCHEDULE
 #endif
   for (U s = 0; s < stacksize; ++s) {
     T *const mat = matrix + stack[s];

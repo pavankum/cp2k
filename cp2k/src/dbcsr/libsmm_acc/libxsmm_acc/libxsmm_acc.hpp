@@ -80,7 +80,7 @@
 #define LIBXSMM_ACC_NPARAMS 7
 
 /** Nested parallelism. */
-#if defined(_OPENMP) && defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
+#if defined(_OPENMP) //&& defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # define LIBXSMM_ACC_OPENMP
 #endif
 
@@ -90,10 +90,18 @@
  * =0: process MM using a plan
  * <0: adaptive MM-processing
  */
-#define LIBXSMM_ACC_NLOCAL 128
+#if defined(__MIC__)
+# define LIBXSMM_ACC_NLOCAL 128
+#else
+# define LIBXSMM_ACC_NLOCAL 16
+#endif
 
 /** OpenMP scheduling policy (and chunk size) */
-#define LIBXSMM_ACC_SCHEDULE dynamic
+#if defined(__MIC__)
+# define LIBXSMM_ACC_SCHEDULE schedule(dynamic)
+#else
+# define LIBXSMM_ACC_SCHEDULE
+#endif
 
 /**
  * Synchronization mechanism.
@@ -101,7 +109,11 @@
  * =1: omp critical
  * =0: atomic
  */
-#define LIBXSMM_ACC_SYNCHRONIZATION 1
+#if defined(__MIC__)
+# define LIBXSMM_ACC_SYNCHRONIZATION 1
+#else
+# define LIBXSMM_ACC_SYNCHRONIZATION 16
+#endif
 
 #if defined(__RECONFIGURE)
 /** Reconfigure property if non-zero. */

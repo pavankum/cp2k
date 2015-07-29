@@ -180,7 +180,7 @@ LIBXSMM_ACC_TARGET(mic) void work_basic(const U *LIBXSMM_ACC_RESTRICT stack, siz
   const int nstacksize = static_cast<int>(stacksize * N);
 
 #if defined(LIBXSMM_ACC_OPENMP)
-# pragma omp parallel for schedule(LIBXSMM_ACC_SCHEDULE)
+# pragma omp parallel for LIBXSMM_ACC_SCHEDULE
 #endif
   for (int n = 0; n < nstacksize; n += ((LIBXSMM_ACC_NLOCAL) * N)) {
     LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_RESULT_SIZE], LIBXSMM_ACC_ALIGNED_MAX);
@@ -232,7 +232,7 @@ LIBXSMM_ACC_TARGET(mic) void work_planned(const U *LIBXSMM_ACC_RESTRICT stack, U
     }
 
 #if defined(LIBXSMM_ACC_OPENMP)
-#   pragma omp parallel for schedule(LIBXSMM_ACC_SCHEDULE)
+#   pragma omp parallel for LIBXSMM_ACC_SCHEDULE
 #endif
     for (int i = 0; i < size; ++i) {
       const U j0 = colspan[i], j1 = colspan[i+1];
