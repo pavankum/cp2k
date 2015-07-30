@@ -59,6 +59,8 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_process_mm_stack_d)(const lib
 #if defined(__RECONFIGURE)
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*, void*);
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*, void*);
+extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
+extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load);
 
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
@@ -81,6 +83,12 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 #if 0 < (LIBXSMM_ACC_STACKSIZE)
     const int stacksize = LIBXSMM_ACC_STACKSIZE;
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize, error);
+#endif
+#if 0 < (LIBXSMM_ACC_MULTREC_LIMIT)
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = LIBXSMM_ACC_MULTREC_LIMIT;
+#endif
+#if 0 < (LIBXSMM_ACC_COMM_THREAD_LOAD)
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load) = LIBXSMM_ACC_COMM_THREAD_LOAD;
 #endif
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # if 0 < (LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS)
