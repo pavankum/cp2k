@@ -126,7 +126,7 @@ ifneq (0,$(MPI))
   ifneq (1,$(MPI))
     DFLAGS += -D__MPI_VERSION=$(MPI)
   else
-    DFLAGS += -D__MPI_VERSION=MPI_VERSION
+    DFLAGS += -D__MPI_VERSION=3
   endif
 else
   CXX = icpc
