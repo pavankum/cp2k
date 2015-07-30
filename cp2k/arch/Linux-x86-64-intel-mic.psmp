@@ -122,9 +122,11 @@ ifneq (0,$(MPI))
   FC  = mpiifort
   LD  = mpiifort
   DFLAGS += -D__parallel -D__BLACS -D__SCALAPACK
+  #DFLAGS += -D__SCALAPACK2
   ifneq (1,$(MPI))
-    DFLAGS += -D__MPI_VERSION=3
-    DFLAGS += -D__SCALAPACK2
+    DFLAGS += -D__MPI_VERSION=$(MPI)
+  else
+    DFLAGS += -D__MPI_VERSION=MPI_VERSION
   endif
 else
   CXX = icpc
