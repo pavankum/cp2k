@@ -92,8 +92,13 @@ LIBXSMM_ACC_TARGET(mic) void kernel(const U* stack, const U* pstacksize, const U
 template<typename T, libxsmm_acc_bool_type Complex, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
 {
-  LIBXSMM_ACC_CHECK_CONDITION(0 != stack && 0 != data && 0 <= offset && 0 <= nblocks
-    && LIBXSMM_ACC_MAX_MATRIX_SIZE >= (m * n) && 0 <= m && 0 <= n);
+#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
+  LIBXSMM_ACC_CHECK_CONDITION(0 != stream &&
+#else
+  LIBXSMM_ACC_CHECK_CONDITION(
+#endif
+    0 != stack && 0 != data && 0 <= offset && 0 <= nblocks &&
+    LIBXSMM_ACC_MAX_MATRIX_SIZE >= (m * n) && 0 <= m && 0 <= n);
 
   if (1 < m || 1 < n) {
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)

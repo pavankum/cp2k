@@ -271,9 +271,14 @@ LIBXSMM_ACC_TARGET(mic) void context(const U* stack, const U* stacksize, const U
 template<typename T, libxsmm_acc_bool_type Complex, typename U>
 int process(const U* stack, U stacksize, U nparams, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data, U def_mnk, void* stream)
 {
-  LIBXSMM_ACC_CHECK_CONDITION(0 != stack && 0 <= stacksize && LIBXSMM_ACC_NPARAMS == nparams
-    && 0 != def_mnk && 0 <= max_m && 0 <= max_n && 0 <= max_k
-    && 0 != a_data && 0 != b_data && 0 != c_data);
+#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
+  LIBXSMM_ACC_CHECK_CONDITION(0 != stream &&
+#else
+  LIBXSMM_ACC_CHECK_CONDITION(
+#endif
+    0 != stack && 0 <= stacksize && LIBXSMM_ACC_NPARAMS == nparams &&
+    0 != def_mnk && 0 <= max_m && 0 <= max_n && 0 <= max_k &&
+    0 != a_data && 0 != b_data && 0 != c_data);
 
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
   const size_t shape = stacksize;
