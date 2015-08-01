@@ -56,7 +56,7 @@ MODULE dbcsr_config
             mm_driver_blas,&
             mm_driver_matmul,&
             mm_driver_smm,&
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
             mm_driver_xsmm,&
 #endif
             mm_driver_acc
@@ -64,7 +64,7 @@ MODULE dbcsr_config
   PUBLIC :: mm_name_blas,&
             mm_name_matmul,&
             mm_name_smm,&
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
             mm_name_xsmm,&
 #endif
             mm_name_acc
@@ -89,7 +89,7 @@ MODULE dbcsr_config
   INTEGER, PARAMETER :: mm_driver_matmul     = 1
   INTEGER, PARAMETER :: mm_driver_blas       = 2
   INTEGER, PARAMETER :: mm_driver_smm        = 3
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
   INTEGER, PARAMETER :: mm_driver_xsmm       = 4
 #endif
   INTEGER, PARAMETER :: mm_driver_acc        = 5
@@ -97,7 +97,7 @@ MODULE dbcsr_config
   CHARACTER(len=*), PARAMETER :: mm_name_blas   = "BLAS",&
                                  mm_name_matmul = "MATMUL",&
                                  mm_name_smm    = "SMM",&
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
                                  mm_name_xsmm   = "XSMM",&
 #endif
                                  mm_name_acc    = "ACC"
@@ -142,14 +142,14 @@ MODULE dbcsr_config
   ! Which driver to use for matrix multiplications.
 #if defined (__DBCSR_ACC)
   INTEGER, SAVE :: mm_driver = mm_driver_acc
-#elif defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#elif defined(__LIBXSMM)
   INTEGER, SAVE :: mm_driver = mm_driver_xsmm
 #else
   INTEGER, SAVE :: mm_driver = mm_driver_smm
 #endif
 
   ! Which driver to use for matrix multiplications (on the host).
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
   INTEGER, SAVE :: mm_host_driver = mm_driver_xsmm
 #else
   INTEGER, SAVE :: mm_host_driver = mm_driver_smm
@@ -240,7 +240,7 @@ CONTAINS
        mm_driver = mm_driver_blas
     CASE (mm_driver_smm)
        mm_driver = mm_driver_smm
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
     CASE (mm_driver_xsmm)
        mm_driver = mm_driver_xsmm
 #endif
@@ -256,7 +256,7 @@ CONTAINS
     END SELECT
     mm_async = driver_is_async (mm_driver)
     IF (mm_async) THEN
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
        mm_host_driver = mm_driver_xsmm
 #else
        mm_host_driver = mm_driver_smm

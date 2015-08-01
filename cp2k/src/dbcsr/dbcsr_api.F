@@ -45,7 +45,7 @@ MODULE dbcsr_api
        dbcsr_set_conf_use_mpi_filtering, dbcsr_set_conf_use_mpi_rma, &
        dbcsr_set_default_config, has_acc, has_mpi, mm_driver_acc, &
        mm_driver_blas, mm_driver_matmul, mm_driver_smm, mm_name_acc, &
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
        mm_driver_xsmm, mm_name_xsmm, &
 #endif
        mm_name_blas, mm_name_matmul, mm_name_smm, multrec_limit
@@ -357,7 +357,7 @@ MODULE dbcsr_api
             mm_name_acc,&
             mm_name_matmul,&
             mm_name_smm,&
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
             mm_driver_xsmm, mm_name_xsmm,&
 #endif
             multrec_limit,&

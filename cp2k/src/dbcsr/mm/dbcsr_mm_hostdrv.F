@@ -18,7 +18,7 @@ MODULE dbcsr_mm_hostdrv
                                              mm_driver_blas,&
                                              mm_driver_matmul,&
                                              mm_driver_smm,&
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
                                              mm_driver_xsmm,&
 #endif
                                              mm_host_driver
@@ -270,7 +270,7 @@ CONTAINS
           CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_caller_error,&
                routineN, "Invalid data type",__LINE__,error)
        END SELECT
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
     CASE (mm_driver_xsmm)
        SELECT CASE (this%data_area%d%data_type)
        CASE (dbcsr_type_real_4)
