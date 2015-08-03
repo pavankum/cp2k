@@ -19,7 +19,7 @@
 #endif
 
 
-#if defined(__LIBXSMM) && !(defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
+#if defined(__LIBXSMM)
 namespace libxsmm_acc_private {
 
 template<typename T>
