@@ -187,7 +187,7 @@ int acc_dev_mem_info(size_t* free, size_t* avail)
 {
   int device = -1, result = libxstream_get_active_device(&device);
   LIBXSTREAM_CHECK_ERROR(result);
-  result = libxstream_mem_info(device, free, avail);
+  result = libxstream_get_meminfo(device, free, avail);
   LIBXSTREAM_ASSERT(LIBXSTREAM_ERROR_NONE == result);
   return result;
 }
