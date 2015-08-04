@@ -92,29 +92,29 @@ LIBXSMM_ACC_TARGET(mic) void kernel(const U* stack, const U* pstacksize, const U
 template<typename T, libxsmm_acc_bool_type Complex, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
 {
-#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-  LIBXSMM_ACC_CHECK_CONDITION(0 != stream &&
-#else
   LIBXSMM_ACC_CHECK_CONDITION(
-#endif
     0 != stack && 0 != data && 0 <= offset && 0 <= nblocks &&
     LIBXSMM_ACC_MAX_MATRIX_SIZE >= (m * n) && 0 <= m && 0 <= n);
 
   if (1 < m || 1 < n) {
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-    const size_t stacksize = nblocks;
-    libxstream_argument* signature = 0;
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 0, stack + offset, libxstream_map_to<U>::type(), 1, &stacksize));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 1, &nblocks, libxstream_map_to<U>::type(), 0, 0));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 2,       &m, libxstream_map_to<U>::type(), 0, 0));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 3,       &n, libxstream_map_to<U>::type(), 0, 0));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 4,     data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
-    const libxstream_function libxsmm_acc_transpose_function = reinterpret_cast<libxstream_function>(kernel<T,U>);
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_call(libxsmm_acc_transpose_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
-#else // defined(__LIBXSMM)
-    kernel(stack + offset, &nblocks, &m, &n, static_cast<T*>(data))
+    if (0 != stream) {
+      const size_t stacksize = nblocks;
+      libxstream_argument* signature = 0;
+      LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
+      LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 0, stack + offset, libxstream_map_to<U>::type(), 1, &stacksize));
+      LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 1, &nblocks, libxstream_map_to<U>::type(), 0, 0));
+      LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 2,       &m, libxstream_map_to<U>::type(), 0, 0));
+      LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 3,       &n, libxstream_map_to<U>::type(), 0, 0));
+      LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 4,     data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
+      const libxstream_function libxsmm_acc_transpose_function = reinterpret_cast<libxstream_function>(kernel<T,U>);
+      LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_call(libxsmm_acc_transpose_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
+    }
+    else
 #endif
+    {
+      kernel(stack + offset, &nblocks, &m, &n, static_cast<T*>(data))
+    }
   }
 
   return LIBXSMM_ACC_ERROR_NONE;
