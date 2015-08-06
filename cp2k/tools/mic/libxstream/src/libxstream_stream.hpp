@@ -38,6 +38,7 @@
 #endif
 
 #if defined(LIBXSTREAM_EXPORTED) || defined(__LIBXSTREAM)
+#define LIBXSTREAM_STREAM_CACHED_REGCHECK
 
 
 class libxstream_workitem;
@@ -66,7 +67,10 @@ public:
   ~libxstream_stream();
 
 public:
-  int priority() const  { return m_priority; }
+  const libxstream_stream*volatile& registered() const;
+  libxstream_stream*volatile& registered();
+
+  int priority() const { return m_priority; }
 
   const libxstream_workqueue::entry_type* work() const { return m_queue.front(); }
   libxstream_workqueue::entry_type* work() { return m_queue.front(); }
@@ -85,7 +89,7 @@ public:
 
   const char* name() const {
 #if defined(LIBXSTREAM_INTERNAL_TRACE)
-    return *m_name ? m_name : 0;
+    return m_name;
 #else
     return 0;
 #endif
@@ -98,6 +102,9 @@ private:
 private:
 #if defined(LIBXSTREAM_INTERNAL_TRACE)
   char m_name[128];
+#endif
+#if defined(LIBXSTREAM_STREAM_CACHED_REGCHECK)
+  libxstream_stream*volatile* m_registered;
 #endif
   libxstream_workqueue m_queue;
   libxstream_signal m_pending;

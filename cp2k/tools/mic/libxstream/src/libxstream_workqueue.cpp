@@ -56,20 +56,23 @@ void libxstream_workqueue::entry_type::push(libxstream_workitem& workitem)
 int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
 {
   int result = LIBXSTREAM_ERROR_NONE;
+  const libxstream_workitem *const item = valid() ? m_item : 0;
+  const libxstream_stream*volatile *const stream = 0 != item ? item->stream() : 0;
+#if defined(LIBXSTREAM_SLEEP_CLIENT)
+  size_t cycle = 0;
+#endif
 
   if (any_status) {
     if (any || !valid()) {
+      while ((0 == stream || 0 != *stream) && 0 != m_item) {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
-      size_t cycle = 0;
-      while (0 != m_item) this_thread_wait(cycle);
+        this_thread_wait(cycle);
 #else
-      while (0 != m_item) this_thread_yield();
+        this_thread_yield();
 #endif
+      }
     }
-    else if (0 != m_item && m_item->thread() != this_thread_id()) {
-#if defined(LIBXSTREAM_SLEEP_CLIENT)
-      size_t cycle = 0;
-#endif
+    else if (0 != item && item->thread() != this_thread_id()) {
       do {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
         this_thread_wait(cycle);
@@ -77,22 +80,20 @@ int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
         this_thread_yield();
 #endif
       }
-      while (0 != m_item);
+      while ((0 == stream || 0 != *stream) && 0 != m_item);
     }
   }
   else {
     if (any || !valid()) {
+      while ((0 == stream || 0 != *stream) && (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status)) {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
-      size_t cycle = 0;
-      while (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status) this_thread_wait(cycle);
+        this_thread_wait(cycle);
 #else
-      while (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status) this_thread_yield();
+        this_thread_yield();
 #endif
+      }
     }
-    else if (0 != m_item && m_item->thread() != this_thread_id()) {
-#if defined(LIBXSTREAM_SLEEP_CLIENT)
-      size_t cycle = 0;
-#endif
+    else if (0 != item && item->thread() != this_thread_id()) {
       do {
 #if defined(LIBXSTREAM_SLEEP_CLIENT)
         this_thread_wait(cycle);
@@ -100,11 +101,11 @@ int libxstream_workqueue::entry_type::wait(bool any, bool any_status) const
         this_thread_yield();
 #endif
       }
-      while (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status);
+      while ((0 == stream || 0 != *stream) && (0 != m_item || LIBXSTREAM_ERROR_NONE != m_status));
     }
   }
 
-  if (LIBXSTREAM_NOT_AWORKITEM != m_status) {
+  if ((0 == stream || 0 != *stream) && LIBXSTREAM_NOT_AWORKITEM != m_status) {
     result = m_status;
   }
 
@@ -144,14 +145,16 @@ libxstream_workqueue::libxstream_workqueue()
 
 libxstream_workqueue::~libxstream_workqueue()
 {
+#if defined(LIBXSTREAM_INTERNAL_TRACE)
   size_t pending = 0;
+#endif
   for (size_t i = 0; i < LIBXSTREAM_MAX_QSIZE; ++i) {
-    pending += (0 == m_buffer[i].item()) ? 0 : 1;
+#if defined(LIBXSTREAM_INTERNAL_TRACE)
+    pending += 0 == m_buffer[i].item() ? 0 : 1;
+#endif
     delete m_buffer[i].dangling();
   }
-  if (0 < pending) {
-    LIBXSTREAM_PRINT(1, "%lu work item%s pending!", static_cast<unsigned long>(pending), 1 < pending ? "s are" : " is");
-  }
+  LIBXSTREAM_PRINT(0 < pending ? 1 : 0, "%lu work item%s pending!", static_cast<unsigned long>(pending), 1 < pending ? "s are" : " is");
 
 #if defined(LIBXSTREAM_STDFEATURES)
   delete static_cast<std::atomic<size_t>*>(m_position);

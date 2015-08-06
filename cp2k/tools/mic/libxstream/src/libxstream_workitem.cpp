@@ -141,12 +141,12 @@ public:
 
 private:
 #if defined(LIBXSTREAM_STDFEATURES) || defined(__GNUC__)
-  static void* run(void* scheduler)
+  static void* run(void* pscheduler)
 #else
-  static DWORD WINAPI run(_In_ LPVOID scheduler)
+  static DWORD WINAPI run(_In_ LPVOID pscheduler)
 #endif
   {
-    scheduler_type& s = *static_cast<scheduler_type*>(scheduler);
+    scheduler_type& s = *static_cast<scheduler_type*>(pscheduler);
     bool continue_run = true;
 
 #if defined(LIBXSTREAM_ASYNCHOST) && (201307 <= _OPENMP)
@@ -176,7 +176,7 @@ private:
     }
 
 #if defined(LIBXSTREAM_STDFEATURES) || defined(__GNUC__)
-    return scheduler;
+    return pscheduler;
 #else
     return EXIT_SUCCESS;
 #endif
@@ -199,11 +199,11 @@ private:
 
 
 libxstream_workitem::libxstream_workitem(libxstream_stream* stream, int flags, size_t argc, const arg_type argv[], const char* name)
-  : m_function(0)
-  , m_stream(stream)
+  : m_stream(0 != stream ? &stream->registered() : 0)
+  , m_function(0)
+  , m_event(0)
   , m_thread(this_thread_id())
   , m_flags(flags)
-  , m_event(0)
 #if defined(LIBXSTREAM_INTERNAL_DEBUG)
   , m_name(name)
 #endif

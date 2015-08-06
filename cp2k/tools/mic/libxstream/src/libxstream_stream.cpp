@@ -57,34 +57,41 @@ namespace libxstream_stream_internal {
 
 static/*IPO*/ class registry_type {
 public:
-  typedef libxstream_stream* value_type;
-
-public:
   registry_type()
-    : m_istreams(0)
+    : m_nstreams(0)
   {
     libxstream_alloc_init();
     std::fill_n(m_signals, LIBXSTREAM_MAX_NDEVICES, 0);
-    std::fill_n(m_streams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS), static_cast<value_type>(0));
+    std::fill_n(m_streams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS), static_cast<libxstream_stream*>(0));
   }
 
   ~registry_type() {
-    const size_t n = max_nstreams();
+    const size_t n = std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
+
     for (size_t i = 0; i < n; ++i) {
-#if defined(LIBXSTREAM_INTERNAL_DEBUG)
-      if (0 != m_streams[i]) {
-        LIBXSTREAM_PRINT(1, "stream=0x%llx (%s) is dangling!", reinterpret_cast<unsigned long long>(m_streams[i]), m_streams[i]->name());
-      }
+      const libxstream_stream* stream = m_streams[i];
+
+      if (0 != stream) {
+#if defined(LIBXSTREAM_INTERNAL_TRACE)
+        const char *const name = stream->name();
+        if (0 != name && 0 != *name) {
+          LIBXSTREAM_PRINT(1, "stream=0x%llx (%s) is dangling!", reinterpret_cast<unsigned long long>(stream), name);
+        }
+        else {
+          LIBXSTREAM_PRINT(1, "stream=0x%llx is dangling!", reinterpret_cast<unsigned long long>(stream));
+        }
 #endif
-      libxstream_stream_destroy(m_streams[i]);
+        libxstream_stream_destroy(m_streams[i]);
+      }
     }
   }
 
 public:
   size_t priority_range(int device, int& least, int& greatest) {
-    const size_t n = max_nstreams();
+    const size_t n = std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
+
     for (size_t i = 0; i < n; ++i) {
-      if (const value_type stream = m_streams[i]) {
+      if (const libxstream_stream *const stream = m_streams[i]) {
         const int stream_device = libxstream_stream::device(stream);
         if (stream_device == device) {
           const int priority = stream->priority();
@@ -95,7 +102,7 @@ public:
     }
     size_t result = 0;
     for (size_t i = 0; i < n; ++i) {
-      if (const value_type stream = m_streams[i]) {
+      if (const libxstream_stream *const stream = m_streams[i]) {
         const int stream_device = libxstream_stream::device(stream);
         if (stream_device == device) {
           const int priority = stream->priority();
@@ -103,38 +110,43 @@ public:
         }
       }
     }
+
     return result;
   }
 
-  volatile value_type& allocate() {
+  libxstream_stream*volatile& allocate() {
 #if !defined(LIBXSTREAM_STDFEATURES)
     libxstream_lock *const lock = libxstream_lock_get(this);
     libxstream_lock_acquire(lock);
 #endif
-    volatile value_type* i = m_streams + LIBXSTREAM_MOD2(m_istreams++, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
-    while (0 != *i) i = m_streams + LIBXSTREAM_MOD2(m_istreams++, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
+    libxstream_stream*volatile* i = m_streams + LIBXSTREAM_MOD2(m_nstreams++, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
+    while (0 != *i) i = m_streams + LIBXSTREAM_MOD2(m_nstreams++, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
 #if !defined(LIBXSTREAM_STDFEATURES)
     libxstream_lock_release(lock);
 #endif
     return *i;
   }
 
-  size_t max_nstreams() const {
-    return std::min<size_t>(m_istreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
+  libxstream_stream*volatile& find(const libxstream_stream* stream) {
+    libxstream_stream*volatile *const end = m_streams + std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES)* (LIBXSTREAM_MAX_NSTREAMS));
+    libxstream_stream*volatile *const result = std::find(m_streams, end, stream);
+    LIBXSTREAM_ASSERT(result != end);
+    return *result;
   }
 
   size_t nstreams(int device, const libxstream_stream* end = 0) const {
-    const size_t n = max_nstreams();
+    const size_t n = std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
+
     size_t result = 0;
     if (0 == end) {
       for (size_t i = 0; i < n; ++i) {
-        const value_type stream = m_streams[i];
+        const libxstream_stream *const stream = m_streams[i];
         result += (0 != stream && libxstream_stream::device(stream) == device) ? 1 : 0;
       }
     }
     else {
       for (size_t i = 0; i < n; ++i) {
-        const value_type stream = m_streams[i];
+        const libxstream_stream *const stream = m_streams[i];
         if (end != stream) {
           result += (0 != stream && libxstream_stream::device(stream) == device) ? 1 : 0;
         }
@@ -143,16 +155,19 @@ public:
         }
       }
     }
+
     return result;
   }
 
   size_t nstreams() const {
-    const size_t n = max_nstreams();
+    const size_t n = std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
     size_t result = 0;
+
     for (size_t i = 0; i < n; ++i) {
-      const value_type stream = m_streams[i];
+      const libxstream_stream *const stream = m_streams[i];
       result += 0 != stream ? 1 : 0;
     }
+
     return result;
   }
 
@@ -181,21 +196,16 @@ public:
 #endif
   }
 
-  volatile value_type* streams() {
-    return m_streams;
-  }
-
   int enqueue(libxstream_event& event, const libxstream_stream* exclude) {
+    const size_t n = std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
     int result = LIBXSTREAM_ERROR_NONE;
-    const size_t n = max_nstreams();
     bool reset = true;
 
-    for (size_t i = 0; i < n; ++i) {
-      const value_type stream = m_streams[i];
+    for (size_t i = 0; i < n && LIBXSTREAM_ERROR_NONE == result; ++i) {
+      libxstream_stream *const stream = m_streams[i];
 
       if (stream != exclude) {
         result = event.record(*stream, reset);
-        LIBXSTREAM_CHECK_ERROR(result);
         reset = false;
       }
     }
@@ -204,14 +214,14 @@ public:
     return result;
   }
 
-  value_type schedule(const libxstream_stream* exclude) {
-    const size_t n = max_nstreams();
+  libxstream_stream* schedule(const libxstream_stream* exclude) {
+    const size_t n = std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
+    libxstream_stream* result = 0;
     size_t start = 0, offset = 0;
-    value_type result = 0;
 
     if (0 != exclude) {
       for (size_t i = 0; i < n; ++i) {
-        const value_type stream = m_streams[i];
+        libxstream_stream *const stream = m_streams[i];
 
         if (stream == exclude) {
           start = i;
@@ -221,8 +231,8 @@ public:
 #if defined(LIBXSTREAM_STREAM_SCHEDULE_WAITSTREAM)
         else if (0 != stream) {
           const libxstream_workqueue::entry_type *const work = stream->work();
-          const libxstream_workitem *const workitem = 0 != work ? work->item() : 0;
-          if (0 != workitem && 0 != (LIBXSTREAM_CALL_WAIT & workitem->flags())) {
+          const libxstream_workitem *const item = 0 != work ? work->item() : 0;
+          if (0 != item && 0 != (LIBXSTREAM_CALL_WAIT & item->flags())) {
             result = stream;
           }
         }
@@ -236,7 +246,7 @@ public:
     {
       const size_t end = start + n;
       for (size_t i = start + offset; i < end; ++i) {
-        const value_type stream = m_streams[/*i%n*/i<n?i:(i-n)]; // round-robin
+        libxstream_stream *const stream = m_streams[/*i%n*/i<n?i:(i-n)]; // round-robin
         if (0 != stream) {
           result = stream;
           i = end; // break
@@ -248,8 +258,8 @@ public:
   }
 
   int wait_all(int device, bool any) { // TODO: implement waiting for global stream
+    const size_t n = std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
     int result = LIBXSTREAM_ERROR_NONE;
-    const size_t n = max_nstreams();
 
     if (0 < n) {
 #if defined(LIBXSTREAM_OFFLOAD) && (0 != LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (3 == (2*LIBXSTREAM_ASYNC+1)/2)
@@ -268,16 +278,17 @@ public:
         size_t i = 0;
         LIBXSTREAM_PRINT0(2, "stream_wait: wait for all streams");
         do {
-          if (const value_type stream = m_streams[i]) {
+          if (libxstream_stream *const stream = m_streams[i]) {
             const int stream_device = libxstream_stream::device(stream);
             if (stream_device == device) {
-              result = stream->wait(any);
-              LIBXSTREAM_CHECK_ERROR(result);
+              result = 0 != m_streams[i] // late check
+                ? stream->wait(any)
+                : LIBXSTREAM_ERROR_NONE;
             }
           }
           ++i;
         }
-        while(i < n);
+        while(i < n && LIBXSTREAM_ERROR_NONE == result);
       }
     }
 
@@ -286,8 +297,8 @@ public:
   }
 
   int wait_all(bool any) { // TODO: implement waiting for global stream
+    const size_t n = std::min<size_t>(m_nstreams, (LIBXSTREAM_MAX_NDEVICES) * (LIBXSTREAM_MAX_NSTREAMS));
     int result = LIBXSTREAM_ERROR_NONE;
-    const size_t n = max_nstreams();
 
     if (0 < n) {
       bool devices[(LIBXSTREAM_MAX_NDEVICES)+1];
@@ -295,7 +306,7 @@ public:
       LIBXSTREAM_PRINT0(2, "stream_wait: wait for all streams");
       std::fill_n(devices, (LIBXSTREAM_MAX_NDEVICES)+1, false);
       do {
-        if (const value_type stream = m_streams[i]) {
+        if (const libxstream_stream *const stream = m_streams[i]) {
           const int device = libxstream_stream::device(stream);
           devices[device+1] = true;
         }
@@ -313,16 +324,16 @@ public:
   }
 
 private:
-  volatile value_type m_streams[(LIBXSTREAM_MAX_NDEVICES)*(LIBXSTREAM_MAX_NSTREAMS)];
+  libxstream_stream*volatile m_streams[(LIBXSTREAM_MAX_NDEVICES)*(LIBXSTREAM_MAX_NSTREAMS)];
 #if defined(LIBXSTREAM_STDFEATURES) && defined(LIBXSTREAM_STREAM_SIGNAL_THREADSAFE)
   std::atomic<libxstream_signal> m_signals[(LIBXSTREAM_MAX_NDEVICES)+1];
 #else
   libxstream_signal m_signals[(LIBXSTREAM_MAX_NDEVICES)+1];
 #endif
 #if defined(LIBXSTREAM_STDFEATURES)
-  std::atomic<size_t> m_istreams;
+  std::atomic<size_t> m_nstreams;
 #else
-  size_t m_istreams;
+  size_t m_nstreams;
 #endif
 } registry;
 
@@ -421,7 +432,11 @@ private:
 
 
 libxstream_stream::libxstream_stream(int device, int priority, const char* name)
+#if defined(LIBXSTREAM_STREAM_CACHED_REGCHECK)
+  : m_registered(0), m_pending(0), m_device(device), m_priority(priority)
+#else
   : m_pending(0), m_device(device), m_priority(priority)
+#endif
 #if defined(LIBXSTREAM_OFFLOAD) && defined(LIBXSTREAM_ASYNC) && (3 == (2*LIBXSTREAM_ASYNC+1)/2)
   , m_handle(0) // lazy creation
   , m_npartitions(0)
@@ -445,8 +460,10 @@ libxstream_stream::libxstream_stream(int device, int priority, const char* name)
   libxstream_sink(name);
 #endif
 
-  using namespace libxstream_stream_internal;
-  volatile registry_type::value_type& entry = libxstream_stream_internal::registry.allocate();
+  libxstream_stream*volatile& entry = libxstream_stream_internal::registry.allocate();
+#if defined(LIBXSTREAM_STREAM_CACHED_REGCHECK)
+  m_registered = &entry;
+#endif
   entry = this;
 }
 
@@ -455,11 +472,8 @@ libxstream_stream::~libxstream_stream()
 {
   LIBXSTREAM_CHECK_CALL_ASSERT(wait(true));
 
-  using namespace libxstream_stream_internal;
-  volatile registry_type::value_type *const end = registry.streams() + registry.max_nstreams();
-  volatile registry_type::value_type *const stream = std::find(registry.streams(), end, this);
-  LIBXSTREAM_ASSERT(stream != end);
-  *stream = 0; // unregister stream
+  // deregister stream
+  registered() = 0;
 
 #if defined(LIBXSTREAM_OFFLOAD) && (0 != LIBXSTREAM_OFFLOAD) && !defined(__MIC__) && defined(LIBXSTREAM_ASYNC) && (3 == (2*LIBXSTREAM_ASYNC+1)/2)
   if (0 != m_handle) {
@@ -469,9 +483,33 @@ libxstream_stream::~libxstream_stream()
 }
 
 
+const libxstream_stream*volatile& libxstream_stream::registered() const
+{
+  libxstream_stream*volatile* result = 0;
+#if defined(LIBXSTREAM_STREAM_CACHED_REGCHECK)
+  result = m_registered;
+#else
+  result = &libxstream_stream_internal::registry.find(this);
+#endif
+  return *const_cast<const libxstream_stream*volatile*>(result);
+}
+
+
+libxstream_stream*volatile& libxstream_stream::registered()
+{
+  libxstream_stream*volatile* result = 0;
+#if defined(LIBXSTREAM_STREAM_CACHED_REGCHECK)
+  result = m_registered;
+#else
+  result = &libxstream_stream_internal::registry.find(this);
+#endif
+  return *result;
+}
+
+
 libxstream_workqueue::entry_type& libxstream_stream::enqueue(libxstream_workitem& workitem)
 {
-  LIBXSTREAM_ASSERT(this == workitem.stream());
+  LIBXSTREAM_ASSERT(0 != workitem.stream() && this == *workitem.stream());
   libxstream_workqueue::entry_type& entry = m_queue.allocate_entry_mt();
   entry.push(workitem);
   return entry;
@@ -483,8 +521,9 @@ int libxstream_stream::wait(bool any)
   LIBXSTREAM_ASYNC_BEGIN
   {
 #if defined(LIBXSTREAM_INTERNAL_TRACE)
-    if (LIBXSTREAM_ASYNC_STREAM->name()) {
-      LIBXSTREAM_PRINT(2, "stream_wait: stream=0x%llx (%s)", reinterpret_cast<unsigned long long>(LIBXSTREAM_ASYNC_STREAM), LIBXSTREAM_ASYNC_STREAM->name());
+    const char *const name = LIBXSTREAM_ASYNC_STREAM->name();
+    if (0 != name && 0 != *name) {
+      LIBXSTREAM_PRINT(2, "stream_wait: stream=0x%llx (%s)", reinterpret_cast<unsigned long long>(LIBXSTREAM_ASYNC_STREAM), name);
     }
     else {
       LIBXSTREAM_PRINT(2, "stream_wait: stream=0x%llx", reinterpret_cast<unsigned long long>(LIBXSTREAM_ASYNC_STREAM));
