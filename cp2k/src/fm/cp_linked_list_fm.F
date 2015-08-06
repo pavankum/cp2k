@@ -235,13 +235,10 @@ CONTAINS
     ELSE
        ALLOCATE(sll, stat=stat)
        CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-       IF (.NOT.failure) THEN
-          sll%first_el => first_el
-          NULLIFY(sll%rest)
-          IF (PRESENT(rest)) sll%rest => rest
-       END IF
+       sll%first_el => first_el
+       NULLIFY(sll%rest)
+       IF (PRESENT(rest)) sll%rest => rest
     END IF
-    IF (failure) NULLIFY(sll)
   END SUBROUTINE cp_sll_fm_create
 
 ! *****************************************************************************
@@ -401,9 +398,8 @@ CONTAINS
     IF (cp_debug) THEN
        CPPrecondition(ASSOCIATED(sll),cp_failure_level,routineP,error,failure)
     END IF
-    IF (.NOT. failure) THEN
-       res => sll%first_el
-    END IF
+
+    res => sll%first_el
   END FUNCTION cp_sll_fm_get_first_el
 
 ! *****************************************************************************
@@ -437,30 +433,26 @@ CONTAINS
     IF (.NOT.ASSOCIATED(sll)) THEN
        NULLIFY(res)
     ELSE
-       IF (.NOT. failure) THEN
-          IF (PRESENT(iter)) THEN
-             res => sll
-             DO i=1,iter
-                IF (ASSOCIATED(res%rest)) THEN
-                   res => res%rest
-                ELSE
-                   CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,&
-                        routineP, "tried to go past end in "// &
-CPSourceFileRef,&
-                        error,failure)
-                END IF
-             END DO
-             IF (iter==-1) THEN
-                DO
-                   IF (.NOT.ASSOCIATED(res%rest)) EXIT
-                   res => res%rest
-                END DO
+       IF (PRESENT(iter)) THEN
+          res => sll
+          DO i=1,iter
+             IF (ASSOCIATED(res%rest)) THEN
+                res => res%rest
+             ELSE
+                CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,&
+                     routineP, "tried to go past end in "// &
+                     CPSourceFileRef,&
+                     error,failure)
              END IF
-          ELSE
-             res => sll%rest ! make the common case fast...
+          END DO
+          IF (iter==-1) THEN
+             DO
+                IF (.NOT.ASSOCIATED(res%rest)) EXIT
+                res => res%rest
+             END DO
           END IF
        ELSE
-          NULLIFY(res)
+          res => sll%rest ! make the common case fast...
        END IF
     END IF
   END FUNCTION cp_sll_fm_get_rest
@@ -482,10 +474,6 @@ CPSourceFileRef,&
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_fm_get_empty', &
       routineP = moduleN//':'//routineN
-
-    LOGICAL                                  :: failure
-
-    failure=.FALSE.
 
     res = .NOT.ASSOCIATED(sll)
   END FUNCTION cp_sll_fm_get_empty
@@ -510,10 +498,7 @@ CPSourceFileRef,&
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_fm_get_length', &
       routineP = moduleN//':'//routineN
 
-    LOGICAL                                  :: failure
     TYPE(cp_sll_fm_type), POINTER            :: iterator
-
-    failure=.FALSE.
 
     res=0
     iterator => sll
@@ -563,9 +548,8 @@ CPSourceFileRef,&
        pos => cp_sll_fm_get_rest(sll, iter=index-1,error=error)
     END IF
     CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,error,failure)
-    IF (.NOT.failure) THEN
-       res => pos%first_el
-    END IF
+
+    res => pos%first_el
   END FUNCTION cp_sll_fm_get_el_at
 
 ! *****************************************************************************
@@ -602,9 +586,8 @@ CPSourceFileRef,&
        pos => cp_sll_fm_get_rest(sll, iter=index-1,error=error)
     END IF
     CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,error,failure)
-    IF (.NOT.failure) THEN
-       pos%first_el => value
-    END IF
+
+    pos%first_el => value
   END SUBROUTINE cp_sll_fm_set_el_at
 
 ! * iteration *
@@ -630,12 +613,8 @@ CPSourceFileRef,&
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_fm_next', &
       routineP = moduleN//':'//routineN
 
-    LOGICAL                                  :: failure
-
-    failure=.FALSE.
-
     IF (ASSOCIATED(iterator)) THEN
-       res=.NOT.failure
+       res=.TRUE.
        IF (PRESENT(el_att)) el_att => iterator%first_el
        iterator => iterator%rest
     ELSE
@@ -666,10 +645,8 @@ CPSourceFileRef,&
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_fm_insert_el', &
       routineP = moduleN//':'//routineN
 
-    LOGICAL                                  :: failure
     TYPE(cp_sll_fm_type), POINTER            :: newSlot
 
-    failure=.FALSE.
     NULLIFY(newSlot)
 
     CALL cp_sll_fm_create(newSlot,first_el=el,&
@@ -707,7 +684,7 @@ CPSourceFileRef,&
     ELSE
        CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,&
             routineP,"tried to remove first el of an empty list in "//&
-CPSourceFileRef,&
+            CPSourceFileRef,&
             error,failure)
     END IF
   END SUBROUTINE cp_sll_fm_rm_first_el
@@ -749,9 +726,7 @@ CPSourceFileRef,&
           pos => cp_sll_fm_get_rest(sll, iter=index-2,error=error)
        END IF
        CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,error,failure)
-       IF (.NOT.failure) THEN
-          CALL cp_sll_fm_insert_el(pos%rest,el,error=error)
-       END IF
+       CALL cp_sll_fm_insert_el(pos%rest,el,error=error)
     END IF
   END SUBROUTINE cp_sll_fm_insert_el_at
 
@@ -792,9 +767,7 @@ CPSourceFileRef,&
           pos => cp_sll_fm_get_rest(sll, iter=index-2,error=error)
        END IF
        CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,error,failure)
-       IF (.NOT.failure) THEN
-          CALL cp_sll_fm_rm_first_el(pos%rest,error=error)
-       END IF
+       CALL cp_sll_fm_rm_first_el(pos%rest,error=error)
     END IF
   END SUBROUTINE cp_sll_fm_rm_el_at
 
@@ -816,10 +789,7 @@ CPSourceFileRef,&
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_fm_rm_all_el', &
       routineP = moduleN//':'//routineN
 
-    LOGICAL                                  :: failure
     TYPE(cp_sll_fm_type), POINTER            :: actual_node, next_node
-
-    failure=.FALSE.
 
     actual_node => sll
     DO
@@ -860,15 +830,13 @@ FUNCTION cp_sll_fm_to_array(sll,error) RESULT(res)
   len=cp_sll_fm_get_length(sll,error)
   ALLOCATE(res(len),stat=stat)
   CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-  IF (.NOT. failure) THEN
-     iter => sll
-     DO i=1,len
-        res(i)%matrix => iter%first_el
-        IF (.NOT.(cp_sll_fm_next(iter,error=error).OR.i==len)) THEN
-           CPAssert(.FALSE.,cp_failure_level,routineP,error,failure)
-        END IF
-     END DO
-  END IF
+  iter => sll
+  DO i=1,len
+     res(i)%matrix => iter%first_el
+     IF (.NOT.(cp_sll_fm_next(iter,error=error).OR.i==len)) THEN
+        CPAssert(.FALSE.,cp_failure_level,routineP,error,failure)
+     END IF
+  END DO
 END FUNCTION cp_sll_fm_to_array
 
 ! *****************************************************************************
@@ -891,10 +859,7 @@ FUNCTION cp_sll_fm_from_array(array,error) RESULT(res)
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: i
-    LOGICAL                                  :: failure
     TYPE(cp_sll_fm_type), POINTER            :: last_el
-
-  failure=.FALSE.
 
   NULLIFY(res,last_el)
   IF (SIZE(array)>0) THEN
