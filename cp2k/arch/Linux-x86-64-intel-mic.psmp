@@ -412,6 +412,7 @@ endif
 qs_vxc_atom.o: qs_vxc_atom.F
 	$(FC) -c $(FCFLAGS) -O1 $<
 
+ifneq (0,$(OMP))
 ifneq (0,$(ACC))
 ifneq (0,$(OFFLOAD))
 dbcsr_work_operations.o: dbcsr_work_operations.F
@@ -420,6 +421,7 @@ xc_tpss.o: xc_tpss.F
 	$(FC) -c $(FCFLAGS) -no-openmp $<
 qs_integrate_potential_product.o: qs_integrate_potential_product.F
 	$(FC) -c $(FCFLAGS) -no-openmp $<
+endif
 endif
 endif
 
