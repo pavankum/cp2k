@@ -403,12 +403,23 @@ endif
 #mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
 #	$(FC) -c $(FCFLAGS) -O0 $<
 
-qs_vxc_atom.o: qs_vxc_atom.F
-	$(FC) -c $(FCFLAGS) -O1 $<
-
 #process.o: process.cpp
 #	$(CXX) -c $(CXXFLAGS) -O1 $<
 
 #transpose.o: transpose.cpp
 #	$(CXX) -c $(CXXFLAGS) -O1 $<
+
+qs_vxc_atom.o: qs_vxc_atom.F
+	$(FC) -c $(FCFLAGS) -O1 $<
+
+ifneq (0,$(ACC))
+ifneq (0,$(OFFLOAD))
+dbcsr_work_operations.o: dbcsr_work_operations.F
+	$(FC) -c $(FCFLAGS) -no-openmp $<
+xc_tpss.o: xc_tpss.F
+	$(FC) -c $(FCFLAGS) -no-openmp $<
+qs_integrate_potential_product.o: qs_integrate_potential_product.F
+	$(FC) -c $(FCFLAGS) -no-openmp $<
+endif
+endif
 
