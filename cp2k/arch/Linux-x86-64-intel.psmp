@@ -92,8 +92,10 @@ ifeq (0,$(DBG))
   FCFLAGS   += #-fp-model fast=2 #source
   LDFLAGS   += #
 
-  ifeq (1,$(IPO))
+  ifneq (0,$(IPO))
     OPTFLAGS += -ipo-separate
+  else ifeq (0,$(IPO))
+    LDFLAGS += -no-ipo
   endif
 else
   OPTFLAGS  += -O0
@@ -426,6 +428,9 @@ qs_vxc_atom.o: qs_vxc_atom.F
 
 cube_utils.o: cube_utils.F
 	$(FC) -c $(FCFLAGS) -O1 $<
+
+xc_tpss.o: xc_tpss.F
+	$(FC) -c $(FCFLAGS) -no-openmp $<
 
 ifneq (0,$(OMP))
 ifneq (0,$(ACC))
