@@ -155,9 +155,15 @@ ifneq (,$(LIBXCROOT))
 endif
 
 ifneq (,$(ELPAROOT))
-  DFLAGS  += -D__ELPA
-  IFLAGS  += -I$(ELPAROOT)/include/elpa/modules
-  LIBS    += $(ELPAROOT)/lib/libelpa.a
+  ifneq (1,$(ELPA)) # default is ELPA2
+    DFLAGS  += -D__ELPA2
+    IFLAGS  += -I$(ELPAROOT)/include/elpa/modules
+    LIBS    += $(ELPAROOT)/lib/libelpa.a
+  else ifeq (1,$(ELPA))
+    DFLAGS  += -D__ELPA
+    IFLAGS  += -I$(ELPAROOT)/include/elpa/modules
+    LIBS    += $(ELPAROOT)/lib/libelpa.a
+  endif
 endif
 
 ifneq (0,$(TBBMALLOC))
