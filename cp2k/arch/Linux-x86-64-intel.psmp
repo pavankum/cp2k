@@ -154,6 +154,12 @@ ifneq (,$(LIBXCROOT))
   LIBS    += $(LIBXCROOT)/lib/libxcf90.a $(LIBXCROOT)/lib/libxc.a
 endif
 
+ifneq (,$(ELPAROOT))
+  DFLAGS  += -D__ELPA
+  IFLAGS  += -I$(ELPAROOT)/include/elpa/modules
+  LIBS    += $(ELPAROOT)/lib/libelpa.a
+endif
+
 ifneq (0,$(TBBMALLOC))
   ifneq (,$(TBBROOT))
     GCC = $(notdir $(shell which gcc 2> /dev/null))
@@ -174,7 +180,7 @@ ifneq (0,$(TBBMALLOC))
     endif
   endif
 else ifneq (,$(TCMALLOCROOT))
-  # configured/built using ./configure --enable-minimal --prefix=<TCMALLOCROOT>
+  # configured using ./configure --enable-minimal --prefix=<TCMALLOCROOT>
   LIBS += $(TCMALLOCROOT)/lib/libtcmalloc_minimal.a
 endif
 
