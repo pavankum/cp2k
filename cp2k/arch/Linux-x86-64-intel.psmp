@@ -424,6 +424,9 @@ endif
 qs_vxc_atom.o: qs_vxc_atom.F
 	$(FC) -c $(FCFLAGS) -O1 $<
 
+cube_utils.o: cube_utils.F
+	$(FC) -c $(FCFLAGS) -O1 $<
+
 ifneq (0,$(OMP))
 ifneq (0,$(ACC))
 ifneq (0,$(OFFLOAD))
