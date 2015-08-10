@@ -426,8 +426,17 @@ endif
 qs_vxc_atom.o: qs_vxc_atom.F
 	$(FC) -c $(FCFLAGS) -O1 $<
 
+cp_fm_types.o: cp_fm_types.F
+	$(FC) -c $(FCFLAGS) -O1 $<
+
 cube_utils.o: cube_utils.F
 	$(FC) -c $(FCFLAGS) -O1 $<
+
+qs_integrate_potential_product.o: qs_integrate_potential_product.F
+	$(FC) -c $(FCFLAGS) -no-openmp $<
+
+dbcsr_work_operations.o: dbcsr_work_operations.F
+	$(FC) -c $(FCFLAGS) -no-openmp $<
 
 xc_tpss.o: xc_tpss.F
 	$(FC) -c $(FCFLAGS) -no-openmp $<
