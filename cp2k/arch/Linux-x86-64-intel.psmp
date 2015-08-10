@@ -52,6 +52,7 @@ DIAG_DISABLE = 8290,8291,10010,10212,11060
 
 # DEFAULTS
 #
+TARGET ?= -xHost
 MPI ?= 1
 OMP ?= 1
 ACC ?= 0
@@ -83,8 +84,7 @@ OPTFLAGS  = $(NULL)
 #DIAG_DISABLE := $(DIAG_DISABLE),2571,3218
 
 ifeq (0,$(DBG))
-  OPTFLAGS  += -O2
-  OPTFLAGS  += -xHost
+  OPTFLAGS  += -O2 $(TARGET)
   DFLAGS    += -DNDEBUG
 
   CXXFLAGS  += -fno-alias -ansi-alias #-fp-model fast=2 #precise
