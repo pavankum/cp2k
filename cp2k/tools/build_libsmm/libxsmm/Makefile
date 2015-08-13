@@ -1,6 +1,11 @@
 # export all variables to sub-make processes
-.EXPORT_ALL_VARIABLES: #export
+#.EXPORT_ALL_VARIABLES: #export
+# Set NOTPARALLEL=1 for older GNU Make
+ifneq (,$(NOTPARALLEL))
+ifneq (0,$(NOTPARALLEL))
 .NOTPARALLEL:
+endif
+endif
 
 # Use ROW_MAJOR matrix representation if set to 1, COL_MAJOR otherwise 
 ROW_MAJOR ?= 1
@@ -104,8 +109,8 @@ ifeq ($(LD),)
 endif
 
 ifneq (,$(filter icpc icc ifort,$(CXX) $(CC) $(FC)))
-	CXXFLAGS += -fPIC -Wall -std=c++0x
-	CFLAGS += -fPIC -Wall -std=c99
+	CXXFLAGS += -fPIC -Wall -Werror -std=c++0x
+	CFLAGS += -fPIC -Wall -Werror -std=c89
 	FCMTFLAGS += -threads
 	FCFLAGS += -fPIC
 	LDFLAGS += -fPIC
@@ -166,8 +171,8 @@ else # GCC assumed
 	VERSION_MINOR = $(shell echo "$(VERSION)" | cut -d"." -f2)
 	VERSION_PATCH = $(shell echo "$(VERSION)" | cut -d"." -f3)
 	MIC = 0
-	CXXFLAGS += -Wall -std=c++0x -Wno-unused-function
-	CFLAGS += -Wall -Wno-unused-function
+	CXXFLAGS += -Wall -Werror -std=c++0x -Wno-unused-function
+	CFLAGS += -Wall -Werror -Wno-unused-function
 	ifneq ($(OS),Windows_NT)
 		CXXFLAGS += -fPIC
 		CFLAGS += -fPIC
@@ -264,7 +269,7 @@ endif
 NINDICES = $(words $(INDICES))
 
 SRCFILES = $(addprefix $(BLDDIR)/,$(patsubst %,mm_%.c,$(INDICES)))
-SRCFILES_GEN = $(patsubst %,$(SRCDIR)/%,GeneratorDriver.cpp GeneratorCSC.cpp GeneratorDense.cpp ReaderCSC.cpp)
+SRCFILES_GEN = $(patsubst %,$(SRCDIR)/%,generator_driver.c, generator_common.c, generator_dense.c, generator_dense_common.c, generator_dense_sse3_avx_avx2.c, generator_dense_instructions.c, generator_dense_sse3_microkernel.c, generator_dense_avx_microkernel.c, generator_dense_avx2_microkernel.c, generator_dense_imci_avx512.c, generator_dense_avx512_microkernel.c, generator_dense_imci_microkernel.c, generator_dense_noarch.c, generator_sparse.c, generator_sparse_csc_reader.c, generator_sparse_bsparse.c, generator_sparse_asparse.c)
 OBJFILES_GEN = $(patsubst %,$(BLDDIR)/%.o,$(basename $(notdir $(SRCFILES_GEN))))
 OBJFILES_HST = $(patsubst %,$(BLDDIR)/intel64/mm_%.o,$(INDICES))
 OBJFILES_MIC = $(patsubst %,$(BLDDIR)/mic/mm_%.o,$(INDICES))
@@ -293,37 +298,34 @@ install: all clean
 .PHONY: header
 header: cheader fheader
 
+ALIGNED_ST = $(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT))))
+ALIGNED_LD = $(shell echo $$((1!=$(ALIGNED_LOADS)?$(ALIGNED_LOADS):$(ALIGNMENT))))
+
 .PHONY: cheader
 cheader: $(INCDIR)/libxsmm.h
 $(INCDIR)/libxsmm.h: $(ROOTDIR)/Makefile $(SCRDIR)/libxsmm_interface.py $(SCRDIR)/libxsmm_utilities.py $(SRCDIR)/libxsmm.template.h $(ROOTDIR)/include/libxsmm_macros.h
 	@mkdir -p $(dir $@)
 	@cp $(ROOTDIR)/include/libxsmm_macros.h $(INCDIR) 2> /dev/null || true
 	@python $(SCRDIR)/libxsmm_interface.py $(SRCDIR)/libxsmm.template.h $(ROW_MAJOR) $(ALIGNMENT) \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) \
-		$(shell echo $$((1!=$(ALIGNED_LOADS)?$(ALIGNED_LOADS):$(ALIGNMENT)))) \
-		$(shell echo $$((0<$(THRESHOLD)?$(THRESHOLD):0))) \
-		$(INDICES) > $@
+		$(ALIGNED_ST) $(ALIGNED_LD) $(shell echo $$((0<$(THRESHOLD)?$(THRESHOLD):0))) $(INDICES) > $@
 
 .PHONY: fheader
 fheader: $(INCDIR)/libxsmm.f90
 $(INCDIR)/libxsmm.f90: $(ROOTDIR)/Makefile $(SCRDIR)/libxsmm_interface.py $(SCRDIR)/libxsmm_utilities.py $(SRCDIR)/libxsmm.template.f90
 	@mkdir -p $(dir $@)
 	@python $(SCRDIR)/libxsmm_interface.py $(SRCDIR)/libxsmm.template.f90 $(ROW_MAJOR) $(ALIGNMENT) \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) \
-		$(shell echo $$((1!=$(ALIGNED_LOADS)?$(ALIGNED_LOADS):$(ALIGNMENT)))) \
-		$(shell echo $$((0<$(THRESHOLD)?$(THRESHOLD):0))) \
-		$(INDICES) > $@
+		$(ALIGNED_ST) $(ALIGNED_LD) $(shell echo $$((0<$(THRESHOLD)?$(THRESHOLD):0))) $(INDICES) > $@
 
 .PHONY: compile_gen
 compile_gen: $(SRCFILES_GEN)
-$(BLDDIR)/%.o: $(SRCDIR)/%.cpp $(ROOTDIR)/Makefile
+$(BLDDIR)/%.o: $(SRCDIR)/%.c $(ROOTDIR)/Makefile
 	@mkdir -p $(dir $@)
-	$(CXX) -c $< -o $@
+	$(CC) $(CFLAGS) $(DFLAGS) -c $< -o $@
 .PHONY: generator
-generator: $(OBJFILES_GEN)
+generator: $(BINDIR)/generator
 $(BINDIR)/generator: $(OBJFILES_GEN) $(ROOTDIR)/Makefile
 	@mkdir -p $(dir $@)
-	$(CXX) $(OBJFILES_GEN) -o $@
+	$(CC) $(OBJFILES_GEN) -o $@
 
 .PHONY: sources
 sources: $(SRCFILES)
@@ -339,8 +341,8 @@ else # column-major
 	$(eval NVALUE2 := $(NVALUE))
 endif
 ifneq ($(ALIGNED_STORES),0) # aligned stores
-	$(eval LDCDP := $(shell python $(SCRDIR)/libxsmm_utilities.py 8 $(MVALUE2) $(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT))))))
-	$(eval LDCSP := $(shell python $(SCRDIR)/libxsmm_utilities.py 4 $(MVALUE2) $(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT))))))
+	$(eval LDCDP := $(shell python $(SCRDIR)/libxsmm_utilities.py 8 $(MVALUE2) $(ALIGNED_ST)))
+	$(eval LDCSP := $(shell python $(SCRDIR)/libxsmm_utilities.py 4 $(MVALUE2) $(ALIGNED_ST)))
 else # unaligned stores
 	$(eval LDCDP := $(MVALUE2))
 	$(eval LDCSP := $(MVALUE2))
@@ -363,42 +365,30 @@ ifeq ($(GENTARGET),noarch)
 	@echo "#define LIBXSMM_GENTARGET_wsm_sp" >> $@
 	@echo >> $@
 	@echo >> $@
-	@$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_knl $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) knl nopf DP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_knl $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) knl nopf SP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_hsw $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) hsw nopf DP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_hsw $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) hsw nopf SP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_snb $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) snb nopf DP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_snb $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) snb nopf SP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_wsm $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) wsm nopf DP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_wsm $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) wsm nopf SP > /dev/null
+	$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_knl $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 $(ALIGNED_ST) knl nopf DP
+	$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_knl $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 $(ALIGNED_ST) knl nopf SP
+	$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_hsw $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 $(ALIGNED_ST) hsw nopf DP
+	$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_hsw $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 $(ALIGNED_ST) hsw nopf SP
+	$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_snb $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 $(ALIGNED_ST) snb nopf DP
+	$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_snb $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 $(ALIGNED_ST) snb nopf SP
+	$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_wsm $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 $(ALIGNED_ST) wsm nopf DP
+	$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_wsm $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 $(ALIGNED_ST) wsm nopf SP
 else
 	@echo "#define LIBXSMM_GENTARGET_$(GENTARGET)_dp" >> $@
 	@echo "#define LIBXSMM_GENTARGET_$(GENTARGET)_sp" >> $@
 	@echo >> $@
 	@echo >> $@
-	@$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_$(GENTARGET) $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) $(GENTARGET) nopf DP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_$(GENTARGET) $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) $(GENTARGET) nopf SP > /dev/null
+	$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_$(GENTARGET) $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 $(ALIGNED_ST) $(GENTARGET) nopf DP
+	$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_$(GENTARGET) $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 $(ALIGNED_ST) $(GENTARGET) nopf SP
 endif
-	@$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_knc $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) knc nopf DP > /dev/null
-	@$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_knc $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 \
-		$(shell echo $$((1!=$(ALIGNED_STORES)?$(ALIGNED_STORES):$(ALIGNMENT)))) knc nopf SP > /dev/null
+	$(BINDIR)/generator dense $@ libxsmm_d$(basename $(notdir $@))_knc $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCDP) 1 1 0 $(ALIGNED_ST) knc nopf DP
+	$(BINDIR)/generator dense $@ libxsmm_s$(basename $(notdir $@))_knc $(MVALUE2) $(NVALUE2) $(KVALUE) $(LDA) $(LDB) $(LDCSP) 1 1 0 $(ALIGNED_ST) knc nopf SP
 	@sed -i'' \
 		-e 's/void libxsmm_/LIBXSMM_INLINE LIBXSMM_TARGET(mic) void libxsmm_/' \
 		-e 's/#ifndef NDEBUG/#ifdef LIBXSMM_NEVER_DEFINED/' \
-		-e '/#pragma message ("KERNEL COMPILATION ERROR in: " __FILE__)/d' \
+		-e '/#pragma message (".*KERNEL COMPILATION ERROR in: " __FILE__)/d' \
 		-e '/#error No kernel was compiled, lacking support for current architecture?/d' \
-		-e '/#pragma message ("KERNEL COMPILATION WARNING: compiling .\+ code on .\+ or newer architecture: " __FILE__)/d' \
+		-e '/#pragma message (".*KERNEL COMPILATION WARNING: compiling .\+ code on .\+ or newer architecture: " __FILE__)/d' \
 		$@
 	@python $(SCRDIR)/libxsmm_impl_mm.py $(ROW_MAJOR) $(MVALUE) $(NVALUE) $(KVALUE) >> $@
 
@@ -463,29 +453,24 @@ samples: smm cp2k
 
 .PHONY: smm
 smm: lib_all
-	@cd $(SPLDIR)/smm && $(MAKE)
+	@cd $(SPLDIR)/smm && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO)
+
 .PHONY: smm_hst
 smm_hst: lib_hst
-	@cd $(SPLDIR)/smm && $(MAKE) OFFLOAD=$(OFFLOAD)
+	@cd $(SPLDIR)/smm && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD)
 .PHONY: smm_mic
 smm_mic: lib_mic
-	@cd $(SPLDIR)/smm && $(MAKE) MIC=$(MIC)
+	@cd $(SPLDIR)/smm && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) MIC=$(MIC)
 
 .PHONY: cp2k
 cp2k: lib_all
-	@cd $(SPLDIR)/cp2k && $(MAKE)
+	@cd $(SPLDIR)/cp2k && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO)
 .PHONY: cp2k_hst
 cp2k_hst: lib_hst
-	@cd $(SPLDIR)/cp2k && $(MAKE) OFFLOAD=$(OFFLOAD)
+	@cd $(SPLDIR)/cp2k && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD)
 .PHONY: cp2k_mic
 cp2k_mic: lib_mic
-	@cd $(SPLDIR)/cp2k && $(MAKE) MIC=$(MIC)
-
-.PHONY: test
-test: $(SPLDIR)/cp2k/cp2k-perf.txt
-$(SPLDIR)/cp2k/cp2k-perf.txt: $(SPLDIR)/cp2k/cp2k-perf.sh lib_all
-	@cd $(SPLDIR)/cp2k && $(MAKE) realclean && $(MAKE)
-	@$(SPLDIR)/cp2k/cp2k-perf.sh
+	@cd $(SPLDIR)/cp2k && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) MIC=$(MIC)
 
 .PHONY: drytest
 drytest: $(SPLDIR)/cp2k/cp2k-perf.sh
@@ -494,10 +479,14 @@ $(SPLDIR)/cp2k/cp2k-perf.sh: $(ROOTDIR)/Makefile
 	@echo "#!/bin/bash" > $@
 	@echo >> $@
 	@echo "HERE=\$$(cd \$$(dirname \$$0); pwd -P)" >> $@
+	@echo "FILE=cp2k-perf.txt" >> $@
 	@echo "RUNS='$(INDICES)'" >> $@
 	@echo >> $@
-	@echo >> $@
-	@echo "cat /dev/null > cp2k-perf.txt" >> $@
+	@echo "if [[ \"\" != \"\$$1\" ]] ; then" >> $@
+	@echo "  FILE=\$$1" >> $@
+	@echo "  shift" >> $@
+	@echo "fi" >> $@
+	@echo "cat /dev/null > \$${FILE}" >> $@
 	@echo >> $@
 	@echo "NRUN=1" >> $@
 	@echo "NMAX=\$$(echo \$${RUNS} | wc -w)" >> $@
@@ -506,12 +495,20 @@ $(SPLDIR)/cp2k/cp2k-perf.sh: $(ROOTDIR)/Makefile
 	@echo "  NVALUE=\$$(echo \$${RUN} | cut --output-delimiter=' ' -d_ -f2)" >> $@
 	@echo "  KVALUE=\$$(echo \$${RUN} | cut --output-delimiter=' ' -d_ -f3)" >> $@
 	@echo "  >&2 echo \"Test \$${NRUN} of \$${NMAX} (M=\$${MVALUE} N=\$${NVALUE} K=\$${KVALUE})\"" >> $@
-	@echo "  \$${HERE}/cp2k.sh \$${MVALUE} 0 0 \$${NVALUE} \$${KVALUE} >> cp2k-perf.txt" >> $@
-	@echo "  echo >> cp2k-perf.txt" >> $@
+	@echo "  \$${HERE}/cp2k.sh \$${MVALUE} 0 0 \$${NVALUE} \$${KVALUE} >> \$${FILE}" >> $@
+	@echo "  echo >> \$${FILE}" >> $@
 	@echo "  NRUN=\$$((NRUN + 1))" >> $@
 	@echo "done" >> $@
 	@echo >> $@
 	@chmod +x $@
+
+.PHONY: test
+test: $(SPLDIR)/cp2k/cp2k-perf.txt
+$(SPLDIR)/cp2k/cp2k-perf.txt: $(SPLDIR)/cp2k/cp2k-perf.sh lib_all
+	@cd $(SPLDIR)/cp2k && \
+		$(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) realclean && \
+		$(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO)
+	@$(SPLDIR)/cp2k/cp2k-perf.sh $@
 
 $(DOCDIR)/libxsmm.pdf: $(ROOTDIR)/Makefile $(ROOTDIR)/README.md
 	@mkdir -p $(dir $@)
