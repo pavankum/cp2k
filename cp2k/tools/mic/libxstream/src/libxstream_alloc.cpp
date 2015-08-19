@@ -125,7 +125,7 @@ LIBXSTREAM_TARGET(mic) size_t libxstream_alignment(size_t size, size_t alignment
 {
 #if defined(LIBXSTREAM_OFFLOAD)
   static const size_t max_algn = ((LIBXSTREAM_MAX_ALIGN) / (LIBXSTREAM_MAX_SIMD)) * (LIBXSTREAM_MAX_SIMD);
-  static const size_t max_simd = std::min(LIBXSTREAM_MAX_SIMD, LIBXSTREAM_MAX_ALIGN);
+  static const size_t max_simd = LIBXSTREAM_MIN(LIBXSTREAM_MAX_SIMD, LIBXSTREAM_MAX_ALIGN);
 #else
   static const size_t max_algn = LIBXSTREAM_MAX_SIMD, max_simd = LIBXSTREAM_MAX_SIMD;
 #endif
@@ -211,6 +211,9 @@ int libxstream_real_allocate(void** memory, size_t size, size_t alignment, const
       if (0 != buffer) {
         if (0 < extra_size && 0 != extra) {
           const char *const src = static_cast<const char*>(extra);
+#if (1900 <= _MSC_VER)
+#         pragma warning(suppress: 6386)
+#endif
           for (size_t i = 0; i < extra_size; ++i) buffer[i] = src[i];
         }
         LIBXSTREAM_ASSERT((aligned + size) <= (buffer + alloc_size));
@@ -279,6 +282,9 @@ int libxstream_virt_allocate(void** memory, size_t size, size_t alignment, const
       if (0 != buffer) {
         if (0 < extra_size && 0 != extra) {
           const char *const src = static_cast<const char*>(extra);
+#if (1900 <= _MSC_VER)
+#         pragma warning(suppress: 6386)
+#endif
           for (size_t i = 0; i < extra_size; ++i) buffer[i] = src[i];
         }
         LIBXSTREAM_ASSERT((aligned + size) <= (buffer + alloc_size));

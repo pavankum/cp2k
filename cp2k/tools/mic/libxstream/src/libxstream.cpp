@@ -671,7 +671,7 @@ LIBXSTREAM_EXPORT_C int libxstream_mem_deallocate(int device, const void* memory
 {
   int result = LIBXSTREAM_ERROR_NONE;
 
-  if (memory) {
+  if (0 != memory) {
 #if defined(LIBXSTREAM_INTERNAL_CHECK)
     libxstream_internal::mem_info_type* mem_info = 0;
     result = (LIBXSTREAM_ERROR_NONE == libxstream_alloc_info(memory, 0, reinterpret_cast<void**>(&mem_info)) && 0 != mem_info && device == mem_info->device)
@@ -959,6 +959,7 @@ LIBXSTREAM_EXPORT_C int libxstream_stream_create(libxstream_stream** stream, int
   else {
     size_t ndevices = LIBXSTREAM_MAX_NDEVICES;
     LIBXSTREAM_CHECK_CONDITION(-1 <= device && ndevices >= static_cast<size_t>(device + 1) && LIBXSTREAM_ERROR_NONE == libxstream_get_ndevices(&ndevices) && ndevices >= static_cast<size_t>(device + 1));
+    libxstream_sink(&ndevices);
 
     if (-1 > libxstream_internal::context.global_device()) {
       libxstream_internal::context.global_device(device);
