@@ -53,7 +53,7 @@ DIAG_DISABLE = 8290,8291,10010,10212,11060
 # DEFAULTS
 #
 TARGET ?= -xHost
-BEEP ?= 0
+BEEP ?= 1
 MPI ?= 1
 OMP ?= 1
 ACC ?= 0
@@ -421,16 +421,19 @@ ifneq (0,$(ACC))
   endif
 endif
 
+ifeq (1,$(shell echo $$((1 <= $(BEEP)))))
 mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
 	$(FC) -c $(FCFLAGS) -O0 $<
-
-ifeq (1,$(shell echo $$((1 <= $(BEEP)))))
 qs_vxc_atom.o: qs_vxc_atom.F
 	$(FC) -c $(FCFLAGS) -O1 $<
 cp_fm_types.o: cp_fm_types.F
 	$(FC) -c $(FCFLAGS) -O1 $<
 cube_utils.o: cube_utils.F
 	$(FC) -c $(FCFLAGS) -O1 $<
+ifneq (0,$(OMP))
+xc_tpss.o: xc_tpss.F
+	$(FC) -c $(FCFLAGS) -no-openmp $<
+endif
 endif
 
 ifeq (1,$(shell echo $$((2 <= $(BEEP)))))
@@ -438,8 +441,6 @@ ifneq (0,$(OMP))
 qs_integrate_potential_product.o: qs_integrate_potential_product.F
 	$(FC) -c $(FCFLAGS) -no-openmp $<
 dbcsr_work_operations.o: dbcsr_work_operations.F
-	$(FC) -c $(FCFLAGS) -no-openmp $<
-xc_tpss.o: xc_tpss.F
 	$(FC) -c $(FCFLAGS) -no-openmp $<
 endif
 endif
