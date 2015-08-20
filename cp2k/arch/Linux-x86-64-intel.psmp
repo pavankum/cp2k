@@ -383,6 +383,13 @@ else # sequential
   LIBS += -lpthread -lm
 endif
 
+ifeq (,$(LIBXSMMROOT))
+  ifeq (,$(LIBXSTREAMROOT))
+    RECONFIGURE = 0
+  else ifeq (0,$(ACC))
+    RECONFIGURE = 0
+  endif
+endif
 ifneq (0,$(RECONFIGURE))
   DFLAGS  += -D__RECONFIGURE
   LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_mm_driver_
