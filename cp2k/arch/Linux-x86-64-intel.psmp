@@ -389,6 +389,8 @@ ifeq (,$(LIBXSMMROOT))
   else ifeq (0,$(ACC))
     RECONFIGURE = 0
   endif
+else ifeq (0,$(ACC))
+  RECONFIGURE = 0
 endif
 ifneq (0,$(RECONFIGURE))
   DFLAGS  += -D__RECONFIGURE
