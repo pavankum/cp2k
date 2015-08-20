@@ -413,7 +413,7 @@ ifneq (0,$(ACC))
 endif
 
 mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
-	$(FC) -c $(FCFLAGS) -O1 $<
+	$(FC) -c $(FCFLAGS) -O0 $<
 
 ifeq (1,$(shell echo $$((1 <= $(BEEP)))))
 qs_vxc_atom.o: qs_vxc_atom.F
