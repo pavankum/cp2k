@@ -24,7 +24,11 @@
 !> \author JGH
 ! *****************************************************************************
 MODULE fft_tools
-
+  USE ISO_C_BINDING,                   ONLY: C_F_POINTER,&
+                                             C_INT,&
+                                             C_LOC,&
+                                             C_PTR,&
+                                             C_SIZE_T
   USE cp_para_types,                   ONLY: cp_para_env_type
   USE fast,                            ONLY: zero_c
   USE fft_lib,                         ONLY: &
@@ -160,7 +164,7 @@ MODULE fft_tools
 #if defined ( __PW_CUDA ) && !defined ( __PW_CUDA_NO_HOSTALLOC )
     INTERFACE
       INTEGER(KIND=C_INT) FUNCTION cudaFreeHost(buffer)  BIND(C, name="cudaFreeHost")
-        USE ISO_C_BINDING
+        IMPORT
         IMPLICIT NONE
         TYPE(C_PTR), VALUE :: buffer
       END FUNCTION cudaFreeHost
@@ -168,7 +172,7 @@ MODULE fft_tools
 
      INTERFACE
       INTEGER(KIND=C_INT) FUNCTION cudaHostAlloc(buffer, length, flag) BIND(C, name="cudaHostAlloc")
-        USE ISO_C_BINDING
+        IMPORT
         IMPLICIT NONE
         TYPE(C_PTR)                   :: buffer
         INTEGER(KIND=C_SIZE_T), VALUE :: length
@@ -376,14 +380,17 @@ CONTAINS
       TARGET                                 :: zdum
     COMPLEX(KIND=dp), DIMENSION(:, :, :), &
       POINTER                                :: zoptr
-    INTEGER                                  :: handle, ld(3), lo(3), sign, &
-                                                stat
+    INTEGER                                  :: handle, ld(3), lo(3), &
+                                                output_unit, sign, stat
     LOGICAL                                  :: fft_in_place, test
     REAL(KIND=dp)                            :: in_sum, norm, out_sum
     TYPE(cp_error_type)                      :: error
+    TYPE(cp_logger_type), POINTER            :: logger
     TYPE(fft_scratch_type), POINTER          :: fft_scratch
 
     CALL timeset(routineN,handle)
+    logger => cp_error_get_logger(error)
+    output_unit = cp_logger_get_default_io_unit(logger)
 
     IF ( PRESENT ( scale ) ) THEN
        norm = scale
@@ -450,22 +457,22 @@ CONTAINS
        status = stat
     END IF
 
-    IF ( test ) THEN
+    IF ( test .AND. output_unit > 0 ) THEN
        IF ( PRESENT ( zout ) ) THEN
           out_sum = SUM ( ABS ( zout ) )
-          WRITE ( *, '(A)') "  Out of place 3D FFT (local)  : fft3d_s"
-          WRITE ( *, '(A,T60,3I7)') "     Transform lengths ",n
-          WRITE ( *, '(A,T60,3I7)') "     Input array dimensions ",ld
-          WRITE ( *, '(A,T60,3I7)') "     Output array dimensions ",lo
-          WRITE ( *, '(A,T61,E20.14)') "     Sum of input data ",in_sum
-          WRITE ( *, '(A,T61,E20.14)') "     Sum of output data ",out_sum
+          WRITE ( output_unit, '(A)') "  Out of place 3D FFT (local)  : fft3d_s"
+          WRITE ( output_unit, '(A,T60,3I7)') "     Transform lengths ",n
+          WRITE ( output_unit, '(A,T60,3I7)') "     Input array dimensions ",ld
+          WRITE ( output_unit, '(A,T60,3I7)') "     Output array dimensions ",lo
+          WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of input data ",in_sum
+          WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of output data ",out_sum
        ELSE
           out_sum = SUM ( ABS ( zin ) )
-          WRITE ( *, '(A)') "  In place 3D FFT (local)  : fft3d_s"
-          WRITE ( *, '(A,T60,3I7)') "     Transform lengths ",n
-          WRITE ( *, '(A,T60,3I7)') "     Input/output array dimensions ",ld
-          WRITE ( *, '(A,T61,E20.14)') "     Sum of input data ",in_sum
-          WRITE ( *, '(A,T61,E20.14)') "     Sum of output data ",out_sum
+          WRITE ( output_unit, '(A)') "  In place 3D FFT (local)  : fft3d_s"
+          WRITE ( output_unit, '(A,T60,3I7)') "     Transform lengths ",n
+          WRITE ( output_unit, '(A,T60,3I7)') "     Input/output array dimensions ",ld
+          WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of input data ",in_sum
+          WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of output data ",out_sum
        END IF
     END IF
 
@@ -515,15 +522,18 @@ CONTAINS
       POINTER                                :: tbuf
     INTEGER :: g_pos, handle, ierr, iout, lg, lmax, mcx2, mcz1, mcz2, mg, &
       mmax, mx1, mx2, my1, mz2, n1, n2, nmax, numtask, numtask_g, numtask_r, &
-      nx, ny, nz, r_dim(2), r_pos(2), rp, sign, stat
+      nx, ny, nz, output_unit, r_dim(2), r_pos(2), rp, sign, stat
     INTEGER, ALLOCATABLE, DIMENSION(:)       :: p2p
     LOGICAL                                  :: test
     REAL(KIND=dp)                            :: norm, sum_data
     TYPE(cp_error_type)                      :: error
+    TYPE(cp_logger_type), POINTER            :: logger
     TYPE(fft_scratch_sizes)                  :: fft_scratch_size
     TYPE(fft_scratch_type), POINTER          :: fft_scratch
 
     CALL timeset(routineN,handle)
+    logger => cp_error_get_logger(error)
+    output_unit = cp_logger_get_default_io_unit(logger)
 
     IF ( PRESENT ( debug ) ) THEN
        test = debug
@@ -615,11 +625,11 @@ CONTAINS
     fft_scratch_size%numtask   = numtask
 
     IF ( test ) THEN
-       IF ( g_pos == 0 ) THEN
-          WRITE ( *, '(A)') "  Parallel 3D FFT : fft3d_ps"
-          WRITE ( *, '(A,T60,3I7)') "     Transform lengths ",n
-          WRITE ( *, '(A,T67,2I7)') "     Array dimensions (gin) ",lg,mg
-          WRITE ( *, '(A,T60,3I7)') "     Array dimensions (cin) ",nx,ny,nz
+       IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+          WRITE ( output_unit, '(A)') "  Parallel 3D FFT : fft3d_ps"
+          WRITE ( output_unit, '(A,T60,3I7)') "     Transform lengths ",n
+          WRITE ( output_unit, '(A,T67,2I7)') "     Array dimensions (gin) ",lg,mg
+          WRITE ( output_unit, '(A,T60,3I7)') "     Array dimensions (cin) ",nx,ny,nz
        END IF
     END IF
 
@@ -642,12 +652,12 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( cin ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A)') "  Two step communication algorithm "
-                WRITE ( *, '(A,T60,3I7)') "     Transform Z ",n(3),mx1*my1
-                WRITE ( *, '(A,T60,3I7)') "     Transform Y ",n(2),mx2*mz2
-                WRITE ( *, '(A,T67,2I7)') "     Transform X ",n(1),nyzray(g_pos)
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A)') "  Two step communication algorithm "
+                WRITE ( output_unit, '(A,T60,3I7)') "     Transform Z ",n(3),mx1*my1
+                WRITE ( output_unit, '(A,T60,3I7)') "     Transform Y ",n(2),mx2*mz2
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform X ",n(1),nyzray(g_pos)
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
              END IF
           END IF
 
@@ -662,8 +672,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( qbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
              END IF
           END IF
 
@@ -673,8 +683,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( rbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(3) T",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(3) T",sum_data
              END IF
           END IF
 
@@ -688,8 +698,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( pbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(4) TS",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(4) TS",sum_data
              END IF
           END IF
 
@@ -700,8 +710,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( qbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(5) TS",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(5) TS",sum_data
              END IF
           END IF
 
@@ -711,8 +721,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( gin ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(6) ",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(6) ",sum_data
              END IF
           END IF
 
@@ -722,12 +732,12 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( gin ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A)') "  Two step communication algorithm "
-                WRITE ( *, '(A,T67,2I7)') "     Transform X ",n(1),nyzray(g_pos)
-                WRITE ( *, '(A,T60,3I7)') "     Transform Y ",n(2),mx2*mz2
-                WRITE ( *, '(A,T60,3I7)') "     Transform Z ",n(3),mx1*my1
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A)') "  Two step communication algorithm "
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform X ",n(1),nyzray(g_pos)
+                WRITE ( output_unit, '(A,T60,3I7)') "     Transform Y ",n(2),mx2*mz2
+                WRITE ( output_unit, '(A,T60,3I7)') "     Transform Z ",n(3),mx1*my1
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
              END IF
           END IF
 
@@ -741,8 +751,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( pbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(2) TS",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(2) TS",sum_data
              END IF
           END IF
 
@@ -753,8 +763,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( qbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(3) TS",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(3) TS",sum_data
              END IF
           END IF
 
@@ -768,8 +778,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( rbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(4) T",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(4) T",sum_data
              END IF
           END IF
 
@@ -779,8 +789,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( pbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(5) T",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(5) T",sum_data
              END IF
           END IF
 
@@ -792,8 +802,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( cin ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(6) ",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(6) ",sum_data
              END IF
           END IF
 
@@ -829,11 +839,11 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( cin ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A)') "     One step communication algorithm "
-                WRITE ( *, '(A,T60,3I7)') "     Transform YZ ",n(2),n(3),nx
-                WRITE ( *, '(A,T67,2I7)') "     Transform X ",n(1),nyzray(g_pos)
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A)') "     One step communication algorithm "
+                WRITE ( output_unit, '(A,T60,3I7)') "     Transform YZ ",n(2),n(3),nx
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform X ",n(1),nyzray(g_pos)
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
              END IF
           END IF
 
@@ -844,8 +854,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( tbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(2) TS",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(2) TS",sum_data
              END IF
           END IF
 
@@ -856,8 +866,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( sbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(3) TS",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(3) TS",sum_data
              END IF
           END IF
           ! FFT along x
@@ -866,8 +876,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( gin ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(4) ",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(4) ",sum_data
              END IF
           END IF
 
@@ -877,11 +887,11 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( gin ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A)') "  One step communication algorithm "
-                WRITE ( *, '(A,T67,2I7)') "     Transform X ",n(1),nyzray(g_pos)
-                WRITE ( *, '(A,T60,3I7)') "     Transform YZ ",n(2),n(3),nx
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A)') "  One step communication algorithm "
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform X ",n(1),nyzray(g_pos)
+                WRITE ( output_unit, '(A,T60,3I7)') "     Transform YZ ",n(2),n(3),nx
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
             END IF
           END IF
 
@@ -891,8 +901,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( sbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(2) TS",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(2) TS",sum_data
              END IF
           END IF
 
@@ -903,8 +913,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( tbuf ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(3) TS",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(3) TS",sum_data
              END IF
           END IF
 
@@ -915,8 +925,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( cin ) )
              CALL mp_sum ( sum_data, gs_group )
-             IF ( g_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(4) ",sum_data
+             IF ( g_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(4) ",sum_data
              END IF
           END IF
        ELSE
@@ -971,14 +981,13 @@ CONTAINS
 
     COMPLEX(KIND=dp), DIMENSION(:, :), &
       POINTER                                :: abuf, bbuf
-    INTEGER                                  :: handle, lg(2), lz(3), mcx2, &
-                                                mcy3, mcz1, mcz2, mx1, mx2, &
-                                                mx3, my1, my2, my3, my_pos, &
-                                                mz1, mz2, mz3, np, sign, stat
+    INTEGER :: handle, lg(2), lz(3), mcx2, mcy3, mcz1, mcz2, mx1, mx2, mx3, &
+      my1, my2, my3, my_pos, mz1, mz2, mz3, np, output_unit, sign, stat
     INTEGER, DIMENSION(2)                    :: dim, pos
     LOGICAL                                  :: failure, test
     REAL(KIND=dp)                            :: norm, sum_data
     TYPE(cp_error_type)                      :: error
+    TYPE(cp_logger_type), POINTER            :: logger
     TYPE(fft_scratch_sizes)                  :: fft_scratch_size
     TYPE(fft_scratch_type), POINTER          :: fft_scratch
 
@@ -1004,6 +1013,8 @@ CONTAINS
 
     failure = .FALSE.
     CALL timeset(routineN,handle)
+    logger => cp_error_get_logger(error)
+    output_unit = cp_logger_get_default_io_unit(logger)
 
     CALL mp_environ ( np, dim, pos, group )
     CALL mp_cart_rank ( group, pos, my_pos )
@@ -1028,11 +1039,11 @@ CONTAINS
        lz ( 1 ) = SIZE ( zin ,1 )
        lz ( 2 ) = SIZE ( zin ,2 )
        lz ( 3 ) = SIZE ( zin ,3 )
-       IF ( my_pos == 0 ) THEN
-          WRITE ( *, '(A)') "  Parallel 3D FFT : fft3d_pb"
-          WRITE ( *, '(A,T60,3I7)') "     Transform lengths ",n
-          WRITE ( *, '(A,T67,2I7)') "     Array dimensions (gin) ",lg
-          WRITE ( *, '(A,T60,3I7)') "     Array dimensions (cin) ",lz
+       IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+          WRITE ( output_unit, '(A)') "  Parallel 3D FFT : fft3d_pb"
+          WRITE ( output_unit, '(A,T60,3I7)') "     Transform lengths ",n
+          WRITE ( output_unit, '(A,T67,2I7)') "     Array dimensions (gin) ",lg
+          WRITE ( output_unit, '(A,T60,3I7)') "     Array dimensions (cin) ",lz
        END IF
     END IF
 
@@ -1083,10 +1094,10 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( zin ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A)') "  Two step communication algorithm "
-                WRITE ( *, '(A,T67,2I7)') "     Transform Z ",n(3),mx1*my1
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A)') "  Two step communication algorithm "
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform Z ",n(3),mx1*my1
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
              END IF
           END IF
 
@@ -1098,8 +1109,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( bbuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
              END IF
           END IF
 
@@ -1110,9 +1121,9 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( abuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T67,2I7)') "     Transform Y ",n(2),mx2*mz2
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(3) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform Y ",n(2),mx2*mz2
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(3) ",sum_data
              END IF
           END IF
 
@@ -1124,8 +1135,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( bbuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(4) T",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(4) T",sum_data
              END IF
           END IF
 
@@ -1134,9 +1145,9 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( abuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T67,2I7)') "     Transform X ",n(1),my3*mz3
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(5) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform X ",n(1),my3*mz3
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(5) ",sum_data
              END IF
           END IF
 
@@ -1147,8 +1158,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( gin ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(6) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(6) ",sum_data
              END IF
           END IF
 
@@ -1160,10 +1171,10 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( gin ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A)') "  Two step communication algorithm "
-                WRITE ( *, '(A,T67,2I7)') "     Transform X ",n(1),my3*mz3
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A)') "  Two step communication algorithm "
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform X ",n(1),my3*mz3
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
              END IF
           END IF
 
@@ -1175,8 +1186,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( bbuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
              END IF
           END IF
 
@@ -1187,9 +1198,9 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( abuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T67,2I7)') "     Transform Y ",n(2),mx2*mz2
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(3) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform Y ",n(2),mx2*mz2
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(3) ",sum_data
              END IF
           END IF
 
@@ -1201,8 +1212,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( bbuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(4) T",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(4) T",sum_data
              END IF
           END IF
 
@@ -1211,9 +1222,9 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( abuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T67,2I7)') "     Transform Z ",n(3),mx1*my1
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(5) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform Z ",n(3),mx1*my1
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(5) ",sum_data
              END IF
           END IF
 
@@ -1223,8 +1234,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( zin ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(6) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(6) ",sum_data
              END IF
           END IF
 
@@ -1249,11 +1260,11 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( zin ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A)') "  one step communication algorithm "
-                WRITE ( *, '(A,T67,2I7)') "     Transform Z ",n(3),mx1*my1
-                WRITE ( *, '(A,T67,2I7)') "     Transform Y ",n(2),mx1*mz1
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A)') "  one step communication algorithm "
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform Z ",n(3),mx1*my1
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform Y ",n(2),mx1*mz1
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
              END IF
           END IF
 
@@ -1268,8 +1279,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( bbuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
              END IF
           END IF
 
@@ -1278,9 +1289,9 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( abuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T67,2I7)') "     Transform X ",n(1),my3*mz3
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(3) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform X ",n(1),my3*mz3
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(3) ",sum_data
              END IF
           END IF
 
@@ -1290,8 +1301,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( gin ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(4) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(4) ",sum_data
              END IF
           END IF
 
@@ -1301,10 +1312,10 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( gin ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A)') "  one step communication algorithm "
-                WRITE ( *, '(A,T67,2I7)') "     Transform X ",n(1),my3*mz3
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A)') "  one step communication algorithm "
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform X ",n(1),my3*mz3
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(1) ",sum_data
              END IF
           END IF
 
@@ -1318,8 +1329,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( bbuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(2) T",sum_data
              END IF
           END IF
 
@@ -1330,10 +1341,10 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( abuf ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T67,2I7)') "     Transform Y ",n(2),mx1*mz1
-                WRITE ( *, '(A,T67,2I7)') "     Transform Z ",n(3),mx1*my1
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(3) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform Y ",n(2),mx1*mz1
+                WRITE ( output_unit, '(A,T67,2I7)') "     Transform Z ",n(3),mx1*my1
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(3) ",sum_data
              END IF
           END IF
 
@@ -1346,8 +1357,8 @@ CONTAINS
           IF ( test ) THEN
              sum_data = ABS ( SUM ( zin ) )
              CALL mp_sum ( sum_data, group )
-             IF ( my_pos == 0 ) THEN
-                WRITE ( *, '(A,T61,E20.14)') "     Sum of data(4) ",sum_data
+             IF ( my_pos == 0 .AND. output_unit > 0 ) THEN
+                WRITE ( output_unit, '(A,T61,E20.14)') "     Sum of data(4) ",sum_data
              END IF
           END IF
 
@@ -2701,9 +2712,6 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE deallocate_fft_scratch_type(fft_scratch,error)
-#if defined ( __PW_CUDA ) && !defined ( __PW_CUDA_NO_HOSTALLOC )
-    USE ISO_C_BINDING
-#endif
     TYPE(fft_scratch_type), INTENT(INOUT)    :: fft_scratch
     TYPE(cp_error_type), INTENT(inout)       :: error
 
@@ -3050,10 +3058,6 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE get_fft_scratch(fft_scratch,tf_type,n,fft_sizes,error)
-#if defined ( __PW_CUDA ) && !defined ( __PW_CUDA_NO_HOSTALLOC )
-    USE ISO_C_BINDING
-#endif
-
     TYPE(fft_scratch_type), POINTER          :: fft_scratch
     INTEGER, INTENT(IN)                      :: tf_type
     INTEGER, DIMENSION(:), INTENT(IN)        :: n
