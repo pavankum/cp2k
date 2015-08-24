@@ -16,7 +16,7 @@
 MODULE library_tests
 
   USE ai_coulomb_test,                 ONLY: eri_test
-  USE cell_types,                    ONLY: cell_create,&
+  USE cell_types,                      ONLY: cell_create,&
                                              cell_release,&
                                              cell_type,&
                                              init_cell
@@ -105,9 +105,6 @@ MODULE library_tests
   USE termination,                     ONLY: stop_memory
   USE timings,                         ONLY: timeset,&
                                              timestop
-#if defined(__parallel) && ! defined(__HAS_NO_MPI_MOD)
-  USE mpi
-#endif
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
