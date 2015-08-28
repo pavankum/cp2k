@@ -97,10 +97,25 @@
 # define LIBXSTREAM_PRAGMA_LOOP_COUNT(MIN, MAX, AVG) LIBXSTREAM_PRAGMA(loop_count min(MIN) max(MAX) avg(AVG))
 # define LIBXSTREAM_PRAGMA_UNROLL_N(N) LIBXSTREAM_PRAGMA(unroll(N))
 # define LIBXSTREAM_PRAGMA_UNROLL LIBXSTREAM_PRAGMA(unroll)
+/*# define LIBXSTREAM_UNUSED(VARIABLE) LIBXSTREAM_PRAGMA(unused(VARIABLE))*/
 #else
 # define LIBXSTREAM_PRAGMA_LOOP_COUNT(MIN, MAX, AVG)
 # define LIBXSTREAM_PRAGMA_UNROLL_N(N)
 # define LIBXSTREAM_PRAGMA_UNROLL
+#endif
+
+#if !defined(LIBXSTREAM_UNUSED)
+# if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+#   define LIBXSTREAM_UNUSED(VARIABLE) LIBXSTREAM_PRAGMA(LIBXSTREAM_STRINGIFY(unused(VARIABLE)))
+# else
+#   define LIBXSTREAM_UNUSED(VARIABLE) (void)(VARIABLE)
+# endif
+#endif
+
+#if defined(__GNUC__) || (defined(__INTEL_COMPILER) && !defined(_WIN32))
+# define LIBXSTREAM_UNUSED_ARG LIBXSTREAM_ATTRIBUTE(unused)
+#else
+# define LIBXSTREAM_UNUSED_ARG
 #endif
 
 /*Based on Stackoverflow's NBITSx macro.*/
@@ -162,12 +177,13 @@
 #endif
 
 #if defined(__INTEL_OFFLOAD) && (!defined(_WIN32) || (1400 <= __INTEL_COMPILER))
-# define LIBXSTREAM_OFFLOAD 1
-# define LIBXSTREAM_TARGET(A) LIBXSTREAM_ATTRIBUTE(target(A))
+# define LIBXSTREAM_OFFLOAD_BUILD 1
+# define LIBXSTREAM_OFFLOAD(A) LIBXSTREAM_ATTRIBUTE(target(A))
 #else
-/*# define LIBXSTREAM_OFFLOAD 0*/
-# define LIBXSTREAM_TARGET(A)
+/*# define LIBXSTREAM_OFFLOAD_BUILD 0*/
+# define LIBXSTREAM_OFFLOAD(A)
 #endif
+#define LIBXSTREAM_RETARGETABLE LIBXSTREAM_OFFLOAD(LIBXSTREAM_OFFLOAD_TARGET)
 
 #define LIBXSTREAM_IMPORT_DLL __declspec(dllimport)
 #if defined(_WINDLL) && defined(_WIN32)
@@ -212,8 +228,8 @@
 # define NOMINMAX 1
 #endif
 
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) void libxstream_sink(const void*);
-LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_nonconst(int value);
+LIBXSTREAM_EXPORT_C LIBXSTREAM_RETARGETABLE void libxstream_sink(const void*);
+LIBXSTREAM_EXPORT_C LIBXSTREAM_RETARGETABLE int libxstream_nonconst(int value);
 
 #if defined(LIBXSTREAM_INTERNAL_DEBUG)
 # define LIBXSTREAM_ASSERT(A) assert(A)
@@ -273,7 +289,7 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_TARGET(mic) int libxstream_nonconst(int value);
 #endif
 
 #if defined(__MIC__)
-# define LIBXSTREAM_DEVICE_NAME "mic"
+# define LIBXSTREAM_DEVICE_NAME "LIBXSTREAM_OFFLOAD_TARGET"
 #else
 # define LIBXSTREAM_DEVICE_NAME "host"
 #endif

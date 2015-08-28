@@ -24,11 +24,11 @@
 #endif
 
 #if !defined(__LIBXSMM)
-LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_TARGET(mic) void LIBXSMM_ACC_FSYMBOL(dgemm)(
+LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_RETARGETABLE void LIBXSMM_ACC_FSYMBOL(dgemm)(
   const char*, const char*, const int*, const int*, const int*,
   const double*, const double*, const int*, const double*, const int*,
   const double*, double*, const int*);
-LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_TARGET(mic) void LIBXSMM_ACC_FSYMBOL(sgemm)(
+LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_RETARGETABLE void LIBXSMM_ACC_FSYMBOL(sgemm)(
   const char*, const char*, const int*, const int*, const int*,
   const float*, const float*, const int*, const float*, const int*,
   const float*, float*, const int*);
@@ -40,7 +40,7 @@ LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_TARGET(mic) void LIBXSMM_ACC_FSYMBOL(sgemm)(
 namespace libxsmm_process_private {
 
 #if defined(LIBXSMM_ACC_OPENMP) && defined(LIBXSMM_ACC_SYNCHRONIZATION) && (1 < (LIBXSMM_ACC_SYNCHRONIZATION))
-LIBXSMM_ACC_TARGET(mic) class LIBXSMM_ACC_TARGET(mic) lock_type {
+LIBXSMM_ACC_RETARGETABLE class LIBXSMM_ACC_RETARGETABLE lock_type {
 public:
   lock_type() {
     for (int i = 0; i < (LIBXSMM_ACC_SYNCHRONIZATION); ++i) omp_init_lock(m_lock + i);
@@ -66,7 +66,7 @@ private:
 
 
 template<typename T, typename U>
-class LIBXSMM_ACC_TARGET(mic) smm_type {
+class LIBXSMM_ACC_RETARGETABLE smm_type {
 public:
   typedef void (*xmm_function_type)(const T*, const T*, T*);
   typedef void (*smm_function_type)(U, U, U, U, const T*, const T*, T*, xmm_function_type);
@@ -123,17 +123,17 @@ public:
 
 private:
 #if defined(__LIBXSMM)
-  LIBXSMM_ACC_TARGET(mic) static void xmm(U, U, U, U, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c, xmm_function_type xmm_function) {
+  LIBXSMM_ACC_RETARGETABLE static void xmm(U, U, U, U, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c, xmm_function_type xmm_function) {
     LIBXSMM_ACC_ASSERT(xmm_function);
     xmm_function(a, b, c);
   }
 
-  LIBXSMM_ACC_TARGET(mic) static void imm(U m, U n, U k, U, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c, xmm_function_type) {
+  LIBXSMM_ACC_RETARGETABLE static void imm(U m, U n, U k, U, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c, xmm_function_type) {
     LIBXSMM_ACC_ASSERT((LIBXSMM_MAX_MNK) >= (m * n * k));
     libxsmm_imm(m, n, k, a, b, c);
   }
 
-  LIBXSMM_ACC_TARGET(mic) static void amm(U m, U n, U k, U, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c, xmm_function_type) {
+  LIBXSMM_ACC_RETARGETABLE static void amm(U m, U n, U k, U, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c, xmm_function_type) {
     LIBXSMM_ACC_ASSERT((LIBXSMM_MAX_MNK) >= (m * n * k));
     const xmm_function_type xmm_function = libxsmm_mm_dispatch<T>(m, n, k);
 
@@ -146,7 +146,7 @@ private:
   }
 #endif
 
-  LIBXSMM_ACC_TARGET(mic) static void bmm(U m, U n, U k, U ldc, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c, xmm_function_type) {
+  LIBXSMM_ACC_RETARGETABLE static void bmm(U m, U n, U k, U ldc, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c, xmm_function_type) {
     blasmm(m, n, k, ldc, a, b, c);
   }
 
@@ -172,7 +172,7 @@ private:
 
 
 template<size_t N, typename T, typename U>
-LIBXSMM_ACC_TARGET(mic) void work_basic(const U *LIBXSMM_ACC_RESTRICT stack, size_t stacksize, const smm_type<T,U>& smm,
+LIBXSMM_ACC_RETARGETABLE void work_basic(const U *LIBXSMM_ACC_RESTRICT stack, size_t stacksize, const smm_type<T,U>& smm,
   const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c)
 {
   const int nstacksize = static_cast<int>(stacksize * N);
@@ -214,7 +214,7 @@ LIBXSMM_ACC_TARGET(mic) void work_basic(const U *LIBXSMM_ACC_RESTRICT stack, siz
 
 
 template<size_t N, typename T, typename U>
-LIBXSMM_ACC_TARGET(mic) void work_planned(const U *LIBXSMM_ACC_RESTRICT stack, U stacksize, const smm_type<T,U>& smm,
+LIBXSMM_ACC_RETARGETABLE void work_planned(const U *LIBXSMM_ACC_RESTRICT stack, U stacksize, const smm_type<T,U>& smm,
   const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c)
 {
   const U nstacksize = static_cast<U>(N) * stacksize;
@@ -255,7 +255,7 @@ LIBXSMM_ACC_TARGET(mic) void work_planned(const U *LIBXSMM_ACC_RESTRICT stack, U
 
 
 template<size_t N, typename T, typename U>
-LIBXSMM_ACC_TARGET(mic) void context(const U* stack, const U* stacksize, const U* def_mnk, const U* max_m, const U* max_n, const U* max_k, const T* a, const T* b, T* c)
+LIBXSMM_ACC_RETARGETABLE void context(const U* stack, const U* stacksize, const U* def_mnk, const U* max_m, const U* max_n, const U* max_k, const T* a, const T* b, T* c)
 {
   const smm_type<T,U> smm(*def_mnk, *max_m, *max_n, *max_k);
 #if defined(LIBXSMM_ACC_NLOCAL) && (0 < (LIBXSMM_ACC_NLOCAL))

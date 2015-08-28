@@ -39,7 +39,7 @@ LIBXSMM_ACC_EXTERN_C void MKL_Dimatcopy(const char, const char, size_t, size_t, 
 
 namespace libxsmm_transpose_private {
 
-LIBXSMM_ACC_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, float* matrix)
+LIBXSMM_ACC_RETARGETABLE inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, float* matrix)
 {
 #if defined(LIBXSMM_ACC_MKLTRANS) && defined(__MKL)
   MKL_Simatcopy('R', 'T', m, n, 1.f, matrix, n, m);
@@ -47,7 +47,7 @@ LIBXSMM_ACC_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, floa
 }
 
 
-LIBXSMM_ACC_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, double* matrix)
+LIBXSMM_ACC_RETARGETABLE inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, double* matrix)
 {
 #if defined(LIBXSMM_ACC_MKLTRANS) && defined(__MKL)
   MKL_Dimatcopy('R', 'T', m, n, 1.0, matrix, n, m);
@@ -56,7 +56,7 @@ LIBXSMM_ACC_TARGET(mic) inline/*IPO*/ void mkl_imatcopy(size_t m, size_t n, doub
 
 
 template<typename T, typename U>
-LIBXSMM_ACC_TARGET(mic) void kernel(const U* stack, const U* pstacksize, const U* pm, const U* pn, T* matrix)
+LIBXSMM_ACC_RETARGETABLE void kernel(const U* stack, const U* pstacksize, const U* pm, const U* pn, T* matrix)
 {
   const U stacksize = *pstacksize, m = *pm, n = *pn;
 
