@@ -239,9 +239,9 @@ ifneq (0,$(ACC))
     else # also true if OFFLOAD is undefined
       #OPTFLAGS += -offload=mandatory
       # enable OpenMP for OFFLOAD regardless of wether OMP is enabled or not
-      MIC_CXFLAGS += -offload-option,mic,compiler,"-openmp"
-      MIC_CCFLAGS += -offload-option,mic,compiler,"-openmp"
-      MIC_FCFLAGS += -offload-option,mic,compiler,"-openmp"
+      MIC_CXFLAGS += -openmp -no-openmp -offload-option,mic,compiler,"-openmp"
+      MIC_CCFLAGS += -openmp -no-openmp -offload-option,mic,compiler,"-openmp"
+      MIC_FCFLAGS += -openmp -no-openmp -offload-option,mic,compiler,"-openmp"
       MIC_LDFLAGS += -offload-option,mic,ld,"--no-undefined"
       ifneq (,$(ATTRIBUTE))
         MIC_CXFLAGS += -offload-attribute-target=$(ATTRIBUTE)
