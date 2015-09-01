@@ -36,8 +36,7 @@
     !$omp          private (row_i, row, row_size, blk, bp, bpe) &
     !$omp          shared (nrows, local) &
     !$omp          shared (local2global, rbs, cbs, row_p, col_i, blk_p, &
-    !$omp                  data, norms) &
-    !$omp          reduction (max:max_val)
+    !$omp                  data, norms) reduction (max:max_val)
     !$omp do
     DO row_i = 1, nrows
        IF (local) THEN
