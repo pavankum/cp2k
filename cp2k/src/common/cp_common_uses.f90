@@ -2,6 +2,7 @@
 ! should be included in the use statements
 
   USE cp_log_handling,                 ONLY: cp_logger_type,&
+                                             cp_logger_p_type,&
                                              cp_logger_create,&
                                              cp_logger_release,&
                                              cp_logger_set,&
@@ -28,12 +29,10 @@
                                              cp_unimplemented_error,&
                                              cp_error_get_logger,&
                                              cp_precondition_failed,&
-                                             cp_error_init,&
                                              cp_caller_error,&
                                              cp_wrong_args_error,&
                                              cp_unimplemented_error_nr,&
                                              cp_a_l,&
-                                             cp_error_dealloc_ref,&
                                              cp_error_message
 
 ! The following macros are here to facilitate the use of error handling
