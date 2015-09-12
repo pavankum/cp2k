@@ -892,12 +892,12 @@ SUBROUTINE restraint_functional_potential(v_hartree_gspace,&
        particle_set(iparticle)%r(i) = rvec(i) + dx
        CALL build_A_matrix(Am1, cp_ddapc_env%gfunc, cp_ddapc_env%w,&
             particle_set, radii, rho_tot_g, gcut, g_dot_rvec_sin, g_dot_rvec_cos)
-            ;  Am1(:,:) = Am1(:,:) / (Vol*Vol)
+            Am1(:,:) = Am1(:,:) / (Vol*Vol)
        CALL mp_sum(Am1,rho_tot_g%pw_grid%para%group)
        particle_set(iparticle)%r(i) = rvec(i) - dx
        CALL build_A_matrix(Am2, cp_ddapc_env%gfunc, cp_ddapc_env%w,&
             particle_set, radii, rho_tot_g, gcut, g_dot_rvec_sin, g_dot_rvec_cos)
-            ;  Am2(:,:) = Am2(:,:) / (Vol*Vol)
+            Am2(:,:) = Am2(:,:) / (Vol*Vol)
        CALL mp_sum(Am2,rho_tot_g%pw_grid%para%group)
        ddAm(:,:) = (Am1 - Am2)/(2.0_dp*dx)
        DO kk = 1, SIZE(ddAm,1)

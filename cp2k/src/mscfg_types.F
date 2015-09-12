@@ -362,7 +362,6 @@ CONTAINS
     ! finally call complete redistribute to get the matrix of the entire system
     CALL cp_dbcsr_set(matrix_out, 0.0_dp)
     CALL cp_dbcsr_complete_redistribute(matrix_new, matrix_out)
-            ;
     CALL cp_dbcsr_release (matrix_new)
 
   END SUBROUTINE copy_submatrix_into_matrix
