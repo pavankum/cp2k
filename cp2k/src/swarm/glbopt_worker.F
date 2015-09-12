@@ -53,7 +53,6 @@ MODULE glbopt_worker
    PRIVATE
    INTEGER                                  :: id
    INTEGER                                  :: iw
-   TYPE(cp_error_type)                      :: error
    INTEGER                                  :: f_env_id
    TYPE(f_env_type), POINTER                :: f_env
    TYPE(force_env_type), POINTER            :: force_env

@@ -16,7 +16,6 @@ MODULE cp_ma_interface
   USE cp_dbcsr_interface,              ONLY: dbcsr_get_conf_use_comm_thread
   USE cp_error_handling,               ONLY: cp_assert,&
                                              cp_error_get_logger,&
-                                             cp_error_type,&
                                              cp_unimplemented_error_nr
   USE cp_log_handling,                 ONLY: cp_logger_get_default_io_unit,&
                                              cp_logger_type,&

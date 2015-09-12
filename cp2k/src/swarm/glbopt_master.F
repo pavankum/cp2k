@@ -78,7 +78,6 @@ MODULE glbopt_master
    TYPE(atomic_kind_type), DIMENSION(:), POINTER       :: atomic_kind_set => Null()
    TYPE(particle_type), DIMENSION(:), POINTER          :: particle_set => Null()
    TYPE(section_vals_type), POINTER                    :: glbopt_section => Null()
-   TYPE(cp_error_type)                                 :: error
  END TYPE glbopt_master_type
 
  CONTAINS

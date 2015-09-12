@@ -38,7 +38,6 @@ MODULE swarm_worker
    PRIVATE
    INTEGER                                  :: id = -1
    INTEGER                                  :: iw = -1
-   TYPE(cp_error_type)                      :: error
    INTEGER                                  :: behavior = -1
    TYPE(glbopt_worker_type), POINTER        :: glbopt => Null()
    !possbily more behaviors...

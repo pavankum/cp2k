@@ -89,7 +89,6 @@ MODULE glbopt_mincrawl
    TYPE(section_vals_type), POINTER                    :: mincrawl_section => Null()
    TYPE(rng_stream_type),POINTER                       :: rng_stream => Null()
    TYPE(particle_type), DIMENSION(:), POINTER          :: particle_set => Null()
-   TYPE(cp_error_type)                                 :: error
  END TYPE mincrawl_type
 
  CONTAINS

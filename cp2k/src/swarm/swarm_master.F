@@ -64,7 +64,6 @@ MODULE swarm_master
    LOGICAL                                             :: should_stop = .FALSE.
    INTEGER                                             :: n_workers = -1
    INTEGER                                             :: comlog_unit
-   TYPE(cp_error_type)                                 :: error
    TYPE(section_vals_type), POINTER                    :: swarm_section => Null()
    TYPE(cp_para_env_type), POINTER                     :: para_env => Null()
    TYPE(swarm_message_p_type), DIMENSION(:), POINTER   :: queued_commands => Null()

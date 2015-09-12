@@ -44,7 +44,7 @@ MODULE cp_error_handling
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'cp_error_handling'
 
   !API types
-  PUBLIC :: cp_error_type, cp_error_get_logger
+  PUBLIC :: cp_error_get_logger
   !API parameters var
   PUBLIC :: cp_debug, cp_no_error, cp_caller_error, cp_wrong_args_error,&
        cp_precondition_failed, cp_internal_error, cp_postcondition_failed,&
@@ -83,33 +83,6 @@ MODULE cp_error_handling
   !! error number: not implemented
   INTEGER, PARAMETER :: cp_unimplemented_error_nr = -1000
 
-! *****************************************************************************
-!> \brief this type represent a structure that can be passed to
-!>      the functions to change their error behaviour.
-!>      It should always be initialized with cp_error_init before use
-!> \param initialized true if initialized (just for bug catching)
-!> \param logger a pointer to the logger where error logs should go
-!>          (if null they go to cp_default_logger)
-!> \param stop_level the level at which the execution stops
-!> \param print_level starting at which level something gets printed
-!> \param level level of the error (0 = cp_note_level=no error,
-!>           cp_warning_level, cp_failure_level or cp_fatal_level=3).
-!>           Definition of these constants is in cp_log_handling.
-!> \param error_nr the number of the error (0 = no error)
-!> \param info some additional info to store (error message, string ...)
-!> \note
-!>      if one of level or error_nr is different from 0 then both must be
-!>      different from 0.
-!> \par History
-!>      none
-!> \author Fawzi Mohamed
-!>      @version 2.2002
-! *****************************************************************************
-  TYPE cp_error_type
-   ! empty :-)
-   PRIVATE
-   INTEGER :: dummy = 42 ! ifort workaround
-  END TYPE cp_error_type
 
 CONTAINS
 

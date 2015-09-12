@@ -21,8 +21,7 @@
                                              cp_add_default_logger,&
                                              cp_rm_default_logger,&
                                              cp_to_string
-  USE cp_error_handling,               ONLY: cp_error_type,&
-                                             cp_debug,&
+  USE cp_error_handling,               ONLY: cp_debug,&
                                              cp_assertion_failed,&
                                              cp_internal_error,&
                                              cp_assert,&
