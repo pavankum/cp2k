@@ -82,11 +82,10 @@ CONTAINS
 !> \par History
 !>      - Cell optimization revised (06.11.2012,MK)
 ! *****************************************************************************
-  SUBROUTINE gopt_f_create_x0(gopt_env,x0,error)
+  SUBROUTINE gopt_f_create_x0(gopt_env,x0)
 
     TYPE(gopt_f_type), POINTER               :: gopt_env
     REAL(KIND=dp), DIMENSION(:), POINTER     :: x0
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'gopt_f_create_x0', &
       routineP = moduleN//':'//routineN
@@ -103,25 +102,25 @@ CONTAINS
 
     SELECT CASE (gopt_env%type_id)
     CASE (default_minimization_method_id,default_ts_method_id)
-      CALL force_env_get(gopt_env%force_env,subsys=subsys,error=error)
+      CALL force_env_get(gopt_env%force_env,subsys=subsys)
       ! before starting we handle the case of translating coordinates (QM/MM)
-      CALL apply_qmmm_translate(gopt_env%force_env,error=error)
-      nparticle = force_env_get_nparticle(gopt_env%force_env,error)
+      CALL apply_qmmm_translate(gopt_env%force_env)
+      nparticle = force_env_get_nparticle(gopt_env%force_env)
       ALLOCATE (x0(3*nparticle),STAT=stat)
-      CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-      CALL pack_subsys_particles(subsys=subsys,r=x0,error=error)
+      CPPostcondition(stat==0,cp_failure_level,routineP,failure)
+      CALL pack_subsys_particles(subsys=subsys,r=x0)
     CASE (default_cell_method_id)
       SELECT CASE (gopt_env%cell_method_id)
       CASE (default_cell_direct_id)
-         CALL force_env_get(gopt_env%force_env,subsys=subsys,cell=cell,error=error)
+         CALL force_env_get(gopt_env%force_env,subsys=subsys,cell=cell)
          ! Store reference cell
          gopt_env%h_ref = cell%hmat
          ! before starting we handle the case of translating coordinates (QM/MM)
-         CALL apply_qmmm_translate(gopt_env%force_env,error=error)
-         nparticle = force_env_get_nparticle(gopt_env%force_env,error)
+         CALL apply_qmmm_translate(gopt_env%force_env)
+         nparticle = force_env_get_nparticle(gopt_env%force_env)
          ALLOCATE (x0(3*nparticle+6),STAT=stat)
-         CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-         CALL pack_subsys_particles(subsys=subsys,r=x0,error=error)
+         CPPostcondition(stat==0,cp_failure_level,routineP,failure)
+         CALL pack_subsys_particles(subsys=subsys,r=x0)
          idg = 3*nparticle
          DO i=1,3
             DO j=1,i
@@ -130,9 +129,9 @@ CONTAINS
             END DO
          END DO
       CASE (default_cell_geo_opt_id,default_cell_md_id)
-         CALL force_env_get(gopt_env%force_env,cell=cell,error=error)
+         CALL force_env_get(gopt_env%force_env,cell=cell)
          ALLOCATE (x0(6),STAT=stat)
-         CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+         CPPostcondition(stat==0,cp_failure_level,routineP,failure)
          idg = 0
          DO i=1,3
            DO j=1,i
@@ -141,10 +140,10 @@ CONTAINS
            END DO
          END DO
       CASE DEFAULT
-         CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+         CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
       END SELECT
     CASE DEFAULT
-      CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+      CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
     END SELECT
 
   END SUBROUTINE gopt_f_create_x0
@@ -179,14 +178,13 @@ CONTAINS
 !> \param error ...
 !> \author Teodoro Laino [tlaino] - University of Zurich - 03.2008
 ! *****************************************************************************
-  SUBROUTINE gopt_f_io_init(gopt_env, output_unit, opt_energy, wildcard, its, used_time, error)
+  SUBROUTINE gopt_f_io_init(gopt_env, output_unit, opt_energy, wildcard, its, used_time)
     TYPE(gopt_f_type), POINTER               :: gopt_env
     INTEGER, INTENT(IN)                      :: output_unit
     REAL(KIND=dp)                            :: opt_energy
     CHARACTER(LEN=5)                         :: wildcard
     INTEGER, INTENT(IN)                      :: its
     REAL(KIND=dp)                            :: used_time
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'gopt_f_io_init', &
       routineP = moduleN//':'//routineN
@@ -198,7 +196,7 @@ CONTAINS
        ! Geometry Optimization (Minimization and Transition State Search)
        IF (.NOT.gopt_env%dimer_rotation) THEN
           CALL write_cycle_infos(output_unit,it=its,etot=opt_energy,wildcard=wildcard, &
-                                 used_time=used_time, error=error)
+                                 used_time=used_time)
        ELSE
           CALL write_rot_cycle_infos(output_unit,it=its,etot=opt_energy,dimer_env=gopt_env%dimer_env,&
                wildcard=wildcard, used_time=used_time)
@@ -207,10 +205,10 @@ CONTAINS
        ! Cell Optimization
        pres_int = gopt_env%cell_env%pres_int
        CALL write_cycle_infos(output_unit,it=its,etot=opt_energy,pres_int=pres_int,wildcard=wildcard,&
-                              used_time=used_time, error=error)
+                              used_time=used_time)
     CASE(default_shellcore_method_id)
        CALL write_cycle_infos(output_unit,it=its,etot=opt_energy,wildcard=wildcard, &
-                              used_time=used_time, error=error)
+                              used_time=used_time)
     END SELECT
 
   END SUBROUTINE gopt_f_io_init
@@ -241,7 +239,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE gopt_f_io(gopt_env, force_env, root_section, its, opt_energy,&
        output_unit, eold, emin, wildcard, gopt_param, ndf, dx, xi, conv, pred, rat,&
-       step, rad, used_time, error)
+       step, rad, used_time)
     TYPE(gopt_f_type), POINTER               :: gopt_env
     TYPE(force_env_type), POINTER            :: force_env
     TYPE(section_vals_type), POINTER         :: root_section
@@ -259,7 +257,6 @@ CONTAINS
     LOGICAL, OPTIONAL                        :: conv
     REAL(KIND=dp), INTENT(IN), OPTIONAL      :: pred, rat, step, rad
     REAL(KIND=dp)                            :: used_time
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'gopt_f_io', &
       routineP = moduleN//':'//routineN
@@ -273,26 +270,25 @@ CONTAINS
        ! Geometry Optimization (Minimization and Transition State Search)
        IF (.NOT.gopt_env%dimer_rotation) THEN
           CALL geo_opt_io(force_env=force_env, root_section=root_section, &
-               motion_section=gopt_env%motion_section, its=its, opt_energy=opt_energy, error=error)
+               motion_section=gopt_env%motion_section, its=its, opt_energy=opt_energy)
           CALL write_cycle_infos(output_unit,its,etot=opt_energy,ediff=opt_energy-eold,&
-               pred=pred,rat=rat,step=step,rad=rad,emin=emin,wildcard=wildcard,used_time=used_time,error=error)
+               pred=pred,rat=rat,step=step,rad=rad,emin=emin,wildcard=wildcard,used_time=used_time)
           ! Possibly check convergence
           IF (PRESENT(conv)) THEN
-             CPPostcondition(PRESENT(ndf),cp_failure_level,routineP,error,failure)
-             CPPostcondition(PRESENT(dx),cp_failure_level,routineP,error,failure)
-             CPPostcondition(PRESENT(xi),cp_failure_level,routineP,error,failure)
-             CALL check_converg(ndf,dx,xi,output_unit,conv,gopt_param,error=error)
+             CPPostcondition(PRESENT(ndf),cp_failure_level,routineP,failure)
+             CPPostcondition(PRESENT(dx),cp_failure_level,routineP,failure)
+             CPPostcondition(PRESENT(xi),cp_failure_level,routineP,failure)
+             CALL check_converg(ndf,dx,xi,output_unit,conv,gopt_param)
           END IF
        ELSE
-          CALL update_dimer_vec(gopt_env%dimer_env, gopt_env%motion_section, error)
-          CALL write_restart(force_env=force_env,root_section=root_section,&
-               error=error)
+          CALL update_dimer_vec(gopt_env%dimer_env, gopt_env%motion_section)
+          CALL write_restart(force_env=force_env,root_section=root_section)
           CALL write_rot_cycle_infos(output_unit,its,opt_energy,opt_energy-eold,emin,gopt_env%dimer_env,&
                used_time=used_time, wildcard=wildcard)
           ! Possibly check convergence
           IF (PRESENT(conv)) THEN
-             CPPostcondition(ASSOCIATED(gopt_env%dimer_env),cp_failure_level,routineP,error,failure)
-             CALL check_rot_conv(gopt_env%dimer_env, output_unit, conv, error)
+             CPPostcondition(ASSOCIATED(gopt_env%dimer_env),cp_failure_level,routineP,failure)
+             CALL check_rot_conv(gopt_env%dimer_env, output_unit, conv)
           END IF
        END IF
     CASE (default_cell_method_id)
@@ -301,26 +297,26 @@ CONTAINS
        pres_int  = gopt_env%cell_env%pres_int
        pres_tol  = gopt_env%cell_env%pres_tol
        CALL geo_opt_io(force_env=force_env, root_section=root_section, &
-            motion_section=gopt_env%motion_section, its=its, opt_energy=opt_energy, error=error)
+            motion_section=gopt_env%motion_section, its=its, opt_energy=opt_energy)
        CALL write_cycle_infos(output_unit,its,etot=opt_energy,ediff=opt_energy-eold,&
             pred=pred,rat=rat,step=step,rad=rad,emin=emin,pres_int=pres_int,wildcard=wildcard,&
-            used_time=used_time, error=error)
+            used_time=used_time)
        ! Possibly check convergence
        IF (PRESENT(conv)) THEN
-          CPPostcondition(PRESENT(ndf),cp_failure_level,routineP,error,failure)
-          CPPostcondition(PRESENT(dx),cp_failure_level,routineP,error,failure)
-          CPPostcondition(PRESENT(xi),cp_failure_level,routineP,error,failure)
-          CALL check_converg(ndf,dx,xi,output_unit,conv,gopt_param,pres_diff,pres_tol,error=error)
+          CPPostcondition(PRESENT(ndf),cp_failure_level,routineP,failure)
+          CPPostcondition(PRESENT(dx),cp_failure_level,routineP,failure)
+          CPPostcondition(PRESENT(xi),cp_failure_level,routineP,failure)
+          CALL check_converg(ndf,dx,xi,output_unit,conv,gopt_param,pres_diff,pres_tol)
        END IF
     CASE (default_shellcore_method_id)
           CALL write_cycle_infos(output_unit,its,etot=opt_energy,ediff=opt_energy-eold,&
-               pred=pred,rat=rat,step=step,rad=rad,emin=emin,wildcard=wildcard, used_time=used_time, error=error)
+               pred=pred,rat=rat,step=step,rad=rad,emin=emin,wildcard=wildcard, used_time=used_time)
           ! Possibly check convergence
           IF (PRESENT(conv)) THEN
-             CPPostcondition(PRESENT(ndf),cp_failure_level,routineP,error,failure)
-             CPPostcondition(PRESENT(dx),cp_failure_level,routineP,error,failure)
-             CPPostcondition(PRESENT(xi),cp_failure_level,routineP,error,failure)
-             CALL check_converg(ndf,dx,xi,output_unit,conv,gopt_param,error=error)
+             CPPostcondition(PRESENT(ndf),cp_failure_level,routineP,failure)
+             CPPostcondition(PRESENT(dx),cp_failure_level,routineP,failure)
+             CPPostcondition(PRESENT(xi),cp_failure_level,routineP,failure)
+             CALL check_converg(ndf,dx,xi,output_unit,conv,gopt_param)
           END IF
     END SELECT
   END SUBROUTINE gopt_f_io
@@ -340,7 +336,7 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich - 03.2008
 ! *****************************************************************************
   RECURSIVE SUBROUTINE gopt_f_io_finalize(gopt_env, force_env, x0, conv, its, root_section,&
-       para_env, master, output_unit, error)
+       para_env, master, output_unit)
     TYPE(gopt_f_type), POINTER               :: gopt_env
     TYPE(force_env_type), POINTER            :: force_env
     REAL(KIND=dp), DIMENSION(:), POINTER     :: x0
@@ -349,7 +345,6 @@ CONTAINS
     TYPE(section_vals_type), POINTER         :: root_section
     TYPE(cp_para_env_type), POINTER          :: para_env
     INTEGER, INTENT(IN)                      :: master, output_unit
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'gopt_f_io_finalize', &
       routineP = moduleN//':'//routineN
@@ -357,11 +352,10 @@ CONTAINS
     IF (gopt_env%eval_opt_geo) THEN
        IF (.NOT.gopt_env%dimer_rotation) THEN
           CALL write_final_info(output_unit, conv, its, gopt_env, x0, master, &
-             para_env, force_env, gopt_env%motion_section, root_section, error)
+             para_env, force_env, gopt_env%motion_section, root_section)
        ELSE
-          CALL update_dimer_vec(gopt_env%dimer_env, gopt_env%motion_section, error)
-          CALL write_restart(force_env=force_env,root_section=root_section,&
-               error=error)
+          CALL update_dimer_vec(gopt_env%dimer_env, gopt_env%motion_section)
+          CALL write_restart(force_env=force_env,root_section=root_section)
        END IF
     END IF
 
@@ -384,7 +378,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE write_cycle_infos(output_unit,it,etot,ediff,pred,rat,step,rad,emin,&
-       pres_int,wildcard,used_time, error)
+       pres_int,wildcard,used_time)
 
     INTEGER, INTENT(IN)                      :: output_unit, it
     REAL(KIND=dp), INTENT(IN)                :: etot
@@ -392,7 +386,6 @@ CONTAINS
                                                 emin, pres_int
     CHARACTER(LEN=5), OPTIONAL               :: wildcard
     REAL(KIND=dp), INTENT(IN)                :: used_time
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'write_cycle_infos', &
       routineP = moduleN//':'//routineN
@@ -407,7 +400,7 @@ CONTAINS
        WRITE(UNIT=output_unit,FMT="(T2,A,F20.10)")&
             " Total Energy               = ",etot
        IF (PRESENT(pres_int)) THEN
-          tmp_r1 = cp_unit_from_cp2k(pres_int,"bar",error=error)
+          tmp_r1 = cp_unit_from_cp2k(pres_int,"bar")
           WRITE(UNIT=output_unit,FMT="(T2,A,F20.10)")&
                " Internal Pressure [bar]    = ",tmp_r1
        END IF
@@ -515,7 +508,7 @@ CONTAINS
 !> \param pres_tol ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE check_converg(ndf,dr,g,output_unit,conv,gopt_param,pres_diff,pres_tol,error)
+  SUBROUTINE check_converg(ndf,dr,g,output_unit,conv,gopt_param,pres_diff,pres_tol)
 
     INTEGER, INTENT(IN)                      :: ndf
     REAL(KIND=dp), INTENT(IN)                :: dr(ndf), g(ndf)
@@ -523,7 +516,6 @@ CONTAINS
     LOGICAL, INTENT(OUT)                     :: conv
     TYPE(gopt_param_type), POINTER           :: gopt_param
     REAL(KIND=dp), INTENT(IN), OPTIONAL      :: pres_diff, pres_tol
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'check_converg', &
       routineP = moduleN//':'//routineN
@@ -625,10 +617,10 @@ CONTAINS
                "              NO"
        END IF
        IF (PRESENT(pres_diff).AND.PRESENT(pres_tol)) THEN
-          tmp_r1 = cp_unit_from_cp2k(pres_diff,"bar",error=error)
+          tmp_r1 = cp_unit_from_cp2k(pres_diff,"bar")
           WRITE(UNIT=output_unit,FMT="(T2,A,F20.10)")&
                " Pressure Deviation [bar]   = ",tmp_r1
-          tmp_r1 = cp_unit_from_cp2k(pres_tol,"bar",error=error)
+          tmp_r1 = cp_unit_from_cp2k(pres_tol,"bar")
           WRITE(UNIT=output_unit,FMT="(T2,A,F20.10)")&
                " Pressure Tolerance [bar]   = ",tmp_r1
           IF(conv_p)THEN
@@ -664,12 +656,11 @@ CONTAINS
 !> \date  01.2008
 !> \author Luca Bellucci and Teodoro Laino - created [tlaino]
 ! *****************************************************************************
-  SUBROUTINE check_rot_conv(dimer_env, output_unit, conv, error)
+  SUBROUTINE check_rot_conv(dimer_env, output_unit, conv)
 
     TYPE(dimer_env_type), POINTER            :: dimer_env
     INTEGER, INTENT(IN)                      :: output_unit
     LOGICAL, INTENT(OUT)                     :: conv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'check_rot_conv', &
       routineP = moduleN//':'//routineN
@@ -721,7 +712,7 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   RECURSIVE SUBROUTINE write_final_info(output_unit, conv, it, gopt_env, x0, master, para_env, force_env,&
-    motion_section, root_section, error)
+    motion_section, root_section)
     INTEGER, INTENT(IN)                      :: output_unit
     LOGICAL, INTENT(IN)                      :: conv
     INTEGER, INTENT(INOUT)                   :: it
@@ -731,7 +722,6 @@ CONTAINS
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(force_env_type), POINTER            :: force_env
     TYPE(section_vals_type), POINTER         :: motion_section, root_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'write_final_info', &
       routineP = moduleN//':'//routineN
@@ -746,21 +736,20 @@ CONTAINS
 
     failure = .FALSE.
 
-    CALL force_env_get(force_env, cell=cell, subsys=subsys, error=error)
-    CALL cp_subsys_get(subsys=subsys, particles=particles,error=error)
+    CALL force_env_get(force_env, cell=cell, subsys=subsys)
+    CALL cp_subsys_get(subsys=subsys, particles=particles)
     particle_set => particles%els
     IF (conv) THEN
       it = it + 1
-      CALL write_structure_data(particle_set,cell,motion_section,error)
-      CALL write_restart(force_env=force_env,root_section=root_section,&
-                         error=error)
+      CALL write_structure_data(particle_set,cell,motion_section)
+      CALL write_restart(force_env=force_env,root_section=root_section)
 
       IF (output_unit > 0) &
         WRITE (UNIT=output_unit,FMT="(/,T20,' Reevaluating energy at the minimum')")
 
       CALL cp_eval_at(gopt_env,x0,f=etot,master=master,final_evaluation=.TRUE.,&
-                      para_env=para_env,error=error)
-      CALL write_geo_traj(force_env,root_section,it,etot,error)
+                      para_env=para_env)
+      CALL write_geo_traj(force_env,root_section,it,etot)
     END IF
 
   END SUBROUTINE write_final_info
@@ -777,13 +766,12 @@ CONTAINS
 !>         09.2010: Output of core and shell positions and forces (MK)
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  SUBROUTINE write_geo_traj(force_env,  root_section, it, etot, error)
+  SUBROUTINE write_geo_traj(force_env,  root_section, it, etot)
 
     TYPE(force_env_type), POINTER            :: force_env
     TYPE(section_vals_type), POINTER         :: root_section
     INTEGER, INTENT(IN)                      :: it
     REAL(KIND=dp), INTENT(IN)                :: etot
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'write_geo_traj', &
       routineP = moduleN//':'//routineN
@@ -805,9 +793,9 @@ CONTAINS
     NULLIFY (shell_particles)
     NULLIFY (subsys)
 
-    CALL write_trajectory(force_env,root_section,it,0.0_dp,0.0_dp,etot,error=error)
-    CALL force_env_get(force_env,subsys=subsys,error=error)
-    CALL cp_subsys_get(subsys,atomic_kinds=atomic_kinds,error=error)
+    CALL write_trajectory(force_env,root_section,it,0.0_dp,0.0_dp,etot)
+    CALL force_env_get(force_env,subsys=subsys)
+    CALL cp_subsys_get(subsys,atomic_kinds=atomic_kinds)
     atomic_kind_set => atomic_kinds%els
     CALL get_atomic_kind_set(atomic_kind_set,&
                              shell_present=shell_present,&
@@ -815,21 +803,20 @@ CONTAINS
     IF (shell_present) THEN
       CALL cp_subsys_get(subsys,&
                          core_particles=core_particles,&
-                         shell_particles=shell_particles,&
-                         error=error)
+                         shell_particles=shell_particles)
       CALL write_trajectory(force_env,root_section,it=it,time=0.0_dp,dtime=0.0_dp,&
                             etot=etot,pk_name="SHELL_TRAJECTORY",middle_name="shpos",&
-                            particles=shell_particles,error=error)
+                            particles=shell_particles)
       IF (shell_adiabatic) THEN
         CALL write_trajectory(force_env,root_section,it=it,time=0.0_dp,dtime=0.0_dp,&
                               etot=etot,pk_name="SHELL_FORCES",middle_name="shfrc",&
-                              particles=shell_particles,error=error)
+                              particles=shell_particles)
         CALL write_trajectory(force_env,root_section,it=it,time=0.0_dp,dtime=0.0_dp,&
                               etot=etot,pk_name="CORE_TRAJECTORY",middle_name="copos",&
-                              particles=core_particles,error=error)
+                              particles=core_particles)
         CALL write_trajectory(force_env,root_section,it=it,time=0.0_dp,dtime=0.0_dp,&
                               etot=etot,pk_name="CORE_FORCES",middle_name="cofrc",&
-                              particles=core_particles,error=error)
+                              particles=core_particles)
       END IF
     END IF
 
@@ -917,13 +904,12 @@ CONTAINS
 !> \author  Teodoro Laino [tlaino] - University of Zurich
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE geo_opt_io(force_env, root_section, motion_section, its, opt_energy, error)
+  SUBROUTINE geo_opt_io(force_env, root_section, motion_section, its, opt_energy)
 
     TYPE(force_env_type), POINTER            :: force_env
     TYPE(section_vals_type), POINTER         :: root_section, motion_section
     INTEGER, INTENT(IN)                      :: its
     REAL(KIND=dp), INTENT(IN)                :: opt_energy
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'geo_opt_io', &
       routineP = moduleN//':'//routineN
@@ -946,25 +932,24 @@ CONTAINS
          local_particles, atomic_kinds, particles)
 
     ! Write Restart File
-    CALL write_restart(force_env=force_env,root_section=root_section,&
-         error=error)
+    CALL write_restart(force_env=force_env,root_section=root_section)
 
     ! Write Trajectory
-    CALL write_geo_traj(force_env,  root_section, its, opt_energy, error)
+    CALL write_geo_traj(force_env,  root_section, its, opt_energy)
 
     ! Write the stress Tensor
     CALL force_env_get(force_env, cell=cell, para_env=para_env, &
-         subsys=subsys, error=error)
+         subsys=subsys)
     CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
-         particles=particles, virial=virial, error=error)
+         particles=particles, virial=virial)
     atomic_kind_set => atomic_kinds%els
     particle_set => particles%els
     CALL virial_evaluate(atomic_kind_set, particle_set,  local_particles, &
-         virial, para_env%group, error=error)
-    CALL write_stress_tensor(virial, cell, motion_section, its, 0.0_dp, error=error)
+         virial, para_env%group)
+    CALL write_stress_tensor(virial, cell, motion_section, its, 0.0_dp)
 
     ! Write the cell
-    CALL write_simulation_cell(cell, motion_section, its, 0.0_dp, error=error)
+    CALL write_simulation_cell(cell, motion_section, its, 0.0_dp)
 
   END SUBROUTINE geo_opt_io
 
@@ -979,13 +964,12 @@ CONTAINS
 !> \author  Matthias Krack
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE apply_cell_change(gopt_env,cell,x,update_forces,error)
+  SUBROUTINE apply_cell_change(gopt_env,cell,x,update_forces)
 
     TYPE(gopt_f_type), POINTER               :: gopt_env
     TYPE(cell_type), POINTER                 :: cell
     REAL(KIND=dp), DIMENSION(:), POINTER     :: x
     LOGICAL, INTENT(IN)                      :: update_forces
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'apply_cell_change', &
       routineP = moduleN//':'//routineN
@@ -1008,20 +992,18 @@ CONTAINS
      NULLIFY (shell_particles)
      NULLIFY (subsys)
 
-     natom = force_env_get_natom(gopt_env%force_env,error)
-     nparticle = force_env_get_nparticle(gopt_env%force_env,error)
+     natom = force_env_get_natom(gopt_env%force_env)
+     nparticle = force_env_get_nparticle(gopt_env%force_env)
      CALL force_env_get(gopt_env%force_env,&
-                        subsys=subsys,&
-                        error=error)
+                        subsys=subsys)
      CALL cp_subsys_get(subsys=subsys,&
                         core_particles=core_particles,&
                         particles=particles,&
-                        shell_particles=shell_particles,&
-                        error=error)
+                        shell_particles=shell_particles)
 
      ! Retrieve the reference cell
-     CALL cell_create(cell_ref,error=error)
-     CALL cell_copy(cell,cell_ref,error=error)
+     CALL cell_create(cell_ref)
+     CALL cell_copy(cell,cell_ref)
 
      ! Load the updated cell information
      SELECT CASE (gopt_env%cell_method_id)
@@ -1031,7 +1013,7 @@ CONTAINS
      CASE (default_cell_geo_opt_id,default_cell_md_id)
         idg = 0
      END SELECT
-     CPPrecondition((SIZE(x) == idg + 6),cp_failure_level,routineP,error,failure)
+     CPPrecondition((SIZE(x) == idg + 6),cp_failure_level,routineP,failure)
 
      IF (update_forces) THEN
 
@@ -1053,7 +1035,7 @@ CONTAINS
           END DO
         END DO
         CALL init_cell(cell)
-        CALL cp_subsys_set(subsys,cell=cell,error=error)
+        CALL cp_subsys_set(subsys,cell=cell)
 
         ! Retrieve particle coordinates for the current cell
         SELECT CASE (gopt_env%cell_method_id)
@@ -1102,7 +1084,7 @@ CONTAINS
 
      END IF
 
-     CALL cell_release(cell_ref,error)
+     CALL cell_release(cell_ref)
 
   END SUBROUTINE apply_cell_change
 

@@ -76,7 +76,7 @@ CONTAINS
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE pso(la_max,la_min,npgfa,rpgfa,zeta,lb_max,lb_min,npgfb,rpgfb,zetb,&
-                rac,rbc,rab,vab,ldrr1,ldrr2,rr,error)
+                rac,rbc,rab,vab,ldrr1,ldrr2,rr)
     INTEGER, INTENT(IN)                      :: la_max, la_min, npgfa
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: rpgfa, zeta
     INTEGER, INTENT(IN)                      :: lb_max, lb_min, npgfb
@@ -88,7 +88,6 @@ CONTAINS
     REAL(dp), &
       DIMENSION(0:ldrr1-1, ldrr2, *), &
       INTENT(INOUT)                          :: rr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pso', &
       routineP = moduleN//':'//routineN
@@ -142,7 +141,7 @@ CONTAINS
 
           ! *** Calculate the reccurence relation ***
 
-          CALL os_rr_coul(rap,la_max+1,rbp,lb_max+1,rcp,zet,ldrr1,ldrr2,rr,error)
+          CALL os_rr_coul(rap,la_max+1,rbp,lb_max+1,rcp,zet,ldrr1,ldrr2,rr)
 
           ! *** Calculate the primitive Fermi contact integrals ***
 

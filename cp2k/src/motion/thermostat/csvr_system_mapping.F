@@ -52,10 +52,9 @@ CONTAINS
 !> \param error ...
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
-  SUBROUTINE csvr_to_barostat_mapping ( simpar, csvr, error )
+  SUBROUTINE csvr_to_barostat_mapping ( simpar, csvr)
     TYPE(simpar_type), POINTER               :: simpar
     TYPE(csvr_system_type), POINTER          :: csvr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csvr_to_barostat_mapping', &
       routineP = moduleN//':'//routineN
@@ -81,8 +80,8 @@ CONTAINS
           ndeg = 1
        ENDIF
 
-       CALL init_baro_map_info(map_info, ndeg, csvr%loc_num_csvr, error)
-       CALL csvr_thermo_create(csvr, error)
+       CALL init_baro_map_info(map_info, ndeg, csvr%loc_num_csvr)
+       CALL csvr_thermo_create(csvr)
 
        ! Now that we know how many there are stick this into csvr%nkt
        ! (number of degrees of freedom times k_B T )
@@ -112,7 +111,7 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
   SUBROUTINE csvr_to_particle_mapping ( thermostat_info, simpar, local_molecules,&
-       molecule_set, molecule_kind_set, csvr, para_env, gci, error)
+       molecule_set, molecule_kind_set, csvr, para_env, gci)
 
     TYPE(thermostat_info_type), POINTER      :: thermostat_info
     TYPE(simpar_type), POINTER               :: simpar
@@ -122,7 +121,6 @@ CONTAINS
     TYPE(csvr_system_type), POINTER          :: csvr
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(global_constraint_type), POINTER    :: gci
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csvr_to_particle_mapping', &
       routineP = moduleN//':'//routineN
@@ -147,7 +145,7 @@ CONTAINS
 
        CALL setup_csvr_thermostat(csvr, thermostat_info, deg_of_freedom,&
             massive_atom_list, molecule_kind_set, local_molecules, molecule_set,&
-            para_env, natoms_local, simpar, sum_of_thermostats, gci, error=error)
+            para_env, natoms_local, simpar, sum_of_thermostats, gci)
 
        ! Sum up the number of degrees of freedom on each thermostat.
        ! first: initialize the target
@@ -181,9 +179,9 @@ CONTAINS
        END IF
 
        DEALLOCATE (deg_of_freedom,STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        DEALLOCATE ( massive_atom_list, STAT = stat )
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     END SELECT
 
   END SUBROUTINE csvr_to_particle_mapping
@@ -208,7 +206,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE setup_csvr_thermostat ( csvr, thermostat_info, deg_of_freedom,&
        massive_atom_list, molecule_kind_set, local_molecules, molecule_set,&
-       para_env, natoms_local, simpar, sum_of_thermostats, gci, shell, error)
+       para_env, natoms_local, simpar, sum_of_thermostats, gci, shell)
 
     TYPE(csvr_system_type), POINTER          :: csvr
     TYPE(thermostat_info_type), POINTER      :: thermostat_info
@@ -223,7 +221,6 @@ CONTAINS
     INTEGER, INTENT(OUT)                     :: sum_of_thermostats
     TYPE(global_constraint_type), POINTER    :: gci
     LOGICAL, INTENT(IN), OPTIONAL            :: shell
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'setup_csvr_thermostat', &
       routineP = moduleN//':'//routineN
@@ -246,12 +243,12 @@ CONTAINS
     CALL thermostat_mapping_region(map_info, deg_of_freedom, massive_atom_list,&
        molecule_kind_set, local_molecules, molecule_set, para_env, natoms_local,&
        simpar, number, region, gci, do_shell, thermostat_info%map_loc_thermo_gen,&
-       sum_of_thermostats, error)
+       sum_of_thermostats)
 
     ! This is the local number of available thermostats
     csvr%loc_num_csvr  = number
     csvr%glob_num_csvr = sum_of_thermostats
-    CALL csvr_thermo_create(csvr, error=error)
+    CALL csvr_thermo_create(csvr)
 
   END SUBROUTINE setup_csvr_thermostat
 
@@ -269,7 +266,7 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich - 10.2007
 ! *****************************************************************************
   SUBROUTINE csvr_to_shell_mapping( thermostat_info, simpar, local_molecules,&
-       molecule_set, molecule_kind_set, csvr, para_env, gci, error)
+       molecule_set, molecule_kind_set, csvr, para_env, gci)
 
     TYPE(thermostat_info_type), POINTER      :: thermostat_info
     TYPE(simpar_type), POINTER               :: simpar
@@ -279,7 +276,6 @@ CONTAINS
     TYPE(csvr_system_type), POINTER          :: csvr
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(global_constraint_type), POINTER    :: gci
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csvr_to_shell_mapping', &
       routineP = moduleN//':'//routineN
@@ -304,7 +300,7 @@ CONTAINS
 
        CALL setup_csvr_thermostat(csvr, thermostat_info, deg_of_freedom, massive_shell_list,&
             molecule_kind_set, local_molecules, molecule_set, para_env, nshell_local, &
-            simpar, sum_of_thermostats, gci, shell=.TRUE., error=error)
+            simpar, sum_of_thermostats, gci, shell=.TRUE.)
 
        map_info => csvr%map_info
        ! Sum up the number of degrees of freedom on each thermostat.
@@ -329,9 +325,9 @@ CONTAINS
        END DO
 
        DEALLOCATE (deg_of_freedom,STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        DEALLOCATE ( massive_shell_list, STAT = stat )
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     END SELECT
 
   END SUBROUTINE csvr_to_shell_mapping

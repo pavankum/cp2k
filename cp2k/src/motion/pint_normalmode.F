@@ -48,12 +48,11 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
-  SUBROUTINE normalmode_env_create(normalmode_env,normalmode_section,p,kT,error)
+  SUBROUTINE normalmode_env_create(normalmode_env,normalmode_section,p,kT)
     TYPE(normalmode_env_type), POINTER       :: normalmode_env
     TYPE(section_vals_type), POINTER         :: normalmode_section
     INTEGER, INTENT(in)                      :: p
     REAL(kind=dp), INTENT(in)                :: kT
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'normalmode_env_create', &
       routineP = moduleN//':'//routineN
@@ -64,13 +63,13 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(.NOT.ASSOCIATED(normalmode_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(.NOT.ASSOCIATED(normalmode_env),cp_failure_level,routineP,failure)
     ALLOCATE(normalmode_env,stat=stat)
-    CPPostcondition(stat==0,cp_fatal_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_fatal_level,routineP,failure)
     ALLOCATE(normalmode_env%x2u(p,p),stat=stat)
-    CPPostcondition(stat==0,cp_fatal_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_fatal_level,routineP,failure)
     ALLOCATE(normalmode_env%u2x(p,p),stat=stat)
-    CPPostcondition(stat==0,cp_fatal_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_fatal_level,routineP,failure)
     last_normalmode_id=last_normalmode_id+1
     normalmode_env%id_nr=last_normalmode_id
     normalmode_env%ref_count=1
@@ -78,11 +77,11 @@ CONTAINS
     normalmode_env%p=p
 
     CALL section_vals_val_get(normalmode_section,"Q_CENTROID", &
-                              r_val=normalmode_env%Q_centroid,error=error)
+                              r_val=normalmode_env%Q_centroid)
     CALL section_vals_val_get(normalmode_section,"Q_BEAD", &
-                              r_val=normalmode_env%Q_bead,error=error)
+                              r_val=normalmode_env%Q_bead)
     CALL section_vals_val_get(normalmode_section,"MODEFACTOR", &
-                              r_val=normalmode_env%modefactor,error=error)
+                              r_val=normalmode_env%modefactor)
 
     IF (normalmode_env%Q_centroid < 0.0_dp) THEN
        normalmode_env%Q_centroid = -normalmode_env%Q_centroid/(kT*p)
@@ -125,10 +124,9 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
-  SUBROUTINE normalmode_release(normalmode_env,error)
+  SUBROUTINE normalmode_release(normalmode_env)
 
     TYPE(normalmode_env_type), POINTER       :: normalmode_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'normalmode_release', &
       routineP = moduleN//':'//routineN
@@ -139,15 +137,15 @@ CONTAINS
     failure=.FALSE.
 
     IF (ASSOCIATED(normalmode_env)) THEN
-      CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,error,failure)
+      CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,failure)
       normalmode_env%ref_count=normalmode_env%ref_count-1
       IF (normalmode_env%ref_count==0) THEN
         DEALLOCATE(normalmode_env%x2u,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
         DEALLOCATE(normalmode_env%u2x,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
         DEALLOCATE(normalmode_env,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
       END IF
     END IF
     NULLIFY(normalmode_env)
@@ -162,10 +160,9 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
-  SUBROUTINE normalmode_retain(normalmode_env,error)
+  SUBROUTINE normalmode_retain(normalmode_env)
 
     TYPE(normalmode_env_type), POINTER       :: normalmode_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'normalmode_retain', &
       routineP = moduleN//':'//routineN
@@ -174,8 +171,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(normalmode_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(normalmode_env),cp_failure_level,routineP,failure)
+    CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,failure)
     normalmode_env%ref_count=normalmode_env%ref_count+1
 
     RETURN
@@ -194,7 +191,7 @@ CONTAINS
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_init_masses(normalmode_env,mass,mass_beads,mass_fict,&
-     Q,error)
+     Q)
 
     TYPE(normalmode_env_type), POINTER       :: normalmode_env
     REAL(kind=dp), DIMENSION(:), INTENT(in)  :: mass
@@ -202,7 +199,6 @@ CONTAINS
       INTENT(out), OPTIONAL                  :: mass_beads, mass_fict
     REAL(kind=dp), DIMENSION(:), &
       INTENT(out), OPTIONAL                  :: Q
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'normalmode_init_masses', &
       routineP = moduleN//':'//routineN
@@ -247,13 +243,12 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
-  SUBROUTINE normalmode_x2u(normalmode_env,ux,x,error)
+  SUBROUTINE normalmode_x2u(normalmode_env,ux,x)
     TYPE(normalmode_env_type), POINTER       :: normalmode_env
     REAL(kind=dp), DIMENSION(:, :), &
       INTENT(out)                            :: ux
     REAL(kind=dp), DIMENSION(:, :), &
       INTENT(in)                             :: x
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'normalmode_x2u', &
       routineP = moduleN//':'//routineN
@@ -262,8 +257,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(normalmode_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(normalmode_env),cp_failure_level,routineP,failure)
+    CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,failure)
     CALL DGEMM('N','N',normalmode_env%p,SIZE(x,2),normalmode_env%p,1.0_dp,&
       normalmode_env%x2u(1,1),SIZE(normalmode_env%x2u,1),x(1,1),SIZE(x,1),&
       0.0_dp,ux,SIZE(ux,1))
@@ -280,13 +275,12 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
-  SUBROUTINE normalmode_u2x(normalmode_env,ux,x,error)
+  SUBROUTINE normalmode_u2x(normalmode_env,ux,x)
     TYPE(normalmode_env_type), POINTER       :: normalmode_env
     REAL(kind=dp), DIMENSION(:, :), &
       INTENT(in)                             :: ux
     REAL(kind=dp), DIMENSION(:, :), &
       INTENT(out)                            :: x
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'normalmode_u2x', &
       routineP = moduleN//':'//routineN
@@ -295,8 +289,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(normalmode_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(normalmode_env),cp_failure_level,routineP,failure)
+    CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,failure)
     CALL DGEMM('N','N',normalmode_env%p,SIZE(ux,2),normalmode_env%p,1.0_dp,&
       normalmode_env%u2x(1,1),SIZE(normalmode_env%u2x,1),ux(1,1),SIZE(ux,1),&
       0.0_dp,x,SIZE(x,1))
@@ -312,13 +306,12 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
-  SUBROUTINE normalmode_f2uf(normalmode_env,uf,f,error)
+  SUBROUTINE normalmode_f2uf(normalmode_env,uf,f)
     TYPE(normalmode_env_type), POINTER       :: normalmode_env
     REAL(kind=dp), DIMENSION(:, :), &
       INTENT(out)                            :: uf
     REAL(kind=dp), DIMENSION(:, :), &
       INTENT(in)                             :: f
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'normalmode_f2uf', &
       routineP = moduleN//':'//routineN
@@ -327,8 +320,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(normalmode_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(normalmode_env),cp_failure_level,routineP,failure)
+    CPPrecondition(normalmode_env%ref_count>0,cp_failure_level,routineP,failure)
     CALL DGEMM('T','N',normalmode_env%p,SIZE(f,2),normalmode_env%p,1.0_dp,&
       normalmode_env%u2x(1,1),SIZE(normalmode_env%u2x,1),f(1,1),SIZE(f,1),&
       0.0_dp,uf,SIZE(uf,1))
@@ -346,11 +339,10 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
-  SUBROUTINE normalmode_calc_uf_h(normalmode_env,mass_beads,ux,uf_h,e_h,error)
+  SUBROUTINE normalmode_calc_uf_h(normalmode_env,mass_beads,ux,uf_h,e_h)
     TYPE(normalmode_env_type), POINTER       :: normalmode_env
     REAL(kind=dp), DIMENSION(:, :), POINTER  :: mass_beads, ux, uf_h
     REAL(KIND=dp), INTENT(OUT)               :: e_h
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'normalmode_calc_uf_h', &
       routineP = moduleN//':'//routineN

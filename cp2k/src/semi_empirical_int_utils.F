@@ -64,14 +64,13 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   FUNCTION ijkl_sp(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_control,&
-       se_int_screen, itype, error) RESULT(res)
+       se_int_screen, itype) RESULT(res)
     TYPE(semi_empirical_type), POINTER       :: sepi, sepj
     INTEGER, INTENT(IN)                      :: ij, kl, li, lj, lk, ll, ic
     REAL(KIND=dp), INTENT(IN)                :: r
     TYPE(se_int_control_type), INTENT(IN)    :: se_int_control
     TYPE(se_int_screen_type), INTENT(IN)     :: se_int_screen
     INTEGER, INTENT(IN)                      :: itype
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'ijkl_sp', &
@@ -80,14 +79,14 @@ CONTAINS
     res = ijkl_sp_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                       se_int_control%integral_screening, se_int_control%shortrange,&
                       se_int_control%pc_coulomb_int, se_int_control%max_multipole,&
-                      itype, charg_int_nri, error)
+                      itype, charg_int_nri)
 
     ! If only the shortrange component is requested we can skip the rest
     IF ((.NOT.se_int_control%pc_coulomb_int).AND.(itype/=do_method_pchg)) THEN
        ! Handle the 1/r^3 term, this term is ALWAYS false for KDSO-D integrals
        IF (se_int_control%shortrange.AND.se_int_control%do_ewald_r3) THEN
           res = res - ijkl_low_3(sepi, sepj, ij, kl, li, lj, lk, ll, ic,&
-                                 itype, charg_int_3, error)
+                                 itype, charg_int_3)
        END IF
     END IF
   END FUNCTION ijkl_sp
@@ -118,14 +117,13 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   FUNCTION d_ijkl_sp(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_control,&
-       se_int_screen, itype, error) RESULT(res)
+       se_int_screen, itype) RESULT(res)
     TYPE(semi_empirical_type), POINTER       :: sepi, sepj
     INTEGER, INTENT(IN)                      :: ij, kl, li, lj, lk, ll, ic
     REAL(KIND=dp), INTENT(IN)                :: r
     TYPE(se_int_control_type), INTENT(IN)    :: se_int_control
     TYPE(se_int_screen_type), INTENT(IN)     :: se_int_screen
     INTEGER, INTENT(IN)                      :: itype
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'd_ijkl_sp', &
@@ -137,12 +135,12 @@ CONTAINS
        res = ijkl_sp_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                          se_int_control%integral_screening, .FALSE.,&
                          se_int_control%pc_coulomb_int, se_int_control%max_multipole,&
-                         itype, dcharg_int_nri, error)
+                         itype, dcharg_int_nri)
 
        IF (.NOT.se_int_control%pc_coulomb_int) THEN
           dfs = ijkl_sp_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                             se_int_control%integral_screening, .FALSE., .FALSE., &
-                            se_int_control%max_multipole, itype, dcharg_int_nri_fs, error)
+                            se_int_control%max_multipole, itype, dcharg_int_nri_fs)
           res = res + dfs*se_int_screen%dft
 
           ! In case we need the shortrange part we have to evaluate an additional derivative
@@ -150,7 +148,7 @@ CONTAINS
           IF (se_int_control%shortrange) THEN
              srd = ijkl_sp_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                                se_int_control%integral_screening, .FALSE., .TRUE., &
-                               se_int_control%max_multipole, itype, dcharg_int_nri, error)
+                               se_int_control%max_multipole, itype, dcharg_int_nri)
              res = res - srd
           END IF
        END IF
@@ -158,7 +156,7 @@ CONTAINS
        res = ijkl_sp_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                          se_int_control%integral_screening, se_int_control%shortrange,&
                          se_int_control%pc_coulomb_int, se_int_control%max_multipole,&
-                         itype, dcharg_int_nri, error)
+                         itype, dcharg_int_nri)
     END IF
 
     ! If only the shortrange component is requested we can skip the rest
@@ -166,7 +164,7 @@ CONTAINS
        ! Handle the 1/r^3 term, this term is ALWAYS false for KDSO-D integrals
        IF (se_int_control%shortrange.AND.se_int_control%do_ewald_r3) THEN
           res = res - ijkl_low_3(sepi, sepj, ij, kl, li, lj, lk, ll, ic,&
-                                 itype, dcharg_int_3, error)
+                                 itype, dcharg_int_3)
        END IF
     END IF
 
@@ -203,7 +201,7 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   FUNCTION ijkl_sp_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
-       iscreen, shortrange, pc_coulomb_int, max_multipole, itype, eval, error) RESULT(res)
+       iscreen, shortrange, pc_coulomb_int, max_multipole, itype, eval) RESULT(res)
     TYPE(semi_empirical_type), POINTER       :: sepi, sepj
     INTEGER, INTENT(IN)                      :: ij, kl, li, lj, lk, ll, ic
     REAL(KIND=dp), INTENT(IN)                :: r
@@ -212,7 +210,6 @@ CONTAINS
     LOGICAL, INTENT(IN)                      :: shortrange, pc_coulomb_int
     INTEGER, INTENT(IN)                      :: max_multipole, itype
     REAL(KIND=dp)                            :: eval
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'ijkl_sp_low', &
@@ -286,7 +283,7 @@ CONTAINS
              DO m = -lmin, lmin
                 ccc = clm_sp(ij, l1, m) * clm_sp(kl, l2, m)
                 IF (ABS(ccc) > EPSILON(0.0_dp)) THEN
-                   chrg = eval(r, l1, l2, clm_sp(ij, l1, m), clm_sp(kl, l2, m), dij, dkl, add, fact_screen, error)
+                   chrg = eval(r, l1, l2, clm_sp(ij, l1, m), clm_sp(kl, l2, m), dij, dkl, add, fact_screen)
                    s1   = s1 + chrg
                 END IF
              END DO
@@ -318,7 +315,7 @@ CONTAINS
              DO m = -lmin, lmin
                 ccc = clm_sp(ij, l1, m) * clm_sp(kl, l2, m)
                 IF (ABS(ccc) > EPSILON(0.0_dp)) THEN
-                   chrg = eval(r, l1, l2, clm_sp(ij, l1, m), clm_sp(kl, l2, m), dij, dkl, add, fact_screen, error)
+                   chrg = eval(r, l1, l2, clm_sp(ij, l1, m), clm_sp(kl, l2, m), dij, dkl, add, fact_screen)
                    s1   = s1 + chrg
                 END IF
              END DO
@@ -354,11 +351,10 @@ CONTAINS
 !> \date 04.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  FUNCTION charg_int_nri(r, l1_i, l2_i, m1_i, m2_i, da_i, db_i, add0, fact_screen, error) RESULT(charg)
+  FUNCTION charg_int_nri(r, l1_i, l2_i, m1_i, m2_i, da_i, db_i, add0, fact_screen) RESULT(charg)
     REAL(KIND=dp), INTENT(in)                :: r
     INTEGER, INTENT(in)                      :: l1_i, l2_i, m1_i, m2_i
     REAL(KIND=dp), INTENT(in)                :: da_i, db_i, add0, fact_screen
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: charg
 
     CHARACTER(len=*), PARAMETER :: routineN = 'charg_int_nri', &
@@ -534,7 +530,7 @@ CONTAINS
        RETURN
     END IF
     ! We should NEVER reach this point
-    CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+    CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
   END FUNCTION charg_int_nri
 
 ! *****************************************************************************
@@ -563,11 +559,10 @@ CONTAINS
 !> \date 04.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  FUNCTION dcharg_int_nri(r, l1_i, l2_i, m1_i, m2_i, da_i, db_i, add0, fact_screen, error) RESULT(charg)
+  FUNCTION dcharg_int_nri(r, l1_i, l2_i, m1_i, m2_i, da_i, db_i, add0, fact_screen) RESULT(charg)
     REAL(KIND=dp), INTENT(in)                :: r
     INTEGER, INTENT(in)                      :: l1_i, l2_i, m1_i, m2_i
     REAL(KIND=dp), INTENT(in)                :: da_i, db_i, add0, fact_screen
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: charg
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dcharg_int_nri', &
@@ -743,7 +738,7 @@ CONTAINS
        RETURN
     END IF
     ! We should NEVER reach this point
-    CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+    CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
   END FUNCTION dcharg_int_nri
 
 ! *****************************************************************************
@@ -773,11 +768,10 @@ CONTAINS
 !> \date 04.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  FUNCTION dcharg_int_nri_fs(r, l1_i, l2_i, m1_i, m2_i, da_i, db_i, add0, fact_screen, error) RESULT(charg)
+  FUNCTION dcharg_int_nri_fs(r, l1_i, l2_i, m1_i, m2_i, da_i, db_i, add0, fact_screen) RESULT(charg)
     REAL(KIND=dp), INTENT(in)                :: r
     INTEGER, INTENT(in)                      :: l1_i, l2_i, m1_i, m2_i
     REAL(KIND=dp), INTENT(in)                :: da_i, db_i, add0, fact_screen
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: charg
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dcharg_int_nri_fs', &
@@ -955,7 +949,7 @@ CONTAINS
        RETURN
     END IF
     ! We should NEVER reach this point
-    CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+    CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
   END FUNCTION dcharg_int_nri_fs
 
 ! *****************************************************************************
@@ -990,14 +984,13 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   FUNCTION ijkl_d(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_control, &
-       se_int_screen, itype, error) RESULT(res)
+       se_int_screen, itype) RESULT(res)
     TYPE(semi_empirical_type), POINTER       :: sepi, sepj
     INTEGER, INTENT(IN)                      :: ij, kl, li, lj, lk, ll, ic
     REAL(KIND=dp), INTENT(IN)                :: r
     TYPE(se_int_control_type), INTENT(IN)    :: se_int_control
     TYPE(se_int_screen_type), INTENT(IN)     :: se_int_screen
     INTEGER, INTENT(IN)                      :: itype
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'ijkl_d', &
@@ -1006,14 +999,14 @@ CONTAINS
     res = ijkl_d_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                      se_int_control%integral_screening, se_int_control%shortrange,&
                      se_int_control%pc_coulomb_int, se_int_control%max_multipole,&
-                     itype, charg_int_ri, error)
+                     itype, charg_int_ri)
 
     ! If only the shortrange component is requested we can skip the rest
     IF ((.NOT.se_int_control%pc_coulomb_int).AND.(itype/=do_method_pchg)) THEN
        ! Handle the 1/r^3 term, this term is ALWAYS false for KDSO-D integrals
        IF (se_int_control%shortrange.AND.se_int_control%do_ewald_r3) THEN
           res = res - ijkl_low_3(sepi, sepj, ij, kl, li, lj, lk, ll, ic,&
-                                 itype, charg_int_3, error)
+                                 itype, charg_int_3)
        END IF
     END IF
   END FUNCTION ijkl_d
@@ -1050,14 +1043,13 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   FUNCTION d_ijkl_d(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_control,&
-       se_int_screen, itype, error) RESULT(res)
+       se_int_screen, itype) RESULT(res)
     TYPE(semi_empirical_type), POINTER       :: sepi, sepj
     INTEGER, INTENT(IN)                      :: ij, kl, li, lj, lk, ll, ic
     REAL(KIND=dp), INTENT(IN)                :: r
     TYPE(se_int_control_type), INTENT(IN)    :: se_int_control
     TYPE(se_int_screen_type), INTENT(IN)     :: se_int_screen
     INTEGER, INTENT(IN)                      :: itype
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'd_ijkl_d', &
@@ -1069,12 +1061,12 @@ CONTAINS
        res = ijkl_d_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                         se_int_control%integral_screening, .FALSE.,&
                         se_int_control%pc_coulomb_int, se_int_control%max_multipole,&
-                        itype, dcharg_int_ri, error)
+                        itype, dcharg_int_ri)
 
        IF (.NOT.se_int_control%pc_coulomb_int) THEN
           dfs = ijkl_d_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                         se_int_control%integral_screening, .FALSE., .FALSE.,&
-                        se_int_control%max_multipole, itype, dcharg_int_ri_fs, error)
+                        se_int_control%max_multipole, itype, dcharg_int_ri_fs)
           res = res + dfs*se_int_screen%dft
 
           ! In case we need the shortrange part we have to evaluate an additional derivative
@@ -1082,7 +1074,7 @@ CONTAINS
           IF (se_int_control%shortrange) THEN
              srd = ijkl_d_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                               se_int_control%integral_screening, .FALSE., .TRUE.,&
-                              se_int_control%max_multipole, itype, dcharg_int_ri, error)
+                              se_int_control%max_multipole, itype, dcharg_int_ri)
              res = res - srd
           END IF
        END IF
@@ -1090,7 +1082,7 @@ CONTAINS
        res = ijkl_d_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
                         se_int_control%integral_screening, se_int_control%shortrange,&
                         se_int_control%pc_coulomb_int, se_int_control%max_multipole,&
-                        itype, dcharg_int_ri, error)
+                        itype, dcharg_int_ri)
     END IF
 
     ! If only the shortrange component is requested we can skip the rest
@@ -1098,7 +1090,7 @@ CONTAINS
        ! Handle the 1/r^3 term, this term is ALWAYS false for KDSO-D integrals
        IF (se_int_control%shortrange.AND.se_int_control%do_ewald_r3) THEN
           res = res - ijkl_low_3(sepi, sepj, ij, kl, li, lj, lk, ll, ic,&
-                                 itype, dcharg_int_3, error)
+                                 itype, dcharg_int_3)
        END IF
     END IF
 
@@ -1140,7 +1132,7 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   FUNCTION ijkl_d_low(sepi, sepj, ij, kl, li, lj, lk, ll, ic, r, se_int_screen,&
-       iscreen, shortrange, pc_coulomb_int, max_multipole, itype, eval, error) RESULT(res)
+       iscreen, shortrange, pc_coulomb_int, max_multipole, itype, eval) RESULT(res)
     TYPE(semi_empirical_type), POINTER       :: sepi, sepj
     INTEGER, INTENT(IN)                      :: ij, kl, li, lj, lk, ll, ic
     REAL(KIND=dp), INTENT(IN)                :: r
@@ -1149,7 +1141,6 @@ CONTAINS
     LOGICAL, INTENT(IN)                      :: shortrange, pc_coulomb_int
     INTEGER, INTENT(IN)                      :: max_multipole, itype
     REAL(KIND=dp)                            :: eval
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'ijkl_d_low', &
@@ -1222,7 +1213,7 @@ CONTAINS
                 ccc = clm_d(ij, l1, m) * clm_d(kl, l2, m)
                 IF (ABS(ccc) > EPSILON(0.0_dp)) THEN
                    mm   = ABS (m)
-                   chrg = eval(r, l1, l2, mm, dij, dkl, add, fact_screen, error)
+                   chrg = eval(r, l1, l2, mm, dij, dkl, add, fact_screen)
                    s1   = s1 + chrg * ccc
                 END IF
              END DO
@@ -1255,7 +1246,7 @@ CONTAINS
                 ccc = clm_d(ij, l1, m) * clm_d(kl, l2, m)
                 IF (ABS(ccc) > EPSILON(0.0_dp)) THEN
                    mm   = ABS (m)
-                   chrg = eval(r, l1, l2, mm, dij, dkl, add, fact_screen, error)
+                   chrg = eval(r, l1, l2, mm, dij, dkl, add, fact_screen)
                    s1   = s1 + chrg * ccc
                 END IF
              END DO
@@ -1290,11 +1281,10 @@ CONTAINS
 !> \date 03.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  FUNCTION charg_int_ri(r, l1_i, l2_i, m, da_i, db_i, add0, fact_screen, error) RESULT(charg)
+  FUNCTION charg_int_ri(r, l1_i, l2_i, m, da_i, db_i, add0, fact_screen) RESULT(charg)
     REAL(KIND=dp), INTENT(in)                :: r
     INTEGER, INTENT(in)                      :: l1_i, l2_i, m
     REAL(KIND=dp), INTENT(in)                :: da_i, db_i, add0, fact_screen
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: charg
 
     CHARACTER(len=*), PARAMETER :: routineN = 'charg_int_ri', &
@@ -1404,7 +1394,7 @@ CONTAINS
        RETURN
     END IF
     ! We should NEVER reach this point
-    CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+    CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
   END FUNCTION charg_int_ri
 
 ! *****************************************************************************
@@ -1431,11 +1421,10 @@ CONTAINS
 !> \date 03.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  FUNCTION dcharg_int_ri(r, l1_i, l2_i, m, da_i, db_i, add0, fact_screen, error) RESULT(charg)
+  FUNCTION dcharg_int_ri(r, l1_i, l2_i, m, da_i, db_i, add0, fact_screen) RESULT(charg)
     REAL(KIND=dp), INTENT(in)                :: r
     INTEGER, INTENT(in)                      :: l1_i, l2_i, m
     REAL(KIND=dp), INTENT(in)                :: da_i, db_i, add0, fact_screen
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: charg
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dcharg_int_ri', &
@@ -1546,7 +1535,7 @@ CONTAINS
        RETURN
     END IF
     ! We should NEVER reach this point
-    CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+    CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
   END FUNCTION dcharg_int_ri
 
 ! *****************************************************************************
@@ -1574,11 +1563,10 @@ CONTAINS
 !> \date 03.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  FUNCTION dcharg_int_ri_fs(r, l1_i, l2_i, m, da_i, db_i, add0, fact_screen, error) RESULT(charg)
+  FUNCTION dcharg_int_ri_fs(r, l1_i, l2_i, m, da_i, db_i, add0, fact_screen) RESULT(charg)
     REAL(KIND=dp), INTENT(in)                :: r
     INTEGER, INTENT(in)                      :: l1_i, l2_i, m
     REAL(KIND=dp), INTENT(in)                :: da_i, db_i, add0, fact_screen
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp)                            :: charg
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dcharg_int_ri_fs', &
@@ -1692,7 +1680,7 @@ CONTAINS
        RETURN
     END IF
     ! We should NEVER reach this point
-    CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+    CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
   END FUNCTION dcharg_int_ri_fs
 
 ! *****************************************************************************
@@ -1712,7 +1700,7 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   RECURSIVE SUBROUTINE rotmat (sepi, sepj, rjiv, r, ij_matrix, do_derivatives,&
-       do_invert, debug_invert, error)
+       do_invert, debug_invert)
     TYPE(semi_empirical_type), POINTER       :: sepi, sepj
     REAL(KIND=dp), DIMENSION(3), INTENT(IN)  :: rjiv
     REAL(KIND=dp), INTENT(IN)                :: r
@@ -1720,7 +1708,6 @@ CONTAINS
     LOGICAL, INTENT(IN)                      :: do_derivatives
     LOGICAL, INTENT(OUT), OPTIONAL           :: do_invert
     LOGICAL, INTENT(IN), OPTIONAL            :: debug_invert
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'rotmat', &
       routineP = moduleN//':'//routineN
@@ -1739,7 +1726,7 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(5, 5)           :: d
 
     failure = .FALSE.
-    CPPostcondition(ASSOCIATED(ij_matrix),cp_failure_level,routineP,error,failure)
+    CPPostcondition(ASSOCIATED(ij_matrix),cp_failure_level,routineP,failure)
     IF (PRESENT(do_invert)) do_invert = .FALSE.
     IF ((sepi%natorb>1).OR.(sepj%natorb>1)) THEN
        ! Compute Geomtric data and interatomic distance
@@ -1782,7 +1769,7 @@ CONTAINS
        IF (dbg_inv) THEN
           ! When debugging the derivatives of the rotation matrix we must possibly force
           ! the inversion of the reference frame
-          CPPostcondition(.NOT.do_derivatives,cp_failure_level,routineP,error,failure)
+          CPPostcondition(.NOT.do_derivatives,cp_failure_level,routineP,failure)
           imap(1)   = 3
           imap(2)   = 2
           imap(3)   = 1
@@ -1937,7 +1924,7 @@ CONTAINS
        IF (do_derivatives) THEN
           ! This condition is necessary because derivatives uses the invertion of the
           ! axis for treating the divergence point along z-axis
-          CPPostcondition(eval,cp_failure_level,routineP,error,failure)
+          CPPostcondition(eval,cp_failure_level,routineP,failure)
           x11_d = 0.0_dp; x11_d(1) = 1.0_dp
           x22_d = 0.0_dp; x22_d(2) = 1.0_dp
           x33_d = 0.0_dp; x33_d(3) = 1.0_dp
@@ -2098,7 +2085,7 @@ CONTAINS
              END DO
           END IF
           IF (debug_this_module) THEN
-             CALL check_rotmat_der(sepi, sepj, rjiv, ij_matrix, do_invert=do_invert, error=error)
+             CALL check_rotmat_der(sepi, sepj, rjiv, ij_matrix, do_invert=do_invert)
           END IF
        END IF
     END IF
@@ -2130,8 +2117,7 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
   RECURSIVE SUBROUTINE rot_2el_2c_first (sepi, sepj, rijv, se_int_control, se_taper,&
-       invert, ii, kk, rep, logv, ij_matrix, v, lgrad, rep_d, v_d, logv_d, drij,&
-       error)
+       invert, ii, kk, rep, logv, ij_matrix, v, lgrad, rep_d, v_d, logv_d, drij)
     TYPE(semi_empirical_type), POINTER       :: sepi, sepj
     REAL(KIND=dp), DIMENSION(3), INTENT(IN)  :: rijv
     TYPE(se_int_control_type), INTENT(IN)    :: se_int_control
@@ -2153,7 +2139,6 @@ CONTAINS
       INTENT(OUT), OPTIONAL                  :: logv_d
     REAL(KIND=dp), DIMENSION(3), &
       INTENT(IN), OPTIONAL                   :: drij
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'rot_2el_2c_first', &
       routineP = moduleN//':'//routineN
@@ -2165,10 +2150,10 @@ CONTAINS
 
     failure = .FALSE.
     IF (lgrad) THEN
-       CPPostcondition(PRESENT( rep_d),cp_failure_level,routineP,error,failure)
-       CPPostcondition(PRESENT(   v_d),cp_failure_level,routineP,error,failure)
-       CPPostcondition(PRESENT(logv_d),cp_failure_level,routineP,error,failure)
-       CPPostcondition(PRESENT(  drij),cp_failure_level,routineP,error,failure)
+       CPPostcondition(PRESENT( rep_d),cp_failure_level,routineP,failure)
+       CPPostcondition(PRESENT(   v_d),cp_failure_level,routineP,failure)
+       CPPostcondition(PRESENT(logv_d),cp_failure_level,routineP,failure)
+       CPPostcondition(PRESENT(  drij),cp_failure_level,routineP,failure)
     END IF
     limkl = indexb(kk, kk)
     DO k = 1, limkl
@@ -2456,7 +2441,7 @@ CONTAINS
           END DO
        END DO
        IF (debug_this_module) THEN
-          CALL rot_2el_2c_first_debug(sepi, sepj, rijv, se_int_control, se_taper, invert, ii, kk, v_d, error)
+          CALL rot_2el_2c_first_debug(sepi, sepj, rijv, se_int_control, se_taper, invert, ii, kk, v_d)
        END IF
     END IF
   END SUBROUTINE rot_2el_2c_first
@@ -2476,7 +2461,7 @@ CONTAINS
 !> \date 04.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  SUBROUTINE store_2el_2c_diag (limij, limkl, ww, w, ww_dx, ww_dy, ww_dz, dw, error)
+  SUBROUTINE store_2el_2c_diag (limij, limkl, ww, w, ww_dx, ww_dy, ww_dz, dw)
 
     INTEGER, INTENT(IN)                      :: limij, limkl
     REAL(KIND=dp), DIMENSION(limkl, limij), &
@@ -2487,7 +2472,6 @@ CONTAINS
       INTENT(IN), OPTIONAL                   :: ww_dx, ww_dy, ww_dz
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(INOUT), OPTIONAL                :: dw
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'store_2el_2c_diag', &
       routineP = moduleN//':'//routineN
@@ -2514,7 +2498,7 @@ CONTAINS
           END DO
        END DO
     ELSE
-       CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+       CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
     END IF
 
   END SUBROUTINE store_2el_2c_diag

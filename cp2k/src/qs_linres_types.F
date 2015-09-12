@@ -239,10 +239,9 @@ CONTAINS
 !> \param linres_control ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE linres_control_create(linres_control,error)
+  SUBROUTINE linres_control_create(linres_control)
 
     TYPE(linres_control_type), POINTER       :: linres_control
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'linres_control_create', &
       routineP = moduleN//':'//routineN
@@ -252,9 +251,9 @@ CONTAINS
 
      failure =.FALSE.
 
-     CPPrecondition(.NOT.ASSOCIATED(linres_control),cp_failure_level,routineP,error,failure)
+     CPPrecondition(.NOT.ASSOCIATED(linres_control),cp_failure_level,routineP,failure)
      ALLOCATE (linres_control,STAT=istat)
-     CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+     CPPostcondition(istat==0,cp_failure_level,routineP,failure)
      linres_control%ref_count=1
      NULLIFY(linres_control%qs_loc_env)
      linres_control%property            = HUGE(0)!is that used?
@@ -277,10 +276,9 @@ CONTAINS
 !> \param linres_control ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE linres_control_release(linres_control,error)
+  SUBROUTINE linres_control_release(linres_control)
 
     TYPE(linres_control_type), POINTER       :: linres_control
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'linres_control_release', &
       routineP = moduleN//':'//routineN
@@ -291,14 +289,14 @@ CONTAINS
      failure =.FALSE.
 
      IF (ASSOCIATED(linres_control)) THEN
-       CPPostcondition(linres_control%ref_count>0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(linres_control%ref_count>0,cp_failure_level,routineP,failure)
        linres_control%ref_count=linres_control%ref_count-1
        IF(linres_control%ref_count<1)THEN
          IF(ASSOCIATED(linres_control%qs_loc_env)) THEN
-           CALL qs_loc_env_release(linres_control%qs_loc_env, error=error)
+           CALL qs_loc_env_release(linres_control%qs_loc_env)
          END IF
          DEALLOCATE(linres_control,STAT=istat)
-         CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+         CPPostcondition(istat==0,cp_failure_level,routineP,failure)
        END IF
      END IF
      NULLIFY(linres_control)
@@ -309,10 +307,9 @@ CONTAINS
 !> \param linres_control ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE linres_control_retain(linres_control,error)
+  SUBROUTINE linres_control_retain(linres_control)
 
     TYPE(linres_control_type), POINTER       :: linres_control
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'linres_control_retain', &
       routineP = moduleN//':'//routineN
@@ -321,8 +318,8 @@ CONTAINS
 
      failure =.FALSE.
 
-     CPPrecondition(ASSOCIATED(linres_control),cp_failure_level,routineP,error,failure)
-     CPPostcondition(linres_control%ref_count>0,cp_failure_level,routineP,error,failure)
+     CPPrecondition(ASSOCIATED(linres_control),cp_failure_level,routineP,failure)
+     CPPostcondition(linres_control%ref_count>0,cp_failure_level,routineP,failure)
      linres_control%ref_count=linres_control%ref_count+1
 
   END SUBROUTINE linres_control_retain
@@ -332,10 +329,9 @@ CONTAINS
 !> \param current_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE current_env_create(current_env,error)
+  SUBROUTINE current_env_create(current_env)
 
     TYPE(current_env_type)                   :: current_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'current_env_create', &
       routineP = moduleN//':'//routineN
@@ -344,7 +340,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(current_env%ref_count==0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(current_env%ref_count==0, cp_failure_level,routineP,failure)
     current_env%ref_count = 1
     current_env%nao           = HUGE(1)
     current_env%gauge         = HUGE(1)
@@ -379,10 +375,9 @@ CONTAINS
 !> \param nmr_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE nmr_env_create(nmr_env,error)
+  SUBROUTINE nmr_env_create(nmr_env)
 
     TYPE(nmr_env_type)                       :: nmr_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'nmr_env_create', &
       routineP = moduleN//':'//routineN
@@ -391,7 +386,7 @@ CONTAINS
 
      failure =.FALSE.
 
-     CPPrecondition(nmr_env%ref_count==0, cp_failure_level,routineP,error,failure)
+     CPPrecondition(nmr_env%ref_count==0, cp_failure_level,routineP,failure)
      nmr_env%ref_count = 1
      NULLIFY(nmr_env%chemical_shift)
      NULLIFY(nmr_env%chemical_shift_loc)
@@ -408,10 +403,9 @@ CONTAINS
 !> \param issc_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE issc_env_create(issc_env,error)
+  SUBROUTINE issc_env_create(issc_env)
 
     TYPE(issc_env_type)                      :: issc_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'issc_env_create', &
       routineP = moduleN//':'//routineN
@@ -420,7 +414,7 @@ CONTAINS
 
      failure =.FALSE.
 
-     CPPrecondition(issc_env%ref_count==0, cp_failure_level,routineP,error,failure)
+     CPPrecondition(issc_env%ref_count==0, cp_failure_level,routineP,failure)
      issc_env%ref_count = 1
      NULLIFY(issc_env%issc)
      NULLIFY(issc_env%issc_loc)
@@ -444,11 +438,9 @@ CONTAINS
 !> \param epr_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE epr_env_create(epr_env,error)
+  SUBROUTINE epr_env_create(epr_env)
 
     TYPE(epr_env_type)                       :: epr_env
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'epr_env_create', &
       routineP = moduleN//':'//routineN
@@ -457,7 +449,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(epr_env%ref_count==0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(epr_env%ref_count==0, cp_failure_level,routineP,failure)
     epr_env%ref_count = 1
     NULLIFY(epr_env%nablavks_set)
     NULLIFY(epr_env%nablavks_atom_set)
@@ -508,7 +500,7 @@ CONTAINS
                              nbr_center,center_list,centers_set,psi1_p,psi1_rxp,psi1_D,p_psi0,&
                              rxp_psi0,jrho1_atom_set,jrho1_set,chi_tensor,&
                              chi_tensor_loc,gauge_atom_radius,rs_gauge,use_old_gauge_atom,&
-                             chi_pbc,psi0_order,error)
+                             chi_pbc,psi0_order)
 
     TYPE(current_env_type), OPTIONAL         :: current_env
     LOGICAL, OPTIONAL                        :: simple_done(6), &
@@ -543,7 +535,6 @@ CONTAINS
     LOGICAL, OPTIONAL                        :: use_old_gauge_atom, chi_pbc
     TYPE(cp_fm_p_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: psi0_order
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_current_env', &
       routineP = moduleN//':'//routineN
@@ -555,7 +546,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(current_env%ref_count>0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(current_env%ref_count>0, cp_failure_level,routineP,failure)
 
     IF(PRESENT(simple_done     )) simple_done(1:6)      = current_env%simple_done(1:6)
     IF(PRESENT(simple_converged)) simple_converged(1:6) = current_env%simple_converged(1:6)
@@ -607,7 +598,7 @@ CONTAINS
   SUBROUTINE get_nmr_env(nmr_env, n_nics, cs_atom_list, do_calc_cs_atom, &
                          r_nics, chemical_shift,chemical_shift_loc, &
                          chemical_shift_nics_loc, chemical_shift_nics, &
-                         shift_gapw_radius,do_nics,interpolate_shift,error)
+                         shift_gapw_radius,do_nics,interpolate_shift)
 
     TYPE(nmr_env_type)                       :: nmr_env
     INTEGER, INTENT(OUT), OPTIONAL           :: n_nics
@@ -621,7 +612,6 @@ CONTAINS
                                                 chemical_shift_nics
     REAL(dp), INTENT(OUT), OPTIONAL          :: shift_gapw_radius
     LOGICAL, INTENT(OUT), OPTIONAL           :: do_nics, interpolate_shift
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_nmr_env', &
       routineP = moduleN//':'//routineN
@@ -630,7 +620,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(nmr_env%ref_count>0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(nmr_env%ref_count>0, cp_failure_level,routineP,failure)
 
     IF(PRESENT(n_nics             )) n_nics              =  nmr_env%n_nics
     IF(PRESENT(cs_atom_list       )) cs_atom_list        => nmr_env%cs_atom_list
@@ -675,7 +665,7 @@ CONTAINS
   SUBROUTINE get_issc_env(issc_env,issc_on_atom_list,issc_gapw_radius,issc_loc,&
        do_fc,do_sd,do_pso,do_dso,&
        issc,interpolate_issc,psi1_efg,psi1_pso,psi1_dso,psi1_fc,efg_psi0,pso_psi0,dso_psi0,fc_psi0,&
-       matrix_efg,matrix_pso,matrix_dso,matrix_fc,error)
+       matrix_efg,matrix_pso,matrix_dso,matrix_fc)
 
     TYPE(issc_env_type)                      :: issc_env
     INTEGER, DIMENSION(:), OPTIONAL, POINTER :: issc_on_atom_list
@@ -697,7 +687,6 @@ CONTAINS
     TYPE(cp_dbcsr_p_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: matrix_efg, matrix_pso, &
                                                 matrix_dso, matrix_fc
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_issc_env', &
       routineP = moduleN//':'//routineN
@@ -706,7 +695,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(issc_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(issc_env%ref_count>0,cp_failure_level,routineP,failure)
 
     IF(PRESENT(issc_on_atom_list)) issc_on_atom_list => issc_env%issc_on_atom_list
     IF(PRESENT(issc_gapw_radius )) issc_gapw_radius  =  issc_env%issc_gapw_radius
@@ -739,14 +728,13 @@ CONTAINS
 !> \param jrho1_set ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE set_current_env(current_env,jrho1_atom_set,jrho1_set,error)
+  SUBROUTINE set_current_env(current_env,jrho1_atom_set,jrho1_set)
 
     TYPE(current_env_type)                   :: current_env
     TYPE(jrho_atom_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: jrho1_atom_set
     TYPE(qs_rho_p_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: jrho1_set
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set_current_env', &
       routineP = moduleN//':'//routineN
@@ -756,12 +744,12 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(current_env%ref_count>0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(current_env%ref_count>0, cp_failure_level,routineP,failure)
 
 
     IF(PRESENT(jrho1_atom_set)) THEN
        IF(ASSOCIATED(current_env%jrho1_atom_set)) THEN
-          CALL deallocate_jrho_atom_set(current_env%jrho1_atom_set,error=error)
+          CALL deallocate_jrho_atom_set(current_env%jrho1_atom_set)
        ENDIF
        current_env%jrho1_atom_set => jrho1_atom_set
     END IF
@@ -769,7 +757,7 @@ CONTAINS
     IF(PRESENT(jrho1_set)) THEN
        IF(ASSOCIATED(current_env%jrho1_set)) THEN
           DO idir = 1,3
-             CALL qs_rho_release(current_env%jrho1_set(idir)%rho,error=error)
+             CALL qs_rho_release(current_env%jrho1_set(idir)%rho)
           END DO
        END IF
        current_env%jrho1_set => jrho1_set
@@ -785,13 +773,11 @@ CONTAINS
 !> \param chi_SI2ppmcgs ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE set_nmr_env(nmr_env,shift_factor,chi_factor,chi_SI2shiftppm,chi_SI2ppmcgs,&
-                         error)
+  SUBROUTINE set_nmr_env(nmr_env,shift_factor,chi_factor,chi_SI2shiftppm,chi_SI2ppmcgs)
 
     TYPE(nmr_env_type)                       :: nmr_env
     REAL(dp), INTENT(IN), OPTIONAL           :: shift_factor, chi_factor, &
                                                 chi_SI2shiftppm, chi_SI2ppmcgs
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set_nmr_env', &
       routineP = moduleN//':'//routineN
@@ -800,7 +786,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(nmr_env%ref_count>0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(nmr_env%ref_count>0, cp_failure_level,routineP,failure)
 
     IF(PRESENT(shift_factor   )) nmr_env%chi_factor      = chi_factor
     IF(PRESENT(shift_factor   )) nmr_env%chi_factor      = chi_factor
@@ -813,10 +799,9 @@ CONTAINS
 !> \param issc_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE set_issc_env(issc_env,error)
+  SUBROUTINE set_issc_env(issc_env)
 
     TYPE(issc_env_type)                      :: issc_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set_issc_env', &
       routineP = moduleN//':'//routineN
@@ -825,7 +810,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(issc_env%ref_count>0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(issc_env%ref_count>0, cp_failure_level,routineP,failure)
 
   END SUBROUTINE set_issc_env
 
@@ -842,7 +827,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE get_epr_env(epr_env, g_total, g_so, g_soo, nablavks_set, nablavks_atom_set, &
-       bind_set, bind_atom_set, error)
+       bind_set, bind_atom_set)
 
     TYPE(epr_env_type)                       :: epr_env
     REAL(dp), DIMENSION(:, :), OPTIONAL, &
@@ -855,8 +840,6 @@ CONTAINS
       OPTIONAL, POINTER                      :: bind_set
     TYPE(rho_atom_coeff), DIMENSION(:, :), &
       OPTIONAL, POINTER                      :: bind_atom_set
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_epr_env', &
       routineP = moduleN//':'//routineN
@@ -865,7 +848,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(epr_env%ref_count>0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(epr_env%ref_count>0, cp_failure_level,routineP,failure)
 
     IF(PRESENT(g_total)) g_total => epr_env%g_total
     IF(PRESENT(g_so)) g_so => epr_env%g_so
@@ -892,8 +875,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE set_epr_env(epr_env,g_free_factor,g_soo_chicorr_factor,&
                          g_soo_factor,g_so_factor,g_so_factor_gapw,&
-                         g_zke_factor,nablavks_set,nablavks_atom_set,&
-                         error)
+                         g_zke_factor,nablavks_set,nablavks_atom_set)
 
     TYPE(epr_env_type)                       :: epr_env
     REAL(dp), INTENT(IN), OPTIONAL :: g_free_factor, g_soo_chicorr_factor, &
@@ -902,8 +884,6 @@ CONTAINS
       OPTIONAL, POINTER                      :: nablavks_set
     TYPE(nablavks_atom_type), DIMENSION(:), &
       OPTIONAL, POINTER                      :: nablavks_atom_set
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set_epr_env', &
       routineP = moduleN//':'//routineN
@@ -913,7 +893,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(epr_env%ref_count>0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(epr_env%ref_count>0, cp_failure_level,routineP,failure)
 
     IF(PRESENT(g_free_factor)) epr_env%g_free_factor=g_free_factor
     IF(PRESENT(g_zke_factor)) epr_env%g_zke_factor=g_zke_factor
@@ -926,7 +906,7 @@ CONTAINS
         IF(ASSOCIATED(epr_env%nablavks_set)) THEN
            DO ispin = 1,2
              DO idir = 1,3
-               CALL qs_rho_release(epr_env%nablavks_set(idir,ispin)%rho,error=error)
+               CALL qs_rho_release(epr_env%nablavks_set(idir,ispin)%rho)
              END DO
            END DO
         END IF
@@ -935,7 +915,7 @@ CONTAINS
 
     IF(PRESENT(nablavks_atom_set)) THEN
        IF(ASSOCIATED(epr_env%nablavks_atom_set)) THEN
-          CALL deallocate_nablavks_atom_set(epr_env%nablavks_atom_set,error=error)
+          CALL deallocate_nablavks_atom_set(epr_env%nablavks_atom_set)
        ENDIF
        epr_env%nablavks_atom_set => nablavks_atom_set
     ENDIF
@@ -948,13 +928,11 @@ CONTAINS
 !> \param natom ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE allocate_nablavks_atom_set(nablavks_atom_set,natom,error)
+  SUBROUTINE allocate_nablavks_atom_set(nablavks_atom_set,natom)
 
     TYPE(nablavks_atom_type), DIMENSION(:), &
       POINTER                                :: nablavks_atom_set
     INTEGER, INTENT(IN)                      :: natom
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'allocate_nablavks_atom_set', &
       routineP = moduleN//':'//routineN
@@ -965,7 +943,7 @@ CONTAINS
     failure = .FALSE.
 
     ALLOCATE(nablavks_atom_set(natom), STAT=istat)
-    CPPrecondition(istat==0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(istat==0, cp_failure_level,routineP,failure)
 
     DO iat = 1,natom
        NULLIFY(nablavks_atom_set(iat)%nablavks_vec_rad_h)
@@ -978,12 +956,10 @@ CONTAINS
 !> \param nablavks_atom_set ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE deallocate_nablavks_atom_set(nablavks_atom_set,error)
+  SUBROUTINE deallocate_nablavks_atom_set(nablavks_atom_set)
 
     TYPE(nablavks_atom_type), DIMENSION(:), &
       POINTER                                :: nablavks_atom_set
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'deallocate_nablavks_atom_set', &
       routineP = moduleN//':'//routineN
@@ -993,7 +969,7 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(nablavks_atom_set),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(nablavks_atom_set),cp_failure_level,routineP,failure)
     natom = SIZE(nablavks_atom_set)
 
     DO iat = 1,natom
@@ -1003,20 +979,20 @@ CONTAINS
              DO i=1,n
                 DO idir = 1,3
                    DEALLOCATE(nablavks_atom_set(iat)%nablavks_vec_rad_h(idir,i)%r_coef,STAT=istat)
-                   CPPrecondition(istat==0, cp_failure_level,routineP,error,failure)
+                   CPPrecondition(istat==0, cp_failure_level,routineP,failure)
                    DEALLOCATE(nablavks_atom_set(iat)%nablavks_vec_rad_s(idir,i)%r_coef,STAT=istat)
-                   CPPrecondition(istat==0, cp_failure_level,routineP,error,failure)
+                   CPPrecondition(istat==0, cp_failure_level,routineP,failure)
                 ENDDO
              ENDDO
           ENDIF
           DEALLOCATE(nablavks_atom_set(iat)%nablavks_vec_rad_h,STAT=istat)
-          CPPrecondition(istat==0, cp_failure_level,routineP,error,failure)
+          CPPrecondition(istat==0, cp_failure_level,routineP,failure)
           DEALLOCATE(nablavks_atom_set(iat)%nablavks_vec_rad_s,STAT=istat)
-          CPPrecondition(istat==0, cp_failure_level,routineP,error,failure)
+          CPPrecondition(istat==0, cp_failure_level,routineP,failure)
        ENDIF
     ENDDO
     DEALLOCATE(nablavks_atom_set, STAT=istat)
-    CPPrecondition(istat==0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(istat==0, cp_failure_level,routineP,failure)
   END SUBROUTINE deallocate_nablavks_atom_set
 
 ! *****************************************************************************
@@ -1025,12 +1001,11 @@ CONTAINS
 !> \param natom ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE allocate_jrho_atom_set(jrho_atom_set,natom,error)
+  SUBROUTINE allocate_jrho_atom_set(jrho_atom_set,natom)
 
     TYPE(jrho_atom_type), DIMENSION(:), &
       POINTER                                :: jrho_atom_set
     INTEGER, INTENT(IN)                      :: natom
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'allocate_jrho_atom_set', &
       routineP = moduleN//':'//routineN
@@ -1041,7 +1016,7 @@ CONTAINS
     failure = .FALSE.
 
     ALLOCATE(jrho_atom_set(natom), STAT=istat)
-    CPPrecondition(istat==0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(istat==0, cp_failure_level,routineP,failure)
 
     DO iat = 1,natom
        NULLIFY(jrho_atom_set(iat)%cjc0_h)
@@ -1076,11 +1051,10 @@ CONTAINS
 !> \param jrho_atom_set ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE deallocate_jrho_atom_set(jrho_atom_set,error)
+  SUBROUTINE deallocate_jrho_atom_set(jrho_atom_set)
 
     TYPE(jrho_atom_type), DIMENSION(:), &
       POINTER                                :: jrho_atom_set
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'deallocate_jrho_atom_set', &
       routineP = moduleN//':'//routineN
@@ -1090,7 +1064,7 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(jrho_atom_set),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(jrho_atom_set),cp_failure_level,routineP,failure)
     natom = SIZE(jrho_atom_set)
 
     DO iat = 1,natom
@@ -1109,7 +1083,7 @@ CONTAINS
                            jrho_atom_set(iat)%cjc_iii_h(i)%r_coef,&
                            jrho_atom_set(iat)%cjc_iii_s(i)%r_coef,&
                            STAT=istat)
-                CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+                CPPrecondition(istat==0,cp_failure_level,routineP,failure)
              END DO
           END IF
           DEALLOCATE(jrho_atom_set(iat)%cjc0_h,&
@@ -1121,7 +1095,7 @@ CONTAINS
                      jrho_atom_set(iat)%cjc_iii_h,&
                      jrho_atom_set(iat)%cjc_iii_s,&
                      STAT=istat)
-          CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+          CPPrecondition(istat==0,cp_failure_level,routineP,failure)
        END IF
 
        IF(ASSOCIATED(jrho_atom_set(iat)%jrho_a_h)) THEN
@@ -1145,7 +1119,7 @@ CONTAINS
                            jrho_atom_set(iat)%jrho_b_h_iii(i)%r_coef,&
                            jrho_atom_set(iat)%jrho_b_s_iii(i)%r_coef,&
                            STAT=istat)
-                CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+                CPPrecondition(istat==0,cp_failure_level,routineP,failure)
              END DO
           END IF
           DEALLOCATE(jrho_atom_set(iat)%jrho_h,&
@@ -1163,7 +1137,7 @@ CONTAINS
                      jrho_atom_set(iat)%jrho_b_h_iii,&
                      jrho_atom_set(iat)%jrho_b_s_iii,&
                      STAT=istat)
-          CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+          CPPrecondition(istat==0,cp_failure_level,routineP,failure)
        END IF
 
        IF(ASSOCIATED(jrho_atom_set(iat)%jrho_vec_rad_h)) THEN
@@ -1176,18 +1150,18 @@ CONTAINS
                    DEALLOCATE(jrho_atom_set(iat)%jrho_vec_rad_h(idir,i)%r_coef,&
                               jrho_atom_set(iat)%jrho_vec_rad_s(idir,i)%r_coef,&
                               STAT=istat)
-                   CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+                   CPPrecondition(istat==0,cp_failure_level,routineP,failure)
                 END DO
              END DO
           ENDIF
           DEALLOCATE(jrho_atom_set(iat)%jrho_vec_rad_h,&
                      jrho_atom_set(iat)%jrho_vec_rad_s,&
                      STAT=istat)
-          CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+          CPPrecondition(istat==0,cp_failure_level,routineP,failure)
        END IF
     END DO
     DEALLOCATE(jrho_atom_set,STAT=istat)
-    CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE deallocate_jrho_atom_set
 
@@ -1200,11 +1174,10 @@ CONTAINS
 !> \param max_iso_not0 ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE  allocate_jrho_atom_rad(jrho1_atom,ispin,nr,na,max_iso_not0,error)
+  SUBROUTINE  allocate_jrho_atom_rad(jrho1_atom,ispin,nr,na,max_iso_not0)
 
     TYPE(jrho_atom_type), POINTER            :: jrho1_atom
     INTEGER, INTENT(IN)                      :: ispin, nr, na, max_iso_not0
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'allocate_jrho_atom_rad', &
       routineP = moduleN//':'//routineN
@@ -1216,14 +1189,14 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(jrho1_atom),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(jrho1_atom),cp_failure_level,routineP,failure)
 
 
     DO idir = 1,3
        ALLOCATE(jrho1_atom%jrho_vec_rad_h(idir,ispin)%r_coef(nr,na),&
                 jrho1_atom%jrho_vec_rad_s(idir,ispin)%r_coef(nr,na),&
                 STAT=istat)
-       CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(istat==0,cp_failure_level,routineP,failure)
        jrho1_atom%jrho_vec_rad_h(idir,ispin)%r_coef = 0.0_dp
        jrho1_atom%jrho_vec_rad_s(idir,ispin)%r_coef = 0.0_dp
     ENDDO
@@ -1243,7 +1216,7 @@ CONTAINS
              jrho1_atom%jrho_b_h_iii(ispin)%r_coef(nr,max_iso_not0),&
              jrho1_atom%jrho_b_s_iii(ispin)%r_coef(nr,max_iso_not0),&
              STAT=istat)
-    CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(istat==0,cp_failure_level,routineP,failure)
     !
     jrho1_atom%jrho_h(ispin)%r_coef = 0.0_dp
     jrho1_atom%jrho_s(ispin)%r_coef = 0.0_dp
@@ -1269,11 +1242,10 @@ CONTAINS
 !> \param ispin ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE set2zero_jrho_atom_rad(jrho1_atom,ispin,error)
+  SUBROUTINE set2zero_jrho_atom_rad(jrho1_atom,ispin)
     !
     TYPE(jrho_atom_type), POINTER            :: jrho1_atom
     INTEGER, INTENT(IN)                      :: ispin
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set2zero_jrho_atom_rad', &
       routineP = moduleN//':'//routineN
@@ -1282,7 +1254,7 @@ CONTAINS
 
     failure = .FALSE.
     !
-    CPPrecondition(ASSOCIATED(jrho1_atom),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(jrho1_atom),cp_failure_level,routineP,failure)
     !
     jrho1_atom%jrho_h(ispin)%r_coef = 0.0_dp
     jrho1_atom%jrho_s(ispin)%r_coef = 0.0_dp
@@ -1313,12 +1285,11 @@ CONTAINS
 !> \param nsotot ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE allocate_jrho_coeff(jrho1_atom_set,iatom,nsotot,error)
+  SUBROUTINE allocate_jrho_coeff(jrho1_atom_set,iatom,nsotot)
 
     TYPE(jrho_atom_type), DIMENSION(:), &
       POINTER                                :: jrho1_atom_set
     INTEGER, INTENT(IN)                      :: iatom, nsotot
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'allocate_jrho_coeff', &
       routineP = moduleN//':'//routineN
@@ -1328,7 +1299,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(jrho1_atom_set),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(jrho1_atom_set),cp_failure_level,routineP,failure)
     DO i = 1,SIZE(jrho1_atom_set(iatom)%cjc0_h,1)
        ALLOCATE(jrho1_atom_set(iatom)%cjc0_h(i)%r_coef(nsotot,nsotot),&
                 jrho1_atom_set(iatom)%cjc0_s(i)%r_coef(nsotot,nsotot),&
@@ -1339,7 +1310,7 @@ CONTAINS
                 jrho1_atom_set(iatom)%cjc_iii_h(i)%r_coef(nsotot,nsotot),&
                 jrho1_atom_set(iatom)%cjc_iii_s(i)%r_coef(nsotot,nsotot),&
                 STAT=istat)
-       CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(istat==0,cp_failure_level,routineP,failure)
        jrho1_atom_set(iatom)%cjc0_h(i)%r_coef = 0.0_dp
        jrho1_atom_set(iatom)%cjc0_s(i)%r_coef = 0.0_dp
        jrho1_atom_set(iatom)%cjc_h(i)%r_coef = 0.0_dp
@@ -1360,12 +1331,11 @@ CONTAINS
 !> \param iatom ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE deallocate_jrho_coeff(jrho1_atom_set,iatom,error)
+  SUBROUTINE deallocate_jrho_coeff(jrho1_atom_set,iatom)
 
     TYPE(jrho_atom_type), DIMENSION(:), &
       POINTER                                :: jrho1_atom_set
     INTEGER, INTENT(IN)                      :: iatom
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'deallocate_jrho_coeff', &
       routineP = moduleN//':'//routineN
@@ -1375,7 +1345,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(jrho1_atom_set),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(jrho1_atom_set),cp_failure_level,routineP,failure)
     DO i = 1,SIZE(jrho1_atom_set(iatom)%cjc0_h,1)
        DEALLOCATE(jrho1_atom_set(iatom)%cjc0_h(i)%r_coef,&
                   jrho1_atom_set(iatom)%cjc0_s(i)%r_coef,&
@@ -1386,7 +1356,7 @@ CONTAINS
                   jrho1_atom_set(iatom)%cjc_iii_h(i)%r_coef,&
                   jrho1_atom_set(iatom)%cjc_iii_s(i)%r_coef,&
                   STAT=istat)
-       CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(istat==0,cp_failure_level,routineP,failure)
     ENDDO
     CALL timestop(handle)
   END SUBROUTINE deallocate_jrho_coeff
@@ -1408,7 +1378,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE get_jrho_atom(jrho1_atom_set,iatom,cjc_h,cjc_s,cjc_ii_h,cjc_ii_s,&
-             cjc_iii_h,cjc_iii_s,jrho_vec_rad_h,jrho_vec_rad_s,error)
+             cjc_iii_h,cjc_iii_s,jrho_vec_rad_h,jrho_vec_rad_s)
 
     TYPE(jrho_atom_type), DIMENSION(:), &
       POINTER                                :: jrho1_atom_set
@@ -1418,7 +1388,6 @@ CONTAINS
                                                 cjc_ii_s, cjc_iii_h, cjc_iii_s
     TYPE(rho_atom_coeff), DIMENSION(:, :), &
       OPTIONAL, POINTER                      :: jrho_vec_rad_h, jrho_vec_rad_s
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_jrho_atom', &
       routineP = moduleN//':'//routineN
@@ -1427,7 +1396,7 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(jrho1_atom_set),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(jrho1_atom_set),cp_failure_level,routineP,failure)
 
     IF(PRESENT(cjc_h         )) cjc_h          => jrho1_atom_set(iatom)%cjc_h
     IF(PRESENT(cjc_s         )) cjc_s          => jrho1_atom_set(iatom)%cjc_s
@@ -1447,13 +1416,12 @@ CONTAINS
 !> \param nspins ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE init_jrho_atom_set(jrho1_atom_set,atomic_kind_set,nspins,error)
+  SUBROUTINE init_jrho_atom_set(jrho1_atom_set,atomic_kind_set,nspins)
     TYPE(jrho_atom_type), DIMENSION(:), &
       POINTER                                :: jrho1_atom_set
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
     INTEGER, INTENT(IN)                      :: nspins
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'init_jrho_atom_set', &
       routineP = moduleN//':'//routineN
@@ -1468,15 +1436,15 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(atomic_kind_set),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(atomic_kind_set),cp_failure_level,routineP,failure)
 
     IF(ASSOCIATED(jrho1_atom_set)) THEN
-       CALL deallocate_jrho_atom_set(jrho1_atom_set,error=error)
+       CALL deallocate_jrho_atom_set(jrho1_atom_set)
     END IF
 
     CALL get_atomic_kind_set(atomic_kind_set, natom = natom)
 
-    CALL allocate_jrho_atom_set(jrho1_atom_set,natom,error=error)
+    CALL allocate_jrho_atom_set(jrho1_atom_set,natom)
 
     nkind = SIZE(atomic_kind_set)
 
@@ -1513,7 +1481,7 @@ CONTAINS
                    jrho1_atom_set(iatom)%cjc_iii_h(nspins),&
                    jrho1_atom_set(iatom)%cjc_iii_s(nspins),&
                    STAT=istat)
-          CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+          CPPrecondition(istat==0,cp_failure_level,routineP,failure)
 
           DO ispin = 1,nspins
              DO idir = 1,3
@@ -1561,7 +1529,7 @@ CONTAINS
 !> \param nspins ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE init_nablavks_atom_set(nablavks_atom_set,atomic_kind_set,qs_kind_set,nspins,error)
+  SUBROUTINE init_nablavks_atom_set(nablavks_atom_set,atomic_kind_set,qs_kind_set,nspins)
 
     TYPE(nablavks_atom_type), DIMENSION(:), &
       POINTER                                :: nablavks_atom_set
@@ -1570,8 +1538,6 @@ CONTAINS
     TYPE(qs_kind_type), DIMENSION(:), &
       POINTER                                :: qs_kind_set
     INTEGER, INTENT(IN)                      :: nspins
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'init_nablavks_atom_set', &
       routineP = moduleN//':'//routineN
@@ -1588,15 +1554,15 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(qs_kind_set),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(qs_kind_set),cp_failure_level,routineP,failure)
 
     IF(ASSOCIATED(nablavks_atom_set)) THEN
-      CALL deallocate_nablavks_atom_set(nablavks_atom_set,error=error)
+      CALL deallocate_nablavks_atom_set(nablavks_atom_set)
     END IF
 
     CALL get_atomic_kind_set(atomic_kind_set, natom=natom)
 
-    CALL allocate_nablavks_atom_set(nablavks_atom_set,natom,error=error)
+    CALL allocate_nablavks_atom_set(nablavks_atom_set,natom)
 
     nkind = SIZE(atomic_kind_set)
 
@@ -1605,7 +1571,7 @@ CONTAINS
        CALL get_qs_kind(qs_kind_set(ikind),&
                         basis_set=orb_basis_set, &
                         harmonics=harmonics,&
-                        grid_atom=grid_atom, error=error)
+                        grid_atom=grid_atom)
 
        na = grid_atom%ng_sphere
        nr = grid_atom%nr
@@ -1619,17 +1585,17 @@ CONTAINS
           !*** allocate the radial density for each LM,for each atom ***
 
             ALLOCATE (nablavks_atom_set(iatom)%nablavks_vec_rad_h(3,nspins),STAT=istat)
-            CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+            CPPrecondition(istat==0,cp_failure_level,routineP,failure)
             ALLOCATE (nablavks_atom_set(iatom)%nablavks_vec_rad_s(3,nspins),STAT=istat)
-            CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+            CPPrecondition(istat==0,cp_failure_level,routineP,failure)
             DO ispin = 1,nspins
               DO idir = 1,3
                 NULLIFY(nablavks_atom_set(iatom)%nablavks_vec_rad_h(idir,ispin)%r_coef)
                 NULLIFY(nablavks_atom_set(iatom)%nablavks_vec_rad_s(idir,ispin)%r_coef)
                 ALLOCATE(nablavks_atom_set(iatom)%nablavks_vec_rad_h(idir,ispin)%r_coef(nr,na),STAT=istat)
-                CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+                CPPrecondition(istat==0,cp_failure_level,routineP,failure)
                 ALLOCATE(nablavks_atom_set(iatom)%nablavks_vec_rad_s(idir,ispin)%r_coef(nr,na),STAT=istat)
-                CPPrecondition(istat==0,cp_failure_level,routineP,error,failure)
+                CPPrecondition(istat==0,cp_failure_level,routineP,failure)
               END DO
             END DO  ! ispin
        END DO  ! iat
@@ -1644,10 +1610,9 @@ CONTAINS
 !> \param polar_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE polar_env_create(polar_env,error)
+  SUBROUTINE polar_env_create(polar_env)
 
     TYPE(polar_env_type)                     :: polar_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'polar_env_create', &
       routineP = moduleN//':'//routineN
@@ -1656,7 +1621,7 @@ CONTAINS
 
      failure =.FALSE.
 
-     CPPrecondition(polar_env%ref_count==0, cp_failure_level,routineP,error,failure)
+     CPPrecondition(polar_env%ref_count==0, cp_failure_level,routineP,failure)
      polar_env%ref_count = 1
 !        polar_env%do_raman=.FALSE.
      NULLIFY(polar_env%polar)
@@ -1677,7 +1642,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE get_polar_env(polar_env,do_raman,dBerry_psi0, polar, &
-       psi1_dBerry,mo_derivs,error)
+       psi1_dBerry,mo_derivs)
 
     TYPE(polar_env_type)                     :: polar_env
     LOGICAL, OPTIONAL                        :: do_raman
@@ -1687,7 +1652,6 @@ CONTAINS
       POINTER                                :: polar
     TYPE(cp_fm_p_type), DIMENSION(:, :), &
       OPTIONAL, POINTER                      :: psi1_dBerry, mo_derivs
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_polar_env', &
       routineP = moduleN//':'//routineN
@@ -1696,7 +1660,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(polar_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(polar_env%ref_count>0,cp_failure_level,routineP,failure)
 
     IF(PRESENT(polar))             polar => polar_env%polar
     IF(PRESENT(psi1_dBerry )) psi1_dBerry => polar_env%psi1_dBerry
@@ -1712,10 +1676,9 @@ CONTAINS
 !> \param polar_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE set_polar_env(polar_env,error)
+  SUBROUTINE set_polar_env(polar_env)
 
     TYPE(polar_env_type)                     :: polar_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set_polar_env', &
       routineP = moduleN//':'//routineN
@@ -1724,7 +1687,7 @@ CONTAINS
 
     failure =.FALSE.
 
-    CPPrecondition(polar_env%ref_count>0, cp_failure_level,routineP,error,failure)
+    CPPrecondition(polar_env%ref_count>0, cp_failure_level,routineP,failure)
 
   END SUBROUTINE set_polar_env
 ! *****************************************************************************

@@ -63,14 +63,13 @@ CONTAINS
 !>       10.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE dirichlet_boundary_region_setup(pw_pool, poisson_params, dbcs, error)
+  SUBROUTINE dirichlet_boundary_region_setup(pw_pool, poisson_params, dbcs)
 
     TYPE(pw_pool_type), INTENT(IN), POINTER  :: pw_pool
     TYPE(pw_poisson_parameter_type), &
       INTENT(INOUT)                          :: poisson_params
     TYPE(dirichlet_bc_p_type), &
       DIMENSION(:), INTENT(INOUT), POINTER   :: dbcs
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: &
       routineN = 'dirichlet_boundary_region_setup', &
@@ -90,7 +89,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     IF (logger%para_env%mepos .EQ. logger%para_env%source) THEN
        unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
     ELSE
@@ -105,14 +104,14 @@ CONTAINS
     n_xaa_cylindrical = poisson_params%dbc_params%n_xaa_cylindrical
     xaa_cylindrical_nsides => poisson_params%dbc_params%xaa_cylindrical_nsides
     pw_grid => pw_pool%pw_grid
-    CALL setup_grid_axes(pw_grid, x_glbl, y_glbl, z_glbl, x_locl, y_locl, z_locl, error)
+    CALL setup_grid_axes(pw_grid, x_glbl, y_glbl, z_glbl, x_locl, y_locl, z_locl)
     n_dbcs = n_aa_planar + n_aa_cuboidal + n_planar + SUM(xaa_cylindrical_nsides)
 
     SELECT CASE (poisson_params%ps_implicit_params%boundary_condition)
     CASE (MIXED_BC, MIXED_PERIODIC_BC)
       IF (n_dbcs .EQ. 0) THEN 
          CALL cp_assert(.FALSE., cp_failure_level, cp_assertion_failed, routineP, &
-                        "No Dirichlet region is defined.", error)
+                        "No Dirichlet region is defined.")
       END IF
 
       ALLOCATE(dbcs(n_dbcs))
@@ -139,10 +138,10 @@ CONTAINS
                                    poisson_params%dbc_params%aa_planar_yxtnt(:,j), &
                                    poisson_params%dbc_params%aa_planar_zxtnt(:,j), &
                                    v_D, smooth, zeta, dbc_id, dbcs(j)%dirichlet_bc, &
-                                   verbose, error)
+                                   verbose)
 
          CALL dirichlet_bc_partition(v_D, smooth, zeta, n_prtn, pw_pool, x_glbl, y_glbl, z_glbl, &
-                                     x_locl, y_locl, z_locl, dbcs(j)%dirichlet_bc, verbose, error)
+                                     x_locl, y_locl, z_locl, dbcs(j)%dirichlet_bc, verbose)
       END DO
 
       l = n_aa_planar
@@ -164,10 +163,10 @@ CONTAINS
                                    poisson_params%dbc_params%aa_cuboidal_yxtnt(:,j - l), &
                                    poisson_params%dbc_params%aa_cuboidal_zxtnt(:,j - l), &
                                    v_D, smooth, zeta, dbc_id, dbcs(j)%dirichlet_bc, &
-                                   verbose, error)
+                                   verbose)
 
          CALL dirichlet_bc_partition(v_D, smooth, zeta, n_prtn, pw_pool, x_glbl, y_glbl, z_glbl, &
-                                     x_locl, y_locl, z_locl, dbcs(j)%dirichlet_bc, verbose, error)
+                                     x_locl, y_locl, z_locl, dbcs(j)%dirichlet_bc, verbose)
       END DO
 
       l = n_aa_planar + n_aa_cuboidal
@@ -189,10 +188,10 @@ CONTAINS
                                    poisson_params%dbc_params%planar_Bvtx(:,j - l), &
                                    poisson_params%dbc_params%planar_Cvtx(:,j - l), &
                                    v_D, smooth, zeta, dbc_id, dbcs(j)%dirichlet_bc, &
-                                   verbose, error)
+                                   verbose)
 
          CALL dirichlet_bc_partition(v_D, smooth, zeta, n_prtn, pw_pool, x_glbl, y_glbl, z_glbl, &
-                                     x_locl, y_locl, z_locl, dbcs(j)%dirichlet_bc, verbose, error)
+                                     x_locl, y_locl, z_locl, dbcs(j)%dirichlet_bc, verbose)
       END DO
 
       l = n_aa_planar + n_aa_cuboidal + n_planar
@@ -217,7 +216,7 @@ CONTAINS
                                    x_locl, y_locl, z_locl, &
                                    poisson_params%dbc_params%xaa_cylindrical_xxtnt(:,j), &
                                    base_center, base_radius, v_D, smooth, zeta, n_prtn, &
-                                   dbcs(ind_start : ind_end), apx_type, verbose, error)
+                                   dbcs(ind_start : ind_end), apx_type, verbose)
 
          l = l + xaa_cylindrical_nsides(j)
       END DO
@@ -227,7 +226,7 @@ CONTAINS
     END SELECT
 
 ! we won't need parameters anymore so deallocate them 
-    CALL dirichlet_bc_parameters_dealloc(poisson_params%dbc_params, error)
+    CALL dirichlet_bc_parameters_dealloc(poisson_params%dbc_params)
 
     CALL timestop(handle)
 
@@ -256,7 +255,7 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE dirichlet_bc_partition(v_D, smooth, zeta, n_prtn, pw_pool, x_glbl, y_glbl, z_glbl, &
-                                    x_locl, y_locl, z_locl, dirichlet_bc, verbose, error)
+                                    x_locl, y_locl, z_locl, dirichlet_bc, verbose)
 
     REAL(dp), INTENT(IN)                     :: v_D
     LOGICAL, INTENT(IN)                      :: smooth
@@ -269,7 +268,6 @@ CONTAINS
     TYPE(dirichlet_bc_type), INTENT(INOUT), &
       POINTER                                :: dirichlet_bc
     LOGICAL, INTENT(IN)                      :: verbose
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'dirichlet_bc_partition', &
       routineP = moduleN//':'//routineN
@@ -284,7 +282,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
     
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     IF (logger%para_env%mepos .EQ. logger%para_env%source) THEN
        unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
     ELSE
@@ -302,9 +300,9 @@ CONTAINS
 
       ALLOCATE(rectangle_aa)
       CALL convert_to_aa_rectangle(dirichlet_bc%rectangle, rectangle_aa, &
-                                   phi1, rot_axis1, phi2, rot_axis2, error)
-      CALL partition_aa_rectangle_into_tiles(rectangle_aa, x_glbl, y_glbl, z_glbl, n_prtn, tiles, error)
-      CALL cs_rectangle_release(rectangle_aa, error=error)
+                                   phi1, rot_axis1, phi2, rot_axis2)
+      CALL partition_aa_rectangle_into_tiles(rectangle_aa, x_glbl, y_glbl, z_glbl, n_prtn, tiles)
+      CALL cs_rectangle_release(rectangle_aa)
   
       n_tiles = SIZE(tiles)
       dirichlet_bc%n_tiles = n_tiles
@@ -317,9 +315,9 @@ CONTAINS
          ALLOCATE(dirichlet_bc%tiles(k)%tile%rectangle)
          ALLOCATE(rectangle_tmp)
          CALL rotate_rectangle(tiles(k)%tile%rectangle, phi2, rot_axis2, BWROT, &
-                               rectangle_tmp, error)
+                               rectangle_tmp)
          CALL rotate_rectangle(rectangle_tmp, phi1, rot_axis1, BWROT, &
-                               dirichlet_bc%tiles(k)%tile%rectangle, error)
+                               dirichlet_bc%tiles(k)%tile%rectangle)
   
          dirichlet_bc%tiles(k)%tile%tile_id = 8000 + k
          dirichlet_bc%tiles(k)%tile%v_D     = v_D
@@ -328,8 +326,8 @@ CONTAINS
          dirichlet_bc%tiles(k)%tile%mollifier_zeta = zeta
    
          CALL pw_pool_create_pw(pw_pool, dirichlet_bc%tiles(k)%tile%tile_pw, &
-                                use_data=REALDATA3D, in_space=REALSPACE, error=error)
-         CALL pw_zero(dirichlet_bc%tiles(k)%tile%tile_pw, error=error)
+                                use_data=REALDATA3D, in_space=REALSPACE)
+         CALL pw_zero(dirichlet_bc%tiles(k)%tile%tile_pw)
   
          IF ((unit_nr .GT. 0) .AND. verbose) THEN 
             WRITE(unit_nr,'(T7,A,I5)') "tile", k
@@ -340,24 +338,24 @@ CONTAINS
          END IF
   
          CALL voxelize_rectangle(dirichlet_bc%tiles(k)%tile%rectangle, x_glbl, y_glbl, z_glbl, &
-                                 x_locl, y_locl, z_locl, dirichlet_bc%tiles(k)%tile%tile_pw, error)
+                                 x_locl, y_locl, z_locl, dirichlet_bc%tiles(k)%tile%tile_pw)
          tile_npts = NINT(SUM(dirichlet_bc%tiles(k)%tile%tile_pw%cr3d),KIND=KIND(tile_npts))
          CALL mp_sum(tile_npts, pw_pool%pw_grid%para%group)
          dirichlet_bc%tiles(k)%tile%npts = tile_npts
-         CALL cs_rectangle_release(rectangle_tmp, error)
+         CALL cs_rectangle_release(rectangle_tmp)
       END DO
   
       IF ((unit_nr .GT. 0) .AND. verbose) WRITE(unit_nr, '(T3,A)') REPEAT('=', 78) 
 
       DO k = 1, n_tiles
-         CALL cs_rectangle_release(tiles(k)%tile%rectangle, error)
+         CALL cs_rectangle_release(tiles(k)%tile%rectangle)
          DEALLOCATE(tiles(k)%tile)
       END DO
       DEALLOCATE(tiles)
 
     CASE (AA_CUBOIDAL)
 
-      CALL partition_aa_cuboid_into_tiles(dirichlet_bc%box, x_glbl, y_glbl, z_glbl, n_prtn, tiles, error)
+      CALL partition_aa_cuboid_into_tiles(dirichlet_bc%box, x_glbl, y_glbl, z_glbl, n_prtn, tiles)
       n_tiles = SIZE(tiles)
       dirichlet_bc%n_tiles = n_tiles
       ALLOCATE(dirichlet_bc%tiles(n_tiles))
@@ -373,8 +371,8 @@ CONTAINS
          dirichlet_bc%tiles(k)%tile%mollifier_zeta = zeta
    
          CALL pw_pool_create_pw(pw_pool, dirichlet_bc%tiles(k)%tile%tile_pw, &
-                                use_data=REALDATA3D, in_space=REALSPACE, error=error)
-         CALL pw_zero(dirichlet_bc%tiles(k)%tile%tile_pw, error=error)
+                                use_data=REALDATA3D, in_space=REALSPACE)
+         CALL pw_zero(dirichlet_bc%tiles(k)%tile%tile_pw)
   
          IF ((unit_nr .GT. 0) .AND. verbose) THEN 
             WRITE(unit_nr,'(T7,A,I5)') "tile", k
@@ -386,7 +384,7 @@ CONTAINS
          END IF
   
          CALL voxelize_aa_cuboid(dirichlet_bc%tiles(k)%tile%box, x_locl, y_locl, z_locl, &
-                                 dirichlet_bc%tiles(k)%tile%tile_pw, error)
+                                 dirichlet_bc%tiles(k)%tile%tile_pw)
          tile_npts = NINT(SUM(dirichlet_bc%tiles(k)%tile%tile_pw%cr3d),KIND=KIND(tile_npts))
          CALL mp_sum(tile_npts, pw_pool%pw_grid%para%group)
          dirichlet_bc%tiles(k)%tile%npts = tile_npts
@@ -437,7 +435,7 @@ CONTAINS
   SUBROUTINE create_xaa_cylindrical_dbc(pw_pool, &
                        x_glbl, y_glbl, z_glbl, x_locl, y_locl, z_locl, &
                        x_xtnt, base_center, base_radius, v_D, smooth, zeta, &
-                       n_prtn, dbcs, apx_type, verbose, error)
+                       n_prtn, dbcs, apx_type, verbose)
 
     TYPE(pw_pool_type), POINTER              :: pw_pool
     REAL(dp), ALLOCATABLE, DIMENSION(:), &
@@ -452,7 +450,6 @@ CONTAINS
       DIMENSION(:), INTENT(INOUT)            :: dbcs
     INTEGER, INTENT(IN), OPTIONAL            :: apx_type
     LOGICAL, INTENT(IN)                      :: verbose
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'create_xaa_cylindrical_dbc', &
       routineP = moduleN//':'//routineN
@@ -470,7 +467,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     IF (logger%para_env%mepos .EQ. logger%para_env%source) THEN
        unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
     ELSE
@@ -491,7 +488,7 @@ CONTAINS
     IF( (x_xtnt(1) .LT. x_glbl(glb1)) .OR. (x_xtnt(2) .GT. x_glbl(gub1)+dx) ) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP, &
                       "The length of the cylindrical Dirichlet region is larger than the "//&
-                      "x range of the simulation cell.", error)
+                      "x range of the simulation cell.")
     END IF
     forb_xtnt1 = base_center(1)-base_radius .LT. x_glbl(glb1)
     forb_xtnt2 = base_center(1)+base_radius .GT. x_glbl(gub1)+dx
@@ -499,7 +496,7 @@ CONTAINS
     forb_xtnt4 = base_center(2)+base_radius .GT. y_glbl(gub2)+dy
     IF( forb_xtnt1 .OR. forb_xtnt2 .OR. forb_xtnt3 .OR. forb_xtnt4 ) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP, &
-                      "The cylinder does not fit entirely inside the simulation cell.", error)
+                      "The cylinder does not fit entirely inside the simulation cell.")
     END IF
 
     intern_apx_type = CIRCUMSCRIBED
@@ -521,11 +518,11 @@ CONTAINS
        h = base_radius/COS(0.5*theta) ! circumscribed uniform prism
     ELSE 
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP,&
-                      "Unknown approximation type for cylinder.",error)
+                      "Unknown approximation type for cylinder.")
     END IF
     IF( h .GT. MINVAL((/Ly, Lz/)) ) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP, &
-                      "Reduce the base radius!", error)
+                      "Reduce the base radius!")
     END IF
 
     delta_alpha = 0.05_dp
@@ -557,7 +554,7 @@ CONTAINS
        D = (/ xub  , yub(j)  , zub(j)   /)
      
        ALLOCATE(dbcs(j)%dirichlet_bc%rectangle)
-       CALL cs_rectangle_create(dbcs(j)%dirichlet_bc%rectangle, A, B, C, D, error)
+       CALL cs_rectangle_create(dbcs(j)%dirichlet_bc%rectangle, A, B, C, D)
 
        dbcs(j)%dirichlet_bc%n_tiles = 1
 
@@ -572,7 +569,7 @@ CONTAINS
        END IF
 
        CALL dirichlet_bc_partition(v_D, smooth, zeta, n_prtn, pw_pool, x_glbl, y_glbl, z_glbl, &
-                                   x_locl, y_locl, z_locl, dbcs(j)%dirichlet_bc, verbose, error)
+                                   x_locl, y_locl, z_locl, dbcs(j)%dirichlet_bc, verbose)
     END DO
 
     CALL timestop(handle)
@@ -599,7 +596,7 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_aa_planar_dbc(x_glbl, y_glbl, z_glbl, x_xtnt, y_xtnt, z_xtnt, &
-                       v_D, smooth, zeta, dbc_id, dirichlet_bc, verbose, error)
+                       v_D, smooth, zeta, dbc_id, dirichlet_bc, verbose)
 
     REAL(dp), ALLOCATABLE, DIMENSION(:), &
       INTENT(IN)                             :: x_glbl, y_glbl, z_glbl
@@ -611,7 +608,6 @@ CONTAINS
     TYPE(dirichlet_bc_type), INTENT(INOUT), &
       POINTER                                :: dirichlet_bc
     LOGICAL, INTENT(IN)                      :: verbose
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'create_aa_planar_dbc', &
       routineP = moduleN//':'//routineN
@@ -629,7 +625,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     IF (logger%para_env%mepos .EQ. logger%para_env%source) THEN
        unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
     ELSE
@@ -657,7 +653,7 @@ CONTAINS
     IF (n_forb_xtnts .GT. 0) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP,&
                       "The given extents for the Dirichlet region are outside the range of "//&
-                      "the simulation cell.", error)
+                      "the simulation cell.")
     END IF 
 
     xxtnt_fst = find_fst_ge(x_glbl, x_xtnt(1))
@@ -680,7 +676,7 @@ CONTAINS
        C = (/ xub, ylb, zlb /)
        D = (/ xub, yub, zlb /)
        ALLOCATE(dirichlet_bc%rectangle)
-       CALL cs_rectangle_create(dirichlet_bc%rectangle, A, B, C, D, error)
+       CALL cs_rectangle_create(dirichlet_bc%rectangle, A, B, C, D)
        dirichlet_bc%n_tiles = 1
     ELSE IF (ABS(y_xtnt(1)-y_xtnt(2)) .LE. small_value) THEN
        A = (/ xlb, ylb, zub /)
@@ -688,7 +684,7 @@ CONTAINS
        C = (/ xub, ylb, zlb /)
        D = (/ xub, ylb, zub /)
        ALLOCATE(dirichlet_bc%rectangle)
-       CALL cs_rectangle_create(dirichlet_bc%rectangle, A, B, C, D, error)
+       CALL cs_rectangle_create(dirichlet_bc%rectangle, A, B, C, D)
        dirichlet_bc%n_tiles = 1
     ELSE IF (ABS(x_xtnt(1)-x_xtnt(2)) .LE. small_value) THEN
        A = (/ xlb, ylb, zub /)
@@ -696,12 +692,12 @@ CONTAINS
        C = (/ xlb, yub, zlb /)
        D = (/ xlb, yub, zub /)
        ALLOCATE(dirichlet_bc%rectangle)
-       CALL cs_rectangle_create(dirichlet_bc%rectangle, A, B, C, D, error)
+       CALL cs_rectangle_create(dirichlet_bc%rectangle, A, B, C, D)
        dirichlet_bc%n_tiles = 1
     ELSE 
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP,&
                       "According to the given extents, the Dirichlet region is not axis-aligned or a plane. "//&
-                      "Try the input section PLANAR or AA_CUBOIDAL instead.",error)
+                      "Try the input section PLANAR or AA_CUBOIDAL instead.")
     END IF
       
     IF ((unit_nr .GT. 0) .AND. verbose) THEN 
@@ -737,7 +733,7 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_arbitrary_planar_dbc(x_glbl, y_glbl, z_glbl, A, B, C, v_D, &
-                       smooth, zeta, dbc_id, dirichlet_bc, verbose, error)
+                       smooth, zeta, dbc_id, dirichlet_bc, verbose)
 
     REAL(dp), ALLOCATABLE, DIMENSION(:), &
       INTENT(IN)                             :: x_glbl, y_glbl, z_glbl
@@ -749,7 +745,6 @@ CONTAINS
     TYPE(dirichlet_bc_type), INTENT(INOUT), &
       POINTER                                :: dirichlet_bc
     LOGICAL, INTENT(IN)                      :: verbose
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'create_arbitrary_planar_dbc', &
       routineP = moduleN//':'//routineN
@@ -765,7 +760,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     IF (logger%para_env%mepos .EQ. logger%para_env%source) THEN
        unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
     ELSE
@@ -784,7 +779,7 @@ CONTAINS
     are_orthogonal = ABS( DOT_PRODUCT(AB, BC)/(SQRT(SUM(AB**2)) * SQRT(SUM(BC**2))) ) .LE. small_value
     IF (.NOT. are_orthogonal) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP, &
-            "The given vertices for defining a planar Dirichlet region do not form orthogonal edges.", error)
+            "The given vertices for defining a planar Dirichlet region do not form orthogonal edges.")
     END IF
 
     A_is_inside = ((A(1) .GT. x_glbl(glb1)) .AND. (A(1) .LT. x_glbl(gub1)+dx)) .AND. &
@@ -802,13 +797,13 @@ CONTAINS
     IF (.NOT. (A_is_inside .AND. B_is_inside .AND. C_is_inside .AND. D_is_inside)) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP, &
                       "At least one of the given vertices for defining a planar Dirichlet "//&
-                      "region is outside the simulation box.", error)
+                      "region is outside the simulation box.")
     END IF
 
     are_coplanar = ABS(DOT_PRODUCT(vector_product(AB, AC), AD)) .LE. small_value
     IF (.NOT. are_coplanar) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP, &
-            "The given vertices for defining a planar Dirichlet region are not coplanar.", error)
+            "The given vertices for defining a planar Dirichlet region are not coplanar.")
     END IF
 
     cm(1) = (A(1) + B(1) + C(1) + D(1))/4.0_dp
@@ -823,13 +818,13 @@ CONTAINS
                    (ABS(dist1-dist4) .LE. small_value)  
     IF (.NOT. is_rectangle) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP, &
-            "The given vertices for defining a planar Dirichlet region do not form a rectangle.", error)
+            "The given vertices for defining a planar Dirichlet region do not form a rectangle.")
     END IF
 
     dirichlet_bc%dbc_id = dbc_id
     dirichlet_bc%dbc_geom = PLANAR
     ALLOCATE(dirichlet_bc%rectangle)
-    CALL cs_rectangle_create(dirichlet_bc%rectangle, A, B, C, D, error)
+    CALL cs_rectangle_create(dirichlet_bc%rectangle, A, B, C, D)
     dirichlet_bc%n_tiles = 1
     dirichlet_bc%v_D = v_D
     dirichlet_bc%smooth = smooth
@@ -867,7 +862,7 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_aa_cuboidal_dbc(x_glbl, y_glbl, z_glbl, x_xtnt, y_xtnt, z_xtnt, &
-                       v_D, smooth, zeta, dbc_id, dirichlet_bc, verbose, error)
+                       v_D, smooth, zeta, dbc_id, dirichlet_bc, verbose)
 
     REAL(dp), ALLOCATABLE, DIMENSION(:), &
       INTENT(IN)                             :: x_glbl, y_glbl, z_glbl
@@ -879,7 +874,6 @@ CONTAINS
     TYPE(dirichlet_bc_type), INTENT(INOUT), &
       POINTER                                :: dirichlet_bc
     LOGICAL, INTENT(IN)                      :: verbose
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'create_aa_cuboidal_dbc', &
       routineP = moduleN//':'//routineN
@@ -897,7 +891,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     IF (logger%para_env%mepos .EQ. logger%para_env%source) THEN
        unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
     ELSE
@@ -925,7 +919,7 @@ CONTAINS
     IF (n_forb_xtnts .GT. 0) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP,&
                       "The given extents for the Dirichlet region are outside the range of "//&
-                      "the simulation cell.", error)
+                      "the simulation cell.")
     END IF 
 
     xxtnt_fst = find_fst_ge(x_glbl, x_xtnt(1))
@@ -947,7 +941,7 @@ CONTAINS
         (ABS(x_xtnt(1)-x_xtnt(2)) .LE. small_value)) THEN
        CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP,&
                       "According to the given extents, the region's geometry is not a cuboid. "//&
-                      "Try the input section AA_PLANAR instead.",error)
+                      "Try the input section AA_PLANAR instead.")
     END IF
 
     box_vtx(1:3,1) = (/xlb, ylb, zlb/)
@@ -960,7 +954,7 @@ CONTAINS
     box_vtx(1:3,8) = (/xub, yub, zub/)
       
     ALLOCATE(dirichlet_bc%box)
-    CALL cs_box_create(dirichlet_bc%box, box_vtx, error)
+    CALL cs_box_create(dirichlet_bc%box, box_vtx)
     dirichlet_bc%n_tiles = 1
 
     IF ((unit_nr .GT. 0) .AND. verbose) THEN 

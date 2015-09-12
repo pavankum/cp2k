@@ -95,10 +95,9 @@ CONTAINS
 !> \param cell_out ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cell_clone (cell_in, cell_out, error)
+  SUBROUTINE cell_clone (cell_in, cell_out)
 
     TYPE(cell_type), POINTER                 :: cell_in, cell_out
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cell_clone', &
       routineP = moduleN//':'//routineN
@@ -106,8 +105,8 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(cell_in),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(cell_out),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(cell_in),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(cell_out),cp_failure_level,routineP,failure)
 
     cell_out%deth         = cell_in%deth
     cell_out%perd         = cell_in%perd
@@ -127,10 +126,9 @@ CONTAINS
 !> \param cell_out ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cell_copy (cell_in, cell_out, error)
+  SUBROUTINE cell_copy (cell_in, cell_out)
 
     TYPE(cell_type), POINTER                 :: cell_in, cell_out
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cell_copy', &
       routineP = moduleN//':'//routineN
@@ -138,8 +136,8 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(cell_in),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(cell_out),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(cell_in),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(cell_out),cp_failure_level,routineP,failure)
 
     cell_out%deth         = cell_in%deth
     cell_out%perd         = cell_in%perd
@@ -162,14 +160,13 @@ CONTAINS
 !> \author  Teodoro Laino [tlaino] - University of Zurich
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE parse_cell_line(input_line, cell_itimes, cell_time, h, vol, error)
+  SUBROUTINE parse_cell_line(input_line, cell_itimes, cell_time, h, vol)
     CHARACTER(LEN=*), INTENT(IN)             :: input_line
     INTEGER, INTENT(OUT)                     :: cell_itimes
     REAL(KIND=dp), INTENT(OUT)               :: cell_time
     REAL(KIND=dp), DIMENSION(3, 3), &
       INTENT(OUT)                            :: h
     REAL(KIND=dp), INTENT(OUT)               :: vol
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'parse_cell_line', &
       routineP = moduleN//':'//routineN
@@ -182,7 +179,7 @@ CONTAINS
          h(1,1),h(2,1),h(3,1), h(1,2),h(2,2),h(3,2), h(1,3),h(2,3),h(3,3),vol
     DO i = 1, 3
        DO j = 1, 3
-          h(j,i) = cp_unit_to_cp2k(h(j,i), "angstrom", error=error)
+          h(j,i) = cp_unit_to_cp2k(h(j,i), "angstrom")
        END DO
     END DO
 
@@ -262,8 +259,7 @@ CONTAINS
 !> \author  Matthias Krack
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE get_cell_param(cell,cell_length,cell_angle,units_angle,periodic,&
-                            error)
+  SUBROUTINE get_cell_param(cell,cell_length,cell_angle,units_angle,periodic)
 
     TYPE(cell_type), POINTER                 :: cell
     REAL(KIND=dp), DIMENSION(3), INTENT(OUT) :: cell_length
@@ -272,7 +268,6 @@ CONTAINS
     INTEGER, INTENT(IN), OPTIONAL            :: units_angle
     INTEGER, DIMENSION(3), INTENT(OUT), &
       OPTIONAL                               :: periodic
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_cell_param', &
       routineP = moduleN//':'//routineN
@@ -307,15 +302,13 @@ CONTAINS
 !> \date    03.2008
 !> \author  Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE set_cell_param(cell,cell_length,cell_angle,periodic,do_init_cell,&
-                            error)
+  SUBROUTINE set_cell_param(cell,cell_length,cell_angle,periodic,do_init_cell)
 
     TYPE(cell_type), POINTER                 :: cell
     REAL(KIND=dp), DIMENSION(3), INTENT(IN)  :: cell_length, cell_angle
     INTEGER, DIMENSION(3), INTENT(IN), &
       OPTIONAL                               :: periodic
     LOGICAL, INTENT(IN)                      :: do_init_cell
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set_cell_param', &
       routineP = moduleN//':'//routineN
@@ -325,7 +318,7 @@ CONTAINS
                                                 cos_gamma, eps, sin_gamma
 
     failure = .FALSE.
-    CPPrecondition(ALL(cell_angle/=0.0_dp),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ALL(cell_angle/=0.0_dp),cp_failure_level,routineP,failure)
     eps = EPSILON(0.0_dp)
     cos_gamma = COS(cell_angle(3)); IF (ABS(cos_gamma)<eps) cos_gamma = 0.0_dp
     IF (ABS(ABS(cos_gamma)-1.0_dp)<eps) cos_gamma = SIGN(1.0_dp,cos_gamma)
@@ -786,14 +779,13 @@ CONTAINS
 !>      09.2003 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cell_create(cell,hmat,periodic,error)
+  SUBROUTINE cell_create(cell,hmat,periodic)
 
     TYPE(cell_type), POINTER                 :: cell
     REAL(KIND=dp), DIMENSION(3, 3), &
       INTENT(IN), OPTIONAL                   :: hmat
     INTEGER, DIMENSION(3), INTENT(IN), &
       OPTIONAL                               :: periodic
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cell_create', &
       routineP = moduleN//':'//routineN
@@ -803,9 +795,9 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(.NOT.ASSOCIATED(cell),cp_failure_level,routineP,error,failure)
+    CPPrecondition(.NOT.ASSOCIATED(cell),cp_failure_level,routineP,failure)
     ALLOCATE (cell,stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     last_cell_id = last_cell_id + 1
     cell%id_nr = last_cell_id
     cell%ref_count = 1
@@ -830,10 +822,9 @@ CONTAINS
 !>      09.2003 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cell_retain(cell,error)
+  SUBROUTINE cell_retain(cell)
 
     TYPE(cell_type), POINTER                 :: cell
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cell_retain', &
       routineP = moduleN//':'//routineN
@@ -842,8 +833,8 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(cell),cp_failure_level,routineP,error,failure)
-    CPPreconditionNoFail(cell%ref_count>0,cp_failure_level,routineP,error)
+    CPPrecondition(ASSOCIATED(cell),cp_failure_level,routineP,failure)
+    CPPreconditionNoFail(cell%ref_count>0,cp_failure_level,routineP)
     cell%ref_count=cell%ref_count+1
 
   END SUBROUTINE cell_retain
@@ -857,10 +848,9 @@ CONTAINS
 !>      09.2003 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cell_release(cell,error)
+  SUBROUTINE cell_release(cell)
 
     TYPE(cell_type), POINTER                 :: cell
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cell_release', &
       routineP = moduleN//':'//routineN
@@ -871,11 +861,11 @@ CONTAINS
     failure = .FALSE.
 
     IF (ASSOCIATED(cell)) THEN
-       CPPreconditionNoFail(cell%ref_count>0,cp_failure_level,routineP,error)
+       CPPreconditionNoFail(cell%ref_count>0,cp_failure_level,routineP)
        cell%ref_count=cell%ref_count-1
        IF (cell%ref_count==0) THEN
           DEALLOCATE(cell,stat=stat)
-          CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+          CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
        END IF
        NULLIFY(cell)
     END IF

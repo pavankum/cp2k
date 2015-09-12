@@ -105,9 +105,8 @@ CONTAINS
 !> \param[inout] error         CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE transport_env_release(transport_env,error)
+  SUBROUTINE transport_env_release(transport_env)
     TYPE(transport_env_type), POINTER        :: transport_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'transport_env_release', &
       routineP = moduleN//':'//routineN
@@ -118,18 +117,18 @@ CONTAINS
     CALL timeset(routineN,handle)
     failure=.FALSE.
 
-    CPPostcondition(ASSOCIATED(transport_env),cp_failure_level,routineP,error,failure)
+    CPPostcondition(ASSOCIATED(transport_env),cp_failure_level,routineP,failure)
 
-    CALL cp_csr_destroy(transport_env%s_matrix, error)
-    CALL cp_csr_destroy(transport_env%ks_matrix, error)
-    CALL cp_csr_destroy(transport_env%p_matrix, error)
-    CALL cp_dbcsr_release(transport_env%template_matrix_sym, error)
-    CALL cp_dbcsr_release(transport_env%template_matrix_nosym, error)
+    CALL cp_csr_destroy(transport_env%s_matrix)
+    CALL cp_csr_destroy(transport_env%ks_matrix)
+    CALL cp_csr_destroy(transport_env%p_matrix)
+    CALL cp_dbcsr_release(transport_env%template_matrix_sym)
+    CALL cp_dbcsr_release(transport_env%template_matrix_nosym)
 
     transport_env%ext_c_method_ptr = C_NULL_FUNPTR
 
     DEALLOCATE(transport_env, stat=istat)
-    CPPostcondition(istat==0, cp_failure_level, routineP, error, failure)
+    CPPostcondition(istat==0, cp_failure_level, routineP,failure)
 
     CALL timestop(handle)
 
@@ -141,11 +140,10 @@ CONTAINS
 !> \param[inout] error           CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE csr_interop_nullify(csr_interop_mat, error)
+  SUBROUTINE csr_interop_nullify(csr_interop_mat)
 
     TYPE(cp2k_csr_interop_type), &
       INTENT(INOUT)                          :: csr_interop_mat
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csr_interop_nullify', &
       routineP = moduleN//':'//routineN
@@ -189,7 +187,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE csr_interop_matrix_get_info(csr_interop_mat, &
                         nrows_total, ncols_total, nze_local, nze_total, nrows_local, data_type, &
-                        first_row, rowptr_local, colind_local, nzerow_local, nzvals_local, error)
+                        first_row, rowptr_local, colind_local, nzerow_local, nzvals_local)
 
     TYPE(cp2k_csr_interop_type), INTENT(IN)  :: csr_interop_mat
     INTEGER, INTENT(OUT), OPTIONAL           :: nrows_total, ncols_total, &
@@ -201,7 +199,6 @@ CONTAINS
                                                 nzerow_local
     REAL(dp), DIMENSION(:), INTENT(OUT), &
       OPTIONAL, POINTER                      :: nzvals_local
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csr_interop_matrix_get_info', &
       routineP = moduleN//':'//routineN

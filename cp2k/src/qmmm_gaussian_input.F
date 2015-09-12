@@ -138,13 +138,12 @@ CONTAINS
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE read_mm_potential(para_env, qmmm_gaussian_fns,&
-                               compatibility, qmmm_section, error)
+                               compatibility, qmmm_section)
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(qmmm_gaussian_p_type), &
       DIMENSION(:), POINTER                  :: qmmm_gaussian_fns
     LOGICAL, INTENT(IN)                      :: compatibility
     TYPE(section_vals_type), POINTER         :: qmmm_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'read_mm_potential', &
       routineP = moduleN//':'//routineN
@@ -159,20 +158,20 @@ CONTAINS
     TYPE(cp_logger_type), POINTER            :: logger
     TYPE(cp_parser_type), POINTER            :: parser
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     output_unit= cp_logger_get_default_io_unit(logger)
     Nval = SIZE(qmmm_gaussian_fns)
     Ival = 0
     CALL section_vals_val_get(qmmm_section,"MM_POTENTIAL_FILE_NAME",&
-         c_val=mm_potential_file_name,error=error)
+         c_val=mm_potential_file_name)
 
     NULLIFY(parser)
-    CALL parser_create(parser,mm_potential_file_name,para_env=para_env,error=error)
+    CALL parser_create(parser,mm_potential_file_name,para_env=para_env)
 
     search_loop: DO
        Ftarget = "&MM_FIT_POT"
        IF (Ival.EQ.Nval) EXIT search_loop
-       CALL parser_search_string(parser,Ftarget,.TRUE.,found,line,error=error)
+       CALL parser_search_string(parser,Ftarget,.TRUE.,found,line)
        IF (Found) THEN
 !
 ! Structure example of the MM fit potential file:
@@ -189,10 +188,10 @@ CONTAINS
 !           0.0790169  4.82046   Bohr
 !           &END
 !
-          CALL parser_get_object  (parser,Ftarget,newline=.TRUE.,error=error)
-          CPPostcondition(TRIM(Ftarget)=="RADIUS",cp_failure_level,routineP,error,Failure)
-          CALL parser_get_object  (parser,radius,error=error)
-          CALL parser_get_object  (parser,units,error=error)
+          CALL parser_get_object  (parser,Ftarget,newline=.TRUE.)
+          CPPostcondition(TRIM(Ftarget)=="RADIUS",cp_failure_level,routineP,Failure)
+          CALL parser_get_object  (parser,radius)
+          CALL parser_get_object  (parser,units)
           CALL uppercase (units)
           fconv = 1.0_dp
           IF (TRIM(units).EQ."ANGSTROM") fconv = bohr
@@ -210,7 +209,7 @@ CONTAINS
           Ival = Ival + 1
           IRad = J
           ! Read  Rmin, Rmax
-          CALL parser_get_object(parser,qmmm_gaussian_fns(J)%pgf%Number_of_Gaussians,newline=.TRUE.,error=error)
+          CALL parser_get_object(parser,qmmm_gaussian_fns(J)%pgf%Number_of_Gaussians,newline=.TRUE.)
           ! Allocate Vectors
           istart = 1
           IF (compatibility) THEN
@@ -219,18 +218,18 @@ CONTAINS
           END IF
           NOG = qmmm_gaussian_fns(IRad)%pgf%Number_of_Gaussians
           ALLOCATE(qmmm_gaussian_fns(IRad)%pgf%Ak(NOG),stat=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
           ALLOCATE(qmmm_gaussian_fns(IRad)%pgf%Gk(NOG),stat=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
           IF (compatibility) THEN
              my_radius = qmmm_gaussian_fns(J)%pgf%Elp_Radius_corr
              qmmm_gaussian_fns(IRad)%pgf%Ak(1) = 1.0_dp/radius - 2.0_dp/(rootpi*radius)
              qmmm_gaussian_fns(IRad)%pgf%Gk(1) = my_radius
           END IF
           DO J = istart, qmmm_gaussian_fns(IRad)%pgf%Number_of_Gaussians
-             CALL parser_get_object(parser,qmmm_gaussian_fns(IRad)%pgf%Ak(J),newline=.TRUE.,error=error)
-             CALL parser_get_object(parser,qmmm_gaussian_fns(IRad)%pgf%Gk(J),error=error)
-             CALL parser_get_object(parser,units,error=error)
+             CALL parser_get_object(parser,qmmm_gaussian_fns(IRad)%pgf%Ak(J),newline=.TRUE.)
+             CALL parser_get_object(parser,qmmm_gaussian_fns(IRad)%pgf%Gk(J))
+             CALL parser_get_object(parser,units)
              CALL uppercase (units)
              fconv = 1.0_dp
              IF (TRIM(units).EQ."ANGSTROM") fconv = bohr
@@ -245,7 +244,7 @@ CONTAINS
 
     END DO search_loop
 
-    CALL parser_release(parser,error=error)
+    CALL parser_release(parser)
 
   END SUBROUTINE read_mm_potential
 
@@ -261,12 +260,11 @@ CONTAINS
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE set_mm_potential_erf(qmmm_gaussian_fns, &
-                               compatibility, num_geep_gauss, error)
+                               compatibility, num_geep_gauss)
     TYPE(qmmm_gaussian_p_type), &
       DIMENSION(:), POINTER                  :: qmmm_gaussian_fns
     LOGICAL, INTENT(IN)                      :: compatibility
     INTEGER, INTENT(IN)                      :: num_geep_gauss
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set_mm_potential_erf', &
       routineP = moduleN//':'//routineN
@@ -324,9 +322,9 @@ CONTAINS
        END SELECT
        NOG = qmmm_gaussian_fns(IRad)%pgf%Number_of_Gaussians
        ALLOCATE(qmmm_gaussian_fns(IRad)%pgf%Ak(NOG),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
        ALLOCATE(qmmm_gaussian_fns(IRad)%pgf%Gk(NOG),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
        IF (compatibility) THEN
           my_radius = qmmm_gaussian_fns(IRad)%pgf%Elp_Radius_corr
           qmmm_gaussian_fns(IRad)%pgf%Ak(1) = 1.0_dp/radius - 2.0_dp/(rootpi*radius)
@@ -707,11 +705,10 @@ CONTAINS
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE set_mm_potential_swave(qmmm_gaussian_fns, &
-                                    num_geep_gauss, error)
+                                    num_geep_gauss)
     TYPE(qmmm_gaussian_p_type), &
       DIMENSION(:), POINTER                  :: qmmm_gaussian_fns
     INTEGER, INTENT(IN)                      :: num_geep_gauss
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'set_mm_potential_swave', &
       routineP = moduleN//':'//routineN
@@ -765,9 +762,9 @@ CONTAINS
        END SELECT
        NOG = qmmm_gaussian_fns(IRad)%pgf%Number_of_Gaussians
        ALLOCATE(qmmm_gaussian_fns(IRad)%pgf%Ak(NOG),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
        ALLOCATE(qmmm_gaussian_fns(IRad)%pgf%Gk(NOG),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
        SELECT CASE(num_geep_gauss)
        CASE(2)
           qmmm_gaussian_fns(IRad)%pgf%Ak(istart+1) = s2_a1

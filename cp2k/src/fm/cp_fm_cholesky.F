@@ -44,11 +44,10 @@ CONTAINS
 !>      12.2002 updated, added n optional parm [fawzi]
 !> \author Joost
 ! *****************************************************************************
-  SUBROUTINE cp_fm_cholesky_decompose(matrix,n,info_out,error)
+  SUBROUTINE cp_fm_cholesky_decompose(matrix,n,info_out)
     TYPE(cp_fm_type), POINTER                :: matrix
     INTEGER, INTENT(in), OPTIONAL            :: n
     INTEGER, INTENT(out), OPTIONAL           :: info_out
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_cholesky_decompose', &
       routineP = moduleN//':'//routineN
@@ -68,7 +67,7 @@ CONTAINS
     my_n = MIN(matrix%matrix_struct%nrow_global,&
          matrix%matrix_struct%ncol_global)
     IF (PRESENT(n)) THEN
-       CPPrecondition(n<=my_n,cp_failure_level,routineP,error,failure)
+       CPPrecondition(n<=my_n,cp_failure_level,routineP,failure)
        my_n=n
     END IF
 
@@ -97,7 +96,7 @@ CONTAINS
     IF (PRESENT(info_out)) THEN
       info_out = info
     ELSE
-      CPPostcondition(info==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(info==0,cp_failure_level,routineP,failure)
     END IF
 
     CALL timestop(handle)
@@ -114,10 +113,9 @@ CONTAINS
 !>      05.2002 created [JVdV]
 !> \author Joost VandeVondele
 ! *****************************************************************************
-  SUBROUTINE cp_fm_cholesky_invert(matrix,n, error)
+  SUBROUTINE cp_fm_cholesky_invert(matrix,n)
     TYPE(cp_fm_type), POINTER           :: matrix
     INTEGER, INTENT(in), OPTIONAL                :: n
-    TYPE(cp_error_type), INTENT(inout)  :: error
 
     CHARACTER(len=*), PARAMETER :: routineN='cp_fm_cholesky_invert',&
          routineP=moduleN//':'//routineN
@@ -137,7 +135,7 @@ CONTAINS
     my_n = MIN(matrix%matrix_struct%nrow_global,&
          matrix%matrix_struct%ncol_global)
     IF (PRESENT(n)) THEN
-       CPPrecondition(n<=my_n,cp_failure_level,routineP,error,failure)
+       CPPrecondition(n<=my_n,cp_failure_level,routineP,failure)
        my_n=n
     END IF
 
@@ -164,7 +162,7 @@ CONTAINS
 
 #endif
 
-    CPPostcondition(info==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(info==0,cp_failure_level,routineP,failure)
 
     CALL timestop(handle)
 
@@ -185,10 +183,9 @@ CONTAINS
 !>      05.2002 created [JVdV]
 !> \author Joost VandeVondele
 ! *****************************************************************************
-  SUBROUTINE cp_fm_cholesky_reduce(matrix,matrixb, itype, error)
+  SUBROUTINE cp_fm_cholesky_reduce(matrix,matrixb, itype)
    TYPE(cp_fm_type), POINTER           :: matrix, matrixb
    INTEGER, OPTIONAL                   :: itype
-   TYPE(cp_error_type), INTENT(inout)  :: error
 
     CHARACTER(len=*), PARAMETER :: routineN='cp_fm_cholesky_reduce',&
          routineP=moduleN//':'//routineN
@@ -225,14 +222,14 @@ CONTAINS
          routineP,&
          "scale not equal 1 (scale="//cp_to_string(scale)//")"//&
 CPSourceFileRef,&
-         error,failure)
+         failure)
 #else
 
     CALL dsygst(my_itype,'U',n,a(1,1),n,b(1,1),n,info)
 
 #endif
 
-    CPPostcondition(info==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(info==0,cp_failure_level,routineP,failure)
 
     CALL timestop(handle)
 
@@ -255,14 +252,12 @@ CPSourceFileRef,&
 !> \param transa ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_fm_cholesky_restore(matrix,neig,matrixb,matrixout,op,pos,transa,&
-       error)
+  SUBROUTINE cp_fm_cholesky_restore(matrix,neig,matrixb,matrixout,op,pos,transa)
     TYPE(cp_fm_type), POINTER          :: matrix,matrixb,matrixout
     INTEGER, INTENT(IN)                         :: neig
     CHARACTER ( LEN = * ), INTENT ( IN )        :: op
     CHARACTER ( LEN = * ), INTENT ( IN ), OPTIONAL :: pos
     CHARACTER ( LEN = * ), INTENT ( IN ), OPTIONAL :: transa
-    TYPE(cp_error_type), INTENT(inout)  :: error
 
     CHARACTER(len=*), PARAMETER :: routineN='cp_fm_cholesky_restore',&
          routineP=moduleN//':'//routineN
@@ -292,7 +287,7 @@ CPSourceFileRef,&
          cp_failure_level,cp_assertion_failed,routineP,&
          "wrong argument op"//&
 CPSourceFileRef,&
-         error,failure)
+         failure)
 
     IF (PRESENT(pos)) THEN
        SELECT CASE(pos)
@@ -305,7 +300,7 @@ CPSourceFileRef,&
                cp_failure_level,cp_assertion_failed,routineP,&
                "wrong argument pos"//&
 CPSourceFileRef,&
-               error,failure)
+               failure)
        END SELECT
     ELSE
        chol_pos='L'
@@ -319,7 +314,7 @@ CPSourceFileRef,&
          routineP,&
          "not the same precision"//&
 CPSourceFileRef,&
-         error,failure)
+         failure)
 
     ! notice b is the cholesky guy
     a => matrix%local_data

@@ -125,9 +125,8 @@ CONTAINS
 !>      02.2005 wf_mol added [MI]
 !> \author fawzi
 ! *****************************************************************************
-SUBROUTINE wfs_release(snapshot,error)
+SUBROUTINE wfs_release(snapshot)
     TYPE(qs_wf_snapshot_type), POINTER       :: snapshot
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'wfs_release', &
       routineP = moduleN//':'//routineN
@@ -138,32 +137,32 @@ SUBROUTINE wfs_release(snapshot,error)
   failure=.FALSE.
 
   IF (ASSOCIATED(snapshot)) THEN
-     CPPreconditionNoFail(snapshot%ref_count>0,cp_failure_level,routineP,error)
+     CPPreconditionNoFail(snapshot%ref_count>0,cp_failure_level,routineP)
      snapshot%ref_count=snapshot%ref_count-1
      IF (snapshot%ref_count==0) THEN
         IF (ASSOCIATED(snapshot%wf)) THEN
            DO i=1,SIZE(snapshot%wf)
-              CALL cp_fm_release(snapshot%wf(i)%matrix,error=error)
+              CALL cp_fm_release(snapshot%wf(i)%matrix)
            END DO
            DEALLOCATE(snapshot%wf,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
         END IF
         ! snapshot%rho_r & snapshot%rho_g is deallocated in wfs_update
         ! of qs_wf_history_methods, in case you wonder about it.
         IF (ASSOCIATED(snapshot%rho_ao)) THEN
-           CALL cp_dbcsr_deallocate_matrix_set(snapshot%rho_ao,error=error)
+           CALL cp_dbcsr_deallocate_matrix_set(snapshot%rho_ao)
         END IF
         IF (ASSOCIATED(snapshot%rho_ao_kp)) THEN
-           CALL cp_dbcsr_deallocate_matrix_set(snapshot%rho_ao_kp,error=error)
+           CALL cp_dbcsr_deallocate_matrix_set(snapshot%rho_ao_kp)
         END IF
         IF (ASSOCIATED(snapshot%overlap)) THEN
-           CALL cp_dbcsr_deallocate_matrix(snapshot%overlap,error=error)
+           CALL cp_dbcsr_deallocate_matrix(snapshot%overlap)
         END IF
         IF (ASSOCIATED(snapshot%rho_frozen)) THEN
-           CALL qs_rho_release(snapshot%rho_frozen,error=error)
+           CALL qs_rho_release(snapshot%rho_frozen)
         END IF
         DEALLOCATE(snapshot,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
      END IF
   END IF
   NULLIFY(snapshot)
@@ -178,9 +177,8 @@ END SUBROUTINE wfs_release
 !>      02.2003 created [fawzi]
 !> \author fawzi
 ! *****************************************************************************
-SUBROUTINE wfi_retain(wf_history,error)
+SUBROUTINE wfi_retain(wf_history)
     TYPE(qs_wf_history_type), POINTER        :: wf_history
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'wfi_retain', &
       routineP = moduleN//':'//routineN
@@ -189,7 +187,7 @@ SUBROUTINE wfi_retain(wf_history,error)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(wf_history),cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(wf_history),cp_failure_level,routineP,failure)
   wf_history%ref_count=wf_history%ref_count+1
 
 END SUBROUTINE wfi_retain
@@ -204,9 +202,8 @@ END SUBROUTINE wfi_retain
 !>      02.2003 created [fawzi]
 !> \author fawzi
 ! *****************************************************************************
-SUBROUTINE wfi_release(wf_history,error)
+SUBROUTINE wfi_release(wf_history)
     TYPE(qs_wf_history_type), POINTER        :: wf_history
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'wfi_release', &
       routineP = moduleN//':'//routineN
@@ -217,19 +214,18 @@ SUBROUTINE wfi_release(wf_history,error)
   failure=.FALSE.
 
   IF (ASSOCIATED(wf_history)) THEN
-     CPPreconditionNoFail(wf_history%ref_count>0,cp_failure_level,routineP,error)
+     CPPreconditionNoFail(wf_history%ref_count>0,cp_failure_level,routineP)
      wf_history%ref_count=wf_history%ref_count-1
      IF (wf_history%ref_count==0) THEN
         IF (ASSOCIATED(wf_history%past_states)) THEN
            DO i=1,SIZE(wf_history%past_states)
-              CALL wfs_release(wf_history%past_states(i)%snapshot,&
-                   error=error)
+              CALL wfs_release(wf_history%past_states(i)%snapshot)
            END DO
            DEALLOCATE(wf_history%past_states,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
         END IF
         DEALLOCATE(wf_history,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
      END IF
   END IF
   NULLIFY(wf_history)
@@ -246,10 +242,9 @@ END SUBROUTINE wfi_release
 !>      12.2002 created [fawzi]
 !> \author fawzi
 ! *****************************************************************************
-FUNCTION wfi_get_snapshot(wf_history, index, error) RESULT(res)
+FUNCTION wfi_get_snapshot(wf_history, index) RESULT(res)
     TYPE(qs_wf_history_type), POINTER        :: wf_history
     INTEGER, INTENT(in)                      :: index
-    TYPE(cp_error_type), INTENT(inout)       :: error
     TYPE(qs_wf_snapshot_type), POINTER       :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'wfi_get_snapshot', &
@@ -260,10 +255,10 @@ FUNCTION wfi_get_snapshot(wf_history, index, error) RESULT(res)
   failure=.FALSE.
   NULLIFY(res)
 
-  CPPrecondition(ASSOCIATED(wf_history),cp_failure_level,routineP,error,failure)
-  CPPrecondition(ASSOCIATED(wf_history%past_states),cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(wf_history),cp_failure_level,routineP,failure)
+  CPPrecondition(ASSOCIATED(wf_history%past_states),cp_failure_level,routineP,failure)
   IF (index>wf_history%memory_depth.OR.index>wf_history%snapshot_count) THEN
-     CPPrecondition(.FALSE.,cp_warning_level,routineP,error,failure)
+     CPPrecondition(.FALSE.,cp_warning_level,routineP,failure)
   END IF
   res => wf_history%past_states(&
        MODULO(wf_history%snapshot_count+1-index,&

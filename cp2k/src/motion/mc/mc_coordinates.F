@@ -89,7 +89,6 @@ SUBROUTINE check_for_overlap ( force_env, nchains, nunits,loverlap,mol_type,&
       DIMENSION(:, :, :)                     :: r
     REAL(KIND=dp), DIMENSION(1:3)            :: abc, box_length, RIJ
     TYPE(cell_type), POINTER                 :: cell
-    TYPE(cp_error_type)                      :: error
     TYPE(cp_subsys_type), POINTER            :: oldsys
     TYPE(particle_list_type), POINTER        :: particles
 
@@ -104,9 +103,9 @@ SUBROUTINE check_for_overlap ( force_env, nchains, nunits,loverlap,mol_type,&
       rmin=3.57106767_dp ! 1 angstrom squared
 
 ! get the particle coordinates and the cell length
-      CALL force_env_get(force_env,cell=cell,subsys=oldsys,error=error)
+      CALL force_env_get(force_env,cell=cell,subsys=oldsys)
       CALL get_cell(cell,abc=abc)
-      CALL cp_subsys_get(oldsys,particles=particles, error=error)
+      CALL cp_subsys_get(oldsys,particles=particles)
 
       ALLOCATE(r(1:3,1:MAXVAL(nunits),1:SUM(nchains)),STAT=istat)
       IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
@@ -346,7 +345,7 @@ END SUBROUTINE mc_coordinate_fold
 SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max_val,&
      exp_min_val, nswapmoves, rosenbluth_weight, start_atom,natoms_tot,nunits,nunits_mol,&
      mass,loverlap, choosen_energy,old_energy,ionode,lremove,mol_type,nchains,source,&
-     group,rng_stream,error,avbmc_atom,rmin,rmax,move_type,target_atom)
+     group,rng_stream,avbmc_atom,rmin,rmax,move_type,target_atom)
 
     TYPE(force_env_type), POINTER            :: force_env
     REAL(KIND=dp), INTENT(IN)                :: BETA, max_val, min_val, &
@@ -365,7 +364,6 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
     INTEGER, DIMENSION(:), INTENT(IN)        :: mol_type, nchains
     INTEGER, INTENT(IN)                      :: source, group
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type)                      :: error
     INTEGER, INTENT(IN), OPTIONAL            :: avbmc_atom
     REAL(KIND=dp), INTENT(IN), OPTIONAL      :: rmin, rmax
     CHARACTER(LEN=*), INTENT(IN), OPTIONAL   :: move_type
@@ -399,9 +397,9 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
 
       NULLIFY(oldsys)
 ! get the particle coordinates and the cell length
-      CALL force_env_get(force_env,cell=cell,subsys=oldsys,error=error)
+      CALL force_env_get(force_env,cell=cell,subsys=oldsys)
       CALL get_cell(cell,abc=abc)
-      CALL cp_subsys_get(oldsys,particles=particles, error=error)
+      CALL cp_subsys_get(oldsys,particles=particles)
 
 ! do some checking to make sure we have all the data we need
       IF(PRESENT(avbmc_atom)) THEN
@@ -490,7 +488,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
 ! find an AVBMC insertion point
                CALL generate_avbmc_insertion(rmin,rmax,&
                   r_old(1:3,target_atom),&
-                  move_type,r_insert(:),abc(:),rng_stream,error=error)
+                  move_type,r_insert(:),abc(:),rng_stream)
 
                DO i=1,3
                   diff(i)=r_insert(i)-r_old(i,start_atom+avbmc_atom-1)
@@ -499,7 +497,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
             ELSE
 ! find a new insertion point somewhere in the box
                DO i=1,3
-                  rand=next_random_number(rng_stream,error=error)
+                  rand=next_random_number(rng_stream)
                   r_insert(i)=rand*abc(i)
                ENDDO
 
@@ -521,7 +519,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
 
 ! rotate the molecule...this routine is only made for serial use
             CALL rotate_molecule(r(:,start_atom:end_atom,imove),mass(:),&
-                 nunits_mol,rng_stream,error=error)
+                 nunits_mol,rng_stream)
 
             IF(imove == 1 .AND. lremove) THEN
                DO iatom=1,natoms_tot
@@ -545,9 +543,9 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
             CYCLE
          ENDIF
 
-         CALL force_env_calc_energy_force(force_env,calc_force=.FALSE.,error=error)
+         CALL force_env_calc_energy_force(force_env,calc_force=.FALSE.)
          CALL force_env_get(force_env,&
-            potential_energy=bias_energy,error=error)
+            potential_energy=bias_energy)
 
          trial_energy(imove)=(bias_energy-old_energy)
          exponent=-BETA*trial_energy(imove)
@@ -585,7 +583,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
       total_running_weight=0.0E0_dp
       choosen=0
       IF(ionode)THEN
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
 !         CALL random_number(rand)
       ENDIF
       CALL mp_bcast(rand,source,group)
@@ -684,7 +682,7 @@ END SUBROUTINE generate_cbmc_swap_config
 !> \param error ...
 !> \author MJM
 ! *****************************************************************************
-SUBROUTINE rotate_molecule(r,mass,natoms,rng_stream,error)
+SUBROUTINE rotate_molecule(r,mass,natoms,rng_stream)
 
     INTEGER, INTENT(IN)                      :: natoms
     REAL(KIND=dp), DIMENSION(1:natoms), &
@@ -693,7 +691,6 @@ SUBROUTINE rotate_molecule(r,mass,natoms,rng_stream,error)
       DIMENSION(1:3, 1:natoms), &
       INTENT(INOUT)                          :: r
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'rotate_molecule', &
       routineP = moduleN//':'//routineN
@@ -712,7 +709,7 @@ SUBROUTINE rotate_molecule(r,mass,natoms,rng_stream,error)
       CALL get_center_of_mass(r(:,:),natoms,center_of_mass(:),mass(:))
 
 ! call a random number to figure out how far we're moving
-      rand=next_random_number(rng_stream,error=error)
+      rand=next_random_number(rng_stream)
       dgamma=pi*(rand-0.5E0_dp)*2.0E0_dp
 
 ! *** set up the rotation matrix ***
@@ -781,14 +778,13 @@ END SUBROUTINE rotate_molecule
 !> \author MJM
 ! *****************************************************************************
 SUBROUTINE find_mc_test_molecule(mc_molecule_info,start_atom,&
-     box_number,molecule_type,rng_stream,box,molecule_type_old,error)
+     box_number,molecule_type,rng_stream,box,molecule_type_old)
 
     TYPE(mc_molecule_info_type), POINTER     :: mc_molecule_info
     INTEGER, INTENT(OUT)                     :: start_atom, box_number, &
                                                 molecule_type
     TYPE(rng_stream_type), POINTER           :: rng_stream
     INTEGER, INTENT(IN), OPTIONAL            :: box, molecule_type_old
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'find_mc_test_molecule', &
       routineP = moduleN//':'//routineN
@@ -817,7 +813,7 @@ SUBROUTINE find_mc_test_molecule(mc_molecule_info,start_atom,&
 
       IF(PRESENT(box) .AND. PRESENT(molecule_type_old))THEN
 ! only need to find the atom number the molecule starts on
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
          molecule_number=CEILING(rand*REAL(nchains(molecule_type_old,box)))
 
          start_mol=1
@@ -837,7 +833,7 @@ SUBROUTINE find_mc_test_molecule(mc_molecule_info,start_atom,&
 
       ELSEIF(PRESENT(box))THEN
 ! any molecule in box...need to find molecule type and start atom
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
          molecule_number=CEILING(rand*REAL(SUM(nchains(:,box))))
 
          start_mol=1
@@ -855,7 +851,7 @@ SUBROUTINE find_mc_test_molecule(mc_molecule_info,start_atom,&
 
       ELSEIF(PRESENT(molecule_type_old))THEN
 ! any molecule of type molecule_type_old...need to find box number and start atom
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
          molecule_number=CEILING(rand*REAL(SUM(nchains(molecule_type_old,:))))
 
 ! find which box it's in
@@ -888,7 +884,7 @@ SUBROUTINE find_mc_test_molecule(mc_molecule_info,start_atom,&
          DO ibox=1,SIZE(nchains(1,:))
             nchains_tot=nchains_tot+SUM(nchains(:,ibox))
          ENDDO
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
          molecule_number=CEILING(rand*REAL(nchains_tot))
 
          molecule_type=mol_type(molecule_number)
@@ -918,9 +914,9 @@ SUBROUTINE find_mc_test_molecule(mc_molecule_info,start_atom,&
       IF(PRESENT(box)) box_number=box
       IF(PRESENT(molecule_type_old)) molecule_type=molecule_type_old
 
-      CPPostcondition(start_atom/=0,cp_failure_level,routineP,error,failure)
-      CPPostcondition(box_number/=0,cp_failure_level,routineP,error,failure)
-      CPPostcondition(molecule_type/=0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(start_atom/=0,cp_failure_level,routineP,failure)
+      CPPostcondition(box_number/=0,cp_failure_level,routineP,failure)
+      CPPostcondition(molecule_type/=0,cp_failure_level,routineP,failure)
 
 ! end the timing
       CALL timestop(handle)
@@ -1005,7 +1001,7 @@ END SUBROUTINE create_discrete_array
 !> \author MJM
 ! *****************************************************************************
 SUBROUTINE generate_avbmc_insertion( rmin,rmax,r_target,&
-      move_type,r_insert,abc,rng_stream,error)
+      move_type,r_insert,abc,rng_stream)
 
     REAL(KIND=dp), INTENT(IN)                :: rmin, rmax
     REAL(KIND=dp), DIMENSION(1:3), &
@@ -1016,7 +1012,6 @@ SUBROUTINE generate_avbmc_insertion( rmin,rmax,r_target,&
     REAL(KIND=dp), DIMENSION(1:3), &
       INTENT(IN)                             :: abc
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     INTEGER                                  :: i
     REAL(dp)                                 :: dist, eta_1, eta_2, eta_sq, &
@@ -1028,8 +1023,8 @@ SUBROUTINE generate_avbmc_insertion( rmin,rmax,r_target,&
       IF(move_type == 'in') THEN
 ! generate a random unit vector, from Allen and Tildesley
          DO
-            eta_1=next_random_number(rng_stream,error=error)
-            eta_2=next_random_number(rng_stream,error=error)
+            eta_1=next_random_number(rng_stream)
+            eta_2=next_random_number(rng_stream)
             eta_sq=eta_1**2+eta_2**2
             IF(eta_sq .LT. 1.0_dp) THEN
                r_insert(1)=2.0_dp*eta_1*SQRT(1.0_dp-eta_sq)
@@ -1040,7 +1035,7 @@ SUBROUTINE generate_avbmc_insertion( rmin,rmax,r_target,&
          ENDDO
 
 ! now scale that vector to be within the "in" region
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
          r_insert(1:3)=r_insert(1:3)*(rand*(rmax**3-rmin**3)+rmin**3)**&
             (1.0_dp/3.0_dp)
 
@@ -1050,7 +1045,7 @@ SUBROUTINE generate_avbmc_insertion( rmin,rmax,r_target,&
 ! find a new insertion point somewhere in the box
          DO
             DO i=1,3
-               rand=next_random_number(rng_stream,error=error)
+               rand=next_random_number(rng_stream)
                r_insert(i)=rand*abc(i)
             ENDDO
 

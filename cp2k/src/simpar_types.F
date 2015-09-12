@@ -98,9 +98,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE create_simpar_type(simpar, error)
+  SUBROUTINE create_simpar_type(simpar)
     TYPE(simpar_type), POINTER               :: simpar
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'create_simpar_type', &
       routineP = moduleN//':'//routineN
@@ -109,9 +108,9 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure=.FALSE.
-    CPPrecondition(.NOT.ASSOCIATED(simpar),cp_failure_level,routineP,error,failure)
+    CPPrecondition(.NOT.ASSOCIATED(simpar),cp_failure_level,routineP,failure)
     ALLOCATE(simpar, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   END SUBROUTINE create_simpar_type
 
 ! *****************************************************************************
@@ -121,9 +120,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE release_simpar_type(simpar, error)
+  SUBROUTINE release_simpar_type(simpar)
     TYPE(simpar_type), POINTER               :: simpar
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'release_simpar_type', &
       routineP = moduleN//':'//routineN
@@ -132,9 +130,9 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure=.FALSE.
-    CPPrecondition(ASSOCIATED(simpar),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(simpar),cp_failure_level,routineP,failure)
     DEALLOCATE(simpar, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   END SUBROUTINE release_simpar_type
 
 END MODULE simpar_types

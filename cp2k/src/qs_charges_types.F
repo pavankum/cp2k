@@ -61,12 +61,11 @@ CONTAINS
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 SUBROUTINE qs_charges_create(qs_charges,nspins,total_rho_core_rspace, &
-     total_rho_gspace, error)
+     total_rho_gspace)
     TYPE(qs_charges_type), POINTER           :: qs_charges
     INTEGER, INTENT(in)                      :: nspins
     REAL(KIND=dp), INTENT(in), OPTIONAL      :: total_rho_core_rspace, &
                                                 total_rho_gspace
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qs_charges_create', &
       routineP = moduleN//':'//routineN
@@ -77,7 +76,7 @@ SUBROUTINE qs_charges_create(qs_charges,nspins,total_rho_core_rspace, &
   failure=.FALSE.
 
   ALLOCATE(qs_charges, stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   qs_charges%total_rho_core_rspace=0.0_dp
   IF (PRESENT(total_rho_core_rspace)) &
        qs_charges%total_rho_core_rspace=total_rho_core_rspace
@@ -89,10 +88,10 @@ SUBROUTINE qs_charges_create(qs_charges,nspins,total_rho_core_rspace, &
   qs_charges%total_rho_soft_gspace = 0.0_dp
   qs_charges%background = 0.0_dp
   ALLOCATE(qs_charges%total_rho1_hard(nspins),stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   qs_charges%total_rho1_hard(:) = 0.0_dp
   ALLOCATE(qs_charges%total_rho1_soft(nspins),stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   qs_charges%total_rho1_soft(:) = 0.0_dp
   qs_charges%ref_count=1
 END SUBROUTINE qs_charges_create
@@ -106,9 +105,8 @@ END SUBROUTINE qs_charges_create
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE qs_charges_retain(qs_charges, error)
+SUBROUTINE qs_charges_retain(qs_charges)
     TYPE(qs_charges_type), POINTER           :: qs_charges
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qs_charges_retain', &
       routineP = moduleN//':'//routineN
@@ -117,8 +115,8 @@ SUBROUTINE qs_charges_retain(qs_charges, error)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(qs_charges),cp_failure_level,routineP,error,failure)
-  CPPrecondition(qs_charges%ref_count>0,cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(qs_charges),cp_failure_level,routineP,failure)
+  CPPrecondition(qs_charges%ref_count>0,cp_failure_level,routineP,failure)
   qs_charges%ref_count=qs_charges%ref_count+1
 END SUBROUTINE qs_charges_retain
 
@@ -131,9 +129,8 @@ END SUBROUTINE qs_charges_retain
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE qs_charges_release(qs_charges, error)
+SUBROUTINE qs_charges_release(qs_charges)
     TYPE(qs_charges_type), POINTER           :: qs_charges
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qs_charges_release', &
       routineP = moduleN//':'//routineN
@@ -144,13 +141,13 @@ SUBROUTINE qs_charges_release(qs_charges, error)
   failure=.FALSE.
 
   IF (ASSOCIATED(qs_charges)) THEN
-     CPPrecondition(qs_charges%ref_count>0,cp_failure_level,routineP,error,failure)
+     CPPrecondition(qs_charges%ref_count>0,cp_failure_level,routineP,failure)
      qs_charges%ref_count=qs_charges%ref_count-1
      IF (qs_charges%ref_count<1) THEN
         DEALLOCATE(qs_charges%total_rho1_hard,stat=stat)
         DEALLOCATE(qs_charges%total_rho1_soft,stat=stat)
         DEALLOCATE(qs_charges,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
      END IF
   END IF
   NULLIFY(qs_charges)

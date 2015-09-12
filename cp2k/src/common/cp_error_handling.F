@@ -126,9 +126,7 @@ CONTAINS
 !> \author Fawzi Mohamed
 !>      @version 1.2002
 ! *****************************************************************************
-  FUNCTION cp_error_get_logger(error) RESULT(res)
-    TYPE(cp_error_type), INTENT(in), &
-      OPTIONAL                               :: error
+  FUNCTION cp_error_get_logger() RESULT(res)
     TYPE(cp_logger_type), POINTER            :: res
 
     NULLIFY(res)
@@ -176,15 +174,13 @@ CONTAINS
 !> \author Fawzi Mohamed
 !>      @version 1.2002
 ! *****************************************************************************
-  SUBROUTINE cp_error_message(level, fromWhere, message, error)
+  SUBROUTINE cp_error_message(level, fromWhere, message)
     INTEGER, INTENT(in)                      :: level
     CHARACTER(len=*), INTENT(in)             :: fromWhere, message
-    TYPE(cp_error_type), INTENT(in), &
-      OPTIONAL                               :: error
 
     TYPE(cp_logger_type), POINTER            :: logger
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     CALL cp_log(logger, level, fromWhere, message,local=.TRUE.)
   END SUBROUTINE cp_error_message
 
@@ -209,13 +205,11 @@ CONTAINS
 !>      @version 1.2002
 ! *****************************************************************************
   SUBROUTINE cp_assert(condition, level, error_nr, fromWhere, &
-       message, error,failure,only_ionode)
+       message,failure,only_ionode)
     !! the condition that is checked, if false, an error did happen
     LOGICAL, INTENT(in)                      :: condition
     INTEGER, INTENT(in)                      :: level, error_nr
     CHARACTER(len=*), INTENT(in)             :: fromWhere, message
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
     LOGICAL, INTENT(inout), OPTIONAL         :: failure
     LOGICAL, INTENT(in), OPTIONAL            :: only_ionode
 
@@ -227,7 +221,7 @@ CONTAINS
 
     IF (.NOT. condition) THEN
        IF (PRESENT(failure)) failure=.TRUE.
-       logger => cp_error_get_logger(error)
+       logger => cp_error_get_logger()
 
        myonly_ionode = .FALSE.
        IF(PRESENT(only_ionode)) myonly_ionode = only_ionode
@@ -261,11 +255,9 @@ CONTAINS
 !>      05.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cp_unimplemented_error(fromWhere, message, error, error_level)
+  SUBROUTINE cp_unimplemented_error(fromWhere, message,error_level)
     CHARACTER(len=*), INTENT(in)             :: fromWhere
     CHARACTER(len=*), INTENT(in), OPTIONAL   :: message
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
     INTEGER, INTENT(in), OPTIONAL            :: error_level
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_unimplemented_error', &
@@ -278,10 +270,10 @@ CONTAINS
     IF(PRESENT(error_level)) err_l=error_level
     IF (PRESENT(message)) THEN
        CALL cp_assert(.FALSE.,err_l,cp_unimplemented_error_nr,&
-            fromWhere, "UNIMPLEMENTED, "//message, error=error)
+            fromWhere, "UNIMPLEMENTED, "//message)
     ELSE
        CALL cp_assert(.FALSE.,err_l,cp_unimplemented_error_nr,&
-            fromWhere, "UNIMPLEMENTED", error=error)
+            fromWhere, "UNIMPLEMENTED")
     END IF
   END SUBROUTINE cp_unimplemented_error
 
@@ -298,18 +290,16 @@ CONTAINS
 !>      12.2002 created [fawzi]
 !> \author fawzi
 ! *****************************************************************************
-  SUBROUTINE cp_a_l(level, fromWhere, lineNr, error, failure)
+  SUBROUTINE cp_a_l(level, fromWhere, lineNr,failure)
     INTEGER, INTENT(in)                      :: level
     CHARACTER(len=*), INTENT(in)             :: fromWhere
     INTEGER, INTENT(in)                      :: lineNr
-    TYPE(cp_error_type), INTENT(inout), &
-      OPTIONAL                               :: error
     LOGICAL, INTENT(inout), OPTIONAL         :: failure
 
     CALL cp_assert(.FALSE.,level=level,error_nr=cp_assertion_failed,&
          fromWhere=fromWhere,&
          message="condition FAILED at line "//TRIM(ADJUSTL(cp_to_string(lineNr))),&
-         error=error, failure=failure)
+         failure=failure)
   END SUBROUTINE cp_a_l
 
 END MODULE cp_error_handling

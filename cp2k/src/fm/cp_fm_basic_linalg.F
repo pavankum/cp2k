@@ -63,13 +63,12 @@ CONTAINS
 !> \param matrix_b ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_fm_scale_and_add(alpha,matrix_a,beta,matrix_b,error)
+  SUBROUTINE cp_fm_scale_and_add(alpha,matrix_a,beta,matrix_b)
 
     REAL(KIND=dp), INTENT(IN)                :: alpha
     TYPE(cp_fm_type), POINTER                :: matrix_a
     REAL(KIND=dp), INTENT(in), OPTIONAL      :: beta
     TYPE(cp_fm_type), OPTIONAL, POINTER      :: matrix_b
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_scale_and_add', &
       routineP = moduleN//':'//routineN
@@ -91,21 +90,21 @@ CONTAINS
     IF(PRESENT(beta)) my_beta=beta
     NULLIFY(a,b)
 
-    CPPrecondition(ASSOCIATED(matrix_a),cp_failure_level,routineP,error,failure)
-    CPPrecondition(matrix_a%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(matrix_a),cp_failure_level,routineP,failure)
+    CPPrecondition(matrix_a%ref_count>0,cp_failure_level,routineP,failure)
 
     IF (PRESENT(beta)) THEN
-       CPPrecondition(PRESENT(matrix_b),cp_failure_level,routineP,error,failure)
-       CPPrecondition(ASSOCIATED(matrix_b),cp_failure_level,routineP,error,failure)
-       CPPrecondition(matrix_b%ref_count>0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(PRESENT(matrix_b),cp_failure_level,routineP,failure)
+       CPPrecondition(ASSOCIATED(matrix_b),cp_failure_level,routineP,failure)
+       CPPrecondition(matrix_b%ref_count>0,cp_failure_level,routineP,failure)
        IF (matrix_a%id_nr==matrix_b%id_nr) THEN
           CALL cp_assert(matrix_a%id_nr/=matrix_b%id_nr, &
                          cp_warning_level, cp_assertion_failed, &
                          fromWhere=routineP, &
                          message="Bad use of routine. Call cp_fm_scale instead: "// &
 CPSourceFileRef, &
-                         error=error, failure=failure)
-          CALL cp_fm_scale(alpha+beta, matrix_a, error=error)
+                         failure=failure)
+          CALL cp_fm_scale(alpha+beta, matrix_a)
           CALL timestop(handle)
           RETURN
        END IF
@@ -133,10 +132,10 @@ CPSourceFileRef, &
             cp_assertion_failed,fromWhere=routineP,&
             message="matrixes must be in the same blacs context"//&
 CPSourceFileRef,&
-            error=error,failure=failure)
+            failure=failure)
 
        IF (cp_fm_struct_equivalent(matrix_a%matrix_struct,&
-            matrix_b%matrix_struct,error=error)) THEN
+            matrix_b%matrix_struct)) THEN
 
           b => matrix_b%local_data
           b_sp => matrix_b%local_data_sp
@@ -154,9 +153,9 @@ CPSourceFileRef,&
        ELSE
 #ifdef __SCALAPACK
           CALL cp_unimplemented_error(fromWhere=routineP, &
-               message="to do (pdscal,pdcopy,pdaxpy)", error=error)
+               message="to do (pdscal,pdcopy,pdaxpy)")
 #else
-          CPAssert(.FALSE.,cp_failure_level,routineP,error,failure)
+          CPAssert(.FALSE.,cp_failure_level,routineP,failure)
 #endif
        END IF
 
@@ -270,7 +269,7 @@ CPSourceFileRef,&
 !>      matrix_c should have no overlap with matrix_a, matrix_b
 ! *****************************************************************************
   SUBROUTINE cp_fm_gemm(transa,transb,m,n,k,alpha,matrix_a,matrix_b,beta,&
-       matrix_c,error,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
+       matrix_c,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
 
     CHARACTER(LEN=1), INTENT(IN)             :: transa, transb
     INTEGER, INTENT(IN)                      :: m, n, k
@@ -278,7 +277,6 @@ CPSourceFileRef,&
     TYPE(cp_fm_type), POINTER                :: matrix_a, matrix_b
     REAL(KIND=dp), INTENT(IN)                :: beta
     TYPE(cp_fm_type), POINTER                :: matrix_c
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER, INTENT(IN), OPTIONAL            :: b_first_col, a_first_row, &
                                                 b_first_row, c_first_col, &
                                                 c_first_row
@@ -405,8 +403,7 @@ CPSourceFileRef,&
 !>      matrix_a is always an m x m matrix
 !>      it is typically slower to do cp_fm_symm than cp_fm_gemm (especially in parallel easily 50 percent !)
 ! *****************************************************************************
-  SUBROUTINE cp_fm_symm(side,uplo,m,n,alpha,matrix_a,matrix_b,beta,matrix_c,&
-       error)
+  SUBROUTINE cp_fm_symm(side,uplo,m,n,alpha,matrix_a,matrix_b,beta,matrix_c)
 
     CHARACTER(LEN=1), INTENT(IN)             :: side, uplo
     INTEGER, INTENT(IN)                      :: m, n
@@ -414,7 +411,6 @@ CPSourceFileRef,&
     TYPE(cp_fm_type), POINTER                :: matrix_a, matrix_b
     REAL(KIND=dp), INTENT(IN)                :: beta
     TYPE(cp_fm_type), POINTER                :: matrix_c
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_symm', &
       routineP = moduleN//':'//routineN
@@ -461,10 +457,9 @@ CPSourceFileRef,&
 !> \param error ...
 !> \author VW
 ! *****************************************************************************
-  SUBROUTINE cp_fm_frobenius_norm(matrix_a,norm,error)
+  SUBROUTINE cp_fm_frobenius_norm(matrix_a,norm)
     TYPE(cp_fm_type), POINTER                :: matrix_a
     REAL(KIND=dp), INTENT(inout)             :: norm
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_frobenius_norm', &
       routineP = moduleN//':'//routineN
@@ -510,7 +505,7 @@ CPSourceFileRef,&
 !> \note
 !>      In QS uplo should 'U' (upper part updated)
 ! *****************************************************************************
-  SUBROUTINE cp_fm_syrk(uplo,trans,k,alpha,matrix_a,ia,ja,beta,matrix_c,error)
+  SUBROUTINE cp_fm_syrk(uplo,trans,k,alpha,matrix_a,ia,ja,beta,matrix_c)
     CHARACTER(LEN=1), INTENT(IN)             :: uplo, trans
     INTEGER, INTENT(IN)                      :: k
     REAL(KIND=dp), INTENT(IN)                :: alpha
@@ -518,7 +513,6 @@ CPSourceFileRef,&
     INTEGER, INTENT(IN)                      :: ia, ja
     REAL(KIND=dp), INTENT(IN)                :: beta
     TYPE(cp_fm_type), POINTER                :: matrix_c
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_syrk', &
       routineP = moduleN//':'//routineN
@@ -566,10 +560,9 @@ CPSourceFileRef,&
 !> \param error ...
 !> \author Joost VandeVondele
 ! *****************************************************************************
-  SUBROUTINE cp_fm_schur_product(matrix_a,matrix_b,matrix_c,error)
+  SUBROUTINE cp_fm_schur_product(matrix_a,matrix_b,matrix_c)
 
     TYPE(cp_fm_type), POINTER                :: matrix_a, matrix_b, matrix_c
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_schur_product', &
       routineP = moduleN//':'//routineN
@@ -621,11 +614,10 @@ CPSourceFileRef,&
 !> \note
 !>      note the transposition of matrix_a!
 ! *****************************************************************************
-  SUBROUTINE cp_fm_trace(matrix_a,matrix_b,trace,error)
+  SUBROUTINE cp_fm_trace(matrix_a,matrix_b,trace)
 
     TYPE(cp_fm_type), POINTER                :: matrix_a, matrix_b
     REAL(KIND=dp), INTENT(OUT)               :: trace
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_trace', &
       routineP = moduleN//':'//routineN
@@ -714,7 +706,7 @@ CPSourceFileRef,&
 ! *****************************************************************************
 SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
      transpose_tr, invert_tr, uplo_tr,unit_diag_tr, n_rows, n_cols, &
-     alpha,error)
+     alpha)
     TYPE(cp_fm_type), POINTER                :: triangular_matrix, matrix_b
     CHARACTER, INTENT(in), OPTIONAL          :: side
     LOGICAL, INTENT(in), OPTIONAL            :: transpose_tr, invert_tr
@@ -722,7 +714,6 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
     LOGICAL, INTENT(in), OPTIONAL            :: unit_diag_tr
     INTEGER, INTENT(in), OPTIONAL            :: n_rows, n_cols
     REAL(KIND=dp), INTENT(in), OPTIONAL      :: alpha
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_triangular_multiply', &
       routineP = moduleN//':'//routineN
@@ -742,7 +733,7 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
   transa='N'
   invert=.FALSE.
   al=1.0_dp
-  CALL cp_fm_get_info(matrix_b, nrow_global=m, ncol_global=n, error=error)
+  CALL cp_fm_get_info(matrix_b, nrow_global=m, ncol_global=n)
   IF (PRESENT(side)) side_char=side
   IF (PRESENT(invert_tr)) invert=invert_tr
   IF (PRESENT(uplo_tr)) uplo=uplo_tr
@@ -808,10 +799,9 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !> \note
 !>      use cp_fm_set_all to zero (avoids problems with nan)
 ! *****************************************************************************
-  SUBROUTINE cp_fm_scale(alpha, matrix_a, error)
+  SUBROUTINE cp_fm_scale(alpha, matrix_a)
     REAL(KIND=dp), INTENT(IN)                :: alpha
     TYPE(cp_fm_type), POINTER                :: matrix_a
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_scale', &
       routineP = moduleN//':'//routineN
@@ -825,8 +815,8 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
     failure=.FALSE.
     NULLIFY(a)
 
-    CPPrecondition(ASSOCIATED(matrix_a),cp_failure_level,routineP,error,failure)
-    CPPrecondition(matrix_a%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(matrix_a),cp_failure_level,routineP,failure)
+    CPPrecondition(matrix_a%ref_count>0,cp_failure_level,routineP,failure)
 
     a => matrix_a%local_data
     size_a = SIZE(a,1)*SIZE(a,2)
@@ -847,9 +837,8 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !>      all matrix elements are transpose (see cp_fm_upper_to_half to symmetrise a matrix)
 !>      all matrix elements are transpose (see cp_fm_upper_to_half to symmetrize a matrix)
 ! *****************************************************************************
-  SUBROUTINE cp_fm_transpose(matrix,matrixt,error)
+  SUBROUTINE cp_fm_transpose(matrix,matrixt)
     TYPE(cp_fm_type), POINTER                :: matrix, matrixt
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_transpose', &
       routineP = moduleN//':'//routineN
@@ -865,12 +854,12 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 #endif
 
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(matrix),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(matrixt),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(matrix),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(matrixt),cp_failure_level,routineP,failure)
     IF (failure) RETURN
     nrow_global = matrix%matrix_struct%nrow_global
     ncol_global = matrix%matrix_struct%ncol_global
-    CPPrecondition(nrow_global==ncol_global,cp_failure_level,routineP,error,failure)
+    CPPrecondition(nrow_global==ncol_global,cp_failure_level,routineP,failure)
     IF (failure) RETURN
 
     CALL timeset(routineN,handle)
@@ -902,10 +891,9 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !> \note
 !>       the lower triangular part is irrelevant
 ! *****************************************************************************
-  SUBROUTINE cp_fm_upper_to_full(matrix,work,error)
+  SUBROUTINE cp_fm_upper_to_full(matrix,work)
 
     TYPE(cp_fm_type), POINTER                :: matrix,work
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN='cp_fm_upper_to_full',&
          routineP=moduleN//':'//routineN
@@ -929,16 +917,16 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 #endif
 
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(matrix),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(work),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(matrix),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(work),cp_failure_level,routineP,failure)
     IF (failure) RETURN
     nrow_global = matrix%matrix_struct%nrow_global
     ncol_global = matrix%matrix_struct%ncol_global
-    CPPrecondition(nrow_global==ncol_global,cp_failure_level,routineP,error,failure)
+    CPPrecondition(nrow_global==ncol_global,cp_failure_level,routineP,failure)
     nrow_global = work%matrix_struct%nrow_global
     ncol_global = work%matrix_struct%ncol_global
-    CPPrecondition(nrow_global==ncol_global,cp_failure_level,routineP,error,failure)
-    CPPrecondition(matrix%use_sp.EQV.work%use_sp,cp_failure_level,routineP,error,failure)
+    CPPrecondition(nrow_global==ncol_global,cp_failure_level,routineP,failure)
+    CPPrecondition(matrix%use_sp.EQV.work%use_sp,cp_failure_level,routineP,failure)
     IF (failure) RETURN
 
     CALL timeset(routineN,handle)
@@ -1095,11 +1083,10 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !> \param error ...
 !> \author Florian Schiffmann(02.2007)
 ! *****************************************************************************
-  SUBROUTINE cp_fm_invert(matrix_a,matrix_inverse,det_a,error)
+  SUBROUTINE cp_fm_invert(matrix_a,matrix_inverse,det_a)
 
     TYPE(cp_fm_type), POINTER                :: matrix_a, matrix_inverse
     REAL(KIND=dp), INTENT(OUT), OPTIONAL     :: det_a
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'cp_fm_invert', &
       routineP = moduleN//':'//routineN
@@ -1126,14 +1113,12 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 
     CALL cp_fm_create(matrix=matrix_lu,&
          matrix_struct=matrix_a%matrix_struct,&
-         name="A_lu"//TRIM(ADJUSTL(cp_to_string(1)))//"MATRIX",&
-         error=error)
-    CALL cp_fm_to_fm(matrix_a,matrix_lu,error=error)
+         name="A_lu"//TRIM(ADJUSTL(cp_to_string(1)))//"MATRIX")
+    CALL cp_fm_to_fm(matrix_a,matrix_lu)
 
     CALL cp_fm_create(matrix=matrix_B,&
          matrix_struct=matrix_a%matrix_struct,&
-         name="B_mat"//TRIM(ADJUSTL(cp_to_string(1)))//"MATRIX",&
-         error=error)
+         name="B_mat"//TRIM(ADJUSTL(cp_to_string(1)))//"MATRIX")
     a => matrix_lu%local_data
     n = matrix_lu%matrix_struct%nrow_global
     ALLOCATE(ipivot(n+matrix_a%matrix_struct%nrow_block))
@@ -1163,9 +1148,9 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 
     alpha=0.0_dp
     beta=1.0_dp
-   CALL cp_fm_set_all(matrix_inverse,alpha,beta,error)
+   CALL cp_fm_set_all(matrix_inverse,alpha,beta)
    CALL pdgetrs('N',n,n,matrix_lu%local_data,1,1,desca,ipivot,matrix_inverse%local_data,1,1,desca,info)
-!   CALL cp_fm_set_all(matrix_B,alpha,beta,error)
+!   CALL cp_fm_set_all(matrix_B,alpha,beta)
 !    DO iter=1,10
 !       CALL pdgerfs('N',n,n,matrix_a%local_data,1,1,desca,matrix_lu%local_data,&
 !                      1,1,desca,ipivot,matrix_B%local_data,&
@@ -1185,11 +1170,11 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 #else
     sign=.TRUE.
     CALL invert_matrix(matrix_a%local_data,matrix_inverse%local_data,&
-                       eval_error=eps1,error=error)
+                       eval_error=eps1)
     CALL cp_fm_lu_decompose(matrix_lu,determinant,correct_sign=sign)
 #endif
-    CALL cp_fm_release(matrix_lu,error=error)
-    CALL cp_fm_release(matrix_B,error=error)
+    CALL cp_fm_release(matrix_lu)
+    CALL cp_fm_release(matrix_B)
     DEALLOCATE(ipivot)
     IF(PRESENT(det_a)) det_a = determinant
   END SUBROUTINE cp_fm_invert
@@ -1201,11 +1186,10 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !> \param error ...
 !> \author MI
 ! *****************************************************************************
-  SUBROUTINE cp_fm_triangular_invert(matrix_a,uplo_tr,error)
+  SUBROUTINE cp_fm_triangular_invert(matrix_a,uplo_tr)
 
     TYPE(cp_fm_type), POINTER                :: matrix_a
     CHARACTER, INTENT(IN), OPTIONAL          :: uplo_tr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'cp_fm_triangular_invert', &
       routineP = moduleN//':'//routineN
@@ -1258,11 +1242,10 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !> \param error ...
 !> \author MI
 ! *****************************************************************************
-  SUBROUTINE cp_fm_qr_factorization(matrix_a, matrix_r, nrow_fact, ncol_fact, first_row, first_col, error)
+  SUBROUTINE cp_fm_qr_factorization(matrix_a, matrix_r, nrow_fact, ncol_fact, first_row, first_col)
     TYPE(cp_fm_type), POINTER                :: matrix_a, matrix_r
     INTEGER, INTENT(IN), OPTIONAL            :: nrow_fact, ncol_fact, &
                                                 first_row, first_col
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'cp_fm_qr_factorization', &
       routineP = moduleN//':'//routineN
@@ -1296,7 +1279,7 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
     IF(PRESENT(first_col)) icol = first_col
 
 
-    CPPrecondition(nrow>=ncol,cp_failure_level,routineP,error,failure)
+    CPPrecondition(nrow>=ncol,cp_failure_level,routineP,failure)
     ndim = SIZE(a,2)
 !    ALLOCATE(ipiv(ndim),istat=STAT)
     ALLOCATE(tau(ndim),STAT=istat)
@@ -1325,13 +1308,13 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 #endif
 
     ALLOCATE(r_mat(ncol,ncol),STAT=istat)
-    CALL cp_fm_get_submatrix(matrix_a,r_mat,1,1,ncol,ncol,error=error)
+    CALL cp_fm_get_submatrix(matrix_a,r_mat,1,1,ncol,ncol)
     DO i = 1,ncol
       DO j = i+1,ncol
           r_mat(j,i) = 0.0_dp
       END DO
     END DO
-    CALL cp_fm_set_submatrix(matrix_r,r_mat,1,1,ncol,ncol,error=error)
+    CALL cp_fm_set_submatrix(matrix_r,r_mat,1,1,ncol,ncol)
 
 
     DEALLOCATE(tau, work, r_mat, STAT=istat)
@@ -1348,9 +1331,8 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !> \param error ...
 !> \author Florian Schiffmann
 ! *****************************************************************************
-  SUBROUTINE cp_fm_solve(matrix_a,general_a,error)
+  SUBROUTINE cp_fm_solve(matrix_a,general_a)
     TYPE(cp_fm_type), POINTER                :: matrix_a, general_a
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_fm_solve', &
       routineP = moduleN//':'//routineN
@@ -1420,14 +1402,13 @@ SUBROUTINE cp_fm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !>      C should have no overlap with A, B
 ! *****************************************************************************
 SUBROUTINE cp_complex_fm_gemm(transa,transb,m,n,k,alpha,A_re,A_im,B_re,B_im,beta,&
-       C_re,C_im,error,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
+       C_re,C_im,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
     CHARACTER(LEN=1), INTENT(IN)             :: transa, transb
     INTEGER, INTENT(IN)                      :: m, n, k
     REAL(KIND=dp), INTENT(IN)                :: alpha
     TYPE(cp_fm_type), POINTER                :: A_re, A_im, B_re, B_im
     REAL(KIND=dp), INTENT(IN)                :: beta
     TYPE(cp_fm_type), POINTER                :: C_re, C_im
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER, INTENT(IN), OPTIONAL            :: b_first_col, a_first_row, &
                                                 b_first_row, c_first_col, &
                                                 c_first_row
@@ -1440,13 +1421,13 @@ SUBROUTINE cp_complex_fm_gemm(transa,transb,m,n,k,alpha,A_re,A_im,B_re,B_im,beta
     CALL timeset(routineN,handle)
 
     CALL cp_fm_gemm(transa,transb,m,n,k,alpha,A_re,B_re,beta,&
-       C_re,error,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
+       C_re,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
     CALL cp_fm_gemm(transa,transb,m,n,k,-alpha,A_im,B_im,1.0_dp,&
-       C_re,error,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
+       C_re,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
     CALL cp_fm_gemm(transa,transb,m,n,k,alpha,A_re,B_im,beta,&
-       C_im,error,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
+       C_im,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
     CALL cp_fm_gemm(transa,transb,m,n,k,alpha,A_im,B_re,1.0_dp,&
-       C_im,error,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
+       C_im,b_first_col,a_first_row,b_first_row,c_first_col,c_first_row)
 
     CALL timestop(handle)
 

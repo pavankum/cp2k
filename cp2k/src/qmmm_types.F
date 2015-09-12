@@ -235,9 +235,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE qmmm_env_mm_create(qmmm_env, error)
+  SUBROUTINE qmmm_env_mm_create(qmmm_env)
     TYPE(qmmm_env_mm_type), POINTER          :: qmmm_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_mm_create', &
       routineP = moduleN//':'//routineN
@@ -246,9 +245,9 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure=.FALSE.
-    CPPrecondition(.NOT.ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(.NOT.ASSOCIATED(qmmm_env),cp_failure_level,routineP,failure)
     ALLOCATE(qmmm_env, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     qmmm_env%ref_count=1
     last_qmmm_env_id_nr=last_qmmm_env_id_nr+1
     qmmm_env%id_nr=last_qmmm_env_id_nr
@@ -262,7 +261,7 @@ CONTAINS
     qmmm_env%qmmm_link          = .FALSE.
     qmmm_env%use_qmmm_ff        = .FALSE.
     ALLOCATE(qmmm_env%inp_info, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     CALL init_inp_info(qmmm_env%inp_info)
   END SUBROUTINE qmmm_env_mm_create
 
@@ -273,9 +272,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE qmmm_env_mm_retain(qmmm_env,error)
+  SUBROUTINE qmmm_env_mm_retain(qmmm_env)
     TYPE(qmmm_env_mm_type), POINTER          :: qmmm_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_mm_retain', &
       routineP = moduleN//':'//routineN
@@ -284,8 +282,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
-    CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP,error)
+    CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,failure)
+    CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP)
     qmmm_env%ref_count=qmmm_env%ref_count+1
   END SUBROUTINE qmmm_env_mm_retain
 
@@ -297,9 +295,8 @@ CONTAINS
 !> \author Fawzi Mohamed
 !>      Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE qmmm_env_mm_release(qmmm_env,error)
+  SUBROUTINE qmmm_env_mm_release(qmmm_env)
     TYPE(qmmm_env_mm_type), POINTER          :: qmmm_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_mm_release', &
       routineP = moduleN//':'//routineN
@@ -309,37 +306,37 @@ CONTAINS
 
     failure=.FALSE.
     IF (ASSOCIATED(qmmm_env)) THEN
-       CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP,error)
+       CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP)
        qmmm_env%ref_count=qmmm_env%ref_count-1
        IF (qmmm_env%ref_count==0) THEN
           IF (ASSOCIATED(qmmm_env%qm_atom_index)) THEN
              DEALLOCATE(qmmm_env%qm_atom_index,stat=stat)
-             CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+             CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
           END IF
           IF (ASSOCIATED(qmmm_env%qm_molecule_index)) THEN
              DEALLOCATE(qmmm_env%qm_molecule_index,stat=stat)
-             CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+             CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
           END IF
           IF (ASSOCIATED(qmmm_env%mm_link_atoms)) THEN
              DEALLOCATE(qmmm_env%mm_link_atoms,stat=stat)
-             CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+             CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
           END IF
           IF (ASSOCIATED(qmmm_env%mm_link_scale_factor)) THEN
              DEALLOCATE(qmmm_env%mm_link_scale_factor,stat=stat)
-             CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+             CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
           END IF
           IF (ASSOCIATED(qmmm_env%fist_scale_charge_link)) THEN
              DEALLOCATE(qmmm_env%fist_scale_charge_link,stat=stat)
-             CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+             CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
           END IF
           IF (ASSOCIATED(qmmm_env%inp_info)) THEN
-             CALL deallocate_inp_info(qmmm_env%inp_info,error)
+             CALL deallocate_inp_info(qmmm_env%inp_info)
              DEALLOCATE(qmmm_env%inp_info,stat=stat)
-             CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+             CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
           END IF
 
           DEALLOCATE(qmmm_env,stat=stat)
-          CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+          CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
        END IF
     END IF
     NULLIFY(qmmm_env)
@@ -352,9 +349,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE qmmm_env_qm_create(qmmm_env, error)
+SUBROUTINE qmmm_env_qm_create(qmmm_env)
     TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_qm_create', &
       routineP = moduleN//':'//routineN
@@ -363,9 +359,9 @@ SUBROUTINE qmmm_env_qm_create(qmmm_env, error)
     LOGICAL                                  :: failure
 
   failure=.FALSE.
-  CPPrecondition(.NOT.ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
+  CPPrecondition(.NOT.ASSOCIATED(qmmm_env),cp_failure_level,routineP,failure)
   ALLOCATE(qmmm_env, stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   qmmm_env%ref_count=1
   last_qmmm_env_id_nr=last_qmmm_env_id_nr+1
   qmmm_env%id_nr=last_qmmm_env_id_nr
@@ -394,8 +390,8 @@ SUBROUTINE qmmm_env_qm_create(qmmm_env, error)
   qmmm_env%num_image_mm_atoms=0
   qmmm_env%gridlevel_info%auxbas_grid  = 0
   qmmm_env%gridlevel_info%coarser_grid = 0
-  CALL create_add_set_type(qmmm_env%added_charges, ndim=0, error=error)
-  CALL create_image_charge_type(qmmm_env%image_charge_pot,error=error)
+  CALL create_add_set_type(qmmm_env%added_charges, ndim=0)
+  CALL create_image_charge_type(qmmm_env%image_charge_pot)
 END SUBROUTINE qmmm_env_qm_create
 
 ! *****************************************************************************
@@ -405,9 +401,8 @@ END SUBROUTINE qmmm_env_qm_create
 !>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE qmmm_env_qm_retain(qmmm_env,error)
+SUBROUTINE qmmm_env_qm_retain(qmmm_env)
     TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_qm_retain', &
       routineP = moduleN//':'//routineN
@@ -416,8 +411,8 @@ SUBROUTINE qmmm_env_qm_retain(qmmm_env,error)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
-  CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP,error)
+  CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,failure)
+  CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP)
   qmmm_env%ref_count=qmmm_env%ref_count+1
 END SUBROUTINE qmmm_env_qm_retain
 
@@ -429,9 +424,8 @@ END SUBROUTINE qmmm_env_qm_retain
 !> \author Fawzi Mohamed
 !>      Teodoro Laino
 ! *****************************************************************************
-SUBROUTINE qmmm_env_qm_release(qmmm_env,error)
+SUBROUTINE qmmm_env_qm_release(qmmm_env)
     TYPE(qmmm_env_qm_type), POINTER          :: qmmm_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_env_qm_release', &
       routineP = moduleN//':'//routineN
@@ -441,72 +435,72 @@ SUBROUTINE qmmm_env_qm_release(qmmm_env,error)
 
   failure=.FALSE.
   IF (ASSOCIATED(qmmm_env)) THEN
-     CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP,error)
+     CPPreconditionNoFail(qmmm_env%ref_count>0,cp_failure_level,routineP)
      qmmm_env%ref_count=qmmm_env%ref_count-1
      IF (qmmm_env%ref_count==0) THEN
         IF (ASSOCIATED(qmmm_env%qm_atom_index)) THEN
            DEALLOCATE(qmmm_env%qm_atom_index,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%maxradius)) THEN
            DEALLOCATE(qmmm_env%maxradius,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%mm_atom_index)) THEN
            DEALLOCATE(qmmm_env%mm_atom_index,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%mm_link_atoms)) THEN
            DEALLOCATE(qmmm_env%mm_link_atoms,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%mm_atom_chrg)) THEN
            DEALLOCATE(qmmm_env%mm_atom_chrg,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%mm_el_pot_radius)) THEN
            DEALLOCATE(qmmm_env%mm_el_pot_radius,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%mm_el_pot_radius_corr)) THEN
            DEALLOCATE(qmmm_env%mm_el_pot_radius_corr,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%pgfs)) THEN
-           CALL pgfs_release(qmmm_env%pgfs, error)
+           CALL pgfs_release(qmmm_env%pgfs)
            DEALLOCATE(qmmm_env%pgfs,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%Potentials)) THEN
-           CALL qmmm_pot_type_dealloc(qmmm_env%Potentials,error=error)
+           CALL qmmm_pot_type_dealloc(qmmm_env%Potentials)
            DEALLOCATE(qmmm_env%Potentials,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%Per_Potentials)) THEN
-           CALL qmmm_per_pot_type_dealloc(qmmm_env%Per_Potentials,error=error)
+           CALL qmmm_per_pot_type_dealloc(qmmm_env%Per_Potentials)
            DEALLOCATE(qmmm_env%Per_Potentials,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(qmmm_env%aug_pools)) THEN
-           CALL pw_pools_dealloc(qmmm_env%aug_pools,error=error)
+           CALL pw_pools_dealloc(qmmm_env%aug_pools)
         END IF
         IF (ASSOCIATED(qmmm_env%qmmm_links)) THEN
-           CALL qmmm_links_dealloc(qmmm_env%qmmm_links, error=error)
+           CALL qmmm_links_dealloc(qmmm_env%qmmm_links)
         END IF
         IF (ASSOCIATED(qmmm_env%added_charges)) THEN
-           CALL add_set_release(qmmm_env%added_charges, error=error)
+           CALL add_set_release(qmmm_env%added_charges)
         END IF
         IF (ASSOCIATED(qmmm_env%image_charge_pot)) THEN
-           CALL qmmm_image_charge_dealloc(qmmm_env%image_charge_pot,error=error)
+           CALL qmmm_image_charge_dealloc(qmmm_env%image_charge_pot)
         END IF
         IF (ASSOCIATED(qmmm_env%ewald_env)) THEN
-           CALL ewald_env_release(qmmm_env%ewald_env,error=error)
+           CALL ewald_env_release(qmmm_env%ewald_env)
         END IF
         IF (ASSOCIATED(qmmm_env%ewald_pw)) THEN
-           CALL ewald_pw_release(qmmm_env%ewald_pw,error=error)
+           CALL ewald_pw_release(qmmm_env%ewald_pw)
         END IF
         DEALLOCATE(qmmm_env, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
   END IF
   NULLIFY(qmmm_env)
@@ -519,10 +513,9 @@ END SUBROUTINE qmmm_env_qm_release
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-SUBROUTINE pgfs_release(pgfs, error)
+SUBROUTINE pgfs_release(pgfs)
     TYPE(qmmm_gaussian_p_type), &
       DIMENSION(:), POINTER                  :: pgfs
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pgfs_release', &
       routineP = moduleN//':'//routineN
@@ -535,18 +528,18 @@ SUBROUTINE pgfs_release(pgfs, error)
      IF (ASSOCIATED(pgfs(I)%pgf)) THEN
         IF (ASSOCIATED(pgfs(I)%pgf%Ak)) THEN
            DEALLOCATE(pgfs(I)%pgf%Ak,stat=stat)
-           CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+           CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
         END IF
         IF (ASSOCIATED(pgfs(I)%pgf%Gk)) THEN
            DEALLOCATE(pgfs(I)%pgf%Gk,stat=stat)
-           CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+           CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
         END IF
         IF (ASSOCIATED(pgfs(I)%pgf%grid_level)) THEN
            DEALLOCATE(pgfs(I)%pgf%grid_level,stat=stat)
-           CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+           CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
         END IF
         DEALLOCATE(pgfs(I)%pgf,stat=stat)
-        CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+        CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
      END IF
   END DO
 END SUBROUTINE pgfs_release
@@ -558,9 +551,8 @@ END SUBROUTINE pgfs_release
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-SUBROUTINE qmmm_links_dealloc(qmmm_links, error)
+SUBROUTINE qmmm_links_dealloc(qmmm_links)
     TYPE(qmmm_links_type), POINTER           :: qmmm_links
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_links_dealloc', &
       routineP = moduleN//':'//routineN
@@ -570,21 +562,21 @@ SUBROUTINE qmmm_links_dealloc(qmmm_links, error)
   IF (ASSOCIATED(qmmm_links%imomm)) THEN
      DO i = 1, SIZE(qmmm_links%imomm)
         IF (ASSOCIATED(qmmm_links%imomm(i)%link)) DEALLOCATE(qmmm_links%imomm(i)%link, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END DO
      DEALLOCATE(qmmm_links%imomm, stat=stat)
-     CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+     CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
   END IF
   IF (ASSOCIATED(qmmm_links%pseudo)) THEN
      DO i = 1, SIZE(qmmm_links%pseudo)
         IF (ASSOCIATED(qmmm_links%pseudo(i)%link)) DEALLOCATE(qmmm_links%pseudo(i)%link, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END DO
      DEALLOCATE(qmmm_links%pseudo, stat=stat)
-     CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+     CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
   END IF
   DEALLOCATE(qmmm_links, stat=stat)
-  CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+  CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
 END SUBROUTINE qmmm_links_dealloc
 
 ! ****************************************************************************
@@ -594,9 +586,8 @@ END SUBROUTINE qmmm_links_dealloc
 !>        see module cp_error_handling
 !> \author Dorothea Golze
 ! *****************************************************************************
-SUBROUTINE qmmm_image_charge_dealloc(image_charge_pot, error)
+SUBROUTINE qmmm_image_charge_dealloc(image_charge_pot)
     TYPE(image_charge_type), POINTER         :: image_charge_pot
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_image_charge_dealloc', &
       routineP = moduleN//':'//routineN
@@ -607,15 +598,15 @@ SUBROUTINE qmmm_image_charge_dealloc(image_charge_pot, error)
       IF (ASSOCIATED(image_charge_pot%image_mm_list)) THEN
        IF(.NOT.image_charge_pot%all_mm) THEN
          DEALLOCATE(image_charge_pot%image_mm_list, stat=stat)
-         CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+         CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
        END IF
       END IF
       IF (ASSOCIATED(image_charge_pot%image_forcesMM)) THEN
           DEALLOCATE(image_charge_pot%image_forcesMM, stat=stat)
-          CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+          CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
       END IF
    DEALLOCATE(image_charge_pot, stat=stat)
-     CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+     CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
  END IF
 
 END SUBROUTINE qmmm_image_charge_dealloc
@@ -628,10 +619,9 @@ END SUBROUTINE qmmm_image_charge_dealloc
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-SUBROUTINE qmmm_pot_type_dealloc(Potentials, error)
+SUBROUTINE qmmm_pot_type_dealloc(Potentials)
     TYPE(qmmm_pot_p_type), DIMENSION(:), &
       POINTER                                :: Potentials
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_pot_type_dealloc', &
       routineP = moduleN//':'//routineN
@@ -642,14 +632,14 @@ SUBROUTINE qmmm_pot_type_dealloc(Potentials, error)
      IF (ASSOCIATED(Potentials(I)%Pot)) THEN
         IF (ASSOCIATED(Potentials(I)%Pot%pot0_2)) THEN
            DEALLOCATE(Potentials(I)%Pot%pot0_2,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(Potentials(I)%Pot%mm_atom_index)) THEN
            DEALLOCATE(Potentials(I)%Pot%mm_atom_index,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         DEALLOCATE(Potentials(I)%Pot,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
   END DO
 
@@ -663,10 +653,9 @@ END SUBROUTINE qmmm_pot_type_dealloc
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-SUBROUTINE qmmm_per_pot_type_dealloc(Per_Potentials, error)
+SUBROUTINE qmmm_per_pot_type_dealloc(Per_Potentials)
     TYPE(qmmm_per_pot_p_type), &
       DIMENSION(:), POINTER                  :: Per_Potentials
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_per_pot_type_dealloc', &
       routineP = moduleN//':'//routineN
@@ -677,37 +666,37 @@ SUBROUTINE qmmm_per_pot_type_dealloc(Per_Potentials, error)
      IF (ASSOCIATED(Per_Potentials(I)%Pot)) THEN
         IF (ASSOCIATED(Per_Potentials(I)%Pot%LG)) THEN
            DEALLOCATE(Per_Potentials(I)%Pot%LG,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(Per_Potentials(I)%Pot%gx)) THEN
            DEALLOCATE(Per_Potentials(I)%Pot%gx,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(Per_Potentials(I)%Pot%gy)) THEN
            DEALLOCATE(Per_Potentials(I)%Pot%gy,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(Per_Potentials(I)%Pot%gz)) THEN
            DEALLOCATE(Per_Potentials(I)%Pot%gz,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(Per_Potentials(I)%Pot%mm_atom_index)) THEN
            DEALLOCATE(Per_Potentials(I)%Pot%mm_atom_index,stat=stat)
-           CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(Per_Potentials(I)%Pot%TabLR)) THEN
-           CALL pw_pool_give_back_pw ( Per_Potentials(I)%Pot%pw_pool,  Per_Potentials(I)%Pot%TabLR,error=error)
+           CALL pw_pool_give_back_pw ( Per_Potentials(I)%Pot%pw_pool,  Per_Potentials(I)%Pot%TabLR)
         END IF
         IF (ASSOCIATED(Per_Potentials(I)%Pot%pw_pool)) THEN
-           CALL pw_pool_release ( Per_Potentials(I)%Pot%pw_pool, error=error)
-           CPPostconditionNoFail(.NOT.ASSOCIATED(Per_Potentials(I)%Pot%pw_pool),cp_failure_level,routineP,error)
+           CALL pw_pool_release ( Per_Potentials(I)%Pot%pw_pool)
+           CPPostconditionNoFail(.NOT.ASSOCIATED(Per_Potentials(I)%Pot%pw_pool),cp_failure_level,routineP)
         END IF
         IF (ASSOCIATED(Per_Potentials(I)%Pot%pw_grid)) THEN
-           CALL pw_grid_release ( Per_Potentials(I)%Pot%pw_grid, error=error)
-           CPPostconditionNoFail(.NOT.ASSOCIATED(Per_Potentials(I)%Pot%pw_grid),cp_failure_level,routineP,error)
+           CALL pw_grid_release ( Per_Potentials(I)%Pot%pw_grid)
+           CPPostconditionNoFail(.NOT.ASSOCIATED(Per_Potentials(I)%Pot%pw_grid),cp_failure_level,routineP)
         END IF
         DEALLOCATE(Per_Potentials(I)%Pot,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
   END DO
 
@@ -720,9 +709,8 @@ END SUBROUTINE qmmm_per_pot_type_dealloc
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-SUBROUTINE add_set_release(added_charges, error)
+SUBROUTINE add_set_release(added_charges)
     TYPE(add_set_type), POINTER              :: added_charges
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'add_set_release', &
       routineP = moduleN//':'//routineN
@@ -732,44 +720,44 @@ SUBROUTINE add_set_release(added_charges, error)
   IF (ASSOCIATED(added_charges)) THEN
      IF (ASSOCIATED(added_charges%add_env)) THEN
         DEALLOCATE(added_charges%add_env, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
      IF (ASSOCIATED(added_charges%added_particles)) THEN
-        CALL deallocate_particle_set(added_charges%added_particles,error)
+        CALL deallocate_particle_set(added_charges%added_particles)
      END IF
      IF (ASSOCIATED(added_charges%mm_atom_index)) THEN
         DEALLOCATE(added_charges%mm_atom_index, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
      IF (ASSOCIATED(added_charges%mm_atom_chrg)) THEN
         DEALLOCATE(added_charges%mm_atom_chrg, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
      IF (ASSOCIATED(added_charges%mm_el_pot_radius)) THEN
         DEALLOCATE(added_charges%mm_el_pot_radius, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
      IF (ASSOCIATED(added_charges%mm_el_pot_radius_corr)) THEN
         DEALLOCATE(added_charges%mm_el_pot_radius_corr, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
      IF (ASSOCIATED(added_charges%Potentials)) THEN
-        CALL qmmm_pot_type_dealloc(added_charges%Potentials, error)
+        CALL qmmm_pot_type_dealloc(added_charges%Potentials)
         DEALLOCATE(added_charges%Potentials,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
      IF (ASSOCIATED(added_charges%Per_Potentials)) THEN
-        CALL qmmm_per_pot_type_dealloc(added_charges%Per_Potentials, error)
+        CALL qmmm_per_pot_type_dealloc(added_charges%Per_Potentials)
         DEALLOCATE(added_charges%Per_Potentials,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
      IF (ASSOCIATED(added_charges%pgfs)) THEN
-        CALL pgfs_release(added_charges%pgfs, error)
+        CALL pgfs_release(added_charges%pgfs)
         DEALLOCATE(added_charges%pgfs,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
      END IF
      DEALLOCATE(added_charges, stat=stat)
-     CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+     CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
   END IF
 END SUBROUTINE add_set_release
 
@@ -781,10 +769,9 @@ END SUBROUTINE add_set_release
 !>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
-SUBROUTINE create_add_set_type(added_charges, ndim, error)
+SUBROUTINE create_add_set_type(added_charges, ndim)
     TYPE(add_set_type), POINTER              :: added_charges
     INTEGER, INTENT(IN)                      :: ndim
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'create_add_set_type', &
       routineP = moduleN//':'//routineN
@@ -793,9 +780,9 @@ SUBROUTINE create_add_set_type(added_charges, ndim, error)
     LOGICAL                                  :: failure
 
   failure = .FALSE.
-  IF (ASSOCIATED(added_charges)) CALL add_set_release(added_charges, error)
+  IF (ASSOCIATED(added_charges)) CALL add_set_release(added_charges)
   ALLOCATE(added_charges, stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
 
   NULLIFY(added_charges%add_env,&
           added_charges%mm_atom_index,&
@@ -813,16 +800,16 @@ SUBROUTINE create_add_set_type(added_charges, ndim, error)
   ! Allocate leave out just potential and pgfs...
   !
   ALLOCATE(added_charges%add_env(ndim),stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
-  CALL allocate_particle_set(added_charges%added_particles,ndim,error)
+  CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
+  CALL allocate_particle_set(added_charges%added_particles,ndim)
   ALLOCATE(added_charges%mm_atom_index(ndim), stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
   ALLOCATE(added_charges%mm_atom_chrg(ndim), stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
   ALLOCATE(added_charges%mm_el_pot_radius(ndim), stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
   ALLOCATE(added_charges%mm_el_pot_radius_corr(ndim), stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
 
 END SUBROUTINE create_add_set_type
 
@@ -833,9 +820,8 @@ END SUBROUTINE create_add_set_type
 !>        see module cp_error_handling
 !> \author Dorothea Golze
 ! *****************************************************************************
-SUBROUTINE create_image_charge_type(image_charge_pot,error)
+SUBROUTINE create_image_charge_type(image_charge_pot)
     TYPE(image_charge_type), POINTER         :: image_charge_pot
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'create_image_charge_type', &
       routineP = moduleN//':'//routineN
@@ -844,9 +830,9 @@ SUBROUTINE create_image_charge_type(image_charge_pot,error)
     LOGICAL                                  :: failure
 
   failure = .FALSE.
-  IF (ASSOCIATED(image_charge_pot)) CALL qmmm_image_charge_dealloc(image_charge_pot, error)
+  IF (ASSOCIATED(image_charge_pot)) CALL qmmm_image_charge_dealloc(image_charge_pot)
   ALLOCATE(image_charge_pot, stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,Failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,Failure)
 
   NULLIFY(image_charge_pot%image_mm_list,&
           image_charge_pot%particles_all,&

@@ -69,14 +69,13 @@ CONTAINS
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE read_binary_coordinates(topology,root_section,para_env,&
-                                     subsys_section,binary_file_read,error)
+                                     subsys_section,binary_file_read)
 
     TYPE(topology_parameters_type)           :: topology
     TYPE(section_vals_type), POINTER         :: root_section
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(section_vals_type), POINTER         :: subsys_section
     LOGICAL, INTENT(OUT)                     :: binary_file_read
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'read_binary_coordinates', &
       routineP = moduleN//':'//routineN
@@ -94,15 +93,15 @@ CONTAINS
 
     NULLIFY (logger)
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(root_section),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(subsys_section),cp_failure_level,routineP,error,failure)
-    logger => cp_error_get_logger(error)
+    CPPrecondition(ASSOCIATED(root_section),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(subsys_section),cp_failure_level,routineP,failure)
+    logger => cp_error_get_logger()
 
     binary_file_read = .FALSE.
 
     CALL section_vals_val_get(root_section,"EXT_RESTART%BINARY_RESTART_FILE_NAME",&
-                              c_val=binary_restart_file_name,error=error)
+                              c_val=binary_restart_file_name)
 
     IF (TRIM(ADJUSTL(binary_restart_file_name)) == "") THEN
        CALL timestop(handle)
@@ -110,7 +109,7 @@ CONTAINS
     END IF
 
     iw = cp_print_key_unit_nr(logger,subsys_section,"PRINT%TOPOLOGY_INFO/XYZ_INFO",&
-                              extension=".subsysLog",error=error)
+                              extension=".subsysLog")
 
     natomkind = 0
     natom = 0
@@ -349,14 +348,13 @@ CONTAINS
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE read_binary_cs_coordinates(prefix,particle_set,root_section,&
-                                        subsys_section,binary_file_read,error)
+                                        subsys_section,binary_file_read)
 
     CHARACTER(LEN=*), INTENT(IN)             :: prefix
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
     TYPE(section_vals_type), POINTER         :: root_section, subsys_section
     LOGICAL, INTENT(OUT)                     :: binary_file_read
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'read_binary_cs_coordinates', &
       routineP = moduleN//':'//routineN
@@ -378,9 +376,9 @@ CONTAINS
 
     NULLIFY (logger)
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(root_section),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(subsys_section),cp_failure_level,routineP,error,failure)
-    logger => cp_error_get_logger(error)
+    CPPrecondition(ASSOCIATED(root_section),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(subsys_section),cp_failure_level,routineP,failure)
+    logger => cp_error_get_logger()
     para_env => logger%para_env
 
     binary_file_read = .FALSE.
@@ -394,7 +392,7 @@ CONTAINS
     END IF
 
     CALL section_vals_val_get(root_section,"EXT_RESTART%BINARY_RESTART_FILE_NAME",&
-                              c_val=binary_restart_file_name,error=error)
+                              c_val=binary_restart_file_name)
 
     IF (TRIM(ADJUSTL(binary_restart_file_name)) == "") THEN
        CALL timestop(handle)
@@ -402,7 +400,7 @@ CONTAINS
     END IF
 
     iw = cp_print_key_unit_nr(logger,subsys_section,"PRINT%TOPOLOGY_INFO/XYZ_INFO",&
-                              extension=".subsysLog",error=error)
+                              extension=".subsysLog")
 
     section_name = prefix//" COORDINATES"
 
@@ -485,7 +483,7 @@ CONTAINS
        RETURN
     END IF
 
-    CPPrecondition((nparticle > 0),cp_failure_level,routineP,error,failure)
+    CPPrecondition((nparticle > 0),cp_failure_level,routineP,failure)
 
     ALLOCATE (rbuf(3,nparticle),STAT=istat)
     IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
@@ -574,7 +572,7 @@ CONTAINS
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE read_binary_velocities(prefix,particle_set,root_section,para_env,&
-                                    subsys_section,binary_file_read,error)
+                                    subsys_section,binary_file_read)
 
     CHARACTER(LEN=*), INTENT(IN)             :: prefix
     TYPE(particle_type), DIMENSION(:), &
@@ -583,7 +581,6 @@ CONTAINS
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(section_vals_type), POINTER         :: subsys_section
     LOGICAL, INTENT(OUT)                     :: binary_file_read
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'read_binary_velocities', &
       routineP = moduleN//':'//routineN
@@ -603,15 +600,15 @@ CONTAINS
 
     NULLIFY (logger)
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(root_section),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(subsys_section),cp_failure_level,routineP,error,failure)
-    logger => cp_error_get_logger(error)
+    CPPrecondition(ASSOCIATED(root_section),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(subsys_section),cp_failure_level,routineP,failure)
+    logger => cp_error_get_logger()
 
     binary_file_read = .FALSE.
 
     CALL section_vals_val_get(root_section,"EXT_RESTART%BINARY_RESTART_FILE_NAME",&
-                              c_val=binary_restart_file_name,error=error)
+                              c_val=binary_restart_file_name)
 
     IF (TRIM(ADJUSTL(binary_restart_file_name)) == "") THEN
        CALL timestop(handle)
@@ -619,7 +616,7 @@ CONTAINS
     END IF
 
     iw = cp_print_key_unit_nr(logger,subsys_section,"PRINT%TOPOLOGY_INFO/XYZ_INFO",&
-                              extension=".subsysLog",error=error)
+                              extension=".subsysLog")
 
     IF (LEN_TRIM(prefix) == 0) THEN
        section_name = "VELOCITIES"
@@ -776,14 +773,13 @@ CONTAINS
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE read_binary_thermostats_nose(prefix,nhc,binary_restart_file_name,&
-                                          restart,para_env,error)
+                                          restart,para_env)
 
     CHARACTER(LEN=*), INTENT(IN)             :: prefix
     TYPE(lnhc_parameters_type), POINTER      :: nhc
     CHARACTER(LEN=*), INTENT(IN)             :: binary_restart_file_name
     LOGICAL, INTENT(OUT)                     :: restart
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'read_binary_thermostats_nose', &
       routineP = moduleN//':'//routineN
@@ -799,12 +795,12 @@ CONTAINS
     CALL timeset(routineN,handle)
 
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(nhc),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(nhc),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,failure)
 
     ! Set to .TRUE. for debug mode, i.e. all data read are written to stdout
     NULLIFY (logger)
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     output_unit = cp_logger_get_default_io_unit(logger)
 
     IF (logger%iter_info%print_level >= debug_print_level) THEN

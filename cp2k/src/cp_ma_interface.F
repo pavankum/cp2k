@@ -94,9 +94,8 @@ CONTAINS
 !> \param root_section ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_config(root_section, error)
+  SUBROUTINE cp_ma_config(root_section)
     TYPE(section_vals_type), POINTER         :: root_section
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_config', &
       routineP = moduleN//':'//routineN
@@ -111,33 +110,33 @@ CONTAINS
     NULLIFY(proc,mem,thr)
 
     ma_section => section_vals_get_subs_vals(root_section,&
-      "GLOBAL%MACHINE_ARCH",error=error)
+      "GLOBAL%MACHINE_ARCH")
     CALL section_vals_val_get(ma_section,&
-         "PRINT_BRANCH", l_val=print_branch, error=error)
+         "PRINT_BRANCH", l_val=print_branch)
     CALL section_vals_val_get(ma_section,&
-         "PRINT_RESUME", l_val=print_resume, error=error)
+         "PRINT_RESUME", l_val=print_resume)
     CALL section_vals_val_get(ma_section,&
-         "PRINT_FULL", l_val=print_full, error=error)
+         "PRINT_FULL", l_val=print_full)
     CALL section_vals_val_get(ma_section,&
-         "PRINT_PROC", l_val=print_proc, error=error)
+         "PRINT_PROC", l_val=print_proc)
     CALL section_vals_val_get(ma_section,&
-         "PRINT_THREAD", l_val=print_thread, error=error)
+         "PRINT_THREAD", l_val=print_thread)
     CALL section_vals_val_get(ma_section,&
-         "PRINT_THREAD_CUR", l_val=print_thread_cur, error=error)
+         "PRINT_THREAD_CUR", l_val=print_thread_cur)
     CALL section_vals_val_get(ma_section,&
-         "SCHED_MPI", c_val=mpi_sched, error=error)
+         "SCHED_MPI", c_val=mpi_sched)
     CALL section_vals_val_get(ma_section,&
-         "SCHED_THREAD", c_val=use_sched, error=error)
+         "SCHED_THREAD", c_val=use_sched)
     CALL section_vals_val_get(ma_section,&
-         "MEM_POL", c_val=use_mempol, error=error)
+         "MEM_POL", c_val=use_mempol)
     CALL section_vals_val_get(ma_section,&
-         "MPI_REORDERING", c_val=mpi_reorder, error=error)  
+         "MPI_REORDERING", c_val=mpi_reorder)  
     CALL section_vals_val_get(ma_section,"PROCESS",&
-            i_vals=proc, error=error)
+            i_vals=proc)
     CALL section_vals_val_get(ma_section,"MEMORY",&
-                    i_vals=mem, error=error)
+                    i_vals=mem)
     CALL section_vals_val_get(ma_section,"THREAD",&
-                    i_vals=thr, error=error)
+                    i_vals=thr)
 
     CALL ma_set_conf_print_branch (print_branch)
     CALL ma_set_conf_print_resume (print_resume)
@@ -180,10 +179,9 @@ END SUBROUTINE cp_ma_net_affinity
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: unit_num
-    TYPE(cp_error_type)                      :: error
     TYPE(cp_logger_type), POINTER            :: logger
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     IF ( has_ma ) THEN
             unit_num = cp_logger_get_default_io_unit(logger)
@@ -207,9 +205,8 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param unit_nr ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_print_config(unit_nr, error)
+  SUBROUTINE cp_ma_print_config(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_print_config', &
       routineP = moduleN//':'//routineN
@@ -220,7 +217,7 @@ END SUBROUTINE cp_ma_net_affinity
 
     sched_thread = ma_get_conf_sched()
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     IF (has_ma) THEN
       IF (sched_thread .EQ. 'L' .OR. sched_thread .EQ. 'l') THEN
@@ -271,9 +268,8 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param unit_nr ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_print_machine(unit_nr, error)
+  SUBROUTINE cp_ma_print_machine(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_print_machine', &
       routineP = moduleN//':'//routineN
@@ -287,7 +283,7 @@ END SUBROUTINE cp_ma_net_affinity
     print_full = ma_get_conf_print_full()
     print_branch = ma_get_conf_print_branch()
 
-   logger => cp_error_get_logger(error)
+   logger => cp_error_get_logger()
 
    IF(PRESENT (unit_nr)) THEN
      unit_num = unit_nr
@@ -319,8 +315,7 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param error ...
 !> \param unit_nr ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_run_on(error, unit_nr)
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
+  SUBROUTINE cp_ma_run_on(unit_nr)
     INTEGER, OPTIONAL                        :: unit_nr
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_run_on', &
@@ -333,7 +328,7 @@ END SUBROUTINE cp_ma_net_affinity
     print_proc = ma_get_conf_print_proc()
     print_mem = (ma_get_nnodes() .GT. 0 .AND. ma_get_conf_mempol() .NE. 'N')
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     IF(PRESENT (unit_nr)) THEN
      unit_num = unit_nr
@@ -356,8 +351,7 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param error ...
 !> \retval nr_neighbors ...
 ! *****************************************************************************
-  FUNCTION cp_ma_get_neighbors(error) RESULT (nr_neighbors)
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
+  FUNCTION cp_ma_get_neighbors() RESULT (nr_neighbors)
     INTEGER                                  :: nr_neighbors
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_get_neighbors', &
@@ -373,9 +367,8 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param para_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_set_neighbors(para_env, error)
+  SUBROUTINE cp_ma_set_neighbors(para_env)
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_set_neighbors', &
       routineP = moduleN//':'//routineN
@@ -405,9 +398,8 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param unit_nr ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_thread_run_on(unit_nr, error)
+  SUBROUTINE cp_ma_thread_run_on(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_thread_run_on', &
       routineP = moduleN//':'//routineN
@@ -420,7 +412,7 @@ END SUBROUTINE cp_ma_net_affinity
     print_thread = ma_get_conf_print_thread()
     sched_thread = ma_get_conf_sched()
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
    IF(PRESENT (unit_nr)) THEN
      unit_num = unit_nr
@@ -446,10 +438,9 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param unit_nr ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_current_thread_run(id, unit_nr, error)
+  SUBROUTINE cp_ma_current_thread_run(id, unit_nr)
     INTEGER                                  :: id
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_current_thread_run', &
       routineP = moduleN//':'//routineN
@@ -460,7 +451,7 @@ END SUBROUTINE cp_ma_net_affinity
 
     print_thread_cur = ma_get_conf_print_thread_cur()
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
    IF(PRESENT (unit_nr)) THEN
      unit_num = unit_nr
@@ -486,9 +477,7 @@ END SUBROUTINE cp_ma_net_affinity
 !> Note: set the configuration keywords in the input file
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_mempol(error)
-    TYPE(cp_error_type), INTENT(INOUT), &
-      OPTIONAL                               :: error
+  SUBROUTINE cp_ma_mempol()
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_mempol', &
       routineP = moduleN//':'//routineN
@@ -529,9 +518,7 @@ END SUBROUTINE cp_ma_net_affinity
 !> Note: set the configuration keywords in the input file
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_mpi_sched(error)
-    TYPE(cp_error_type), INTENT(INOUT), &
-      OPTIONAL                               :: error
+  SUBROUTINE cp_ma_mpi_sched()
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_mpi_sched', &
       routineP = moduleN//':'//routineN
@@ -580,10 +567,8 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param id ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_thread_sched(id, error)
+  SUBROUTINE cp_ma_thread_sched(id)
     INTEGER, INTENT(IN)                      :: id
-    TYPE(cp_error_type), INTENT(INOUT), &
-      OPTIONAL                               :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_thread_sched', &
       routineP = moduleN//':'//routineN
@@ -622,10 +607,9 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param unit_nr ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_verify_place(id, unit_nr, error)
+  SUBROUTINE cp_ma_verify_place(id, unit_nr)
     INTEGER, INTENT(IN)                      :: id
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_verify_place', &
       routineP = moduleN//':'//routineN
@@ -638,7 +622,7 @@ END SUBROUTINE cp_ma_net_affinity
     print_thread = ma_get_conf_print_thread()
     sched_thread = ma_get_conf_sched()
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     IF(PRESENT (unit_nr)) THEN
       unit_num = unit_nr
@@ -679,9 +663,8 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param unit_nr ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_print_strategy(unit_nr, error)
+  SUBROUTINE cp_ma_print_strategy(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_print_strategy', &
       routineP = moduleN//':'//routineN
@@ -692,7 +675,7 @@ END SUBROUTINE cp_ma_net_affinity
 
     mpi_reorder = ma_get_conf_mpi_reordering()
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     IF(PRESENT (unit_nr)) THEN
       unit_num = unit_nr
@@ -758,11 +741,9 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param mp_reorder ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_mpi_reordering (mp_comm,mp_reorder,error)
+  SUBROUTINE cp_ma_mpi_reordering (mp_comm,mp_reorder)
     INTEGER, INTENT(INOUT)                   :: mp_comm
     CHARACTER(len=1), INTENT(IN), OPTIONAL   :: mp_reorder
-    TYPE(cp_error_type), INTENT(INOUT), &
-      OPTIONAL                               :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_mpi_reordering', &
       routineP = moduleN//':'//routineN
@@ -818,10 +799,9 @@ END SUBROUTINE cp_ma_net_affinity
 !> \param group ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_init_lib (init_mpi, group, error)
+  SUBROUTINE cp_ma_init_lib (init_mpi, group)
     LOGICAL, INTENT(IN)                      :: init_mpi
     INTEGER, INTENT(IN)                      :: group
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_init_lib', &
       routineP = moduleN//':'//routineN
@@ -832,7 +812,7 @@ END SUBROUTINE cp_ma_net_affinity
     TYPE(cp_logger_type), POINTER            :: logger
     TYPE(ma_mp_type)                         :: ma_env
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     IF ( isconfigured ) RETURN
     IF ( has_ma ) THEN
@@ -911,8 +891,7 @@ END SUBROUTINE cp_ma_net_affinity
 !> \brief Finalizes Machine Architecture
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_ma_finalize_lib (error)
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
+  SUBROUTINE cp_ma_finalize_lib ()
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_ma_finalize_lib', &
       routineP = moduleN//':'//routineN

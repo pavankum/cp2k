@@ -46,7 +46,7 @@ CONTAINS
 !>      charges are computed per spin in the LSD case
 ! *****************************************************************************
   SUBROUTINE print_atomic_charges(particle_set, qs_kind_set, scr, title, electronic_charges,&
-                                  atomic_charges, error)
+                                  atomic_charges)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -56,7 +56,6 @@ CONTAINS
     CHARACTER(LEN=*)                         :: title
     REAL(KIND=dp), DIMENSION(:, :), OPTIONAL :: electronic_charges
     REAL(KIND=dp), DIMENSION(:), OPTIONAL    :: atomic_charges
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'print_atomic_charges', &
       routineP = moduleN//':'//routineN
@@ -97,7 +96,7 @@ CONTAINS
        DO iatom=1,natom
           CALL get_atomic_kind(atomic_kind=particle_set(iatom)%atomic_kind,&
                              element_symbol=element_symbol, kind_number=ikind)
-          CALL get_qs_kind(qs_kind_set(ikind), zeff=zeff, error=error)
+          CALL get_qs_kind(qs_kind_set(ikind), zeff=zeff)
 
           SELECT CASE (nspin)
           CASE(0)
@@ -140,7 +139,7 @@ CONTAINS
 !> \param quadrupole ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE print_multipoles(particle_set, qs_kind_set, scr, charge, dipole, quadrupole, error)
+  SUBROUTINE print_multipoles(particle_set, qs_kind_set, scr, charge, dipole, quadrupole)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -151,7 +150,6 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(:, :), OPTIONAL :: dipole
     REAL(KIND=dp), DIMENSION(:, :, :), &
       OPTIONAL                               :: quadrupole
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'print_multipoles', &
       routineP = moduleN//':'//routineN
@@ -174,7 +172,7 @@ CONTAINS
        DO iatom=1,natom
           CALL get_atomic_kind(atomic_kind=particle_set(iatom)%atomic_kind,&
                              element_symbol=element_symbol, kind_number=ikind)
-          CALL get_qs_kind(qs_kind_set(ikind), zeff=zeff, error=error)
+          CALL get_qs_kind(qs_kind_set(ikind), zeff=zeff)
 
           WRITE(scr,'(a,i5)') ' iatom= ',iatom
           WRITE(scr,'(a,a2)') ' element_symbol= ',element_symbol

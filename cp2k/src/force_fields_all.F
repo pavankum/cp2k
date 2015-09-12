@@ -130,7 +130,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_unique_bond (particle_set, &
-       molecule_kind_set, molecule_set, ff_type, error)
+       molecule_kind_set, molecule_set, ff_type)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -139,7 +139,6 @@ CONTAINS
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
     TYPE(force_field_type), INTENT(INOUT)    :: ff_type
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_unique_bond', &
       routineP = moduleN//':'//routineN
@@ -171,7 +170,7 @@ CONTAINS
        CALL get_molecule(molecule=molecule,first_atom=first,last_atom=last)
        IF(nbond>0) THEN
           ALLOCATE(map_bond_kind(nbond),STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           counter=0
          IF((ff_type%ff_type==do_ff_g96).OR.(ff_type%ff_type==do_ff_g87)) THEN
           DO j=1,nbond
@@ -214,14 +213,14 @@ CONTAINS
           END DO
          END IF
           NULLIFY(bond_kind_set)
-          CALL allocate_bond_kind_set(bond_kind_set,counter,error)
+          CALL allocate_bond_kind_set(bond_kind_set,counter)
           DO j=1,nbond
              bond_list(j)%bond_kind => bond_kind_set(map_bond_kind(j))
           END DO
           CALL set_molecule_kind(molecule_kind=molecule_kind,&
                bond_kind_set=bond_kind_set,bond_list=bond_list)
           DEALLOCATE(map_bond_kind,STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        END IF
     END DO
     CALL timestop(handle2)
@@ -237,7 +236,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_unique_bend (particle_set, &
-       molecule_kind_set, molecule_set, ff_type, error)
+       molecule_kind_set, molecule_set, ff_type)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -246,7 +245,6 @@ CONTAINS
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
     TYPE(force_field_type), INTENT(INOUT)    :: ff_type
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_unique_bend', &
       routineP = moduleN//':'//routineN
@@ -280,7 +278,7 @@ CONTAINS
        CALL get_molecule(molecule=molecule,first_atom=first,last_atom=last)
        IF(nbend>0) THEN
           ALLOCATE(map_bend_kind(nbend),STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           counter=0
          IF((ff_type%ff_type==do_ff_g96).OR.(ff_type%ff_type==do_ff_g87)) THEN
           DO j=1,nbend
@@ -333,14 +331,14 @@ CONTAINS
           END DO
          END IF
           NULLIFY(bend_kind_set)
-          CALL allocate_bend_kind_set(bend_kind_set,counter,error)
+          CALL allocate_bend_kind_set(bend_kind_set,counter)
           DO j=1,nbend
              bend_list(j)%bend_kind => bend_kind_set(map_bend_kind(j))
           END DO
           CALL set_molecule_kind(molecule_kind=molecule_kind,&
                bend_kind_set=bend_kind_set,bend_list=bend_list)
           DEALLOCATE(map_bend_kind,STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        END IF
     END DO
     CALL timestop(handle2)
@@ -355,7 +353,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_unique_ub(particle_set, &
-       molecule_kind_set, molecule_set,  error)
+       molecule_kind_set, molecule_set)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -363,7 +361,6 @@ CONTAINS
       POINTER                                :: molecule_kind_set
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_unique_ub', &
       routineP = moduleN//':'//routineN
@@ -397,7 +394,7 @@ CONTAINS
        CALL get_molecule(molecule=molecule,first_atom=first,last_atom=last)
        IF(nub>0) THEN
           ALLOCATE(map_ub_kind(nub),STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           counter=0
           DO j=1,nub
              atm_a = ub_list(j)%a
@@ -442,14 +439,14 @@ CONTAINS
                 map_ub_kind(j) = counter
              END IF
           END DO
-          CALL allocate_ub_kind_set(ub_kind_set,counter,error)
+          CALL allocate_ub_kind_set(ub_kind_set,counter)
           DO j=1,nub
              ub_list(j)%ub_kind => ub_kind_set(map_ub_kind(j))
           END DO
           CALL set_molecule_kind(molecule_kind=molecule_kind,&
                ub_kind_set=ub_kind_set,ub_list=ub_list)
           DEALLOCATE(map_ub_kind,STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        END IF
     END DO
     CALL timestop(handle2)
@@ -465,7 +462,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_unique_tors(particle_set, &
-       molecule_kind_set, molecule_set, ff_type, error)
+       molecule_kind_set, molecule_set, ff_type)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -474,7 +471,6 @@ CONTAINS
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
     TYPE(force_field_type), INTENT(INOUT)    :: ff_type
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_unique_tors', &
       routineP = moduleN//':'//routineN
@@ -509,7 +505,7 @@ CONTAINS
        CALL get_molecule(molecule=molecule,first_atom=first,last_atom=last)
        IF(ntorsion>0) THEN
           ALLOCATE(map_torsion_kind(ntorsion),STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           counter=0
          IF((ff_type%ff_type==do_ff_g96).OR.(ff_type%ff_type==do_ff_g87)) THEN
           DO j=1,ntorsion
@@ -572,14 +568,14 @@ CONTAINS
           END DO
          END IF
           NULLIFY(torsion_kind_set)
-          CALL allocate_torsion_kind_set(torsion_kind_set,counter,error)
+          CALL allocate_torsion_kind_set(torsion_kind_set,counter)
           DO j=1,ntorsion
              torsion_list(j)%torsion_kind => torsion_kind_set(map_torsion_kind(j))
           END DO
           CALL set_molecule_kind(molecule_kind=molecule_kind,&
                torsion_kind_set=torsion_kind_set,torsion_list=torsion_list)
           DEALLOCATE(map_torsion_kind,STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        END IF
     END DO
     CALL timestop(handle2)
@@ -595,7 +591,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_unique_impr (particle_set, &
-       molecule_kind_set, molecule_set, ff_type, error)
+       molecule_kind_set, molecule_set, ff_type)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -604,7 +600,6 @@ CONTAINS
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
     TYPE(force_field_type), INTENT(INOUT)    :: ff_type
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_unique_impr', &
       routineP = moduleN//':'//routineN
@@ -638,7 +633,7 @@ CONTAINS
        CALL get_molecule(molecule=molecule,first_atom=first,last_atom=last)
        IF(nimpr>0) THEN
           ALLOCATE(map_impr_kind(nimpr),STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           counter=0
          IF((ff_type%ff_type==do_ff_g96).OR.(ff_type%ff_type==do_ff_g87)) THEN
           DO j=1,nimpr
@@ -701,14 +696,14 @@ CONTAINS
           END DO
          END IF
           NULLIFY(impr_kind_set)
-          CALL allocate_impr_kind_set(impr_kind_set,counter,error)
+          CALL allocate_impr_kind_set(impr_kind_set,counter)
           DO j=1,nimpr
              impr_list(j)%impr_kind => impr_kind_set(map_impr_kind(j))
           END DO
           CALL set_molecule_kind(molecule_kind=molecule_kind,&
                impr_kind_set=impr_kind_set,impr_list=impr_list)
           DEALLOCATE(map_impr_kind,STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        END IF
     END DO
     CALL timestop(handle2)
@@ -726,7 +721,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_unique_opbend (particle_set, &
-       molecule_kind_set, molecule_set, ff_type, error)
+       molecule_kind_set, molecule_set, ff_type)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -735,7 +730,6 @@ CONTAINS
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
     TYPE(force_field_type), INTENT(INOUT)    :: ff_type
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_unique_opbend', &
       routineP = moduleN//':'//routineN
@@ -770,7 +764,7 @@ CONTAINS
        CALL get_molecule(molecule=molecule,first_atom=first,last_atom=last)
        IF(nopbend>0) THEN
           ALLOCATE(map_opbend_kind(nopbend),STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           counter=0
          IF((ff_type%ff_type==do_ff_g96).OR.(ff_type%ff_type==do_ff_g87)) THEN
           DO j=1,nopbend
@@ -833,14 +827,14 @@ CONTAINS
           END DO
          END IF
          NULLIFY(opbend_kind_set)
-         CALL allocate_opbend_kind_set(opbend_kind_set,counter,error)
+         CALL allocate_opbend_kind_set(opbend_kind_set,counter)
          DO j=1,nopbend
             opbend_list(j)%opbend_kind => opbend_kind_set(map_opbend_kind(j))
          END DO
          CALL set_molecule_kind(molecule_kind=molecule_kind,&
               opbend_kind_set=opbend_kind_set,opbend_list=opbend_list)
          DEALLOCATE(map_opbend_kind,STAT=stat)
-         CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+         CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        END IF
     END DO
     CALL timestop(handle2)
@@ -861,7 +855,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_bond (particle_set, molecule_kind_set, molecule_set, &
-      fatal, Ainfo, chm_info, inp_info, gro_info, amb_info, error)
+      fatal, Ainfo, chm_info, inp_info, gro_info, amb_info)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -876,7 +870,6 @@ CONTAINS
     TYPE(input_info_type), POINTER           :: inp_info
     TYPE(gromos_info_type), POINTER          :: gro_info
     TYPE(amber_info_type), POINTER           :: amb_info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_bond', &
       routineP = moduleN//':'//routineN
@@ -944,8 +937,7 @@ CONTAINS
                    bond_list(j)%bond_kind%id_type = do_ff_charmm
                    bond_list(j)%bond_kind%k(1) = chm_info%bond_k(k)
                    bond_list(j)%bond_kind%r0   = chm_info%bond_r0(k)
-                   CALL issue_duplications(found,routineP,"Bond", name_atm_a, name_atm_b,&
-                        error=error)
+                   CALL issue_duplications(found,routineP,"Bond", name_atm_a, name_atm_b)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -962,8 +954,7 @@ CONTAINS
                    bond_list(j)%bond_kind%id_type = do_ff_amber
                    bond_list(j)%bond_kind%k(1) = amb_info%bond_k(k)
                    bond_list(j)%bond_kind%r0   = amb_info%bond_r0(k)
-                   CALL issue_duplications(found,routineP,"Bond", name_atm_a, name_atm_b,&
-                        error=error)
+                   CALL issue_duplications(found,routineP,"Bond", name_atm_a, name_atm_b)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -981,8 +972,7 @@ CONTAINS
                    bond_list(j)%bond_kind%k(:)    = inp_info%bond_k(:,k)
                    bond_list(j)%bond_kind%r0      = inp_info%bond_r0(k)
                    bond_list(j)%bond_kind%cs      = inp_info%bond_cs(k)
-                   CALL issue_duplications(found,routineP,"Bond", name_atm_a, name_atm_b,&
-                        error=error)
+                   CALL issue_duplications(found,routineP,"Bond", name_atm_a, name_atm_b)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -993,8 +983,7 @@ CONTAINS
                                                    atm2=TRIM(name_atm_b),&
                                                    fatal=fatal,&
                                                    type_name="Bond",&
-                                                   array=Ainfo,&
-                                                   error=error)
+                                                   array=Ainfo)
           ! QM/MM modifications
           IF (only_qm) THEN
              bond_list(j)%id_type           = do_ff_undef
@@ -1022,7 +1011,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_bend (particle_set, molecule_kind_set, molecule_set, &
-       fatal, Ainfo, chm_info, inp_info, gro_info, amb_info, error)
+       fatal, Ainfo, chm_info, inp_info, gro_info, amb_info)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -1037,7 +1026,6 @@ CONTAINS
     TYPE(input_info_type), POINTER           :: inp_info
     TYPE(gromos_info_type), POINTER          :: gro_info
     TYPE(amber_info_type), POINTER           :: amb_info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_bend', &
       routineP = moduleN//':'//routineN
@@ -1113,7 +1101,7 @@ CONTAINS
                    bend_list(j)%bend_kind%k       = chm_info%bend_k(k)
                    bend_list(j)%bend_kind%theta0  = chm_info%bend_theta0(k)
                    CALL issue_duplications(found,routineP, "Bend", name_atm_a, name_atm_b,&
-                        name_atm_c, error=error)
+                        name_atm_c)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -1133,7 +1121,7 @@ CONTAINS
                    bend_list(j)%bend_kind%k       = amb_info%bend_k(k)
                    bend_list(j)%bend_kind%theta0  = amb_info%bend_theta0(k)
                    CALL issue_duplications(found,routineP, "Bend", name_atm_a, name_atm_b,&
-                        name_atm_c, error=error)
+                        name_atm_c)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -1159,7 +1147,7 @@ CONTAINS
                    bend_list(j)%bend_kind%kbs32   = inp_info%bend_kbs32(k)
                    bend_list(j)%bend_kind%kss     = inp_info%bend_kss(k)
                    CALL issue_duplications(found,routineP, "Bend", name_atm_a, name_atm_b,&
-                        name_atm_c, error=error)
+                        name_atm_c)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -1171,8 +1159,7 @@ CONTAINS
                                                    atm3=TRIM(name_atm_c),&
                                                    fatal=fatal,&
                                                    type_name="Angle",&
-                                                   array=Ainfo,&
-                                                   error=error)
+                                                   array=Ainfo)
           ! QM/MM modifications
           IF (only_qm) THEN
              bend_list(j)%id_type           = do_ff_undef
@@ -1198,7 +1185,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_ub (particle_set, molecule_kind_set, molecule_set, &
-       Ainfo, chm_info, inp_info, iw, error)
+       Ainfo, chm_info, inp_info, iw)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -1211,7 +1198,6 @@ CONTAINS
     TYPE(charmm_info_type), POINTER          :: chm_info
     TYPE(input_info_type), POINTER           :: inp_info
     INTEGER                                  :: iw
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_ub', &
       routineP = moduleN//':'//routineN
@@ -1276,7 +1262,7 @@ CONTAINS
                    IF(iw>0) WRITE(iw,*) "    Found UB ",TRIM(name_atm_a)," ",&
                         TRIM(name_atm_b)," ",TRIM(name_atm_c)
                    CALL issue_duplications(found,routineP, "Urey-Bradley", name_atm_a,&
-                        name_atm_b, name_atm_c, error=error)
+                        name_atm_b, name_atm_c)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -1299,7 +1285,7 @@ CONTAINS
                    ub_list(j)%ub_kind%k(:)    = inp_info%ub_k(:,k)
                    ub_list(j)%ub_kind%r0      = inp_info%ub_r0(k)
                    CALL issue_duplications(found,routineP, "Urey-Bradley", name_atm_a,&
-                        name_atm_b, name_atm_c, error=error)
+                        name_atm_b, name_atm_c)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -1311,8 +1297,7 @@ CONTAINS
                                        atm2=TRIM(name_atm_b),&
                                        atm3=TRIM(name_atm_c),&
                                        type_name="Urey-Bradley",&
-                                       array=Ainfo,&
-                                       error=error)
+                                       array=Ainfo)
              ub_list(j)%id_type         = do_ff_undef
              ub_list(j)%ub_kind%id_type = do_ff_undef
              ub_list(j)%ub_kind%k       = 0.0_dp
@@ -1346,7 +1331,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_tors (particle_set, molecule_kind_set, molecule_set, &
-       Ainfo, chm_info, inp_info, gro_info, amb_info, iw, error)
+       Ainfo, chm_info, inp_info, gro_info, amb_info, iw)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -1361,7 +1346,6 @@ CONTAINS
     TYPE(gromos_info_type), POINTER          :: gro_info
     TYPE(amber_info_type), POINTER           :: amb_info
     INTEGER, INTENT(IN)                      :: iw
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_tors', &
       routineP = moduleN//':'//routineN
@@ -1572,8 +1556,7 @@ CONTAINS
                                           atm3=TRIM(name_atm_c),&
                                           atm4=TRIM(name_atm_d),&
                                           type_name="Torsion",&
-                                          array=Ainfo,&
-                                          error=error)
+                                          array=Ainfo)
                 torsion_list(j)%torsion_kind%id_type = do_ff_undef
                 torsion_list(j)%id_type              = do_ff_undef
              ELSE
@@ -1621,7 +1604,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_impr (particle_set, molecule_kind_set, molecule_set, &
-       Ainfo, chm_info, inp_info, gro_info, error)
+       Ainfo, chm_info, inp_info, gro_info)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -1634,7 +1617,6 @@ CONTAINS
     TYPE(charmm_info_type), POINTER          :: chm_info
     TYPE(input_info_type), POINTER           :: inp_info
     TYPE(gromos_info_type), POINTER          :: gro_info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_impr', &
       routineP = moduleN//':'//routineN
@@ -1717,7 +1699,7 @@ CONTAINS
                    impr_list(j)%impr_kind%k    = chm_info%impr_k(k)
                    impr_list(j)%impr_kind%phi0 = chm_info%impr_phi0(k)
                    CALL issue_duplications(found,routineP, "Impropers", name_atm_a, name_atm_b,&
-                        name_atm_c, name_atm_d, error=error)
+                        name_atm_c, name_atm_d)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -1736,7 +1718,7 @@ CONTAINS
                       impr_list(j)%impr_kind%k    = chm_info%impr_k(k)
                       impr_list(j)%impr_kind%phi0 = chm_info%impr_phi0(k)
                       CALL issue_duplications(found,routineP, "Impropers", name_atm_a, name_atm_b,&
-                           name_atm_c,name_atm_d, error=error)
+                           name_atm_c,name_atm_d)
                       found = .TRUE.
                       EXIT
                    END IF
@@ -1774,7 +1756,7 @@ CONTAINS
                      ! above
                    END IF
                    CALL issue_duplications(found,routineP, "Impropers", name_atm_a, name_atm_b,&
-                        name_atm_c,name_atm_d, error=error)
+                        name_atm_c,name_atm_d)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -1787,8 +1769,7 @@ CONTAINS
                                        atm3=TRIM(name_atm_c),&
                                        atm4=TRIM(name_atm_d),&
                                        type_name="Improper",&
-                                       array=Ainfo,&
-                                       error=error)
+                                       array=Ainfo)
              impr_list(j)%impr_kind%k       = 0.0_dp
              impr_list(j)%impr_kind%phi0    = 0.0_dp
              impr_list(j)%impr_kind%id_type = do_ff_undef
@@ -1822,7 +1803,7 @@ CONTAINS
 !> \author Louis Vanduyfhuys
 ! *****************************************************************************
   SUBROUTINE force_field_pack_opbend (particle_set, molecule_kind_set, molecule_set, &
-       Ainfo, inp_info, error)
+       Ainfo, inp_info)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -1833,7 +1814,6 @@ CONTAINS
     CHARACTER(LEN=default_string_length), &
       DIMENSION(:), POINTER                  :: Ainfo
     TYPE(input_info_type), POINTER           :: inp_info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_opbend', &
       routineP = moduleN//':'//routineN
@@ -1912,7 +1892,7 @@ CONTAINS
 
                    END IF
                    CALL issue_duplications(found,routineP, "Out of plane bend", name_atm_a, name_atm_b,&
-                        name_atm_c,name_atm_d, error=error)
+                        name_atm_c,name_atm_d)
                    found = .TRUE.
                    EXIT
                 END IF
@@ -1925,8 +1905,7 @@ CONTAINS
                                        atm3=TRIM(name_atm_c),&
                                        atm4=TRIM(name_atm_d),&
                                        type_name="Out of plane bend",&
-                                       array=Ainfo,&
-                                       error=error)
+                                       array=Ainfo)
              opbend_list(j)%opbend_kind%k       = 0.0_dp
              opbend_list(j)%opbend_kind%phi0    = 0.0_dp
              opbend_list(j)%opbend_kind%id_type = do_ff_undef
@@ -1961,7 +1940,7 @@ CONTAINS
 !> \author Teodoro Laino (teodoro.laino@gmail.com)
 ! *****************************************************************************
   SUBROUTINE force_field_pack_charges(charges, charges_section, particle_set, &
-             my_qmmm, qmmm_env, inp_info, iw4, error)
+             my_qmmm, qmmm_env, inp_info, iw4)
 
     REAL(KIND=dp), DIMENSION(:), POINTER     :: charges
     TYPE(section_vals_type), POINTER         :: charges_section
@@ -1971,7 +1950,6 @@ CONTAINS
     TYPE(qmmm_env_mm_type), POINTER          :: qmmm_env
     TYPE(input_info_type), POINTER           :: inp_info
     INTEGER                                  :: iw4
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_charges', &
       routineP = moduleN//':'//routineN
@@ -1999,22 +1977,22 @@ CONTAINS
     IF(ASSOCIATED(inp_info%shell_list)) THEN
        CALL cp_unimplemented_error(fromWhere=routineP, &
                  message="Array of charges not implemented for CORE-SHELL model!!",&
-                 error=error, error_level=cp_failure_level)
+                 error_level=cp_failure_level)
     END IF
 
     ! Allocate array to particle_set size
-    CPPostcondition(.NOT.(ASSOCIATED(charges)),cp_failure_level,routineP,error,failure)
+    CPPostcondition(.NOT.(ASSOCIATED(charges)),cp_failure_level,routineP,failure)
     ALLOCATE(charges(SIZE(particle_set)),stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     ! Fill with input values
-    CALL section_vals_val_get(charges_section,"_DEFAULT_KEYWORD_",n_rep_val=nval,error=error)
-    CPPostcondition(nval==SIZE(charges),cp_failure_level,routineP,error,failure)
-    CALL section_vals_list_get(charges_section,"_DEFAULT_KEYWORD_",list=list,error=error)
+    CALL section_vals_val_get(charges_section,"_DEFAULT_KEYWORD_",n_rep_val=nval)
+    CPPostcondition(nval==SIZE(charges),cp_failure_level,routineP,failure)
+    CALL section_vals_list_get(charges_section,"_DEFAULT_KEYWORD_",list=list)
     DO iatom=1,nval
        ! we use only the first default_string_length characters of each line
-       is_ok=cp_sll_val_next(list,val,error=error)
-       CALL val_get(val,r_val=rval,error=error)
+       is_ok=cp_sll_val_next(list,val)
+       CALL val_get(val,r_val=rval)
        ! assign values
        charges(iatom)=rval
 
@@ -2073,7 +2051,7 @@ CPSourceFileRef,&
                 DO ilink = 1, SIZE(qmmm_env%mm_link_atoms)
                    IF (iatom == qmmm_env%mm_link_atoms(ilink)) EXIT
                 END DO
-                CPPostcondition(ilink <= SIZE(qmmm_env%mm_link_atoms),cp_failure_level,routineP,error,failure)
+                CPPostcondition(ilink <= SIZE(qmmm_env%mm_link_atoms),cp_failure_level,routineP,failure)
                 scale_factor = qmmm_env%fist_scale_charge_link(ilink)
              END IF
              charges(iatom) = charges(iatom) * scale_factor
@@ -2103,7 +2081,7 @@ CPSourceFileRef,&
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_charge(atomic_kind_set, qmmm_env, fatal, iw, iw4,&
-       Ainfo, my_qmmm, inp_info, error)
+       Ainfo, my_qmmm, inp_info)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
@@ -2114,7 +2092,6 @@ CPSourceFileRef,&
       DIMENSION(:), POINTER                  :: Ainfo
     LOGICAL                                  :: my_qmmm
     TYPE(input_info_type), POINTER           :: inp_info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_charge', &
       routineP = moduleN//':'//routineN
@@ -2154,7 +2131,7 @@ CPSourceFileRef,&
              IF (iw>0) WRITE(iw,*)"Charge Checking ::",TRIM(inp_info%charge_atm(j)),atmname
              IF((inp_info%charge_atm(j))==atmname) THEN
                 charge = inp_info%charge(j)
-                CALL issue_duplications(found,routineP, "Charge", atmname, error=error)
+                CALL issue_duplications(found,routineP, "Charge", atmname)
                 found = .TRUE.
              END IF
           END DO
@@ -2214,8 +2191,7 @@ CPSourceFileRef,&
          CALL store_FF_missing_par(atm1=TRIM(atmname),&
                                    fatal=fatal,&
                                    type_name="Charge",&
-                                   array=Ainfo,&
-                                   error=error)
+                                   array=Ainfo)
        END IF
        !
        ! QM/MM modifications
@@ -2230,7 +2206,7 @@ CPSourceFileRef,&
                 DO ilink = 1, SIZE(qmmm_env%mm_link_atoms)
                    IF (ANY(my_atom_list == qmmm_env%mm_link_atoms(ilink))) EXIT
                 END DO
-                CPPostcondition(ilink <= SIZE(qmmm_env%mm_link_atoms),cp_failure_level,routineP,error,failure)
+                CPPostcondition(ilink <= SIZE(qmmm_env%mm_link_atoms),cp_failure_level,routineP,failure)
                 scale_factor = qmmm_env%fist_scale_charge_link(ilink)
              END IF
              charge = charge * scale_factor
@@ -2262,13 +2238,12 @@ CPSourceFileRef,&
 !> \param error ...
 !> \author Toon.Verstraelen@gmail.com
 ! *****************************************************************************
-  SUBROUTINE force_field_pack_radius(atomic_kind_set, iw, subsys_section, error)
+  SUBROUTINE force_field_pack_radius(atomic_kind_set, iw, subsys_section)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
     INTEGER, INTENT(IN)                      :: iw
     TYPE(section_vals_type), POINTER         :: subsys_section
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_radius', &
       routineP = moduleN//':'//routineN
@@ -2283,8 +2258,8 @@ CPSourceFileRef,&
 
     CALL timeset(routineN,handle)
 
-    kind_section => section_vals_get_subs_vals(subsys_section,"KIND",error=error)
-    CALL section_vals_get(kind_section,n_repetition=n_rep,error=error)
+    kind_section => section_vals_get_subs_vals(subsys_section,"KIND")
+    CALL section_vals_get(kind_section,n_repetition=n_rep)
 
     DO i = 1, SIZE(atomic_kind_set)
        atomic_kind => atomic_kind_set(i)
@@ -2299,14 +2274,14 @@ CPSourceFileRef,&
        mm_radius = 0.0_dp
        DO i_rep = 1, n_rep
           CALL section_vals_val_get(kind_section, "_SECTION_PARAMETERS_",&
-            c_val=inp_kind_name, i_rep_section=i_rep, error=error)
+            c_val=inp_kind_name, i_rep_section=i_rep)
           CALL uppercase(inp_kind_name)
           IF (iw>0) WRITE(iw,*) "Matching kinds for MM_RADIUS :: '", &
             TRIM(kind_name), "' with '", TRIM(inp_kind_name), "'"
           IF (TRIM(kind_name)==TRIM(inp_kind_name)) THEN
              CALL section_vals_val_get(kind_section, i_rep_section=i_rep,&
-               keyword_name="MM_RADIUS", r_val=mm_radius, error=error)
-             CALL issue_duplications(found, routineP, "MM_RADIUS", kind_name, error=error)
+               keyword_name="MM_RADIUS", r_val=mm_radius)
+             CALL issue_duplications(found, routineP, "MM_RADIUS", kind_name)
              found = .TRUE.
           END IF
        END DO
@@ -2324,13 +2299,12 @@ CPSourceFileRef,&
 !> \param error ...
 !> \author Toon.Verstraelen@gmail.com
 ! *****************************************************************************
-  SUBROUTINE force_field_pack_pol(atomic_kind_set, iw, inp_info, error)
+  SUBROUTINE force_field_pack_pol(atomic_kind_set, iw, inp_info)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
     INTEGER, INTENT(IN)                      :: iw
     TYPE(input_info_type), POINTER           :: inp_info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_pol', &
       routineP = moduleN//':'//routineN
@@ -2360,7 +2334,7 @@ CPSourceFileRef,&
                 TRIM(kind_name), "' with '", TRIM(inp_info%apol_atm(j)), "'"
              IF((inp_info%apol_atm(j))==kind_name) THEN
                 apol = inp_info%apol(j)
-                CALL issue_duplications(found,routineP, "APOL", kind_name, error=error)
+                CALL issue_duplications(found,routineP, "APOL", kind_name)
                 found = .TRUE.
              END IF
           END DO
@@ -2372,7 +2346,7 @@ CPSourceFileRef,&
                 TRIM(kind_name), "' with '", TRIM(inp_info%cpol_atm(j)), "'"
              IF((inp_info%cpol_atm(j))==kind_name) THEN
                 cpol = inp_info%cpol(j)
-                CALL issue_duplications(found,routineP, "CPOL", kind_name, error=error)
+                CALL issue_duplications(found,routineP, "CPOL", kind_name)
                 found = .TRUE.
              END IF
           END DO
@@ -2391,13 +2365,12 @@ CPSourceFileRef,&
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_damp (atomic_kind_set,&
-                                    iw,inp_info,error)
+                                    iw,inp_info)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
     INTEGER                                  :: iw
     TYPE(input_info_type), POINTER           :: inp_info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_damp', &
       routineP = moduleN//':'//routineN
@@ -2427,7 +2400,7 @@ CPSourceFileRef,&
                                                        TRIM(atm_name1)
            IF (my_atm_name1==atm_name1) THEN
               IF (.NOT.ASSOCIATED(damping)) THEN
-                 CALL damping_p_create(damping,nkinds,error)
+                 CALL damping_p_create(damping,nkinds)
               END IF
 
               found=.FALSE.
@@ -2440,7 +2413,7 @@ CPSourceFileRef,&
                  IF (my_atm_name2==atm_name2) THEN
                     IF(damping%damp(k)%bij/=HUGE(0.0_dp)) found=.TRUE.
                     CALL issue_duplications(found,routineP, "Damping",&
-                       atm_name1,error=error)
+                       atm_name1)
                     found=.TRUE.
 
                     SELECT CASE(TRIM(inp_info%damping_list(i)%dtype))
@@ -2493,7 +2466,7 @@ CPSourceFileRef,&
 ! *****************************************************************************
   SUBROUTINE force_field_pack_shell(particle_set, atomic_kind_set,&
        molecule_kind_set, molecule_set, root_section, subsys_section,&
-       shell_particle_set, core_particle_set, cell, iw, inp_info, error)
+       shell_particle_set, core_particle_set, cell, iw, inp_info)
 
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
@@ -2510,7 +2483,6 @@ CPSourceFileRef,&
     TYPE(cell_type), POINTER                 :: cell
     INTEGER                                  :: iw
     TYPE(input_info_type), POINTER           :: inp_info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_shell', &
       routineP = moduleN//':'//routineN
@@ -2543,8 +2515,8 @@ CPSourceFileRef,&
     shell_coord_read = .FALSE.
 
     NULLIFY(global_section)
-    global_section => section_vals_get_subs_vals(root_section,"GLOBAL",error=error)
-    CALL section_vals_val_get(global_section,"SAVE_MEM",l_val=save_mem,error=error)
+    global_section => section_vals_get_subs_vals(root_section,"GLOBAL")
+    CALL section_vals_val_get(global_section,"SAVE_MEM",l_val=save_mem)
 
     DO i=1,SIZE(atomic_kind_set)
        atomic_kind => atomic_kind_set(i)
@@ -2563,7 +2535,7 @@ CPSourceFileRef,&
                 CALL get_atomic_kind(atomic_kind=atomic_kind,&
                      shell=shell, mass=atmmass, natom=natom)
                 IF(.NOT. ASSOCIATED(shell)) THEN
-                   CALL shell_create(shell,error)
+                   CALL shell_create(shell)
                 END IF
                 nshell_tot = nshell_tot + natom
                 shell%charge_core=inp_info%shell_list(j)%shell%charge_core
@@ -2576,11 +2548,11 @@ CPSourceFileRef,&
                 shell%shell_cutoff=inp_info%shell_list(j)%shell%shell_cutoff
                 shell%mass_shell=shell%massfrac*atmmass
                 shell%mass_core=atmmass-shell%mass_shell
-                CALL issue_duplications(found_shell,routineP, "Shell", atmname, error=error)
+                CALL issue_duplications(found_shell,routineP, "Shell", atmname)
                 found_shell = .TRUE.
                 CALL set_atomic_kind(atomic_kind=atomic_kind,&
-                     shell=shell, shell_active=.TRUE.,error=error)
-                CALL shell_release(shell, error)
+                     shell=shell, shell_active=.TRUE.)
+                CALL shell_release(shell)
              END IF
           END DO ! j shell kind
        END IF ! associated shell_list
@@ -2596,8 +2568,8 @@ CPSourceFileRef,&
           CALL stop_program(routineN,moduleN,__LINE__,&
                             "Shell-model adiabatic: at least one shell_kind has mass zero")
        END IF
-       CALL allocate_particle_set(shell_particle_set,nshell_tot,error)
-       CALL allocate_particle_set(core_particle_set,nshell_tot,error)
+       CALL allocate_particle_set(shell_particle_set,nshell_tot)
+       CALL allocate_particle_set(core_particle_set,nshell_tot)
        counter = 0
        ! Initialise the shell (and core) coordinates with the particle (atomic) coordinates,
        ! count the shell and set pointers
@@ -2621,14 +2593,14 @@ CPSourceFileRef,&
              particle_set(i)%shell_index = 0
           END IF
        END DO
-       CPPostcondition(counter==nshell_tot,cp_failure_level,routineP,error,failure)
+       CPPostcondition(counter==nshell_tot,cp_failure_level,routineP,failure)
     END IF
 
     ! Read the shell (and core) coordinates from the restart file, if available
     CALL read_binary_cs_coordinates("SHELL",shell_particle_set,root_section,&
-                                    subsys_section,shell_coord_read,error)
+                                    subsys_section,shell_coord_read)
     CALL read_binary_cs_coordinates("CORE",core_particle_set,root_section,&
-                                    subsys_section,core_coord_read,error)
+                                    subsys_section,core_coord_read)
 
     IF (nshell_tot > 0) THEN
        ! Read the shell (and core) coordinates from the input, if no coordinates were found
@@ -2637,12 +2609,12 @@ CPSourceFileRef,&
           IF (.NOT.(core_coord_read.AND.shell_coord_read)) THEN
              CALL read_shell_coord_input(particle_set,shell_particle_set,cell,&
                                          subsys_section,core_particle_set,&
-                                         save_mem=save_mem,error=error)
+                                         save_mem=save_mem)
           END IF
        ELSE
           IF (.NOT.shell_coord_read) THEN
              CALL read_shell_coord_input(particle_set,shell_particle_set,cell,&
-                                         subsys_section,save_mem=save_mem,error=error)
+                                         subsys_section,save_mem=save_mem)
           END IF
        END IF
        ! Determine the number of shells per molecule kind
@@ -2654,7 +2626,7 @@ CPSourceFileRef,&
           molecule=>molecule_set(molecule_list(1))
           CALL get_molecule(molecule=molecule,first_atom=first,last_atom=last)
           ALLOCATE (shell_list_tmp(natom),STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           counter = 0
           DO j = first, last
              atomic_kind => particle_set(j)%atomic_kind
@@ -2678,10 +2650,10 @@ CPSourceFileRef,&
              CALL get_molecule_kind(molecule_kind=molecule_kind,shell_list=shell_list)
              IF (ASSOCIATED(shell_list)) THEN
                 DEALLOCATE(shell_list,STAT=stat)
-                CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+                CPPostcondition(stat==0,cp_failure_level,routineP,failure)
              END IF
              ALLOCATE (shell_list(counter), STAT=stat)
-             CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+             CPPostcondition(stat==0,cp_failure_level,routineP,failure)
              DO j=1,counter
                 shell_list(j)%a = shell_list_tmp(j)
                 atomic_kind => particle_set(shell_list_tmp(j)+first-1)%atomic_kind
@@ -2693,12 +2665,12 @@ CPSourceFileRef,&
              CALL set_molecule_kind(molecule_kind=molecule_kind, nshell=counter,shell_list=shell_list)
           END IF
           DEALLOCATE (shell_list_tmp,STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           n = n + nmol*counter
        END DO ! i molecule kind
     END IF
-    CPPostcondition(first_shell-1==nshell_tot,cp_failure_level,routineP,error,failure)
-    CPPostcondition(n==nshell_tot,cp_failure_level,routineP,error,failure)
+    CPPostcondition(first_shell-1==nshell_tot,cp_failure_level,routineP,failure)
+    CPPostcondition(n==nshell_tot,cp_failure_level,routineP,failure)
     CALL timestop(handle2)
 
   END SUBROUTINE force_field_pack_shell
@@ -2719,8 +2691,7 @@ CPSourceFileRef,&
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_nonbond14(atomic_kind_set, ff_type, qmmm_env, iw, &
-       Ainfo, chm_info, inp_info, gro_info, amb_info, potparm_nonbond14, ewald_env, &
-       error)
+       Ainfo, chm_info, inp_info, gro_info, amb_info, potparm_nonbond14, ewald_env)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
@@ -2735,7 +2706,6 @@ CPSourceFileRef,&
     TYPE(amber_info_type), POINTER           :: amb_info
     TYPE(pair_potential_pp_type), POINTER    :: potparm_nonbond14
     TYPE(ewald_environment_type), POINTER    :: ewald_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_nonbond14', &
       routineP = moduleN//':'//routineN
@@ -2756,9 +2726,9 @@ CPSourceFileRef,&
     failure = .FALSE.
     use_qmmm_ff = qmmm_env%use_qmmm_ff
     NULLIFY(pot)
-    CALL ewald_env_get(ewald_env, rcut=ewald_rcut, error=error)
+    CALL ewald_env_get(ewald_env, rcut=ewald_rcut)
     CALL timeset(routineN,handle2)
-    CALL pair_potential_pp_create (potparm_nonbond14, SIZE(atomic_kind_set), error)
+    CALL pair_potential_pp_create (potparm_nonbond14, SIZE(atomic_kind_set))
     DO i=1,SIZE(atomic_kind_set)
        atomic_kind => atomic_kind_set(i)
        CALL get_atomic_kind(atomic_kind=atomic_kind,name=name_atm_a_local)
@@ -2794,7 +2764,7 @@ CPSourceFileRef,&
                 END IF
              END DO
              IF(ii/=0 .AND. jj/=0) THEN
-                CALL  pair_potential_lj_create(pot%set(1)%lj, error)
+                CALL  pair_potential_lj_create(pot%set(1)%lj)
                 pot%type       = lj_type
                 pot%at1        = name_atm_a
                 pot%at2        = name_atm_b
@@ -2802,7 +2772,7 @@ CPSourceFileRef,&
                 pot%set(1)%lj%sigma6  = gro_info%nonbond_c6_14(ii,jj)
                 pot%set(1)%lj%sigma12 = gro_info%nonbond_c12_14(ii,jj)
                 pot%rcutsq     = (10.0_dp*bohr)**2
-                CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b, error=error)
+                CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b)
                 found = .TRUE.
              END IF
           END IF
@@ -2852,7 +2822,7 @@ CPSourceFileRef,&
              rmin = rmin2_a + rmin2_b
              ! ABS to allow for mixing the two different sign conventions for epsilon
              epsilon0 = SQRT(ABS(epsilon_a*epsilon_b))
-             CALL  pair_potential_lj_create(pot%set(1)%lj, error)
+             CALL  pair_potential_lj_create(pot%set(1)%lj)
              pot%type       = lj_charmm_type
              pot%at1        = name_atm_a
              pot%at2        = name_atm_b
@@ -2860,8 +2830,7 @@ CPSourceFileRef,&
              pot%set(1)%lj%sigma6  = 0.5_dp*rmin**6
              pot%set(1)%lj%sigma12 = 0.25_dp*rmin**12
              pot%rcutsq     = (10.0_dp*bohr)**2
-             CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b,&
-                  error=error)
+             CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b)
              found = .TRUE.
           END IF
 
@@ -2891,7 +2860,7 @@ CPSourceFileRef,&
                 rmin = rmin2_a + rmin2_b
                 ! ABS to allow for mixing the two different sign conventions for epsilon
                 epsilon0 = SQRT(ABS(epsilon_a*epsilon_b))
-                CALL  pair_potential_lj_create(pot%set(1)%lj, error)
+                CALL  pair_potential_lj_create(pot%set(1)%lj)
                 pot%type       = lj_charmm_type
                 pot%at1        = name_atm_a
                 pot%at2        = name_atm_b
@@ -2900,7 +2869,7 @@ CPSourceFileRef,&
                 pot%set(1)%lj%sigma12 = 0.25_dp*rmin**12
                 pot%rcutsq     = (10.0_dp*bohr)**2
                 CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a,&
-                     name_atm_b, error=error)
+                     name_atm_b)
                 found = .TRUE.
              END IF
           END IF
@@ -2916,7 +2885,7 @@ CPSourceFileRef,&
                      (((name_atm_b)==(inp_info%nonbonded14%pot(k)%pot%at1))  .AND. &
                      ((name_atm_a)==(inp_info%nonbonded14%pot(k)%pot%at2))) ) THEN
                    IF (ff_type%multiple_potential) THEN
-                      CALL pair_potential_single_add(inp_info%nonbonded14%pot(k)%pot,pot,error)
+                      CALL pair_potential_single_add(inp_info%nonbonded14%pot(k)%pot,pot)
                       CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                            "Multiple ONFO declaration: "//TRIM(name_atm_a)//&
                            " and "//TRIM(name_atm_b)//" ADDING! "//&
@@ -2925,7 +2894,7 @@ CPSourceFileRef,&
                       potparm_nonbond14%pot(i,j)%pot => pot
                       potparm_nonbond14%pot(j,i)%pot => pot
                    ELSE
-                      CALL pair_potential_single_copy(inp_info%nonbonded14%pot(k)%pot,pot,error)
+                      CALL pair_potential_single_copy(inp_info%nonbonded14%pot(k)%pot,pot)
                       CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                            "Multiple ONFO declarations: "//TRIM(name_atm_a)//&
                            " and "//TRIM(name_atm_b)//" OVERWRITING! "//&
@@ -2954,7 +2923,7 @@ CPSourceFileRef,&
                            (((name_atm_b)==(qmmm_env%inp_info%nonbonded14%pot(k)%pot%at1))  .AND. &
                            ((name_atm_a) ==(qmmm_env%inp_info%nonbonded14%pot(k)%pot%at2))) ) THEN
                          IF (qmmm_env%multiple_potential) THEN
-                            CALL pair_potential_single_add(qmmm_env%inp_info%nonbonded14%pot(k)%pot,pot,error)
+                            CALL pair_potential_single_add(qmmm_env%inp_info%nonbonded14%pot(k)%pot,pot)
                             CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                                  "Multiple ONFO declaration: "//TRIM(name_atm_a)//&
                                  " and "//TRIM(name_atm_b)//" ADDING QM/MM forcefield specifications! "//&
@@ -2963,7 +2932,7 @@ CPSourceFileRef,&
                             potparm_nonbond14%pot(i,j)%pot => pot
                             potparm_nonbond14%pot(j,i)%pot => pot
                          ELSE
-                            CALL pair_potential_single_copy(qmmm_env%inp_info%nonbonded14%pot(k)%pot,pot,error)
+                            CALL pair_potential_single_copy(qmmm_env%inp_info%nonbonded14%pot(k)%pot,pot)
                             CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                                  "Multiple ONFO declaration: "//TRIM(name_atm_a)//&
                                  " and "//TRIM(name_atm_b)//" OVERWRITING QM/MM forcefield specifications! "//&
@@ -2983,9 +2952,8 @@ CPSourceFileRef,&
              CALL store_FF_missing_par(atm1=TRIM(name_atm_a),&
                                        atm2=TRIM(name_atm_b),&
                                        type_name="Spline_Bond_Env",&
-                                       array=Ainfo,&
-                                       error=error)
-             CALL pair_potential_single_clean(pot, error=error)
+                                       array=Ainfo)
+             CALL pair_potential_single_clean(pot)
              pot%type       = nn_type
              pot%at1        = name_atm_a
              pot%at2        = name_atm_b
@@ -2997,7 +2965,7 @@ CPSourceFileRef,&
           ! Cutoff is defined always as the maximum between the FF and Ewald
           pot%rcutsq = MAX(pot%rcutsq, ewald_rcut*ewald_rcut)
           IF (only_qm) THEN
-             CALL pair_potential_single_clean(pot, error=error)
+             CALL pair_potential_single_clean(pot)
           END IF
        END DO  ! atom kind j
     END DO  ! atom kind i
@@ -3023,7 +2991,7 @@ CPSourceFileRef,&
 ! *****************************************************************************
   SUBROUTINE force_field_pack_nonbond(atomic_kind_set, ff_type, qmmm_env, fatal, &
        iw, Ainfo, chm_info, inp_info, gro_info, amb_info, potparm_nonbond, &
-       ewald_env, error)
+       ewald_env)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
@@ -3039,7 +3007,6 @@ CPSourceFileRef,&
     TYPE(amber_info_type), POINTER           :: amb_info
     TYPE(pair_potential_pp_type), POINTER    :: potparm_nonbond
     TYPE(ewald_environment_type), POINTER    :: ewald_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_nonbond', &
       routineP = moduleN//':'//routineN
@@ -3060,8 +3027,8 @@ CPSourceFileRef,&
     failure = .FALSE.
     use_qmmm_ff = qmmm_env%use_qmmm_ff
     NULLIFY(pot)
-    CALL ewald_env_get(ewald_env, rcut=ewald_rcut, error=error)
-    CALL pair_potential_pp_create ( potparm_nonbond, SIZE(atomic_kind_set),error )
+    CALL ewald_env_get(ewald_env, rcut=ewald_rcut)
+    CALL pair_potential_pp_create ( potparm_nonbond, SIZE(atomic_kind_set))
     DO i=1,SIZE(atomic_kind_set)
        atomic_kind => atomic_kind_set(i)
        CALL get_atomic_kind(atomic_kind=atomic_kind, name=name_atm_a_local, &
@@ -3096,7 +3063,7 @@ CPSourceFileRef,&
              END DO
 
              IF(ii/=0 .AND. jj/=0) THEN
-                CALL  pair_potential_lj_create(pot%set(1)%lj, error)
+                CALL  pair_potential_lj_create(pot%set(1)%lj)
                 pot%type       = lj_type
                 pot%at1        = name_atm_a
                 pot%at2        = name_atm_b
@@ -3104,7 +3071,7 @@ CPSourceFileRef,&
                 pot%set(1)%lj%sigma6  = gro_info%nonbond_c6(ii,jj)
                 pot%set(1)%lj%sigma12 = gro_info%nonbond_c12(ii,jj)
                 pot%rcutsq     = (10.0_dp*bohr)**2
-                CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b, error=error)
+                CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b)
                 found = .TRUE.
              END IF
           END IF
@@ -3128,7 +3095,7 @@ CPSourceFileRef,&
                 rmin = chm_info%nonbond_rmin2(ii)+chm_info%nonbond_rmin2(jj)
                 epsilon0 = SQRT(chm_info%nonbond_eps(ii)*&
                      chm_info%nonbond_eps(jj))
-                CALL  pair_potential_lj_create(pot%set(1)%lj, error)
+                CALL  pair_potential_lj_create(pot%set(1)%lj)
                 pot%type       = lj_charmm_type
                 pot%at1        = name_atm_a
                 pot%at2        = name_atm_b
@@ -3136,7 +3103,7 @@ CPSourceFileRef,&
                 pot%set(1)%lj%sigma6  = 0.5_dp*rmin**6
                 pot%set(1)%lj%sigma12 = 0.25_dp*rmin**12
                 pot%rcutsq     = (10.0_dp*bohr)**2
-                CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b, error=error)
+                CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b)
                 found = .TRUE.
              END IF
           END IF
@@ -3159,7 +3126,7 @@ CPSourceFileRef,&
              IF(ii/=0 .AND. jj/=0) THEN
                 rmin = amb_info%nonbond_rmin2(ii)+amb_info%nonbond_rmin2(jj)
                 epsilon0 = SQRT(amb_info%nonbond_eps(ii)*amb_info%nonbond_eps(jj))
-                CALL  pair_potential_lj_create(pot%set(1)%lj, error)
+                CALL  pair_potential_lj_create(pot%set(1)%lj)
                 pot%type       = lj_charmm_type
                 pot%at1        = name_atm_a
                 pot%at2        = name_atm_b
@@ -3167,7 +3134,7 @@ CPSourceFileRef,&
                 pot%set(1)%lj%sigma6  = 0.5_dp*rmin**6
                 pot%set(1)%lj%sigma12 = 0.25_dp*rmin**12
                 pot%rcutsq     = (10.0_dp*bohr)**2
-                CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b, error=error)
+                CALL issue_duplications(found,routineP, "Lennard-Jones", name_atm_a, name_atm_b)
                 found = .TRUE.
              END IF
           END IF
@@ -3186,7 +3153,7 @@ CPSourceFileRef,&
                     (((name_atm_b)==(inp_info%nonbonded%pot(k)%pot%at1))  .AND. &
                      ((name_atm_a)==(inp_info%nonbonded%pot(k)%pot%at2))) ) THEN
                    IF (ff_type%multiple_potential) THEN
-                      CALL pair_potential_single_add(inp_info%nonbonded%pot(k)%pot,pot,error)
+                      CALL pair_potential_single_add(inp_info%nonbonded%pot(k)%pot,pot)
                       CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                            "Multiple NONBONDED declaration: "//TRIM(name_atm_a)//&
                            " and "//TRIM(name_atm_b)//" ADDING! "//&
@@ -3195,7 +3162,7 @@ CPSourceFileRef,&
                       potparm_nonbond%pot(i,j)%pot => pot
                       potparm_nonbond%pot(j,i)%pot => pot
                    ELSE
-                      CALL pair_potential_single_copy(inp_info%nonbonded%pot(k)%pot,pot,error)
+                      CALL pair_potential_single_copy(inp_info%nonbonded%pot(k)%pot,pot)
                       CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                            "Multiple NONBONDED declaration: "//TRIM(name_atm_a)//&
                            " and "//TRIM(name_atm_b)//" OVERWRITING! "//&
@@ -3221,7 +3188,7 @@ CPSourceFileRef,&
                        (name_atm_b==inp_info%nonbonded%pot(k)%pot%at1) .OR.&
                        (name_atm_a==inp_info%nonbonded%pot(k)%pot%at2) ) THEN
                       IF (ff_type%multiple_potential) THEN
-                         CALL pair_potential_single_add(inp_info%nonbonded%pot(k)%pot,pot,error)
+                         CALL pair_potential_single_add(inp_info%nonbonded%pot(k)%pot,pot)
                          CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                               "Multiple NONBONDED declaration: "//TRIM(name_atm_a)//&
                               " and "//TRIM(name_atm_b)//" ADDING! "//&
@@ -3230,7 +3197,7 @@ CPSourceFileRef,&
                          potparm_nonbond%pot(i,j)%pot => pot
                          potparm_nonbond%pot(j,i)%pot => pot
                       ELSE
-                         CALL pair_potential_single_copy(inp_info%nonbonded%pot(k)%pot,pot,error)
+                         CALL pair_potential_single_copy(inp_info%nonbonded%pot(k)%pot,pot)
                          CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                               "Multiple NONBONDED declaration: "//TRIM(name_atm_a)//&
                               " and "//TRIM(name_atm_b)//" OVERWRITING! "//&
@@ -3253,7 +3220,7 @@ CPSourceFileRef,&
                         TRIM(inp_info%nonbonded%pot(k)%pot%at2)
 
                    IF (ff_type%multiple_potential) THEN
-                      CALL pair_potential_single_add(inp_info%nonbonded%pot(k)%pot,pot,error)
+                      CALL pair_potential_single_add(inp_info%nonbonded%pot(k)%pot,pot)
                       CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                            "Multiple NONBONDED declaration: "//TRIM(name_atm_a)//&
                            " and "//TRIM(name_atm_b)//" ADDING! "//&
@@ -3262,7 +3229,7 @@ CPSourceFileRef,&
                       potparm_nonbond%pot(i,j)%pot => pot
                       potparm_nonbond%pot(j,i)%pot => pot
                    ELSE
-                      CALL pair_potential_single_copy(inp_info%nonbonded%pot(k)%pot,pot,error)
+                      CALL pair_potential_single_copy(inp_info%nonbonded%pot(k)%pot,pot)
                       CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                            "Multiple NONBONDED declaration: "//TRIM(name_atm_a)//&
                            " and "//TRIM(name_atm_b)//" OVERWRITING! "//&
@@ -3292,7 +3259,7 @@ CPSourceFileRef,&
                            (((name_atm_b)==(qmmm_env%inp_info%nonbonded%pot(k)%pot%at1))  .AND. &
                            ((name_atm_a) ==(qmmm_env%inp_info%nonbonded%pot(k)%pot%at2))) ) THEN
                          IF (qmmm_env%multiple_potential) THEN
-                            CALL pair_potential_single_add(qmmm_env%inp_info%nonbonded%pot(k)%pot,pot,error)
+                            CALL pair_potential_single_add(qmmm_env%inp_info%nonbonded%pot(k)%pot,pot)
                             CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                                  "Multiple NONBONDED declaration: "//TRIM(name_atm_a)//&
                                  " and "//TRIM(name_atm_b)//" ADDING QM/MM forcefield specifications! "//&
@@ -3301,7 +3268,7 @@ CPSourceFileRef,&
                             potparm_nonbond%pot(i,j)%pot => pot
                             potparm_nonbond%pot(j,i)%pot => pot
                          ELSE
-                            CALL pair_potential_single_copy(qmmm_env%inp_info%nonbonded%pot(k)%pot,pot,error)
+                            CALL pair_potential_single_copy(qmmm_env%inp_info%nonbonded%pot(k)%pot,pot)
                             CALL cp_assert(.NOT.found,cp_warning_level,cp_assertion_failed,routineP,&
                                  "Multiple NONBONDED declaration: "//TRIM(name_atm_a)//&
                                  " and "//TRIM(name_atm_b)//" OVERWRITING QM/MM forcefield specifications! "//&
@@ -3320,8 +3287,7 @@ CPSourceFileRef,&
                                        atm2=TRIM(name_atm_b),&
                                        type_name="Spline_Non_Bond_Env",&
                                        fatal=fatal,&
-                                       array=Ainfo,&
-                                       error=error)
+                                       array=Ainfo)
           END IF
           ! If defined global RCUT let's use it
           IF(ff_type%rcut_nb>0.0_dp) THEN
@@ -3338,7 +3304,7 @@ CPSourceFileRef,&
              pot%shell_type  = nosh_nosh
           END IF
           IF (only_qm) THEN
-             CALL pair_potential_single_clean(pot, error=error)
+             CALL pair_potential_single_clean(pot)
           END IF
        END DO  ! jkind
     END DO   ! ikind
@@ -3358,7 +3324,7 @@ CPSourceFileRef,&
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE force_field_pack_splines(atomic_kind_set, ff_type, iw2, iw3, iw4, &
-       potparm, do_zbl, nonbonded_type, error)
+       potparm, do_zbl, nonbonded_type)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
@@ -3367,7 +3333,6 @@ CPSourceFileRef,&
     TYPE(pair_potential_pp_type), POINTER    :: potparm
     LOGICAL, INTENT(IN)                      :: do_zbl
     CHARACTER(LEN=*), INTENT(IN)             :: nonbonded_type
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_splines', &
       routineP = moduleN//':'//routineN
@@ -3384,26 +3349,26 @@ CPSourceFileRef,&
     ! prepare storage for these, avoiding duplicates.
     NULLIFY(spline_env)
     CALL get_nonbond_storage(spline_env, potparm, atomic_kind_set, &
-         do_zbl, shift_cutoff=ff_type%shift_cutoff, error=error)
+         do_zbl, shift_cutoff=ff_type%shift_cutoff)
     ! Effectively compute the spline data.
     CALL spline_nonbond_control(spline_env, potparm, &
          atomic_kind_set, eps_spline=ff_type%eps_spline, &
          max_energy=ff_type%max_energy, rlow_nb=ff_type%rlow_nb, &
          emax_spline=ff_type%emax_spline, npoints=ff_type%npoints, iw=iw2, iw2=iw3, iw3=iw4, &
          do_zbl=do_zbl, shift_cutoff=ff_type%shift_cutoff, &
-         nonbonded_type=nonbonded_type, error=error)
+         nonbonded_type=nonbonded_type)
     ! Let the pointers on potparm point to the splines generated in
     ! spline_nonbond_control.
     DO ikind = 1, SIZE ( potparm%pot, 1 )
        DO jkind = ikind, SIZE ( potparm%pot, 2)
           n = spline_env % spltab ( ikind, jkind )
           spl_p => spline_env%spl_pp(n)%spl_p
-          CALL spline_data_p_retain ( spl_p, error )
-          CALL spline_data_p_release ( potparm%pot(ikind,jkind)%pot%pair_spline_data, error )
+          CALL spline_data_p_retain ( spl_p)
+          CALL spline_data_p_release ( potparm%pot(ikind,jkind)%pot%pair_spline_data)
           potparm%pot(ikind,jkind)%pot%pair_spline_data => spl_p
        END DO
     END DO
-    CALL spline_env_release(spline_env,error)
+    CALL spline_env_release(spline_env)
     CALL timestop(handle2)
 
   END SUBROUTINE force_field_pack_splines
@@ -3418,14 +3383,13 @@ CPSourceFileRef,&
 !> \author Toon.Verstraelen@gmail.com
 ! *****************************************************************************
   SUBROUTINE force_field_pack_eicut(atomic_kind_set, ff_type, &
-      potparm_nonbond, ewald_env, error)
+      potparm_nonbond, ewald_env)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
     TYPE(force_field_type), INTENT(IN)       :: ff_type
     TYPE(pair_potential_pp_type), POINTER    :: potparm_nonbond
     TYPE(ewald_environment_type), POINTER    :: ewald_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'force_field_pack_eicut', &
       routineP = moduleN//':'//routineN
@@ -3448,7 +3412,7 @@ CPSourceFileRef,&
     ! allocate the array with interaction cutoffs for the electrostatics, used
     ! to make the electrostatic interaction continuous at ewald_env%rcut
     ALLOCATE(interaction_cutoffs(3,nkinds,nkinds), stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     interaction_cutoffs = 0.0_dp
 
     ! compute the interaction cutoff if SHIFT_CUTOFF is active
@@ -3510,14 +3474,13 @@ CPSourceFileRef,&
 !> \author Teodoro Laino [tlaino] - University of Zurich 10.2008
 ! *****************************************************************************
   SUBROUTINE issue_duplications(found, routinePext, tag_label, name_atm_a, name_atm_b,&
-       name_atm_c, name_atm_d, error)
+       name_atm_c, name_atm_d)
 
     LOGICAL, INTENT(IN)                      :: found
     CHARACTER(LEN=*), INTENT(IN)             :: routinePext, tag_label, &
                                                 name_atm_a
     CHARACTER(LEN=*), INTENT(IN), OPTIONAL   :: name_atm_b, name_atm_c, &
                                                 name_atm_d
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'issue_duplications', &
       routineP = moduleN//':'//routineN
@@ -3555,14 +3518,13 @@ CPSourceFileRef,&
 !> \param array ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE store_FF_missing_par(atm1,atm2,atm3,atm4,type_name,fatal,array,error)
+  SUBROUTINE store_FF_missing_par(atm1,atm2,atm3,atm4,type_name,fatal,array)
     CHARACTER(LEN=*), INTENT(IN)             :: atm1
     CHARACTER(LEN=*), INTENT(IN), OPTIONAL   :: atm2, atm3, atm4
     CHARACTER(LEN=*), INTENT(IN)             :: type_name
     LOGICAL, INTENT(INOUT), OPTIONAL         :: fatal
     CHARACTER(LEN=default_string_length), &
       DIMENSION(:), POINTER                  :: array
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'store_FF_missing_par', &
       routineP = moduleN//':'//routineN
@@ -3684,7 +3646,7 @@ CPSourceFileRef,&
       ((atm1==my_atm2).AND.(atm2==my_atm1))) found = .TRUE.
           CASE DEFAULT
              ! Should never reach this point
-             CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+             CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
           END SELECT
           IF (found) EXIT
        END DO

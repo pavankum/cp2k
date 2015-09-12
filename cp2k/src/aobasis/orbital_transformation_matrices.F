@@ -341,11 +341,10 @@ CONTAINS
 !> \author MK
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE init_spherical_harmonics(maxl,output_unit,error)
+  SUBROUTINE init_spherical_harmonics(maxl,output_unit)
 
     INTEGER, INTENT(IN)                      :: maxl
     INTEGER                                  :: output_unit
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'init_spherical_harmonics', &
       routineP = moduleN//':'//routineN

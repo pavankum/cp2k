@@ -100,12 +100,11 @@ CONTAINS
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 ! *****************************************************************************
-  SUBROUTINE md_env_create(md_env, md_section, para_env, force_env, error)
+  SUBROUTINE md_env_create(md_env, md_section, para_env, force_env)
     TYPE(md_environment_type), POINTER       :: md_env
     TYPE(section_vals_type), POINTER         :: md_section
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(force_env_type), POINTER            :: force_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'md_env_create', &
       routineP = moduleN//':'//routineN
@@ -116,7 +115,7 @@ CONTAINS
 
     failure = .FALSE.
     ALLOCATE(md_env, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     last_md_env_id=last_md_env_id+1
     md_env%id_nr=last_md_env_id
     md_env%ref_count=1
@@ -135,15 +134,15 @@ CONTAINS
     NULLIFY(md_env%averages)
     NULLIFY(md_env%thermal_regions)
     md_env%para_env => para_env
-    CALL cp_para_env_retain(md_env%para_env, error=error)
+    CALL cp_para_env_retain(md_env%para_env)
     ALLOCATE( md_env%itimes, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE( md_env%constant, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE( md_env%used_time, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE( md_env%t, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     md_env%itimes         = -1
     md_env%constant       = 0.0_dp
     md_env%used_time      = 0.0_dp
@@ -151,8 +150,8 @@ CONTAINS
     md_env%init           = .TRUE.
     md_env%first_time     = .TRUE.
     md_env%ehrenfest_md   = .FALSE.
-    averages_section => section_vals_get_subs_vals(md_section,"AVERAGES",error=error)
-    CALL create_averages(md_env%averages, averages_section, force_env=force_env, error=error)
+    averages_section => section_vals_get_subs_vals(md_section,"AVERAGES")
+    CALL create_averages(md_env%averages, averages_section, force_env=force_env)
 
   END SUBROUTINE md_env_create
 
@@ -167,9 +166,8 @@ CONTAINS
 !> \note
 !>      see doc/ReferenceCounting.html
 ! *****************************************************************************
-  SUBROUTINE md_env_retain(md_env, error)
+  SUBROUTINE md_env_retain(md_env)
     TYPE(md_environment_type), POINTER       :: md_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'md_env_retain', &
       routineP = moduleN//':'//routineN
@@ -178,8 +176,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(md_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(md_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(md_env),cp_failure_level,routineP,failure)
+    CPPrecondition(md_env%ref_count>0,cp_failure_level,routineP,failure)
     md_env%ref_count=md_env%ref_count+1
   END SUBROUTINE md_env_retain
 
@@ -194,9 +192,8 @@ CONTAINS
 !> \note
 !>      see doc/ReferenceCounting.html
 ! *****************************************************************************
-  SUBROUTINE md_env_release(md_env, error)
+  SUBROUTINE md_env_release(md_env)
     TYPE(md_environment_type), POINTER       :: md_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'md_env_release', &
       routineP = moduleN//':'//routineN
@@ -207,31 +204,31 @@ CONTAINS
     failure=.FALSE.
 
     IF (ASSOCIATED(md_env)) THEN
-       CPPrecondition(md_env%ref_count>0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(md_env%ref_count>0,cp_failure_level,routineP,failure)
        md_env%ref_count=md_env%ref_count-1
        IF (md_env%ref_count==0) THEN
-          CALL fe_env_release( md_env%fe_env, error=error)
-          CALL cp_para_env_release(md_env%para_env, error = error)
+          CALL fe_env_release( md_env%fe_env)
+          CALL cp_para_env_release(md_env%para_env)
           DEALLOCATE( md_env%itimes , stat=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           DEALLOCATE( md_env%constant , stat=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           DEALLOCATE( md_env%used_time , stat=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           DEALLOCATE( md_env%t , stat=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
           NULLIFY(md_env%cell)
           NULLIFY(md_env%simpar)
-          CALL release_barostat_type(md_env%barostat, error)
-          CALL release_thermostats(md_env%thermostats, error)
-          CALL release_reftraj(md_env%reftraj, error)
-          CALL release_md_ener(md_env%md_ener, error)
-          CALL force_env_release(md_env%force_env, error=error)
-          CALL release_averages(md_env%averages, error)
-          CALL release_thermal_regions(md_env%thermal_regions, error)
+          CALL release_barostat_type(md_env%barostat)
+          CALL release_thermostats(md_env%thermostats)
+          CALL release_reftraj(md_env%reftraj)
+          CALL release_md_ener(md_env%md_ener)
+          CALL force_env_release(md_env%force_env)
+          CALL release_averages(md_env%averages)
+          CALL release_thermal_regions(md_env%thermal_regions)
           DEALLOCATE(md_env,stat=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        END IF
     END IF
   END SUBROUTINE md_env_release
@@ -271,7 +268,7 @@ CONTAINS
        force_env, para_env, reftraj, t, init, first_time,fe_env, thermostats, barostat, &
        thermostat_coeff, thermostat_part, thermostat_shell, thermostat_baro,&
        thermostat_fast, thermostat_slow, md_ener, averages,  &
-       thermal_regions,ehrenfest_md, error)
+       thermal_regions,ehrenfest_md)
 
     TYPE(md_environment_type), POINTER       :: md_env
     INTEGER, OPTIONAL, POINTER               :: itimes
@@ -299,7 +296,6 @@ CONTAINS
     TYPE(thermal_regions_type), OPTIONAL, &
       POINTER                                :: thermal_regions
     LOGICAL, OPTIONAL                        :: ehrenfest_md
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_md_env', &
       routineP = moduleN//':'//routineN
@@ -308,7 +304,7 @@ CONTAINS
 
     failure = .FALSE.
     check = ASSOCIATED(md_env)
-    CPPrecondition(check,cp_failure_level,routineP,error,failure)
+    CPPrecondition(check,cp_failure_level,routineP,failure)
     IF (PRESENT(itimes)) itimes => md_env%itimes
     IF (PRESENT(fe_env)) fe_env => md_env%fe_env
     IF (PRESENT(constant)) constant => md_env%constant
@@ -383,7 +379,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE set_md_env(md_env, itimes, constant, cell, simpar, fe_env, force_env,&
        para_env, init, first_time,thermostats, barostat, reftraj, md_ener, averages,&
-       thermal_regions,ehrenfest_md, error)
+       thermal_regions,ehrenfest_md)
 
     TYPE(md_environment_type), POINTER       :: md_env
     INTEGER, OPTIONAL, POINTER               :: itimes
@@ -406,7 +402,6 @@ CONTAINS
     TYPE(thermal_regions_type), OPTIONAL, &
       POINTER                                :: thermal_regions
     LOGICAL, OPTIONAL                        :: ehrenfest_md
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'set_md_env', &
       routineP = moduleN//':'//routineN
@@ -415,19 +410,19 @@ CONTAINS
 
     failure = .FALSE.
     check = ASSOCIATED(md_env)
-    CPPrecondition(check,cp_failure_level,routineP,error,failure)
+    CPPrecondition(check,cp_failure_level,routineP,failure)
     IF(PRESENT (init)) md_env%init = init
     IF(PRESENT (first_time)) md_env%first_time = first_time
     IF (PRESENT(ehrenfest_md)) md_env%ehrenfest_md=ehrenfest_md
     IF(PRESENT(cell)) md_env%cell => cell
     IF(PRESENT(barostat)) THEN
-       CALL release_barostat_type(md_env%barostat, error=error)
-       CALL retain_barostat_type(barostat, error=error)
+       CALL release_barostat_type(md_env%barostat)
+       CALL retain_barostat_type(barostat)
        md_env%barostat => barostat
     END IF
     IF(PRESENT(thermostats)) THEN
-       CALL release_thermostats(md_env%thermostats, error=error)
-       CALL retain_thermostats(thermostats, error=error)
+       CALL release_thermostats(md_env%thermostats)
+       CALL retain_thermostats(thermostats)
        md_env%thermostats => thermostats
     END IF
     IF(PRESENT(simpar)) md_env%simpar => simpar
@@ -437,31 +432,31 @@ CONTAINS
     IF(PRESENT(para_env)) md_env%para_env => para_env
     IF(PRESENT(force_env)) THEN
        IF (ASSOCIATED(force_env)) THEN
-          CALL force_env_retain (force_env, error=error)
+          CALL force_env_retain (force_env)
        END IF
        IF (ASSOCIATED(md_env%force_env)) THEN
-          CALL force_env_release (md_env%force_env, error=error)
+          CALL force_env_release (md_env%force_env)
        END IF
        md_env%force_env => force_env
     END IF
     IF(PRESENT(reftraj)) THEN
-       CALL release_reftraj(md_env%reftraj, error=error)
-       CALL retain_reftraj(reftraj, error=error)
+       CALL release_reftraj(md_env%reftraj)
+       CALL retain_reftraj(reftraj)
        md_env%reftraj => reftraj
     END IF
     IF(PRESENT(md_ener)) THEN
-       CALL release_md_ener(md_env%md_ener, error=error)
-       CALL retain_md_ener(md_ener, error=error)
+       CALL release_md_ener(md_env%md_ener)
+       CALL retain_md_ener(md_ener)
        md_env%md_ener => md_ener
     END IF
     IF (PRESENT(averages)) THEN
-       CALL release_averages(md_env%averages, error=error)
-       CALL retain_averages(averages, error=error)
+       CALL release_averages(md_env%averages)
+       CALL retain_averages(averages)
        md_env%averages => averages
     END IF
     IF(PRESENT(thermal_regions)) THEN
-       CALL release_thermal_regions(md_env%thermal_regions, error=error)
-       CALL retain_thermal_regions(thermal_regions, error=error)
+       CALL release_thermal_regions(md_env%thermal_regions)
+       CALL retain_thermal_regions(thermal_regions)
        md_env%thermal_regions => thermal_regions
     END IF
 
@@ -477,9 +472,8 @@ CONTAINS
 !>      02.2012 created [noamb]
 !> \author Noam Bernstein
 ! *****************************************************************************
-   FUNCTION need_per_atom_wiener_process(md_env, error) 
+   FUNCTION need_per_atom_wiener_process(md_env) 
     TYPE(md_environment_type), POINTER       :: md_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
     LOGICAL                                  :: need_per_atom_wiener_process
 
 ! return value

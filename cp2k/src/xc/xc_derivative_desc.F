@@ -54,12 +54,11 @@ CONTAINS
 !> \param error variable to control error logging, stopping,...
 !>                    see module cp_error_handling
 ! *****************************************************************************
- SUBROUTINE standardize_derivative_desc(deriv_desc,res,error)
+ SUBROUTINE standardize_derivative_desc(deriv_desc,res)
     CHARACTER(len=*), INTENT(in)             :: deriv_desc
     CHARACTER&
       (LEN=MAX_DERIVATIVE_DESC_LENGTH), &
       INTENT(OUT)                            :: res
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'standardize_derivative_desc', &
       routineP = moduleN//':'//routineN
@@ -70,7 +69,7 @@ CONTAINS
     INTEGER                                  :: i, l_label, pos, stat
     LOGICAL                                  :: ordered
 
-    CALL create_split_derivative_desc(deriv_desc,deriv_array,error=error)
+    CALL create_split_derivative_desc(deriv_desc,deriv_array)
 
     ordered=.FALSE.
     DO WHILE(.not.ordered)
@@ -94,7 +93,7 @@ CONTAINS
     END DO
 
     DEALLOCATE(deriv_array, stat=stat)
-    CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
 
   END SUBROUTINE standardize_derivative_desc
 
@@ -105,11 +104,10 @@ CONTAINS
 !> \param error variable to control error logging, stopping,...
 !>                    see module cp_error_handling
 ! *****************************************************************************
-  SUBROUTINE create_split_derivative_desc(deriv_desc,res,error)
+  SUBROUTINE create_split_derivative_desc(deriv_desc,res)
     CHARACTER(len=*), INTENT(in)             :: deriv_desc
     CHARACTER(len=MAX_LABEL_LENGTH), &
       DIMENSION(:), POINTER                  :: res
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'create_split_derivative_desc', &
       routineP = moduleN//':'//routineN
@@ -125,7 +123,7 @@ CONTAINS
     END DO
 
     ALLOCATE(res(nderiv),stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     nderiv=0
     DO i=1,LEN(deriv_desc)

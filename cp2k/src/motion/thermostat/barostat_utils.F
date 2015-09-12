@@ -49,14 +49,13 @@ CONTAINS
 !>      none
 !> \author CJM
 ! *****************************************************************************
-  SUBROUTINE get_baro_energies ( cell, simpar, npt, baro_kin, baro_pot, error )
+  SUBROUTINE get_baro_energies ( cell, simpar, npt, baro_kin, baro_pot)
 
     TYPE(cell_type), POINTER                 :: cell
     TYPE(simpar_type), INTENT(IN)            :: simpar
     TYPE(npt_info_type), DIMENSION(:, :), &
       INTENT(IN)                             :: npt
     REAL(KIND=dp), INTENT(OUT)               :: baro_kin, baro_pot
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_baro_energies', &
       routineP = moduleN//':'//routineN
@@ -100,14 +99,13 @@ CONTAINS
 !> \param error ...
 !> \author Teodoro Laino [tlaino] - 02.2008 - University of Zurich
 ! *****************************************************************************
-  SUBROUTINE print_barostat_status ( barostat, simpar, my_pos, my_act, cell, itimes, time, error )
+  SUBROUTINE print_barostat_status ( barostat, simpar, my_pos, my_act, cell, itimes, time)
     TYPE(barostat_type), POINTER             :: barostat
     TYPE(simpar_type), INTENT(IN)            :: simpar
     CHARACTER(LEN=default_string_length)     :: my_pos, my_act
     TYPE(cell_type), POINTER                 :: cell
     INTEGER, INTENT(IN)                      :: itimes
     REAL(KIND=dp), INTENT(IN)                :: time
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'print_barostat_status', &
       routineP = moduleN//':'//routineN
@@ -119,13 +117,12 @@ CONTAINS
 
     failure = .FALSE.
     NULLIFY(logger)
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     IF (ASSOCIATED(barostat)) THEN
        baro = cp_print_key_unit_nr(logger,barostat%section,"PRINT%ENERGY",&
-            extension=".bener",file_position=my_pos, file_action=my_act, is_new_file=new_file,&
-            error=error)
-       CALL  get_baro_energies ( cell, simpar, barostat%npt, baro_kin, baro_pot, error )
+            extension=".bener",file_position=my_pos, file_action=my_act, is_new_file=new_file)
+       CALL  get_baro_energies ( cell, simpar, barostat%npt, baro_kin, baro_pot)
        nfree = SIZE(barostat%npt,1) * SIZE(barostat%npt, 2)
        temp = 2.0_dp * baro_kin / REAL(nfree,dp)*kelvin
        IF(baro > 0) THEN
@@ -137,7 +134,7 @@ CONTAINS
                baro_kin, temp, baro_pot, cell%deth*angstrom*angstrom*angstrom
           CALL m_flush(baro)
        END IF
-       CALL cp_print_key_finished_output(baro,logger,barostat%section,"PRINT%ENERGY", error=error)
+       CALL cp_print_key_finished_output(baro,logger,barostat%section,"PRINT%ENERGY")
     END IF
 
   END SUBROUTINE print_barostat_status

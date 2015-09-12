@@ -377,12 +377,11 @@ END FUNCTION
 !> \param sumUp ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_mult1(p1,p2,pRes,np1,sumUp,error)
+SUBROUTINE poly_mult1(p1,p2,pRes,np1,sumUp)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p1, p2
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: np1
     LOGICAL, INTENT(in), OPTIONAL            :: sumUp
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_mult1', &
       routineP = moduleN//':'//routineN
@@ -401,7 +400,7 @@ SUBROUTINE poly_mult1(p1,p2,pRes,np1,sumUp,error)
     size_p2=SIZE(p2)
     newGrad=grad_size1(size_p1)+grad_size1(size_p2)
     newSize=SIZE(pRes)/myNp1
-    CPPreconditionNoFail(newSize>=poly_size1(newGrad),cp_failure_level,routineP,error)
+    CPPreconditionNoFail(newSize>=poly_size1(newGrad),cp_failure_level,routineP)
     IF (.not.mySumUp) pRes=0
     iPos=1
     resShift_0=0
@@ -427,12 +426,11 @@ END SUBROUTINE
 !> \param sumUp ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_mult2(p1,p2,pRes,np1,sumUp,error)
+SUBROUTINE poly_mult2(p1,p2,pRes,np1,sumUp)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p1, p2
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: np1
     LOGICAL, INTENT(in), OPTIONAL            :: sumUp
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_mult2', &
       routineP = moduleN//':'//routineN
@@ -453,7 +451,7 @@ SUBROUTINE poly_mult2(p1,p2,pRes,np1,sumUp,error)
     grad2=grad_size2(size_p2)
     newGrad=grad1+grad2
     newSize=SIZE(pRes)/myNp1
-    CPPreconditionNoFail(newSize>=poly_size2(newGrad),cp_failure_level,routineP,error)
+    CPPreconditionNoFail(newSize>=poly_size2(newGrad),cp_failure_level,routineP)
     IF (.not.mySumUp) pRes=0
     iShift=0
     shiftRes=0
@@ -511,12 +509,11 @@ END SUBROUTINE
 !> \param sumUp ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_mult3(p1,p2,pRes,np1,sumUp,error)
+SUBROUTINE poly_mult3(p1,p2,pRes,np1,sumUp)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p1, p2
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: np1
     LOGICAL, INTENT(in), OPTIONAL            :: sumUp
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_mult3', &
       routineP = moduleN//':'//routineN
@@ -536,7 +533,7 @@ SUBROUTINE poly_mult3(p1,p2,pRes,np1,sumUp,error)
     grad2=grad_size3(size_p2)
     newGrad=grad1+grad2
     newSize=SIZE(pRes)/myNp1
-    CPPreconditionNoFail(newSize>=poly_size3(newGrad),cp_failure_level,routineP,error)
+    CPPreconditionNoFail(newSize>=poly_size3(newGrad),cp_failure_level,routineP)
     CALL poly_mult3b(p1,SIZE(p1),grad1,p2,SIZE(p2),grad2,pRes,SIZE(pRes),myNp1,mySumUp)
 END SUBROUTINE
 
@@ -848,11 +845,10 @@ END SUBROUTINE
 !> \param error ...
 !> \retval res ...
 ! *****************************************************************************
-FUNCTION poly_random(p,maxSize,minSize,error) RESULT(res)
+FUNCTION poly_random(p,maxSize,minSize) RESULT(res)
     REAL(dp), DIMENSION(:), INTENT(out)      :: p
     INTEGER, INTENT(in)                      :: maxSize
     INTEGER, INTENT(in), OPTIONAL            :: minSize
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER                                  :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_random', &
@@ -866,7 +862,7 @@ FUNCTION poly_random(p,maxSize,minSize,error) RESULT(res)
     IF (PRESENT(minSize)) myMinSize=minSize
     CALL RANDOM_NUMBER(g)
     pSize=MIN(maxSize,myMinSize+INT((maxSize-myMinSize+1)*g))
-    CPPreconditionNoFail(SIZE(p)>=pSize,cp_failure_level,routineP,error)
+    CPPreconditionNoFail(SIZE(p)>=pSize,cp_failure_level,routineP)
     CALL RANDOM_NUMBER(p)
     DO i=1,pSize
         p(i)=REAL(INT(p(i)*200.0_dp-100.0_dp),dp)/100.0_dp
@@ -887,13 +883,12 @@ END FUNCTION
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_affine_t3t(p,m,b,pRes,npoly,error)
+SUBROUTINE poly_affine_t3t(p,m,b,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p
     REAL(dp), DIMENSION(3, 3), INTENT(in)    :: m
     REAL(dp), DIMENSION(3), INTENT(in)       :: b
     REAL(dp), DIMENSION(:), INTENT(out)      :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_affine_t3t', &
       routineP = moduleN//':'//routineN
@@ -918,8 +913,8 @@ SUBROUTINE poly_affine_t3t(p,m,b,pRes,npoly,error)
     size_res=SIZE(p)/my_npoly
     grad=grad_size3(size_res)
     minResSize=poly_size3(grad)
-    CPPreconditionNoFail(size_res==minResSize,cp_failure_level,routineP,error)
-    CPPreconditionNoFail(size_p>=minResSize,cp_failure_level,routineP,error)
+    CPPreconditionNoFail(size_res==minResSize,cp_failure_level,routineP)
+    CPPreconditionNoFail(size_p>=minResSize,cp_failure_level,routineP)
     pRes=0
     IF (size_p==0) RETURN
     ii1=1
@@ -933,7 +928,7 @@ SUBROUTINE poly_affine_t3t(p,m,b,pRes,npoly,error)
 
     ALLOCATE(monoG1((grad+1)*(grad+2)/2*minResSize),&
         monoG2((grad+1)*(grad+2)/2*minResSize),stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
     !monoG1=0
     !monoG2=0
     ii1=1
@@ -1043,7 +1038,7 @@ SUBROUTINE poly_affine_t3t(p,m,b,pRes,npoly,error)
         ! monoFullDim1=monoFullDim2
     END DO
     DEALLOCATE(monoG1,monoG2,stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
 END SUBROUTINE
 
 ! *****************************************************************************
@@ -1055,13 +1050,12 @@ END SUBROUTINE
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_affine_t3(p,m,b,pRes,npoly,error)
+SUBROUTINE poly_affine_t3(p,m,b,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p
     REAL(dp), DIMENSION(3, 3), INTENT(in)    :: m
     REAL(dp), DIMENSION(3), INTENT(in)       :: b
     REAL(dp), DIMENSION(:), INTENT(out)      :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_affine_t3', &
       routineP = moduleN//':'//routineN
@@ -1086,7 +1080,7 @@ SUBROUTINE poly_affine_t3(p,m,b,pRes,npoly,error)
     grad=grad_size3(size_p)
     size_res=SIZE(pRes)/my_npoly
     minResSize=poly_size3(grad)
-    CPPreconditionNoFail(size_res>=minResSize,cp_failure_level,routineP,error)
+    CPPreconditionNoFail(size_res>=minResSize,cp_failure_level,routineP)
     pRes=0
     IF (size_p==0) RETURN
     ii1=1
@@ -1100,7 +1094,7 @@ SUBROUTINE poly_affine_t3(p,m,b,pRes,npoly,error)
 
     ALLOCATE(monoG1((grad+1)*(grad+2)/2*minResSize),&
         monoG2((grad+1)*(grad+2)/2*minResSize),stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
     monoG1=0
     monoG2=0
     ii1=1
@@ -1211,7 +1205,7 @@ SUBROUTINE poly_affine_t3(p,m,b,pRes,npoly,error)
         ! monoFullDim1=monoFullDim2
     END DO
     DEALLOCATE(monoG1,monoG2,stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
 END SUBROUTINE
 
 ! *****************************************************************************
@@ -1222,12 +1216,11 @@ END SUBROUTINE
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_p_eval3(p,x,pRes,npoly,error)
+SUBROUTINE poly_p_eval3(p,x,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p
     REAL(dp), INTENT(in)                     :: x
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_p_eval3', &
       routineP = moduleN//':'//routineN
@@ -1242,13 +1235,13 @@ SUBROUTINE poly_p_eval3(p,x,pRes,npoly,error)
     size_p=SIZE(p)/my_npoly
     grad=grad_size3(size_p)
     newSize=SIZE(pRes)/my_npoly
-    CPPreconditionNoFail(newSize>=poly_size2(grad),cp_failure_level,routineP,error)
+    CPPreconditionNoFail(newSize>=poly_size2(grad),cp_failure_level,routineP)
     pRes=0.0
     ALLOCATE(xi(grad+1),stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
     CALL poly_p_eval3b(p,SIZE(p),x,pRes,SIZE(pRes),my_npoly,grad,xi)
     DEALLOCATE(xi,stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
 END SUBROUTINE
 
 ! *****************************************************************************
@@ -1341,12 +1334,11 @@ END SUBROUTINE
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_padd_uneval3(p,x,pRes,npoly,error)
+SUBROUTINE poly_padd_uneval3(p,x,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(inout)    :: p
     REAL(dp), INTENT(in)                     :: x
     REAL(dp), DIMENSION(:), INTENT(in)       :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_padd_uneval3', &
       routineP = moduleN//':'//routineN
@@ -1361,13 +1353,13 @@ SUBROUTINE poly_padd_uneval3(p,x,pRes,npoly,error)
     size_p=SIZE(p)/my_npoly
     newSize=SIZE(pRes)/my_npoly
     grad=grad_size2(newSize)
-    CPPreconditionNoFail(size_p>=poly_size3(grad),cp_failure_level,routineP,error)
-    CPPreconditionNoFail(newSize==poly_size2(grad),cp_failure_level,routineP,error)
+    CPPreconditionNoFail(size_p>=poly_size3(grad),cp_failure_level,routineP)
+    CPPreconditionNoFail(newSize==poly_size2(grad),cp_failure_level,routineP)
     ALLOCATE(xi(grad+1),stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
     CALL poly_padd_uneval3b(p,SIZE(p),x,pRes,SIZE(pRes),my_npoly,grad,xi)
     DEALLOCATE(xi,stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
 END SUBROUTINE
 
 ! *****************************************************************************
@@ -1459,12 +1451,11 @@ END SUBROUTINE
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_p_eval2(p,x,pRes,npoly,error)
+SUBROUTINE poly_p_eval2(p,x,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p
     REAL(dp), INTENT(in)                     :: x
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_p_eval2', &
       routineP = moduleN//':'//routineN
@@ -1480,12 +1471,12 @@ SUBROUTINE poly_p_eval2(p,x,pRes,npoly,error)
     grad=grad_size2(size_p)
     newSize=SIZE(pRes)/my_npoly
     pRes=0.0_dp
-    CPPreconditionNoFail(newSize>=poly_size1(grad),cp_failure_level,routineP,error)
+    CPPreconditionNoFail(newSize>=poly_size1(grad),cp_failure_level,routineP)
     ALLOCATE(xi(grad+1),stat=stat)
-    CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
     CALL poly_p_eval2b(p,SIZE(p),x,pRes,SIZE(pRes),my_npoly,grad,xi)
     DEALLOCATE(xi,stat=stat)
-    CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
 END SUBROUTINE
 
 ! *****************************************************************************
@@ -1524,7 +1515,7 @@ SUBROUTINE poly_p_eval2b(p,size_p,x,pRes,size_pRes,npoly,grad,xi)
     inSize=size_p/npoly
     newSize=size_pRes/npoly
     pRes(1:size_pRes)=0.0_dp
-    !CPPreconditionNoFail(newSize>grad,cp_failure_level,routineP,error)
+    !CPPreconditionNoFail(newSize>grad,cp_failure_level,routineP)
     xi(1)=1.0_dp
     DO i=1,grad
         xi(i+1)=xi(i)*x
@@ -1572,12 +1563,11 @@ END SUBROUTINE
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_padd_uneval2(p,x,pRes,npoly,error)
+SUBROUTINE poly_padd_uneval2(p,x,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(inout)    :: p
     REAL(dp), INTENT(in)                     :: x
     REAL(dp), DIMENSION(:), INTENT(in)       :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_padd_uneval2', &
       routineP = moduleN//':'//routineN
@@ -1592,13 +1582,13 @@ SUBROUTINE poly_padd_uneval2(p,x,pRes,npoly,error)
     size_p=SIZE(p)/my_npoly
     newSize=SIZE(pRes)/my_npoly
     grad=grad_size1(newSize)
-    CPPreconditionNoFail(size_p>=poly_size2(grad),cp_failure_level,routineP,error)
-    CPPreconditionNoFail(newSize==poly_size1(grad),cp_failure_level,routineP,error)
+    CPPreconditionNoFail(size_p>=poly_size2(grad),cp_failure_level,routineP)
+    CPPreconditionNoFail(newSize==poly_size1(grad),cp_failure_level,routineP)
     ALLOCATE(xi(grad+1),stat=stat)
-    CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
     CALL poly_padd_uneval2b(p,SIZE(p),x,pRes,SIZE(pRes),my_npoly,grad,xi)
     DEALLOCATE(xi,stat=stat)
-    CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
 END SUBROUTINE
 
 ! *****************************************************************************
@@ -1638,7 +1628,7 @@ SUBROUTINE poly_padd_uneval2b(p,size_p,x,pRes,size_pRes,npoly,grad,xi)
     inSize=size_p/npoly
     upSize=(grad+1)*(grad+2)/2
     newSize=size_pRes/npoly
-    !CPPreconditionNoFail(newSize>grad,cp_failure_level,routineP,error)
+    !CPPreconditionNoFail(newSize>grad,cp_failure_level,routineP)
     xi(1)=1.0_dp
     DO i=1,grad
         xi(i+1)=xi(i)*x
@@ -1684,12 +1674,11 @@ END SUBROUTINE
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_eval1(p,x,pRes,npoly,error)
+SUBROUTINE poly_eval1(p,x,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p
     REAL(dp), INTENT(in)                     :: x
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_eval1', &
       routineP = moduleN//':'//routineN
@@ -1701,7 +1690,7 @@ SUBROUTINE poly_eval1(p,x,pRes,npoly,error)
     my_npoly=1
     IF (PRESENT(npoly)) my_npoly=npoly
     size_p=SIZE(p)/my_npoly
-    CPPreconditionNoFail(SIZE(pRes)>=my_npoly,cp_failure_level,routineP,error)
+    CPPreconditionNoFail(SIZE(pRes)>=my_npoly,cp_failure_level,routineP)
     pShift=0
     DO ipoly=1,my_npoly
         xx=1.0_dp
@@ -1724,12 +1713,11 @@ END SUBROUTINE
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_eval2(p,x,y,pRes,npoly,error)
+SUBROUTINE poly_eval2(p,x,y,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p
     REAL(dp), INTENT(in)                     :: x, y
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_eval2', &
       routineP = moduleN//':'//routineN
@@ -1745,9 +1733,9 @@ SUBROUTINE poly_eval2(p,x,y,pRes,npoly,error)
     IF (PRESENT(npoly)) my_npoly=npoly
     size_p=SIZE(p)/my_npoly
     grad=grad_size2(size_p)
-    CPPreconditionNoFail(SIZE(pRes)>=my_npoly,cp_failure_level,routineP,error)
+    CPPreconditionNoFail(SIZE(pRes)>=my_npoly,cp_failure_level,routineP)
     ALLOCATE(xi(grad+1),yi(grad+1),stat=stat)
-    CPPostconditionNoFail(stat==0,cp_failure_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_failure_level,routineP)
     xi(1)=1.0_dp
     DO i=1,grad
         xi(i+1)=xi(i)*x
@@ -1798,12 +1786,11 @@ END SUBROUTINE
 !> \param npoly ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_eval3(p,x,y,z,pRes,npoly,error)
+SUBROUTINE poly_eval3(p,x,y,z,pRes,npoly)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p
     REAL(dp), INTENT(in)                     :: x, y, z
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_eval3', &
       routineP = moduleN//':'//routineN
@@ -1819,9 +1806,9 @@ SUBROUTINE poly_eval3(p,x,y,z,pRes,npoly,error)
     IF (PRESENT(npoly)) my_npoly=npoly
     size_p=SIZE(p)/my_npoly
     grad=grad_size3(size_p)
-    CPPreconditionNoFail(SIZE(pRes)>=my_npoly,cp_failure_level,routineP,error)
+    CPPreconditionNoFail(SIZE(pRes)>=my_npoly,cp_failure_level,routineP)
     ALLOCATE(xi(grad+1),yi(grad+1),zi(grad+1),stat=stat)
-    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP,error)
+    CPPostconditionNoFail(stat==0,cp_fatal_level,routineP)
     xi(1)=1.0_dp
     DO i=1,grad
         xi(i+1)=xi(i)*x
@@ -1878,12 +1865,11 @@ END SUBROUTINE
 !> \param sumUp ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_derive3(p,pRes,npoly,sumUp,error)
+SUBROUTINE poly_derive3(p,pRes,npoly,sumUp)
     REAL(dp), DIMENSION(:), INTENT(in)       :: p
     REAL(dp), DIMENSION(:), INTENT(inout)    :: pRes
     INTEGER, INTENT(in), OPTIONAL            :: npoly
     LOGICAL, INTENT(in), OPTIONAL            :: sumUp
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_derive3', &
       routineP = moduleN//':'//routineN
@@ -1901,7 +1887,7 @@ SUBROUTINE poly_derive3(p,pRes,npoly,sumUp,error)
     size_p=SIZE(p)/my_npoly
     newSize=SIZE(pRes)/(3*my_npoly)
     grad=grad_size3(size_p)
-    CPPreconditionNoFail(newSize>=poly_size3(grad),cp_failure_level,routineP,error)
+    CPPreconditionNoFail(newSize>=poly_size3(grad),cp_failure_level,routineP)
     IF (.NOT. my_sumUp) pRes=0
     xDerivShift=1
     yDerivShift=my_npoly*newSize+1
@@ -1966,11 +1952,10 @@ END SUBROUTINE
 !> \param poly_d3 ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_cp2k2d3(poly_cp2k,grad,poly_d3,error)
+SUBROUTINE poly_cp2k2d3(poly_cp2k,grad,poly_d3)
     REAL(dp), DIMENSION(:), INTENT(in)       :: poly_cp2k
     INTEGER, INTENT(in)                      :: grad
     REAL(dp), DIMENSION(:), INTENT(out)      :: poly_d3
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_cp2k2d3', &
       routineP = moduleN//':'//routineN
@@ -1983,8 +1968,8 @@ SUBROUTINE poly_cp2k2d3(poly_cp2k,grad,poly_d3,error)
 
     failure=.FALSE.
     size_p=(grad+1)*(grad+2)*(grad+3)/6
-    CPPrecondition(SIZE(poly_cp2k)>=size_p,cp_failure_level,routineP,error,failure)
-    CPPrecondition(SIZE(poly_d3)>=size_p,cp_failure_level,routineP,error,failure)
+    CPPrecondition(SIZE(poly_cp2k)>=size_p,cp_failure_level,routineP,failure)
+    CPPrecondition(SIZE(poly_d3)>=size_p,cp_failure_level,routineP,failure)
     cp_ii=0
     sgrad2k=0
     sgrad3k=0
@@ -2023,11 +2008,10 @@ END SUBROUTINE
 !> \param poly_d3 ...
 !> \param error ...
 ! *****************************************************************************
-SUBROUTINE poly_d32cp2k(poly_cp2k,grad,poly_d3,error)
+SUBROUTINE poly_d32cp2k(poly_cp2k,grad,poly_d3)
     REAL(dp), DIMENSION(:), INTENT(out)      :: poly_cp2k
     INTEGER, INTENT(in)                      :: grad
     REAL(dp), DIMENSION(:), INTENT(in)       :: poly_d3
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'poly_d32cp2k', &
       routineP = moduleN//':'//routineN
@@ -2040,8 +2024,8 @@ SUBROUTINE poly_d32cp2k(poly_cp2k,grad,poly_d3,error)
 
     failure=.FALSE.
     size_p=(grad+1)*(grad+2)*(grad+3)/6
-    CPPrecondition(SIZE(poly_cp2k)>=size_p,cp_failure_level,routineP,error,failure)
-    CPPrecondition(SIZE(poly_d3)>=size_p,cp_failure_level,routineP,error,failure)
+    CPPrecondition(SIZE(poly_cp2k)>=size_p,cp_failure_level,routineP,failure)
+    CPPrecondition(SIZE(poly_d3)>=size_p,cp_failure_level,routineP,failure)
     cp_ii=0
     sgrad2k=0
     sgrad3k=0

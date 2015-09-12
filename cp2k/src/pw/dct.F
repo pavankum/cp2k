@@ -83,11 +83,10 @@ CONTAINS
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE dct_type_init(pw_grid, dct_env, error)
+  SUBROUTINE dct_type_init(pw_grid, dct_env)
 
     TYPE(pw_grid_type), INTENT(IN), POINTER  :: pw_grid
     TYPE(dct_type), INTENT(INOUT)            :: dct_env
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dct_type_init', &
       routineP = moduleN//':'//routineN
@@ -98,12 +97,12 @@ CONTAINS
 
     CALL get_dests_srcs_pid(pw_grid, &
               dct_env%dests_expand, dct_env%srcs_expand, dct_env%flipg_stat, &
-              dct_env%dests_shrink, dct_env%srcs_shrink, error)
+              dct_env%dests_shrink, dct_env%srcs_shrink)
     CALL expansion_bounds(pw_grid, &
               dct_env%srcs_expand, dct_env%flipg_stat, &
               dct_env%bounds_shftd, dct_env%bounds_local_shftd, &
               dct_env%recv_msgs_bnds, dct_env%dct_bounds, &
-              dct_env%dct_bounds_local, error)
+              dct_env%dct_bounds_local)
 
     CALL timestop(handle)
 
@@ -122,13 +121,12 @@ CONTAINS
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE setup_dct_pw_grids(pw_grid, cell_hmat, dct_pw_grid, dct_aux_pw_grid, error)
+  SUBROUTINE setup_dct_pw_grids(pw_grid, cell_hmat, dct_pw_grid, dct_aux_pw_grid)
 
     TYPE(pw_grid_type), INTENT(IN), POINTER  :: pw_grid
     REAL(dp), DIMENSION(3, 3), INTENT(IN)    :: cell_hmat
     TYPE(pw_grid_type), INTENT(INOUT), &
       POINTER                                :: dct_pw_grid, dct_aux_pw_grid
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'setup_dct_pw_grids', &
       routineP = moduleN//':'//routineN
@@ -144,11 +142,11 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    CALL get_dests_srcs_pid(pw_grid, dests_expand, srcs_expand, flipg_stat, dests_shrink, srcs_shrink, error)
+    CALL get_dests_srcs_pid(pw_grid, dests_expand, srcs_expand, flipg_stat, dests_shrink, srcs_shrink)
     CALL expansion_bounds(pw_grid, srcs_expand, flipg_stat, bounds_shftd, bounds_local_shftd, &
-                          recv_msgs_bnds, bounds_new, bounds_local_new, error)
-    CALL pw_grid_create(dct_pw_grid, pw_grid%para%rs_group, local=.FALSE., error=error)
-    CALL pw_grid_create(dct_aux_pw_grid, pw_grid%para%rs_group, local=.FALSE., error=error)
+                          recv_msgs_bnds, bounds_new, bounds_local_new)
+    CALL pw_grid_create(dct_pw_grid, pw_grid%para%rs_group, local=.FALSE.)
+    CALL pw_grid_create(dct_aux_pw_grid, pw_grid%para%rs_group, local=.FALSE.)
 
     hmat2 = 0.0_dp
     hmat2(1,1) = 2*(cell_hmat(1,1) - pw_grid%dr(1))
@@ -168,14 +166,12 @@ CONTAINS
                        bounds=bounds_new, &
                        rs_dims = pw_grid%para%rs_dims, &
                        blocked = blocked, &
-                       bounds_local=bounds_local_new, &
-                       error=error)
+                       bounds_local=bounds_local_new)
 
     CALL pw_grid_setup(hmat2, dct_aux_pw_grid, &
                        bounds=bounds_new, &
                        rs_dims = pw_grid%para%rs_dims, &
-                       blocked = blocked, &
-                       error=error)
+                       blocked = blocked)
 
     CALL timestop(handle)
 
@@ -196,13 +192,12 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE get_dests_srcs_pid(pw_grid, dests_expand, srcs_expand, flipg_stat, &
-                                dests_shrink, srcs_shrink, error)
+                                dests_shrink, srcs_shrink)
 
     TYPE(pw_grid_type), INTENT(IN), POINTER  :: pw_grid
     INTEGER, DIMENSION(4), INTENT(OUT)       :: dests_expand, srcs_expand, &
                                                 flipg_stat, dests_shrink
     INTEGER, INTENT(OUT)                     :: srcs_shrink
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_dests_srcs_pid', &
       routineP = moduleN//':'//routineN
@@ -370,7 +365,7 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE pw_expand(recv_msgs_bnds, dests_expand, srcs_expand, flipg_stat, bounds_shftd, &
-                       pw_in, pw_expanded, error)
+                       pw_in, pw_expanded)
 
     INTEGER, DIMENSION(2, 3, 4), INTENT(IN)  :: recv_msgs_bnds
     INTEGER, DIMENSION(4), INTENT(IN)        :: dests_expand, srcs_expand, &
@@ -378,7 +373,6 @@ CONTAINS
     INTEGER, DIMENSION(2, 3), INTENT(IN)     :: bounds_shftd
     TYPE(pw_type), INTENT(IN), POINTER       :: pw_in
     TYPE(pw_type), INTENT(INOUT), POINTER    :: pw_expanded
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'pw_expand', &
       routineP = moduleN//':'//routineN
@@ -465,13 +459,13 @@ CONTAINS
               ALLOCATE(pcs(i)%msg(lb1:ub1, lb2:ub2, lb3:ub3))
               pcs(i)%msg = recv_msgs(i)%msg
           CASE(UD_FLIPPED)
-              CALL flipud(recv_msgs(i)%msg, pcs(i)%msg, bounds_shftd, error)
+              CALL flipud(recv_msgs(i)%msg, pcs(i)%msg, bounds_shftd)
           CASE(LR_FLIPPED)
-              CALL fliplr(recv_msgs(i)%msg, pcs(i)%msg, bounds_shftd, error)
+              CALL fliplr(recv_msgs(i)%msg, pcs(i)%msg, bounds_shftd)
           CASE(BF_FLIPPED)
-              CALL flipbf(recv_msgs(i)%msg, pcs(i)%msg, bounds_shftd, error)
+              CALL flipbf(recv_msgs(i)%msg, pcs(i)%msg, bounds_shftd)
           CASE(ROTATED)
-              CALL rot180(recv_msgs(i)%msg, pcs(i)%msg, bounds_shftd, error)
+              CALL rot180(recv_msgs(i)%msg, pcs(i)%msg, bounds_shftd)
        END SELECT
     END DO
 ! concatenate the received (flipped) data store the result as catd
@@ -497,7 +491,7 @@ CONTAINS
     END DO
 
 ! flip catd from back to front 
-    CALL flipbf(catd, catd_flipdbf, bounds_shftd, error)
+    CALL flipbf(catd, catd_flipdbf, bounds_shftd)
 ! concatenate catd and catd_flipdbf to get cr3d_xpndd
     ALLOCATE(cr3d_xpndd(lb1_new:ub1_new, lb2_new:ub2_new, lb3_new:ub3_new))
     cr3d_xpndd(:,:,lb3_new:ind) = catd
@@ -530,14 +524,13 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE pw_shrink(dests_shrink, srcs_shrink, bounds_local_shftd, &
-                       pw_in, pw_shrinked, error)
+                       pw_in, pw_shrinked)
 
     INTEGER, DIMENSION(4), INTENT(IN)        :: dests_shrink
     INTEGER, INTENT(IN)                      :: srcs_shrink
     INTEGER, DIMENSION(2, 3), INTENT(IN)     :: bounds_local_shftd
     TYPE(pw_type), INTENT(IN), POINTER       :: pw_in
     TYPE(pw_type), INTENT(INOUT), POINTER    :: pw_shrinked
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'pw_shrink', &
       routineP = moduleN//':'//routineN
@@ -647,14 +640,13 @@ CONTAINS
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE flipud(cr3d_in, cr3d_out, bounds, error)
+  SUBROUTINE flipud(cr3d_in, cr3d_out, bounds)
 
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(IN), POINTER                    :: cr3d_in
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(OUT), POINTER                   :: cr3d_out
     INTEGER, DIMENSION(2, 3), INTENT(IN)     :: bounds
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'flipud', &
       routineP = moduleN//':'//routineN
@@ -705,14 +697,13 @@ CONTAINS
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE fliplr(cr3d_in, cr3d_out, bounds, error)
+  SUBROUTINE fliplr(cr3d_in, cr3d_out, bounds)
 
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(IN), POINTER                    :: cr3d_in
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(OUT), POINTER                   :: cr3d_out
     INTEGER, DIMENSION(2, 3), INTENT(IN)     :: bounds
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'fliplr', &
       routineP = moduleN//':'//routineN
@@ -762,14 +753,13 @@ CONTAINS
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE flipbf(cr3d_in, cr3d_out, bounds, error)
+  SUBROUTINE flipbf(cr3d_in, cr3d_out, bounds)
 
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(IN), POINTER                    :: cr3d_in
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(OUT), POINTER                   :: cr3d_out
     INTEGER, DIMENSION(2, 3), INTENT(IN)     :: bounds
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'flipbf', &
       routineP = moduleN//':'//routineN
@@ -819,14 +809,13 @@ CONTAINS
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE rot180(cr3d_in, cr3d_out, bounds, error)
+  SUBROUTINE rot180(cr3d_in, cr3d_out, bounds)
 
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(IN), POINTER                    :: cr3d_in
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(OUT), POINTER                   :: cr3d_out
     INTEGER, DIMENSION(2, 3), INTENT(IN)     :: bounds
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'rot180', &
       routineP = moduleN//':'//routineN
@@ -883,7 +872,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE expansion_bounds(pw_grid, srcs_expand, flipg_stat, &
                               bounds_shftd, bounds_local_shftd, &
-                              recv_msgs_bnds, bounds_new, bounds_local_new, error)
+                              recv_msgs_bnds, bounds_new, bounds_local_new)
 
     TYPE(pw_grid_type), INTENT(IN), POINTER  :: pw_grid
     INTEGER, DIMENSION(4), INTENT(IN)        :: srcs_expand, flipg_stat
@@ -891,7 +880,6 @@ CONTAINS
                                                 bounds_local_shftd
     INTEGER, DIMENSION(2, 3, 4), INTENT(OUT) :: recv_msgs_bnds
     INTEGER, DIMENSION(2, 3), INTENT(OUT)    :: bounds_new, bounds_local_new
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'expansion_bounds', &
       routineP = moduleN//':'//routineN
@@ -1157,11 +1145,10 @@ CONTAINS
 !>       12.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
-  SUBROUTINE pw_adjust_bounds_local(pw_old, pw_new, error)
+  SUBROUTINE pw_adjust_bounds_local(pw_old, pw_new)
 
     TYPE(pw_type), INTENT(IN), POINTER       :: pw_old
     TYPE(pw_type), INTENT(INOUT), POINTER    :: pw_new
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'pw_adjust_bounds_local', &
       routineP = moduleN//':'//routineN
@@ -1229,19 +1216,19 @@ CONTAINS
 
     ! sweep edge data
     CALL dim1_sweep(pw_old%cr3d, bounds_local_new(:,1), wnbr_pid, enbr_pid, &
-                    rs_group, color, e_rmsg, w_rmsg, dim1swp_stat, error)
+                    rs_group, color, e_rmsg, w_rmsg, dim1swp_stat)
     CALL dim2_sweep(pw_old%cr3d, bounds_local_new(:,2), nnbr_pid, snbr_pid, &
-                    rs_group, color, n_rmsg, s_rmsg, dim2swp_stat, error)
+                    rs_group, color, n_rmsg, s_rmsg, dim2swp_stat)
     ! sweep corner data
     IF (dim1swp_stat(1) .NE. nomsg_received) THEN
        CALL dim2_sweep(w_rmsg, bounds_local_new(:,2), nnbr_pid, snbr_pid, &
-                       rs_group, color, nw_rmsg, sw_rmsg, wdim2swp_stat, error)
+                       rs_group, color, nw_rmsg, sw_rmsg, wdim2swp_stat)
     ELSE
        wdim2swp_stat = nomsg_received
     END IF
     IF (dim1swp_stat(2) .NE. nomsg_received) THEN
        CALL dim2_sweep(e_rmsg, bounds_local_new(:,2), nnbr_pid, snbr_pid, &
-                       rs_group, color, ne_rmsg, se_rmsg, edim2swp_stat, error)
+                       rs_group, color, ne_rmsg, se_rmsg, edim2swp_stat)
     ELSE
        edim2swp_stat = nomsg_received
     END IF
@@ -1322,7 +1309,7 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE dim1_sweep(arr3d_old, dim1blcl_new, wnbr_pid, enbr_pid, &
-                        mp_group, color, e_rmsg, w_rmsg, sweep_stat, error)
+                        mp_group, color, e_rmsg, w_rmsg, sweep_stat)
 
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(IN), POINTER                    :: arr3d_old
@@ -1332,7 +1319,6 @@ CONTAINS
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(OUT), POINTER                   :: e_rmsg, w_rmsg
     INTEGER, DIMENSION(2), INTENT(OUT)       :: sweep_stat
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'dim1_sweep', &
       routineP = moduleN//':'//routineN
@@ -1468,7 +1454,7 @@ CONTAINS
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE dim2_sweep(arr3d_old, dim2blcl_new, nnbr_pid, snbr_pid, &
-                        mp_group, color, n_rmsg, s_rmsg, sweep_stat, error)
+                        mp_group, color, n_rmsg, s_rmsg, sweep_stat)
 
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(IN), POINTER                    :: arr3d_old
@@ -1478,7 +1464,6 @@ CONTAINS
     REAL(dp), DIMENSION(:, :, :), &
       INTENT(OUT), POINTER                   :: n_rmsg, s_rmsg
     INTEGER, DIMENSION(2), INTENT(OUT)       :: sweep_stat
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'dim2_sweep', &
       routineP = moduleN//':'//routineN

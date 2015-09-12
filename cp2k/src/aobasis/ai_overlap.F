@@ -676,7 +676,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE overlap_ab(la_max,la_min,npgfa,rpgfa,zeta,&
                         lb_max,lb_min,npgfb,rpgfb,zetb,&
-                        rab,sab,dab,ddab,error)
+                        rab,sab,dab,ddab)
     INTEGER, INTENT(IN)                      :: la_max, la_min, npgfa
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: rpgfa, zeta
     INTEGER, INTENT(IN)                      :: lb_max, lb_min, npgfb
@@ -686,7 +686,6 @@ CONTAINS
       INTENT(INOUT), OPTIONAL                :: sab
     REAL(KIND=dp), DIMENSION(:, :, :), &
       INTENT(INOUT), OPTIONAL                :: dab, ddab
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'overlap_ab', &
       routineP = moduleN//':'//routineN
@@ -725,7 +724,7 @@ CONTAINS
 
     ! Allocate space for auxiliary integrals
     ALLOCATE(rr(0:ldrr-1,0:ldrr-1,3),STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     ! Number of integrals, check size of arrays
     ofa = ncoset(la_min-1)
@@ -733,18 +732,18 @@ CONTAINS
     na = ncoset(la_max) - ofa
     nb = ncoset(lb_max) - ofb
     IF (PRESENT(sab)) THEN
-       CPPrecondition((SIZE(sab,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(sab,2) >= nb*npgfb),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(sab,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(sab,2) >= nb*npgfb),cp_failure_level,routineP,failure)
     END IF
     IF (PRESENT(dab)) THEN
-       CPPrecondition((SIZE(dab,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dab,2) >= nb*npgfb),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dab,3) >= 3),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(dab,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dab,2) >= nb*npgfb),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dab,3) >= 3),cp_failure_level,routineP,failure)
     END IF
     IF (PRESENT(ddab)) THEN
-       CPPrecondition((SIZE(ddab,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(ddab,2) >= nb*npgfb),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(ddab,3) >= 6),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(ddab,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(ddab,2) >= nb*npgfb),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(ddab,3) >= 6),cp_failure_level,routineP,failure)
     END IF
 
     ! Loops over all pairs of primitive Gaussian-type functions
@@ -940,7 +939,7 @@ CONTAINS
     END DO
 
     DEALLOCATE(rr,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE overlap_ab
 
@@ -972,7 +971,7 @@ CONTAINS
   SUBROUTINE overlap_aab(la1_max,la1_min,npgfa1,rpgfa1,zeta1,&
                          la2_max,la2_min,npgfa2,rpgfa2,zeta2,&
                          lb_max,lb_min,npgfb,rpgfb,zetb,&
-                         rab,saab,daab,error)
+                         rab,saab,daab)
     INTEGER, INTENT(IN)                      :: la1_max, la1_min, npgfa1
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: rpgfa1, zeta1
     INTEGER, INTENT(IN)                      :: la2_max, la2_min, npgfa2
@@ -984,7 +983,6 @@ CONTAINS
       INTENT(INOUT), OPTIONAL                :: saab
     REAL(KIND=dp), DIMENSION(:, :, :, :), &
       INTENT(INOUT), OPTIONAL                :: daab
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'overlap_aab', &
       routineP = moduleN//':'//routineN
@@ -1017,7 +1015,7 @@ CONTAINS
 
     ! Allocate space for auxiliary integrals
     ALLOCATE(rr(0:ldrr-1,0:ldrr-1,3),STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     ! Number of integrals, check size of arrays
     ofa1 = ncoset(la1_min-1)
@@ -1027,15 +1025,15 @@ CONTAINS
     na2 = ncoset(la2_max) - ofa2
     nb = ncoset(lb_max) - ofb
     IF (PRESENT(saab)) THEN
-       CPPrecondition((SIZE(saab,1) >= na1*npgfa1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(saab,2) >= na2*npgfa2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(saab,3) >= nb*npgfb),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(saab,1) >= na1*npgfa1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(saab,2) >= na2*npgfa2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(saab,3) >= nb*npgfb),cp_failure_level,routineP,failure)
     END IF
     IF (PRESENT(daab)) THEN
-       CPPrecondition((SIZE(daab,1) >= na1*npgfa1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daab,2) >= na2*npgfa2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daab,3) >= nb*npgfb),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daab,4) >= 3),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(daab,1) >= na1*npgfa1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daab,2) >= na2*npgfa2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daab,3) >= nb*npgfb),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daab,4) >= 3),cp_failure_level,routineP,failure)
     END IF
 
     ! Loops over all primitive Gaussian-type functions
@@ -1128,7 +1126,7 @@ CONTAINS
     END DO
 
     DEALLOCATE(rr,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE overlap_aab
 
@@ -1160,7 +1158,7 @@ CONTAINS
   SUBROUTINE overlap_abb(la_max,la_min,npgfa,rpgfa,zeta,&
                          lb1_max,lb1_min,npgfb1,rpgfb1,zetb1,&
                          lb2_max,lb2_min,npgfb2,rpgfb2,zetb2,&
-                         rab,sabb,dabb,error)
+                         rab,sabb,dabb)
     INTEGER, INTENT(IN)                      :: la_max, la_min, npgfa
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: rpgfa, zeta
     INTEGER, INTENT(IN)                      :: lb1_max, lb1_min, npgfb1
@@ -1172,7 +1170,6 @@ CONTAINS
       INTENT(INOUT), OPTIONAL                :: sabb
     REAL(KIND=dp), DIMENSION(:, :, :, :), &
       INTENT(INOUT), OPTIONAL                :: dabb
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'overlap_abb', &
       routineP = moduleN//':'//routineN
@@ -1205,7 +1202,7 @@ CONTAINS
 
     ! Allocate space for auxiliary integrals
     ALLOCATE(rr(0:ldrr-1,0:ldrr-1,3),STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     ! Number of integrals, check size of arrays
     ofa = ncoset(la_min-1)
@@ -1215,15 +1212,15 @@ CONTAINS
     nb1 = ncoset(lb1_max) - ofb1
     nb2 = ncoset(lb2_max) - ofb2
     IF (PRESENT(sabb)) THEN
-       CPPrecondition((SIZE(sabb,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(sabb,2) >= nb1*npgfb1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(sabb,3) >= nb2*npgfb2),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(sabb,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(sabb,2) >= nb1*npgfb1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(sabb,3) >= nb2*npgfb2),cp_failure_level,routineP,failure)
     END IF
     IF (PRESENT(dabb)) THEN
-       CPPrecondition((SIZE(dabb,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dabb,2) >= nb1*npgfb1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dabb,3) >= nb2*npgfb2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dabb,4) >= 3),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(dabb,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dabb,2) >= nb1*npgfb1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dabb,3) >= nb2*npgfb2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dabb,4) >= 3),cp_failure_level,routineP,failure)
     END IF
 
     ! Loops over all pairs of primitive Gaussian-type functions
@@ -1316,7 +1313,7 @@ CONTAINS
     END DO
 
     DEALLOCATE(rr,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE overlap_abb
 
@@ -1354,7 +1351,7 @@ CONTAINS
                           la2_max,la2_min,npgfa2,rpgfa2,zeta2,&
                           la3_max,la3_min,npgfa3,rpgfa3,zeta3,&
                           lb_max,lb_min,npgfb,rpgfb,zetb,&
-                          rab,saaab,daaab,error)
+                          rab,saaab,daaab)
     INTEGER, INTENT(IN)                      :: la1_max, la1_min, npgfa1
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: rpgfa1, zeta1
     INTEGER, INTENT(IN)                      :: la2_max, la2_min, npgfa2
@@ -1369,7 +1366,6 @@ CONTAINS
     REAL(KIND=dp), &
       DIMENSION(:, :, :, :, :), &
       INTENT(INOUT), OPTIONAL                :: daaab
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'overlap_aaab', &
       routineP = moduleN//':'//routineN
@@ -1403,7 +1399,7 @@ CONTAINS
 
     ! Allocate space for auxiliary integrals
     ALLOCATE(rr(0:ldrr-1,0:ldrr-1,3),STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     ! Number of integrals, check size of arrays
     ofa1 = ncoset(la1_min-1)
@@ -1415,17 +1411,17 @@ CONTAINS
     na3 = ncoset(la3_max) - ofa3
     nb = ncoset(lb_max) - ofb
     IF (PRESENT(saaab)) THEN
-       CPPrecondition((SIZE(saaab,1) >= na1*npgfa1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(saaab,2) >= na2*npgfa2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(saaab,3) >= na3*npgfa3),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(saaab,4) >= nb*npgfb),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(saaab,1) >= na1*npgfa1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(saaab,2) >= na2*npgfa2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(saaab,3) >= na3*npgfa3),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(saaab,4) >= nb*npgfb),cp_failure_level,routineP,failure)
     END IF
     IF (PRESENT(daaab)) THEN
-       CPPrecondition((SIZE(daaab,1) >= na1*npgfa1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daaab,2) >= na2*npgfa2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daaab,3) >= na3*npgfa3),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daaab,4) >= nb*npgfb),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daaab,5) >= 3),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(daaab,1) >= na1*npgfa1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daaab,2) >= na2*npgfa2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daaab,3) >= na3*npgfa3),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daaab,4) >= nb*npgfb),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daaab,5) >= 3),cp_failure_level,routineP,failure)
     END IF
 
     ! Loops over all primitive Gaussian-type functions
@@ -1532,7 +1528,7 @@ CONTAINS
     END DO
 
     DEALLOCATE(rr,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE overlap_aaab
 ! *****************************************************************************
@@ -1569,7 +1565,7 @@ CONTAINS
                           la2_max,la2_min,npgfa2,rpgfa2,zeta2,&
                           lb1_max,lb1_min,npgfb1,rpgfb1,zetb1,&
                           lb2_max,lb2_min,npgfb2,rpgfb2,zetb2,&
-                          rab,saabb,daabb,error)
+                          rab,saabb,daabb)
     INTEGER, INTENT(IN)                      :: la1_max, la1_min, npgfa1
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: rpgfa1, zeta1
     INTEGER, INTENT(IN)                      :: la2_max, la2_min, npgfa2
@@ -1584,7 +1580,6 @@ CONTAINS
     REAL(KIND=dp), &
       DIMENSION(:, :, :, :, :), &
       INTENT(INOUT), OPTIONAL                :: daabb
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'overlap_aabb', &
       routineP = moduleN//':'//routineN
@@ -1619,7 +1614,7 @@ CONTAINS
 
     ! Allocate space for auxiliary integrals
     ALLOCATE(rr(0:ldrr-1,0:ldrr-1,3),STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     ! Number of integrals, check size of arrays
     ofa1 = ncoset(la1_min-1)
@@ -1631,17 +1626,17 @@ CONTAINS
     nb1 = ncoset(lb1_max) - ofb1
     nb2 = ncoset(lb2_max) - ofb2
     IF (PRESENT(saabb)) THEN
-       CPPrecondition((SIZE(saabb,1) >= na1*npgfa1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(saabb,2) >= na2*npgfa2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(saabb,3) >= nb1*npgfb1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(saabb,4) >= nb2*npgfb2),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(saabb,1) >= na1*npgfa1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(saabb,2) >= na2*npgfa2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(saabb,3) >= nb1*npgfb1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(saabb,4) >= nb2*npgfb2),cp_failure_level,routineP,failure)
     END IF
     IF (PRESENT(daabb)) THEN
-       CPPrecondition((SIZE(daabb,1) >= na1*npgfa1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daabb,2) >= na2*npgfa2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daabb,3) >= nb1*npgfb1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daabb,4) >= nb2*npgfb2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(daabb,5) >= 3),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(daabb,1) >= na1*npgfa1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daabb,2) >= na2*npgfa2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daabb,3) >= nb1*npgfb1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daabb,4) >= nb2*npgfb2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(daabb,5) >= 3),cp_failure_level,routineP,failure)
     END IF
 
     ! Loops over all primitive Gaussian-type functions
@@ -1752,7 +1747,7 @@ CONTAINS
     END DO
 
     DEALLOCATE(rr,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE overlap_aabb
 ! *****************************************************************************
@@ -1789,7 +1784,7 @@ CONTAINS
                           lb1_max,lb1_min,npgfb1,rpgfb1,zetb1,&
                           lb2_max,lb2_min,npgfb2,rpgfb2,zetb2,&
                           lb3_max,lb3_min,npgfb3,rpgfb3,zetb3,&
-                          rab,sabbb,dabbb,error)
+                          rab,sabbb,dabbb)
     INTEGER, INTENT(IN)                      :: la_max, la_min, npgfa
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: rpgfa, zeta
     INTEGER, INTENT(IN)                      :: lb1_max, lb1_min, npgfb1
@@ -1804,7 +1799,6 @@ CONTAINS
     REAL(KIND=dp), &
       DIMENSION(:, :, :, :, :), &
       INTENT(INOUT), OPTIONAL                :: dabbb
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'overlap_abbb', &
       routineP = moduleN//':'//routineN
@@ -1838,7 +1832,7 @@ CONTAINS
 
     ! Allocate space for auxiliary integrals
     ALLOCATE(rr(0:ldrr-1,0:ldrr-1,3),STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     ! Number of integrals, check size of arrays
     ofa = ncoset(la_min-1)
@@ -1850,17 +1844,17 @@ CONTAINS
     nb2 = ncoset(lb2_max) - ofb2
     nb3 = ncoset(lb3_max) - ofb3
     IF (PRESENT(sabbb)) THEN
-       CPPrecondition((SIZE(sabbb,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(sabbb,2) >= nb1*npgfb1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(sabbb,3) >= nb2*npgfb2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(sabbb,4) >= nb3*npgfb3),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(sabbb,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(sabbb,2) >= nb1*npgfb1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(sabbb,3) >= nb2*npgfb2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(sabbb,4) >= nb3*npgfb3),cp_failure_level,routineP,failure)
     END IF
     IF (PRESENT(dabbb)) THEN
-       CPPrecondition((SIZE(dabbb,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dabbb,2) >= nb1*npgfb1),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dabbb,3) >= nb2*npgfb2),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dabbb,4) >= nb3*npgfb3),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dabbb,5) >= 3),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(dabbb,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dabbb,2) >= nb1*npgfb1),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dabbb,3) >= nb2*npgfb2),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dabbb,4) >= nb3*npgfb3),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dabbb,5) >= 3),cp_failure_level,routineP,failure)
     END IF
 
     ! Loops over all pairs of primitive Gaussian-type functions
@@ -1967,7 +1961,7 @@ CONTAINS
     END DO
 
     DEALLOCATE(rr,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE overlap_abbb
 

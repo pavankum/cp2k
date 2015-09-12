@@ -61,10 +61,9 @@ CONTAINS
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 ! *****************************************************************************
-  SUBROUTINE xc_rho_cflags_setall(cflags, value, error)
+  SUBROUTINE xc_rho_cflags_setall(cflags, value)
     TYPE(xc_rho_cflags_type), INTENT(out)    :: cflags
     LOGICAL, INTENT(in)                      :: value
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xc_rho_cflags_setall', &
       routineP = moduleN//':'//routineN
@@ -94,10 +93,9 @@ CONTAINS
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 ! *****************************************************************************
-  SUBROUTINE xc_rho_cflags_or(cflags1, cflags2, error)
+  SUBROUTINE xc_rho_cflags_or(cflags1, cflags2)
     TYPE(xc_rho_cflags_type), INTENT(inout)  :: cflags1
     TYPE(xc_rho_cflags_type), INTENT(in)     :: cflags2
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xc_rho_cflags_or', &
       routineP = moduleN//':'//routineN
@@ -130,10 +128,9 @@ CONTAINS
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 ! *****************************************************************************
-  SUBROUTINE xc_rho_cflags_and(cflags1, cflags2, error)
+  SUBROUTINE xc_rho_cflags_and(cflags1, cflags2)
     TYPE(xc_rho_cflags_type), INTENT(inout)  :: cflags1
     TYPE(xc_rho_cflags_type), INTENT(in)     :: cflags2
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xc_rho_cflags_and', &
       routineP = moduleN//':'//routineN
@@ -166,10 +163,9 @@ CONTAINS
 !>        see module cp_error_handling
 !> \retval equal ...
 ! *****************************************************************************
-  FUNCTION xc_rho_cflags_equal(cflags1, cflags2, error) RESULT(equal)
+  FUNCTION xc_rho_cflags_equal(cflags1, cflags2) RESULT(equal)
     TYPE(xc_rho_cflags_type), INTENT(inout)  :: cflags1
     TYPE(xc_rho_cflags_type), INTENT(in)     :: cflags2
-    TYPE(cp_error_type), INTENT(inout)       :: error
     LOGICAL                                  :: equal
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xc_rho_cflags_equal', &
@@ -205,10 +201,9 @@ CONTAINS
 !> \note
 !>      defines a partial ordering on the cflags (cflags1>cflags2)
 ! *****************************************************************************
-  FUNCTION xc_rho_cflags_contain(cflags1, cflags2, error) RESULT(contain)
+  FUNCTION xc_rho_cflags_contain(cflags1, cflags2) RESULT(contain)
     TYPE(xc_rho_cflags_type), INTENT(inout)  :: cflags1
     TYPE(xc_rho_cflags_type), INTENT(in)     :: cflags2
-    TYPE(cp_error_type), INTENT(inout)       :: error
     LOGICAL                                  :: contain
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xc_rho_cflags_contain', &
@@ -244,10 +239,9 @@ CONTAINS
 !>      11.2003 created [fawzi]
 !> \author fawzi
 ! *****************************************************************************
-  SUBROUTINE xc_rho_cflags_write(cflags,unit_nr,error)
+  SUBROUTINE xc_rho_cflags_write(cflags,unit_nr)
     TYPE(xc_rho_cflags_type), INTENT(in)     :: cflags
     INTEGER, INTENT(in)                      :: unit_nr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xc_rho_cflags_write', &
       routineP = moduleN//':'//routineN

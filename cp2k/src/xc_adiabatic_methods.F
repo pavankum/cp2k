@@ -56,7 +56,7 @@ MODULE xc_adiabatic_methods
 ! *****************************************************************************
   SUBROUTINE rescale_MCY3_pade(qs_env, hf_energy, energy, adiabatic_lambda, &
                                adiabatic_omega, scale_dEx1, scale_ddW0, scale_dDFA,&
-                               scale_dEx2, total_energy_xc, error)
+                               scale_dEx2, total_energy_xc)
 
     TYPE(qs_environment_type), POINTER       :: qs_env
     REAL(dp), INTENT(INOUT)                  :: hf_energy(*)
@@ -66,7 +66,6 @@ MODULE xc_adiabatic_methods
     REAL(dp), INTENT(INOUT)                  :: scale_dEx1, scale_ddW0, &
                                                 scale_dDFA, scale_dEx2, &
                                                 total_energy_xc
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     INTEGER                                  :: nelec_a, nelec_b, nelectron, &
                                                 nspins
@@ -89,7 +88,7 @@ MODULE xc_adiabatic_methods
 
     c1 = 0.23163_dp
 
-    CALL get_qs_env(qs_env=qs_env, mos=mos, error=error)
+    CALL get_qs_env(qs_env=qs_env, mos=mos)
     CALL get_mo_set(mo_set=mos(1)%mo_set,nelectron=nelec_a)
     nspins = SIZE(mos)
     IF(nspins == 2 ) THEN

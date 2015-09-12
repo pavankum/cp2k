@@ -62,7 +62,7 @@ CONTAINS
 !> \author Teodoro Laino 09.2006
 ! *****************************************************************************
   SUBROUTINE neb_initialize_velocity(vels,neb_section,particle_set,i_rep,iw,&
-                                     globenv,neb_env,error)
+                                     globenv,neb_env)
 
     REAL(KIND=dp), DIMENSION(:, :), POINTER  :: vels
     TYPE(section_vals_type), POINTER         :: neb_section
@@ -71,7 +71,6 @@ CONTAINS
     INTEGER, INTENT(IN)                      :: i_rep, iw
     TYPE(global_environment_type), POINTER   :: globenv
     TYPE(neb_type), POINTER                  :: neb_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'neb_initialize_velocity', &
       routineP = moduleN//':'//routineN
@@ -84,8 +83,8 @@ CONTAINS
     TYPE(section_vals_type), POINTER         :: md_section
 
     IF (neb_env%opt_type == band_md_opt) THEN
-       md_section => section_vals_get_subs_vals(neb_section,"OPTIMIZE_BAND%MD",error=error)
-       CALL section_vals_val_get(md_section,"TEMPERATURE",r_val=temp_ext,error=error)
+       md_section => section_vals_get_subs_vals(neb_section,"OPTIMIZE_BAND%MD")
+       CALL section_vals_val_get(md_section,"TEMPERATURE",r_val=temp_ext)
        ! Initialize velocity according to external temperature
        nparticle = SIZE(vels,1)
        natom = SIZE(particle_set)
@@ -93,7 +92,7 @@ CONTAINS
        vcom(1:3) = 0.0_dp
        vels(:,i_rep)  = 0.0_dp
        DO k=1,nparticle
-          vels(k,i_rep) = next_random_number(globenv%gaussian_rng_stream,error=error)
+          vels(k,i_rep) = next_random_number(globenv%gaussian_rng_stream)
        END DO
        ! Check always if BAND is working in Cartesian or in internal coordinates
        ! If working in cartesian coordinates let's get rid of the COM
@@ -148,7 +147,7 @@ CONTAINS
        ! Dump information
        IF (iw > 0) THEN
           temp = 2.0_dp*akin/REAL(nvar,KIND=dp)
-          tmp_r1 = cp_unit_from_cp2k(temp,"K",error=error)
+          tmp_r1 = cp_unit_from_cp2k(temp,"K")
           WRITE (iw,'(A,T61,F18.2,A2)')&
              ' NEB| Initial Temperature ',tmp_r1," K"
           WRITE (iw,'(A,T61,F20.12)')&
@@ -175,13 +174,12 @@ CONTAINS
 !> \author Teodoro Laino 09.2006
 ! *****************************************************************************
   SUBROUTINE control_vels_a(vels, particle_set, tc_section, vc_section, &
-       output_unit, istep, error)
+       output_unit, istep)
     TYPE(neb_var_type), POINTER              :: vels
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
     TYPE(section_vals_type), POINTER         :: tc_section, vc_section
     INTEGER, INTENT(IN)                      :: output_unit, istep
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'control_vels_a', &
       routineP = moduleN//':'//routineN
@@ -195,23 +193,23 @@ CONTAINS
 
     failure = .FALSE.
     ! Temperature control
-    CALL section_vals_get(tc_section,explicit=explicit,error=error)
+    CALL section_vals_get(tc_section,explicit=explicit)
     IF (explicit) THEN
-       CALL section_vals_val_get(tc_section,"TEMP_TOL_STEPS",i_val=temp_tol_steps, error=error)
-       CALL section_vals_val_get(tc_section,"TEMPERATURE",r_val=ext_temp, error=error)
-       CALL section_vals_val_get(tc_section,"TEMP_TOL",r_val=temp_tol, error=error)
+       CALL section_vals_val_get(tc_section,"TEMP_TOL_STEPS",i_val=temp_tol_steps)
+       CALL section_vals_val_get(tc_section,"TEMPERATURE",r_val=ext_temp)
+       CALL section_vals_val_get(tc_section,"TEMP_TOL",r_val=temp_tol)
        ALLOCATE(temperatures(SIZE(vels%wrk,2)),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        ! Computes temperatures
-       CALL get_temperatures(vels,particle_set,temperatures,factor=1.0_dp,error=error)
+       CALL get_temperatures(vels,particle_set,temperatures,factor=1.0_dp)
        ! Possibly rescale
        IF (istep<=temp_tol_steps) THEN
           DO i = 2, SIZE(vels%wrk,2)-1
              temploc = temperatures(i)
              IF (ABS(temploc-ext_temp) > temp_tol) THEN
                 IF (output_unit>0) THEN
-                   tmp_r1 =cp_unit_from_cp2k(temploc,"K",error=error)
-                   tmp_r2 =cp_unit_from_cp2k(ext_temp,"K",error=error)
+                   tmp_r1 =cp_unit_from_cp2k(temploc,"K")
+                   tmp_r2 =cp_unit_from_cp2k(ext_temp,"K")
                    WRITE(output_unit,'(T2,"NEB| Replica Nr.",I5,'//&
                         '"  - Velocity rescaled from: ",F12.6," to: ",F12.6,".")')&
                         i, tmp_r1, tmp_r2
@@ -223,12 +221,12 @@ CONTAINS
           END DO
        END IF
        DEALLOCATE(temperatures,stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     END IF
     ! Annealing
-    CALL section_vals_get(vc_section,explicit=explicit,error=error)
+    CALL section_vals_get(vc_section,explicit=explicit)
     IF (explicit) THEN
-       CALL section_vals_val_get(vc_section,"ANNEALING",r_val=f_annealing, error=error)
+       CALL section_vals_val_get(vc_section,"ANNEALING",r_val=f_annealing)
        DO i = 2, SIZE(vels%wrk,2)-1
           vels%wrk(:,i) = f_annealing * vels%wrk(:,i)
        END DO
@@ -243,10 +241,9 @@ CONTAINS
 !> \param error ...
 !> \author Teodoro Laino 09.2006
 ! *****************************************************************************
-  SUBROUTINE control_vels_b(vels, forces, vc_section, error)
+  SUBROUTINE control_vels_b(vels, forces, vc_section)
     TYPE(neb_var_type), POINTER              :: vels, forces
     TYPE(section_vals_type), POINTER         :: vc_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'control_vels_b', &
       routineP = moduleN//':'//routineN
@@ -257,9 +254,9 @@ CONTAINS
 
 ! Check the sign of V.dot.F
 
-    CALL section_vals_get(vc_section,explicit=explicit,error=error)
+    CALL section_vals_get(vc_section,explicit=explicit)
     IF (explicit) THEN
-       CALL section_vals_val_get(vc_section,"PROJ_VELOCITY_VERLET",l_val=lval, error=error)
+       CALL section_vals_val_get(vc_section,"PROJ_VELOCITY_VERLET",l_val=lval)
        IF (lval) THEN
           DO i = 2, SIZE(vels%wrk,2)-1
              norm   = DOT_PRODUCT(forces%wrk(:,i),forces%wrk(:,i))
@@ -271,7 +268,7 @@ CONTAINS
              END IF
           END DO
        END IF
-       CALL section_vals_val_get(vc_section,"SD_LIKE",l_val=lval, error=error)
+       CALL section_vals_val_get(vc_section,"SD_LIKE",l_val=lval)
        IF (lval) THEN
           DO i = 2, SIZE(vels%wrk,2)-1
              vels%wrk(:,i) = 0.0_dp
@@ -292,7 +289,7 @@ CONTAINS
 !>      24.11.2010 rewritten to include core-shell model (MK)
 !> \author Teodoro Laino 09.2006
 ! *****************************************************************************
-  SUBROUTINE get_temperatures(vels,particle_set,temperatures,ekin,factor,error)
+  SUBROUTINE get_temperatures(vels,particle_set,temperatures,ekin,factor)
 
     TYPE(neb_var_type), POINTER              :: vels
     TYPE(particle_type), DIMENSION(:), &
@@ -301,7 +298,6 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(:), &
       INTENT(OUT), OPTIONAL                  :: ekin
     REAL(KIND=dp), INTENT(IN), OPTIONAL      :: factor
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_temperatures', &
       routineP = moduleN//':'//routineN

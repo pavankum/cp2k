@@ -102,10 +102,9 @@ MODULE hfx_helpers
 !>      12.2008 created [Manuel Guidon]
 !> \author Manuel Guidon
 ! *****************************************************************************
-FUNCTION get_occupation(matrix,para_env,error)
+FUNCTION get_occupation(matrix,para_env)
     TYPE(cp_dbcsr_type), POINTER             :: matrix
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(dp)                                 :: get_occupation
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_occupation', &
@@ -126,11 +125,11 @@ FUNCTION get_occupation(matrix,para_env,error)
 
     ! *** Allocate work storage ***
     ALLOCATE (nblock(npe),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     nblock(:) = 0
 
     ALLOCATE (nelement(npe),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     nelement(:) = 0
 
     nblock(mype) = cp_dbcsr_get_num_blocks(matrix)

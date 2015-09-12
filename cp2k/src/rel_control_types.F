@@ -74,10 +74,9 @@ CONTAINS
 !>      10.2008 copied to rel_control_type [JT]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE rel_c_create(rel_control,error)
+  SUBROUTINE rel_c_create(rel_control)
 
     TYPE(rel_control_type), POINTER          :: rel_control
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'rel_c_create', &
       routineP = moduleN//':'//routineN
@@ -88,7 +87,7 @@ CONTAINS
     failure = .FALSE.
 
     ALLOCATE (rel_control,STAT=stat)
-    CPPostcondition((stat == 0),cp_failure_level,routineP,error,failure)
+    CPPostcondition((stat == 0),cp_failure_level,routineP,failure)
 
 
     ! Load the default values
@@ -114,10 +113,9 @@ CONTAINS
 !>      10.2008 copied to rel_control_type [JT]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE rel_c_retain(rel_control,error)
+  SUBROUTINE rel_c_retain(rel_control)
 
     TYPE(rel_control_type), POINTER          :: rel_control
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'rel_c_retain', &
       routineP = moduleN//':'//routineN
@@ -126,9 +124,9 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(rel_control),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(rel_control),cp_failure_level,routineP,failure)
 
-    CPPrecondition(rel_control%ref_count > 0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(rel_control%ref_count > 0,cp_failure_level,routineP,failure)
     rel_control%ref_count = rel_control%ref_count + 1
 
   END SUBROUTINE rel_c_retain
@@ -145,10 +143,9 @@ CONTAINS
 !> \note
 !>      at the moment does nothing
 ! *****************************************************************************
-  SUBROUTINE rel_c_release(rel_control,error)
+  SUBROUTINE rel_c_release(rel_control)
 
     TYPE(rel_control_type), POINTER          :: rel_control
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'rel_c_release', &
       routineP = moduleN//':'//routineN
@@ -159,11 +156,11 @@ CONTAINS
     failure = .FALSE.
 
     IF (ASSOCIATED(rel_control)) THEN
-      CPPrecondition(rel_control%ref_count>0,cp_failure_level,routineP,error,failure)
+      CPPrecondition(rel_control%ref_count>0,cp_failure_level,routineP,failure)
       rel_control%ref_count = rel_control%ref_count - 1
       IF (rel_control%ref_count < 1) THEN
         DEALLOCATE(rel_control,stat=stat)
-        CPPostcondition(stat==0,cp_warning_level,routineP,error,failure)
+        CPPostcondition(stat==0,cp_warning_level,routineP,failure)
       END IF
     END IF
 
@@ -182,11 +179,10 @@ CONTAINS
 !>      10.2008 copied to rel_control_type [JT]
 !> \author Matthias Krack
 ! *****************************************************************************
-  SUBROUTINE rel_c_read_parameters(rel_control,dft_section,error)
+  SUBROUTINE rel_c_read_parameters(rel_control,dft_section)
 
     TYPE(rel_control_type), POINTER          :: rel_control
     TYPE(section_vals_type), POINTER         :: dft_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'rel_c_read_parameters', &
       routineP = moduleN//':'//routineN
@@ -196,31 +192,24 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(rel_control),cp_failure_level,routineP,error,failure)
-    CPPrecondition((rel_control%ref_count > 0),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(dft_section),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(rel_control),cp_failure_level,routineP,failure)
+    CPPrecondition((rel_control%ref_count > 0),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(dft_section),cp_failure_level,routineP,failure)
 
 
-    rel_section => section_vals_get_subs_vals(dft_section,"RELATIVISTIC",&
-                                              error=error)
+    rel_section => section_vals_get_subs_vals(dft_section,"RELATIVISTIC")
     CALL section_vals_val_get(rel_section,"method",&
-                              i_val=rel_control%rel_method,&
-                              error=error)
+                              i_val=rel_control%rel_method)
     CALL section_vals_val_get(rel_section,"DKH_order",&
-                              i_val=rel_control%rel_DKH_order,&
-                              error=error)
+                              i_val=rel_control%rel_DKH_order)
     CALL section_vals_val_get(rel_section,"ZORA_TYPE",&
-                              i_val=rel_control%rel_zora_type,&
-                              error=error)
+                              i_val=rel_control%rel_zora_type)
     CALL section_vals_val_get(rel_section,"transformation",&
-                              i_val=rel_control%rel_transformation,&
-                              error=error)
+                              i_val=rel_control%rel_transformation)
     CALL section_vals_val_get(rel_section,"z_cutoff",&
-                              i_val=rel_control%rel_z_cutoff,&
-                              error=error)
+                              i_val=rel_control%rel_z_cutoff)
     CALL section_vals_val_get(rel_section,"potential",&
-                              i_val=rel_control%rel_potential,&
-                              error=error)
+                              i_val=rel_control%rel_potential)
 
 
   END SUBROUTINE rel_c_read_parameters

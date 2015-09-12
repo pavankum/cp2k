@@ -43,13 +43,12 @@ CONTAINS
 !>      11.2004 created [tlaino]
 !> \author Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE qmmm_coordinate_control(topology, qmmm_env, subsys_section, error)
+  SUBROUTINE qmmm_coordinate_control(topology, qmmm_env, subsys_section)
 
     TYPE(topology_parameters_type), &
       INTENT(INOUT)                          :: topology
     TYPE(qmmm_env_mm_type), POINTER          :: qmmm_env
     TYPE(section_vals_type), POINTER         :: subsys_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_coordinate_control', &
       routineP = moduleN//':'//routineN
@@ -62,17 +61,17 @@ CONTAINS
     CALL timeset(routineN,handle)
     failure = .FALSE.
     NULLIFY(logger)
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     iw = cp_print_key_unit_nr(logger,subsys_section,"PRINT%TOPOLOGY_INFO/UTIL_INFO",&
-         extension=".subsysLog",error=error)
+         extension=".subsysLog")
     IF (iw>0) WRITE(iw,*) "  Entering qmmm_coordinate_control"
     !
     ! setting ilast and ifirst for QM molecule
     !
-    CPPostcondition(SIZE(qmmm_env%qm_atom_index) /= 0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(SIZE(qmmm_env%qm_atom_index) /= 0,cp_failure_level,routineP,failure)
     qmmm_index_in_range=(MAXVAL(qmmm_env%qm_atom_index)<=SIZE(topology%atom_info%id_atmname)) &
                         .AND.(MINVAL(qmmm_env%qm_atom_index)>0)
-    CPPostcondition(qmmm_index_in_range,cp_failure_level,routineP,error,failure)
+    CPPostcondition(qmmm_index_in_range,cp_failure_level,routineP,failure)
     DO iatm = 1, SIZE(qmmm_env%qm_atom_index)
        topology%atom_info%id_atmname(qmmm_env%qm_atom_index(iatm)) = str2id(s2s("_QM_"//&
             TRIM(id2str(topology%atom_info%id_atmname(qmmm_env%qm_atom_index(iatm))))))
@@ -96,7 +95,7 @@ CONTAINS
     !
     IF (iw>0) WRITE(iw,*) "  Exiting  qmmm_coordinate_control"
     CALL cp_print_key_finished_output(iw,logger,subsys_section,&
-         "PRINT%TOPOLOGY_INFO/UTIL_INFO",error=error)
+         "PRINT%TOPOLOGY_INFO/UTIL_INFO")
     CALL timestop(handle)
   END SUBROUTINE qmmm_coordinate_control
 
@@ -111,13 +110,12 @@ CONTAINS
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE qmmm_connectivity_control(molecule_set,&
-       qmmm_env, subsys_section, error)
+       qmmm_env, subsys_section)
 
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
     TYPE(qmmm_env_mm_type), POINTER          :: qmmm_env
     TYPE(section_vals_type), POINTER         :: subsys_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_connectivity_control', &
       routineP = moduleN//':'//routineN
@@ -136,10 +134,10 @@ CONTAINS
     NULLIFY(qm_atom_index, qm_molecule_index, molecule, molecule_kind)
     failure = .FALSE.
     detected_link = .FALSE.
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     output_unit= cp_logger_get_default_io_unit(logger)
     iw = cp_print_key_unit_nr(logger,subsys_section,"PRINT%TOPOLOGY_INFO/UTIL_INFO",&
-         extension=".subsysLog",error=error)
+         extension=".subsysLog")
     CALL timeset(routineN,handle)
     qm_mol_num    = 0
     qm_atom_index => qmmm_env%qm_atom_index
@@ -153,7 +151,7 @@ CONTAINS
     END DO
     !
     ALLOCATE(qm_molecule_index(qm_mol_num), stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     qm_mol_num    = 0
     DO imolecule=1,SIZE(molecule_set)
        IF (iw>0) WRITE(iw,*)"Entering molecule number ::",imolecule
@@ -180,7 +178,7 @@ CONTAINS
                      " no LINK section was provided in the Input file!",&
                      " This very probably can be identified as an error in the specified QM",&
                      " indexes or in a missing LINK section. Check your structure!"
-                CPPostcondition(.FALSE.,cp_failure_level,routineP,error,failure)
+                CPPostcondition(.FALSE.,cp_failure_level,routineP,failure)
              END IF
           END IF
           qm_molecule_index(qm_mol_num) = imolecule
@@ -191,7 +189,7 @@ CONTAINS
     qmmm_env%qm_molecule_index => qm_molecule_index
     IF(iw>0) WRITE(iw,*) "    QM molecule index ::",qm_molecule_index
     CALL cp_print_key_finished_output(iw,logger,subsys_section,&
-                                     "PRINT%TOPOLOGY_INFO/UTIL_INFO",error=error)
+                                     "PRINT%TOPOLOGY_INFO/UTIL_INFO")
     CALL timestop(handle)
 
   END SUBROUTINE qmmm_connectivity_control

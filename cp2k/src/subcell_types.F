@@ -50,14 +50,13 @@ CONTAINS
 !> \author MK
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE allocate_subcell(subcell,nsubcell,maxatom,cell,error)
+  SUBROUTINE allocate_subcell(subcell,nsubcell,maxatom,cell)
 
     TYPE(subcell_type), DIMENSION(:, :, :), &
       POINTER                                :: subcell
     INTEGER, DIMENSION(3), INTENT(IN)        :: nsubcell
     INTEGER, INTENT(IN), OPTIONAL            :: maxatom
     TYPE(cell_type), OPTIONAL, POINTER       :: cell
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'allocate_subcell', &
       routineP = moduleN//':'//routineN
@@ -74,7 +73,7 @@ CONTAINS
     nc = nsubcell(3)
 
     ALLOCATE (subcell(na,nb,nc),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     delta_a = 1.0_dp/REAL(na,dp)
     delta_b = 1.0_dp/REAL(nb,dp)
@@ -109,7 +108,7 @@ CONTAINS
           END IF
           IF (PRESENT(maxatom)) THEN
              ALLOCATE (subcell(i,j,k)%atom_list(maxatom),STAT=stat)
-             CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+             CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           END IF
           a_min = a_max
         END DO
@@ -128,11 +127,10 @@ CONTAINS
 !> \author  MK
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE deallocate_subcell(subcell,error)
+  SUBROUTINE deallocate_subcell(subcell)
 
     TYPE(subcell_type), DIMENSION(:, :, :), &
       POINTER                                :: subcell
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'deallocate_subcell', &
       routineP = moduleN//':'//routineN
@@ -147,15 +145,15 @@ CONTAINS
           DO j=1,SIZE(subcell,2)
              DO i=1,SIZE(subcell,1)
                 DEALLOCATE (subcell(i,j,k)%atom_list,STAT=stat)
-                CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+                CPPostcondition(stat==0,cp_failure_level,routineP,failure)
              END DO
           END DO
        END DO
 
        DEALLOCATE (subcell,STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ELSE
-       CPAssert(.FALSE.,cp_failure_level,routineP,error,failure)
+       CPAssert(.FALSE.,cp_failure_level,routineP,failure)
     END IF
 
   END SUBROUTINE deallocate_subcell

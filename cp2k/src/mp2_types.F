@@ -190,9 +190,8 @@ CONTAINS
 !> \param mp2_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE mp2_env_release(mp2_env,error)
+  SUBROUTINE mp2_env_release(mp2_env)
     TYPE(mp2_type), POINTER                  :: mp2_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'mp2_env_release', &
       routineP = moduleN//':'//routineN
@@ -204,15 +203,15 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    CPPostcondition(ASSOCIATED(mp2_env),cp_failure_level,routineP,error,failure)
+    CPPostcondition(ASSOCIATED(mp2_env),cp_failure_level,routineP,failure)
 
     ! release the HFX section for the EXX calculation
     IF(ASSOCIATED(mp2_env%ri_rpa%x_data)) THEN
-      CALL hfx_release(mp2_env%ri_rpa%x_data, error=error)
+      CALL hfx_release(mp2_env%ri_rpa%x_data)
     END IF
 
     DEALLOCATE(mp2_env,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     CALL timestop(handle)
 
@@ -223,9 +222,8 @@ CONTAINS
 !> \param mp2_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE mp2_env_create(mp2_env,error)
+  SUBROUTINE mp2_env_create(mp2_env)
     TYPE(mp2_type), POINTER                  :: mp2_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'mp2_env_create', &
       routineP = moduleN//':'//routineN
@@ -237,10 +235,10 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    CPPostcondition(.NOT.ASSOCIATED(mp2_env),cp_failure_level,routineP,error,failure)
+    CPPostcondition(.NOT.ASSOCIATED(mp2_env),cp_failure_level,routineP,failure)
 
     ALLOCATE(mp2_env,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     NULLIFY(mp2_env%ri_rpa%x_data)
 

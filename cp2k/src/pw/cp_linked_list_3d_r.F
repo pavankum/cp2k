@@ -4,8 +4,8 @@
 !-----------------------------------------------------------------------------!
 
 ! less not much meningful... and defines oly a partial ordering.
-#define CP_SLL_R_LESS_Q(el1,el2,error) ( ALL(el1 < el2) )
-#define CP_SLL_R_EQUAL_Q(el1,el2,error) ( ALL(el1 == el2) )
+#define CP_SLL_R_LESS_Q(el1,el2) ( ALL(el1 < el2) )
+#define CP_SLL_R_EQUAL_Q(el1,el2) ( ALL(el1 == el2) )
 
 
 ! *****************************************************************************
@@ -214,13 +214,12 @@ CONTAINS
 !>      none
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_create(sll,first_el,rest,error)
+  SUBROUTINE cp_sll_3d_r_create(sll,first_el,rest)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     REAL(kind=dp), DIMENSION(:, :, :), &
       OPTIONAL, POINTER                      :: first_el
     TYPE(cp_sll_3d_r_type), OPTIONAL, &
       POINTER                                :: rest
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_create', &
       routineP = moduleN//':'//routineN
@@ -235,7 +234,7 @@ CONTAINS
        IF (PRESENT(rest)) sll => rest
     ELSE
        ALLOCATE(sll, stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        sll%first_el => first_el
        NULLIFY(sll%rest)
        IF (PRESENT(rest)) sll%rest => rest
@@ -255,14 +254,13 @@ CONTAINS
 !>      does not deallocate the elments that are stored in the list
 !>      check more?
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_dealloc(sll,error)
+  SUBROUTINE cp_sll_3d_r_dealloc(sll)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_dealloc', &
       routineP = moduleN//':'//routineN
 
-    CALL cp_sll_3d_r_rm_all_el(sll,error)
+    CALL cp_sll_3d_r_rm_all_el(sll)
   END SUBROUTINE cp_sll_3d_r_dealloc
 
 ! * low-level *
@@ -276,9 +274,8 @@ CONTAINS
 !>      none
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_dealloc_node(sll,error)
+  SUBROUTINE cp_sll_3d_r_dealloc_node(sll)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_dealloc_node', &
       routineP = moduleN//':'//routineN
@@ -289,7 +286,7 @@ CONTAINS
     failure=.FALSE.
 
     DEALLOCATE(sll, stat=stat)
-    CPPostcondition(stat==0,cp_warning_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_warning_level,routineP,failure)
   END SUBROUTINE cp_sll_3d_r_dealloc_node
 
 ! ============= get/set ============
@@ -307,13 +304,12 @@ CONTAINS
 !>      none
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_set(sll,first_el,rest,error)
+  SUBROUTINE cp_sll_3d_r_set(sll,first_el,rest)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     REAL(kind=dp), DIMENSION(:, :, :), &
       OPTIONAL, POINTER                      :: first_el
     TYPE(cp_sll_3d_r_type), OPTIONAL, &
       POINTER                                :: rest
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_set', &
       routineP = moduleN//':'//routineN
@@ -324,9 +320,9 @@ CONTAINS
 
     IF (.NOT.ASSOCIATED(sll)) THEN
        IF (PRESENT(first_el)) THEN
-          CALL cp_sll_3d_r_create(sll,first_el,rest,error)
+          CALL cp_sll_3d_r_create(sll,first_el,rest)
        ELSE
-          CPAssert(.NOT.PRESENT(rest),cp_failure_level,routineP,error,failure)
+          CPAssert(.NOT.PRESENT(rest),cp_failure_level,routineP,failure)
        END IF
     ELSE
        IF (PRESENT(first_el)) sll%first_el => first_el
@@ -347,7 +343,7 @@ CONTAINS
 !>      none
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_get(sll,first_el,rest,empty,length,error)
+  SUBROUTINE cp_sll_3d_r_get(sll,first_el,rest,empty,length)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     REAL(kind=dp), DIMENSION(:, :, :), &
       OPTIONAL, POINTER                      :: first_el
@@ -355,7 +351,6 @@ CONTAINS
       POINTER                                :: rest
     LOGICAL, INTENT(out), OPTIONAL           :: empty
     INTEGER, INTENT(out), OPTIONAL           :: length
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_get', &
       routineP = moduleN//':'//routineN
@@ -365,7 +360,7 @@ CONTAINS
     failure=.FALSE.
 
     IF (.NOT.ASSOCIATED(sll)) THEN
-       CPPrecondition(.NOT.PRESENT(first_el),cp_failure_level,routineP,error,failure)
+       CPPrecondition(.NOT.PRESENT(first_el),cp_failure_level,routineP,failure)
        IF (PRESENT(rest)) NULLIFY(rest)
        IF (PRESENT(empty)) empty=.TRUE.
        IF (PRESENT(length)) length=0
@@ -374,7 +369,7 @@ CONTAINS
        IF (PRESENT(rest)) rest => sll%rest
        IF (PRESENT(empty)) empty = .FALSE.
        IF (PRESENT(length)) &
-            length = cp_sll_3d_r_get_length(sll,error=error)
+            length = cp_sll_3d_r_get_length(sll)
     END IF
   END SUBROUTINE cp_sll_3d_r_get
 
@@ -388,9 +383,8 @@ CONTAINS
 !>      none
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  FUNCTION cp_sll_3d_r_get_first_el(sll,error) RESULT(res)
+  FUNCTION cp_sll_3d_r_get_first_el(sll) RESULT(res)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(kind=dp), DIMENSION(:, :, :), &
       POINTER                                :: res
 
@@ -402,7 +396,7 @@ CONTAINS
     failure=.FALSE.
 
     IF (cp_debug) THEN
-       CPPrecondition(ASSOCIATED(sll),cp_failure_level,routineP,error,failure)
+       CPPrecondition(ASSOCIATED(sll),cp_failure_level,routineP,failure)
     END IF
 
     res => sll%first_el
@@ -422,10 +416,9 @@ CONTAINS
 !> \note
 !>      split the case iter=1 to make it more optimized?
 ! *****************************************************************************
-  FUNCTION cp_sll_3d_r_get_rest(sll, iter, error) RESULT(res)
+  FUNCTION cp_sll_3d_r_get_rest(sll, iter) RESULT(res)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     INTEGER, OPTIONAL                        :: iter
-    TYPE(cp_error_type), INTENT(inout)       :: error
     TYPE(cp_sll_3d_r_type), POINTER          :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_get_rest', &
@@ -448,7 +441,7 @@ CONTAINS
                 CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,&
                      routineP, "tried to go past end in "// &
                      CPSourceFileRef,&
-                     error,failure)
+                     failure)
              END IF
           END DO
           IF (iter==-1) THEN
@@ -473,9 +466,8 @@ CONTAINS
 !>      none
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  FUNCTION cp_sll_3d_r_get_empty(sll,error) RESULT(res)
+  FUNCTION cp_sll_3d_r_get_empty(sll) RESULT(res)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
-    TYPE(cp_error_type), INTENT(inout)       :: error
     LOGICAL                                  :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_get_empty', &
@@ -496,9 +488,8 @@ CONTAINS
 !> \note
 !>      slow (O(n))
 ! *****************************************************************************
-  FUNCTION cp_sll_3d_r_get_length(sll,error) RESULT(res)
+  FUNCTION cp_sll_3d_r_get_length(sll) RESULT(res)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER                                  :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_get_length', &
@@ -531,10 +522,9 @@ CONTAINS
 !> \note
 !>      slow (O(index))
 ! *****************************************************************************
-  FUNCTION cp_sll_3d_r_get_el_at(sll,index,error) RESULT(res)
+  FUNCTION cp_sll_3d_r_get_el_at(sll,index) RESULT(res)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     INTEGER, INTENT(in)                      :: index
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(kind=dp), DIMENSION(:, :, :), &
       POINTER                                :: res
 
@@ -547,14 +537,14 @@ CONTAINS
     failure=.FALSE.
 
     IF (cp_debug) THEN
-       CPPrecondition(index>0.OR.index==-1,cp_failure_level,routineP,error,failure)
+       CPPrecondition(index>0.OR.index==-1,cp_failure_level,routineP,failure)
     END IF
     IF (index==-1) THEN
-       pos => cp_sll_3d_r_get_rest(sll, iter=-1,error=error)
+       pos => cp_sll_3d_r_get_rest(sll, iter=-1)
     ELSE
-       pos => cp_sll_3d_r_get_rest(sll, iter=index-1,error=error)
+       pos => cp_sll_3d_r_get_rest(sll, iter=index-1)
     END IF
-    CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,failure)
 
     res => pos%first_el
   END FUNCTION cp_sll_3d_r_get_el_at
@@ -573,12 +563,11 @@ CONTAINS
 !> \note
 !>      slow (O(index))
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_set_el_at(sll,index,value,error)
+  SUBROUTINE cp_sll_3d_r_set_el_at(sll,index,value)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     INTEGER, INTENT(in)                      :: index
     REAL(kind=dp), DIMENSION(:, :, :), &
       POINTER                                :: value
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_set_el_at', &
       routineP = moduleN//':'//routineN
@@ -589,11 +578,11 @@ CONTAINS
     failure=.FALSE.
 
     IF (index==-1) THEN
-       pos => cp_sll_3d_r_get_rest(sll, iter=-1,error=error)
+       pos => cp_sll_3d_r_get_rest(sll, iter=-1)
     ELSE
-       pos => cp_sll_3d_r_get_rest(sll, iter=index-1,error=error)
+       pos => cp_sll_3d_r_get_rest(sll, iter=index-1)
     END IF
-    CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,failure)
 
     pos%first_el => value
   END SUBROUTINE cp_sll_3d_r_set_el_at
@@ -612,11 +601,10 @@ CONTAINS
 !>      none
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  FUNCTION cp_sll_3d_r_next(iterator,el_att,error) RESULT(res)
+  FUNCTION cp_sll_3d_r_next(iterator,el_att) RESULT(res)
     TYPE(cp_sll_3d_r_type), POINTER          :: iterator
     REAL(kind=dp), DIMENSION(:, :, :), &
       OPTIONAL, POINTER                      :: el_att
-    TYPE(cp_error_type), INTENT(inout)       :: error
     LOGICAL                                  :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_next', &
@@ -646,11 +634,10 @@ CONTAINS
 !> \note
 !>      fast (O(1))
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_insert_el(sll,el,error)
+  SUBROUTINE cp_sll_3d_r_insert_el(sll,el)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     REAL(kind=dp), DIMENSION(:, :, :), &
       POINTER                                :: el
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_insert_el', &
       routineP = moduleN//':'//routineN
@@ -660,7 +647,7 @@ CONTAINS
     NULLIFY(newSlot)
 
     CALL cp_sll_3d_r_create(newSlot,first_el=el,&
-         rest=sll,error=error)
+         rest=sll)
     sll => newSlot
   END SUBROUTINE cp_sll_3d_r_insert_el
 
@@ -675,9 +662,8 @@ CONTAINS
 !> \note
 !>      fast (O(1))
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_rm_first_el(sll,error)
+  SUBROUTINE cp_sll_3d_r_rm_first_el(sll)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_rm_first_el', &
       routineP = moduleN//':'//routineN
@@ -690,12 +676,12 @@ CONTAINS
 
     IF (ASSOCIATED(sll)) THEN
        sll => sll%rest
-       CALL cp_sll_3d_r_dealloc_node(node_to_rm,error=error)
+       CALL cp_sll_3d_r_dealloc_node(node_to_rm)
     ELSE
        CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,&
             routineP,"tried to remove first el of an empty list in "//&
             CPSourceFileRef,&
-            error,failure)
+            failure)
     END IF
   END SUBROUTINE cp_sll_3d_r_rm_first_el
 
@@ -713,12 +699,11 @@ CONTAINS
 !> \note
 !>      slow (O(index))
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_insert_el_at(sll,el,index,error)
+  SUBROUTINE cp_sll_3d_r_insert_el_at(sll,el,index)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     REAL(kind=dp), DIMENSION(:, :, :), &
       POINTER                                :: el
     INTEGER, INTENT(in)                      :: index
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_insert_el_at', &
       routineP = moduleN//':'//routineN
@@ -729,15 +714,15 @@ CONTAINS
     failure=.FALSE.
 
     IF (index==1) THEN
-       CALL cp_sll_3d_r_insert_el(sll,el,error=error)
+       CALL cp_sll_3d_r_insert_el(sll,el)
     ELSE
        IF (index==-1) THEN
-          pos => cp_sll_3d_r_get_rest(sll, iter=-1,error=error)
+          pos => cp_sll_3d_r_get_rest(sll, iter=-1)
        ELSE
-          pos => cp_sll_3d_r_get_rest(sll, iter=index-2,error=error)
+          pos => cp_sll_3d_r_get_rest(sll, iter=index-2)
        END IF
-       CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,error,failure)
-       CALL cp_sll_3d_r_insert_el(pos%rest,el,error=error)
+       CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,failure)
+       CALL cp_sll_3d_r_insert_el(pos%rest,el)
     END IF
   END SUBROUTINE cp_sll_3d_r_insert_el_at
 
@@ -753,10 +738,9 @@ CONTAINS
 !> \note
 !>      slow (O(index))
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_rm_el_at(sll,index,error)
+  SUBROUTINE cp_sll_3d_r_rm_el_at(sll,index)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     INTEGER, INTENT(in)                      :: index
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_rm_el_at', &
       routineP = moduleN//':'//routineN
@@ -767,18 +751,18 @@ CONTAINS
     failure=.FALSE.
 
     IF (cp_debug) THEN
-       CPPrecondition(index>0.OR.index==-1,cp_failure_level,routineP,error,failure)
+       CPPrecondition(index>0.OR.index==-1,cp_failure_level,routineP,failure)
     END IF
     IF (index==1) THEN
-       CALL cp_sll_3d_r_rm_first_el(sll,error=error)
+       CALL cp_sll_3d_r_rm_first_el(sll)
     ELSE
        IF (index==-1) THEN
-          pos => cp_sll_3d_r_get_rest(sll, iter=-1,error=error)
+          pos => cp_sll_3d_r_get_rest(sll, iter=-1)
        ELSE
-          pos => cp_sll_3d_r_get_rest(sll, iter=index-2,error=error)
+          pos => cp_sll_3d_r_get_rest(sll, iter=index-2)
        END IF
-       CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,error,failure)
-       CALL cp_sll_3d_r_rm_first_el(pos%rest,error=error)
+       CPPrecondition(ASSOCIATED(pos),cp_failure_level,routineP,failure)
+       CALL cp_sll_3d_r_rm_first_el(pos%rest)
     END IF
   END SUBROUTINE cp_sll_3d_r_rm_el_at
 
@@ -793,9 +777,8 @@ CONTAINS
 !> \note
 !>      check more?
 ! *****************************************************************************
-  SUBROUTINE cp_sll_3d_r_rm_all_el(sll,error)
+  SUBROUTINE cp_sll_3d_r_rm_all_el(sll)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_rm_all_el', &
       routineP = moduleN//':'//routineN
@@ -806,7 +789,7 @@ CONTAINS
     DO
        IF (.NOT.ASSOCIATED(actual_node)) EXIT
        next_node => actual_node%rest
-       CALL cp_sll_3d_r_dealloc_node(actual_node,error=error)
+       CALL cp_sll_3d_r_dealloc_node(actual_node)
        actual_node => next_node
     END DO
     NULLIFY(sll)
@@ -823,9 +806,8 @@ CONTAINS
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-FUNCTION cp_sll_3d_r_to_array(sll,error) RESULT(res)
+FUNCTION cp_sll_3d_r_to_array(sll) RESULT(res)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
-    TYPE(cp_error_type), INTENT(inout)       :: error
     TYPE(cp_3d_r_p_type), DIMENSION(:), &
       POINTER                                :: res
 
@@ -838,14 +820,14 @@ FUNCTION cp_sll_3d_r_to_array(sll,error) RESULT(res)
 
   failure=.FALSE.
 
-  len=cp_sll_3d_r_get_length(sll,error)
+  len=cp_sll_3d_r_get_length(sll)
   ALLOCATE(res(len),stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   iter => sll
   DO i=1,len
      res(i)%array => iter%first_el
-     IF (.NOT.(cp_sll_3d_r_next(iter,error=error).OR.i==len)) THEN
-        CPAssert(.FALSE.,cp_failure_level,routineP,error,failure)
+     IF (.NOT.(cp_sll_3d_r_next(iter).OR.i==len)) THEN
+        CPAssert(.FALSE.,cp_failure_level,routineP,failure)
      END IF
   END DO
 END FUNCTION cp_sll_3d_r_to_array
@@ -860,10 +842,9 @@ END FUNCTION cp_sll_3d_r_to_array
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-FUNCTION cp_sll_3d_r_from_array(array,error) RESULT(res)
+FUNCTION cp_sll_3d_r_from_array(array) RESULT(res)
     TYPE(cp_3d_r_p_type), DIMENSION(:), &
       INTENT(in)                             :: array
-    TYPE(cp_error_type), INTENT(inout)       :: error
     TYPE(cp_sll_3d_r_type), POINTER          :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_from_array', &
@@ -875,14 +856,12 @@ FUNCTION cp_sll_3d_r_from_array(array,error) RESULT(res)
   NULLIFY(res,last_el)
   IF (SIZE(array)>0) THEN
      CALL cp_sll_3d_r_create(res,&
-          first_el=array(1)%array,&
-          error=error)
+          first_el=array(1)%array)
      last_el => res
   END IF
   DO i=2,SIZE(array)
      CALL cp_sll_3d_r_create(last_el%rest,&
-          first_el=array(i)%array,&
-          error=error)
+          first_el=array(i)%array)
      last_el => last_el%rest
   END DO
 END FUNCTION cp_sll_3d_r_from_array
@@ -903,7 +882,7 @@ END FUNCTION cp_sll_3d_r_from_array
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 SUBROUTINE cp_sll_3d_r_insert_ordered(sll,el,insert_equals,&
-     did_insert,pos,error)
+     did_insert,pos)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     REAL(kind=dp), DIMENSION(:, :, :), &
       POINTER                                :: el
@@ -911,7 +890,6 @@ SUBROUTINE cp_sll_3d_r_insert_ordered(sll,el,insert_equals,&
     LOGICAL, INTENT(out), OPTIONAL           :: did_insert
     TYPE(cp_sll_3d_r_type), OPTIONAL, &
       POINTER                                :: pos
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_insert_ordered', &
       routineP = moduleN//':'//routineN
@@ -927,13 +905,13 @@ SUBROUTINE cp_sll_3d_r_insert_ordered(sll,el,insert_equals,&
 
   IF (PRESENT(insert_equals)) i_eq=insert_equals
   IF (.NOT.ASSOCIATED(sll)) THEN
-     CALL cp_sll_3d_r_create(sll,first_el=el,error=error)
+     CALL cp_sll_3d_r_create(sll,first_el=el)
      IF (PRESENT(did_insert)) did_insert=.TRUE.
      IF (PRESENT(pos)) pos=>sll
-  ELSE IF (.NOT.CP_SLL_R_LESS_Q(sll%first_el,el,error=error)) THEN
+  ELSE IF (.NOT.CP_SLL_R_LESS_Q(sll%first_el,el)) THEN
      IF (PRESENT(pos)) pos=>sll
-     IF (i_eq.OR.CP_SLL_R_LESS_Q(el,sll%first_el,error=error)) THEN
-        CALL cp_sll_3d_r_insert_el(sll,el,error=error)
+     IF (i_eq.OR.CP_SLL_R_LESS_Q(el,sll%first_el)) THEN
+        CALL cp_sll_3d_r_insert_el(sll,el)
         IF (PRESENT(did_insert)) did_insert=.TRUE.
         IF (PRESENT(pos)) pos=>sll
      END IF
@@ -941,22 +919,22 @@ SUBROUTINE cp_sll_3d_r_insert_ordered(sll,el,insert_equals,&
      iter => sll
      DO
         IF (.NOT.ASSOCIATED(iter%rest)) THEN
-           CALL cp_sll_3d_r_insert_el(iter%rest,el,error=error)
+           CALL cp_sll_3d_r_insert_el(iter%rest,el)
            IF (PRESENT(did_insert)) did_insert=.TRUE.
            IF (PRESENT(pos)) pos=>iter%rest
            EXIT
-        ELSE IF (.NOT.CP_SLL_R_LESS_Q(iter%rest%first_el,el,error=error)) THEN
+        ELSE IF (.NOT.CP_SLL_R_LESS_Q(iter%rest%first_el,el)) THEN
            IF (PRESENT(pos)) pos=>iter
-           IF (i_eq.OR. CP_SLL_R_LESS_Q(el,iter%rest%first_el,error=error)) THEN
-              CALL cp_sll_3d_r_insert_el(iter%rest,el,error=error)
+           IF (i_eq.OR. CP_SLL_R_LESS_Q(el,iter%rest%first_el)) THEN
+              CALL cp_sll_3d_r_insert_el(iter%rest,el)
               IF (PRESENT(did_insert)) did_insert=.TRUE.
               IF (PRESENT(pos)) pos=>iter%rest
            END IF
            EXIT
         END IF
-        CPInvariant(cp_sll_3d_r_next(iter,error=error),cp_failure_level,routineP,error,failure)
+        CPInvariant(cp_sll_3d_r_next(iter),cp_failure_level,routineP,failure)
      END DO
-     CPAssert(ASSOCIATED(iter),cp_failure_level,routineP,error,failure)
+     CPAssert(ASSOCIATED(iter),cp_failure_level,routineP,failure)
   END IF
 END SUBROUTINE cp_sll_3d_r_insert_ordered
 
@@ -978,7 +956,7 @@ END SUBROUTINE cp_sll_3d_r_insert_ordered
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 SUBROUTINE cp_sll_3d_r_insert_ordered2(sll,el,compare_function,&
-     insert_equals,did_insert,pos,error)
+     insert_equals,did_insert,pos)
     TYPE(cp_sll_3d_r_type), POINTER          :: sll
     REAL(kind=dp), DIMENSION(:, :, :), &
       POINTER                                :: el
@@ -995,7 +973,6 @@ USE cp_array_utils_r, ONLY: cp_3d_r_p_type
     LOGICAL, INTENT(out), OPTIONAL           :: did_insert
     TYPE(cp_sll_3d_r_type), OPTIONAL, &
       POINTER                                :: pos
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_sll_3d_r_insert_ordered2', &
       routineP = moduleN//':'//routineN
@@ -1012,7 +989,7 @@ USE cp_array_utils_r, ONLY: cp_3d_r_p_type
 
   IF (PRESENT(insert_equals)) i_eq=insert_equals
   IF (.NOT.ASSOCIATED(sll)) THEN
-     CALL cp_sll_3d_r_create(sll,first_el=el,error=error)
+     CALL cp_sll_3d_r_create(sll,first_el=el)
      IF (PRESENT(did_insert)) did_insert=.TRUE.
      IF (PRESENT(pos)) pos=>sll%rest
      RETURN
@@ -1020,7 +997,7 @@ USE cp_array_utils_r, ONLY: cp_3d_r_p_type
   comp=compare_function(sll%first_el,el)
   IF (comp>=0) THEN
      IF (i_eq.OR.comp/=0) THEN
-        CALL cp_sll_3d_r_insert_el(sll,el,error=error)
+        CALL cp_sll_3d_r_insert_el(sll,el)
         IF (PRESENT(did_insert)) did_insert=.TRUE.
         IF (PRESENT(pos)) pos=>sll%rest
      END IF
@@ -1028,7 +1005,7 @@ USE cp_array_utils_r, ONLY: cp_3d_r_p_type
      iter => sll
      DO
         IF (.NOT.ASSOCIATED(iter%rest)) THEN
-           CALL cp_sll_3d_r_insert_el(iter%rest,el,error=error)
+           CALL cp_sll_3d_r_insert_el(iter%rest,el)
            IF (PRESENT(did_insert)) did_insert=.TRUE.
            IF (PRESENT(pos)) pos=>iter%rest
            EXIT
@@ -1036,15 +1013,15 @@ USE cp_array_utils_r, ONLY: cp_3d_r_p_type
         comp=compare_function(iter%rest%first_el,el)
         IF (comp>=0) THEN
            IF (i_eq.OR. comp/=0) THEN
-              CALL cp_sll_3d_r_insert_el(iter%rest,el,error=error)
+              CALL cp_sll_3d_r_insert_el(iter%rest,el)
               IF (PRESENT(did_insert)) did_insert=.TRUE.
               IF (PRESENT(pos)) pos=>iter%rest
            END IF
            EXIT
         END IF
-        CPInvariant(cp_sll_3d_r_next(iter,error=error),cp_failure_level,routineP,error,failure)
+        CPInvariant(cp_sll_3d_r_next(iter),cp_failure_level,routineP,failure)
      END DO
-     CPAssert(ASSOCIATED(iter),cp_failure_level,routineP,error,failure)
+     CPAssert(ASSOCIATED(iter),cp_failure_level,routineP,failure)
   END IF
 END SUBROUTINE cp_sll_3d_r_insert_ordered2
 
@@ -1061,8 +1038,8 @@ END SUBROUTINE cp_sll_3d_r_insert_ordered2
 !  common_dir = "../common/"
 !  defines = 
 !    "! less not much meningful... and defines oly a partial ordering.
-!     #define CP_SLL_R_LESS_Q(el1,el2,error) ( all(el1 < el2) )
-!     #define CP_SLL_R_EQUAL_Q(el1,el2,error) ( all(el1 == el2) )
+!     #define CP_SLL_R_LESS_Q(el1,el2) ( all(el1 < el2) )
+!     #define CP_SLL_R_EQUAL_Q(el1,el2) ( all(el1 == el2) )
 !     "
 !  equalQ = "CP_SLL_R_EQUAL_Q"
 !  lessQ = "CP_SLL_R_LESS_Q"

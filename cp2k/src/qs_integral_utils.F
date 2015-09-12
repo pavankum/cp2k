@@ -47,12 +47,11 @@ CONTAINS
 !> \param error ...
 !> \retval ldmem          Result
 ! *****************************************************************************
-  FUNCTION get_memory_usage_a(qs_kind_set,basis_type_a,error) RESULT(ldmem)
+  FUNCTION get_memory_usage_a(qs_kind_set,basis_type_a) RESULT(ldmem)
 
     TYPE(qs_kind_type), DIMENSION(:), &
       POINTER                                :: qs_kind_set
     CHARACTER(LEN=*), INTENT(IN)             :: basis_type_a
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER                                  :: ldmem
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_memory_usage_a', &
@@ -62,7 +61,7 @@ CONTAINS
 
     CALL get_qs_kind_set(qs_kind_set=qs_kind_set,&
                              maxco=maxc, maxlgto=maxl, maxsgf=maxs,&
-                             basis_type=basis_type_a,error=error)
+                             basis_type=basis_type_a)
     ldmem = MAX(maxc,maxs)
 
     CALL init_orbital_pointers(maxl+2)
@@ -77,12 +76,11 @@ CONTAINS
 !> \param error ...
 !> \retval ldmem          Result
 ! *****************************************************************************
-  FUNCTION get_memory_usage_ab(qs_kind_set,basis_type_a,basis_type_b,error) RESULT(ldmem)
+  FUNCTION get_memory_usage_ab(qs_kind_set,basis_type_a,basis_type_b) RESULT(ldmem)
 
     TYPE(qs_kind_type), DIMENSION(:), &
       POINTER                                :: qs_kind_set
     CHARACTER(LEN=*), INTENT(IN)             :: basis_type_a, basis_type_b
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER                                  :: ldmem
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_memory_usage_ab', &
@@ -90,8 +88,8 @@ CONTAINS
 
     INTEGER                                  :: lda, ldb
 
-    lda = get_memory_usage_a(qs_kind_set,basis_type_a,error)
-    ldb = get_memory_usage_a(qs_kind_set,basis_type_b,error)
+    lda = get_memory_usage_a(qs_kind_set,basis_type_a)
+    ldb = get_memory_usage_a(qs_kind_set,basis_type_b)
     ldmem = MAX(lda,ldb)
 
   END FUNCTION get_memory_usage_ab
@@ -106,13 +104,12 @@ CONTAINS
 !> \retval ldmem          Result
 ! *****************************************************************************
   FUNCTION get_memory_usage_abc(qs_kind_set,basis_type_a,&
-                                basis_type_b,basis_type_c,error) RESULT(ldmem)
+                                basis_type_b,basis_type_c) RESULT(ldmem)
 
     TYPE(qs_kind_type), DIMENSION(:), &
       POINTER                                :: qs_kind_set
     CHARACTER(LEN=*), INTENT(IN)             :: basis_type_a, basis_type_b, &
                                                 basis_type_c
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER                                  :: ldmem
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_memory_usage_abc', &
@@ -120,9 +117,9 @@ CONTAINS
 
     INTEGER                                  :: lda, ldb, ldc
 
-    lda = get_memory_usage_a(qs_kind_set,basis_type_a,error)
-    ldb = get_memory_usage_a(qs_kind_set,basis_type_b,error)
-    ldc = get_memory_usage_a(qs_kind_set,basis_type_c,error)
+    lda = get_memory_usage_a(qs_kind_set,basis_type_a)
+    ldb = get_memory_usage_a(qs_kind_set,basis_type_b)
+    ldc = get_memory_usage_a(qs_kind_set,basis_type_c)
     ldmem = MAX(lda,ldb,ldc)
 
   END FUNCTION get_memory_usage_abc
@@ -138,13 +135,12 @@ CONTAINS
 !> \retval ldmem          Result
 ! *****************************************************************************
   FUNCTION get_memory_usage_abcd(qs_kind_set,basis_type_a,&
-           basis_type_b,basis_type_c,basis_type_d,error) RESULT(ldmem)
+           basis_type_b,basis_type_c,basis_type_d) RESULT(ldmem)
 
     TYPE(qs_kind_type), DIMENSION(:), &
       POINTER                                :: qs_kind_set
     CHARACTER(LEN=*), INTENT(IN)             :: basis_type_a, basis_type_b, &
                                                 basis_type_c, basis_type_d
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER                                  :: ldmem
 
     CHARACTER(len=*), PARAMETER :: routineN = 'get_memory_usage_abcd', &
@@ -152,10 +148,10 @@ CONTAINS
 
     INTEGER                                  :: lda, ldb, ldc, ldd
 
-    lda = get_memory_usage_a(qs_kind_set,basis_type_a,error)
-    ldb = get_memory_usage_a(qs_kind_set,basis_type_b,error)
-    ldc = get_memory_usage_a(qs_kind_set,basis_type_c,error)
-    ldd = get_memory_usage_a(qs_kind_set,basis_type_d,error)
+    lda = get_memory_usage_a(qs_kind_set,basis_type_a)
+    ldb = get_memory_usage_a(qs_kind_set,basis_type_b)
+    ldc = get_memory_usage_a(qs_kind_set,basis_type_c)
+    ldd = get_memory_usage_a(qs_kind_set,basis_type_d)
     ldmem = MAX(lda,ldb,ldc,ldd)
 
   END FUNCTION get_memory_usage_abcd
@@ -169,14 +165,13 @@ CONTAINS
 !> \param qs_kind_set   Kind information, the basis is used
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE basis_set_list_setup(basis_set_list,basis_type,qs_kind_set,error)
+  SUBROUTINE basis_set_list_setup(basis_set_list,basis_type,qs_kind_set)
 
     TYPE(gto_basis_set_p_type), &
       DIMENSION(:), POINTER                  :: basis_set_list
     CHARACTER(len=*), INTENT(IN)             :: basis_type
     TYPE(qs_kind_type), DIMENSION(:), &
       POINTER                                :: qs_kind_set
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'basis_set_list_setup', &
       routineP = moduleN//':'//routineN
@@ -190,7 +185,7 @@ CONTAINS
     DO ikind=1,SIZE(qs_kind_set)
        qs_kind => qs_kind_set(ikind)
        CALL get_qs_kind(qs_kind=qs_kind,basis_set=basis_set,&
-                        basis_type=basis_type,error=error)
+                        basis_type=basis_type)
        NULLIFY(basis_set_list(ikind)%gto_basis_set)
        IF (ASSOCIATED(basis_set)) basis_set_list(ikind)%gto_basis_set => basis_set
     END DO

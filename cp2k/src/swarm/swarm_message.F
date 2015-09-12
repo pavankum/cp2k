@@ -311,16 +311,15 @@ MODULE swarm_message
 !> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE swarm_message_file_read(msg, parser, at_end, error)
+  SUBROUTINE swarm_message_file_read(msg, parser, at_end)
     TYPE(swarm_message_type), INTENT(OUT)    :: msg
     TYPE(cp_parser_type), POINTER            :: parser
     LOGICAL, INTENT(INOUT)                   :: at_end
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     INTEGER                                  :: handle
 
     CALL timeset("swarm_message_file_read", handle)
-    CALL swarm_message_file_read_low(msg, parser, at_end, error)
+    CALL swarm_message_file_read_low(msg, parser, at_end)
     CALL timestop(handle)
   END SUBROUTINE swarm_message_file_read
 
@@ -333,11 +332,10 @@ MODULE swarm_message
 !> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE swarm_message_file_read_low(msg, parser, at_end, error)
+  SUBROUTINE swarm_message_file_read_low(msg, parser, at_end)
     TYPE(swarm_message_type), INTENT(OUT)    :: msg
     TYPE(cp_parser_type), POINTER            :: parser
     LOGICAL, INTENT(INOUT)                   :: at_end
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=20)                        :: label
     INTEGER                                  :: i, length
@@ -345,12 +343,12 @@ MODULE swarm_message
 
 !IF(ASSOCIATED(msg%root)) STOP "swarm_message_file_read: message not empty"
 
-    CALL parser_get_next_line(parser, 1, at_end, error)
+    CALL parser_get_next_line(parser, 1, at_end)
     at_end = at_end .OR. LEN_TRIM(parser%input_line(1:10))==0
     IF(at_end) RETURN
     IF(TRIM(parser%input_line(1:20))/="BEGIN SWARM_MESSAGE") STOP "swarm_message_file_read failed (1)"
 
-    CALL parser_get_next_line(parser, 1, at_end, error)
+    CALL parser_get_next_line(parser, 1, at_end)
     at_end = at_end .OR. LEN_TRIM(parser%input_line(1:10))==0
     IF(at_end) RETURN
     READ (parser%input_line(1:40),*) label, length
@@ -358,12 +356,12 @@ MODULE swarm_message
 
     DO i=1, length
        ALLOCATE(new_entry)
-       CALL swarm_message_entry_file_read(new_entry, parser, at_end, error)
+       CALL swarm_message_entry_file_read(new_entry, parser, at_end)
        new_entry%next => msg%root
        msg%root => new_entry
     END DO
 
-    CALL parser_get_next_line(parser, 1, at_end, error)
+    CALL parser_get_next_line(parser, 1, at_end)
     at_end = at_end .OR. LEN_TRIM(parser%input_line(1:10))==0
     IF(at_end) RETURN
     IF(TRIM(parser%input_line(1:20))/="END SWARM_MESSAGE") STOP "swarm_message_file_read failed (3)"
@@ -747,29 +745,28 @@ MODULE swarm_message
 !> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE swarm_message_entry_file_read(ENTRY, parser, at_end, error)
+  SUBROUTINE swarm_message_entry_file_read(ENTRY, parser, at_end)
     TYPE(message_entry_type), INTENT(INOUT)  :: ENTRY
     TYPE(cp_parser_type), POINTER            :: parser
     LOGICAL, INTENT(INOUT)                   :: at_end
-    TYPE(cp_error_type)                      :: error
 
     CHARACTER(LEN=15)                        :: datatype, label
     INTEGER                                  :: arr_size, i
     LOGICAL                                  :: is_scalar
 
-    CALL parser_get_next_line(parser, 1, at_end, error)
+    CALL parser_get_next_line(parser, 1, at_end)
     at_end = at_end .OR. LEN_TRIM(parser%input_line(1:10))==0
     IF(at_end) RETURN
     READ (parser%input_line(1:key_length+10),*) label, entry%key
     IF(TRIM(label)/="key:") STOP "swarm_message_entry_file_read failed (1)"
 
-    CALL parser_get_next_line(parser, 1, at_end, error)
+    CALL parser_get_next_line(parser, 1, at_end)
     at_end = at_end .OR. LEN_TRIM(parser%input_line(1:10))==0
     IF(at_end) RETURN
     READ (parser%input_line(1:30),*) label, datatype
     IF(TRIM(label)/="datatype:") STOP "swarm_message_entry_file_read failed (2)"
 
-    CALL parser_get_next_line(parser, 1, at_end, error)
+    CALL parser_get_next_line(parser, 1, at_end)
     at_end = at_end .OR. LEN_TRIM(parser%input_line(1:10))==0
     IF(at_end) RETURN
 
@@ -817,7 +814,7 @@ MODULE swarm_message
     END SELECT
 
     DO i=1, arr_size
-      CALL parser_get_next_line(parser, 1, at_end, error)
+      CALL parser_get_next_line(parser, 1, at_end)
       at_end = at_end .OR. LEN_TRIM(parser%input_line(1:10))==0
       IF(at_end) RETURN
 

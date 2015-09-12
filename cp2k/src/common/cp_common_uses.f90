@@ -66,24 +66,24 @@
 ! We are trying to use a small amount of characters
 ! the test is not inlined (you have always a function call)
 
-#define CPPrecondition(cond,level,routineP,error,failure) \
-IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,error,failure)
-#define CPPostcondition(cond,level,routineP,error,failure) \
-IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,error,failure)
-#define CPInvariant(cond,level,routineP,error,failure) \
-IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,error,failure)
-#define CPAssert(cond,level,routineP,error,failure) \
-IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,error,failure)
-#define CPErrorMessage(level,routineP,msg,error) \
-CALL cp_error_message(level,routineP,msg,error)
-#define CPPreconditionNoFail(cond,level,routineP,error) \
-IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,error)
-#define CPPostconditionNoFail(cond,level,routineP,error) \
-IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,error)
-#define CPInvariantNoFail(cond,level,routineP,error) \
-IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,error)
-#define CPAssertNoFail(cond,level,routineP,error) \
-IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,error)
+#define CPPrecondition(cond,level,routineP,failure) \
+IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,failure)
+#define CPPostcondition(cond,level,routineP,failure) \
+IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,failure)
+#define CPInvariant(cond,level,routineP,failure) \
+IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,failure)
+#define CPAssert(cond,level,routineP,failure) \
+IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__,failure)
+#define CPErrorMessage(level,routineP,msg) \
+CALL cp_error_message(level,routineP,msg)
+#define CPPreconditionNoFail(cond,level,routineP) \
+IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__)
+#define CPPostconditionNoFail(cond,level,routineP) \
+IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__)
+#define CPInvariantNoFail(cond,level,routineP) \
+IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__)
+#define CPAssertNoFail(cond,level,routineP) \
+IF(.NOT.(cond))CALL cp_a_l(level,routineP,__LINE__)
 #define CPPreconditionNoErr(cond, level, routineN) \
 IF(.NOT.(cond))CALL cp_a_l(level,routineN,__LINE__)
 #define CPPostconditionNoErr(cond, level, routineN) \

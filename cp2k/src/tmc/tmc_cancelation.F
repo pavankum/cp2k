@@ -54,10 +54,9 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
-  SUBROUTINE add_to_canceling_list(elem, tmc_env ,error)
+  SUBROUTINE add_to_canceling_list(elem, tmc_env)
     TYPE(tree_type), POINTER                 :: elem
     TYPE(tmc_env_type), POINTER              :: tmc_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'add_to_canceling_list', &
       routineP = moduleN//':'//routineN
@@ -67,10 +66,10 @@ CONTAINS
 
     failure = .FALSE.
 
-    CPPrecondition(ASSOCIATED(elem),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(tmc_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(tmc_env%m_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(tmc_env%params),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(elem),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(tmc_env),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(tmc_env%m_env),cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(tmc_env%params),cp_failure_level,routineP,failure)
 
     ! start the timing
     CALL timeset(routineN,handle)
@@ -98,20 +97,20 @@ CONTAINS
          ! if deallocation is deactivated, should not be
          CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,&
                   routineP,"try to add deleted element cancelation list ",&
-                  error,failure)
+                  failure)
          WRITE(*,*)"WARNING: try to cancel subtree, element ",elem%sub_tree_nr, elem%nr, ", with status ", elem%stat
       CASE DEFAULT
          CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
                   routineP,"try to add element with unknown status to cancelation list (stat="&
-                  //cp_to_string(elem%stat),error,failure)
+                  //cp_to_string(elem%stat),failure)
       END SELECT
       ! set dot color
       IF(tmc_env%params%DRAW_TREE) &
-        CALL create_dot_color(tree_element=elem, tmc_params=tmc_env%params, error=error)
+        CALL create_dot_color(tree_element=elem, tmc_params=tmc_env%params)
 
       ! add to list
       IF(need_to_cancel) THEN
-        CALL add_to_list(elem=elem, list=tmc_env%m_env%cancelation_list, error=error)
+        CALL add_to_list(elem=elem, list=tmc_env%m_env%cancelation_list)
       END IF
     END IF
     ! end the timing
@@ -126,9 +125,8 @@ CONTAINS
 !> \param
 !> \author Mandes 12.2012
 ! *****************************************************************************
-  SUBROUTINE free_cancelation_list(cancel_list, error)
+  SUBROUTINE free_cancelation_list(cancel_list)
     TYPE(elem_list_type), POINTER            :: cancel_list
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'free_cancelation_list', &
       routineP = moduleN//':'//routineN

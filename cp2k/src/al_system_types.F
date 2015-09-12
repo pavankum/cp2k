@@ -59,11 +59,10 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Noam Bernstein [noamb] 02.2012
 ! *****************************************************************************
-  SUBROUTINE al_init(al, simpar, section, error)
+  SUBROUTINE al_init(al, simpar, section)
     TYPE(al_system_type), POINTER            :: al
     TYPE(simpar_type), POINTER               :: simpar
     TYPE(section_vals_type), POINTER         :: section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'al_init', &
       routineP = moduleN//':'//routineN
@@ -75,9 +74,9 @@ CONTAINS
     al%dt_fact=1.0_dp
     al%dt=simpar%dt
     CALL cite_reference(Jones2011)
-    CALL section_vals_val_get(section,"TIMECON_NH",r_val=al%tau_nh,error=error)
-    CALL section_vals_val_get(section,"TIMECON_LANGEVIN",r_val=al%tau_langevin,error=error)
-    CALL create_map_info_type(al%map_info, error)
+    CALL section_vals_val_get(section,"TIMECON_NH",r_val=al%tau_nh)
+    CALL section_vals_val_get(section,"TIMECON_LANGEVIN",r_val=al%tau_langevin)
+    CALL create_map_info_type(al%map_info)
     
   END SUBROUTINE al_init
 
@@ -88,9 +87,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Noam Bernstein [noamb]  02.2012
 ! *****************************************************************************
-  SUBROUTINE al_thermo_create(al, error)
+  SUBROUTINE al_thermo_create(al)
     TYPE(al_system_type), POINTER            :: al
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'al_thermo_create', &
       routineP = moduleN//':'//routineN
@@ -101,17 +99,17 @@ CONTAINS
       DIMENSION(:, :, :)                     :: seed
 
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(al),cp_fatal_level,routineP,error,failure)
-    CPPrecondition(.NOT.ASSOCIATED(al%nvt),cp_fatal_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(al),cp_fatal_level,routineP,failure)
+    CPPrecondition(.NOT.ASSOCIATED(al%nvt),cp_fatal_level,routineP,failure)
     
     ALLOCATE ( al%nvt(al%loc_num_al),stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     DO i = 1, al%loc_num_al
        al%nvt(i)%chi = 0.0_dp
     END DO
     ! Initialize the gaussian stream random number
     ALLOCATE (seed(3,2,al%glob_num_al),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE al_thermo_create
 
@@ -122,9 +120,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Noam Bernstein [noamb] 02.2012
 ! *****************************************************************************
-  SUBROUTINE al_dealloc ( al, error )
+  SUBROUTINE al_dealloc ( al)
     TYPE(al_system_type), POINTER            :: al
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'al_dealloc', &
       routineP = moduleN//':'//routineN
@@ -134,10 +131,10 @@ CONTAINS
 
     failure = .FALSE.
     IF (ASSOCIATED(al)) THEN
-       CALL al_thermo_dealloc(al%nvt, error)
-       CALL release_map_info_type(al%map_info, error)
+       CALL al_thermo_dealloc(al%nvt)
+       CALL release_map_info_type(al%map_info)
        DEALLOCATE (al, STAT=stat)
-       CPPrecondition(stat==0,cp_fatal_level,routineP,error,failure)
+       CPPrecondition(stat==0,cp_fatal_level,routineP,failure)
     ENDIF
 
   END SUBROUTINE al_dealloc
@@ -149,10 +146,9 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Noam Bernstein [noamb] 02.2012
 ! *****************************************************************************
-  SUBROUTINE al_thermo_dealloc ( nvt, error )
+  SUBROUTINE al_thermo_dealloc ( nvt)
     TYPE(al_thermo_type), DIMENSION(:), &
       POINTER                                :: nvt
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'al_thermo_dealloc', &
       routineP = moduleN//':'//routineN
@@ -163,7 +159,7 @@ CONTAINS
     failure = .FALSE.
     IF (ASSOCIATED(nvt)) THEN
        DEALLOCATE (nvt, STAT=stat)
-       CPPrecondition(stat==0,cp_fatal_level,routineP,error,failure)
+       CPPrecondition(stat==0,cp_fatal_level,routineP,failure)
     ENDIF
   END SUBROUTINE al_thermo_dealloc
   

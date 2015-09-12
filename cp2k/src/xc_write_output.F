@@ -35,11 +35,10 @@ CONTAINS
 !> \param lsd ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE xc_write(output_unit, xc_section, lsd, error)
+  SUBROUTINE xc_write(output_unit, xc_section, lsd)
     INTEGER, INTENT(IN)                      :: output_unit
     TYPE(section_vals_type), POINTER         :: xc_section
     LOGICAL, INTENT(IN)                      :: lsd
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xc_write', &
       routineP = moduleN//':'//routineN
@@ -57,26 +56,24 @@ CONTAINS
     IF (output_unit>0) THEN
 
        xc_fun_section => section_vals_get_subs_vals(xc_section,&
-            "XC_FUNCTIONAL",error=error)
-       CALL section_vals_val_get(xc_fun_section,"_SECTION_PARAMETERS_",i_val=myfun,error=error)
+            "XC_FUNCTIONAL")
+       CALL section_vals_val_get(xc_fun_section,"_SECTION_PARAMETERS_",i_val=myfun)
        IF (myfun/=xc_none) THEN
           CALL section_vals_val_get(xc_section,"FUNCTIONAL_ROUTINE",&
-               c_val=tmpStr,error=error)
+               c_val=tmpStr)
           WRITE (output_unit, fmt="(' FUNCTIONAL| ROUTINE=',a)")&
                TRIM(tmpStr)
-          CALL xc_functionals_expand(xc_fun_section,xc_section,error=error)
+          CALL xc_functionals_expand(xc_fun_section,xc_section)
           ifun=0
           DO
              ifun=ifun+1
-             xc_fun => section_vals_get_subs_vals2(xc_fun_section,i_section=ifun,&
-                  error=error)
+             xc_fun => section_vals_get_subs_vals2(xc_fun_section,i_section=ifun)
              IF (.NOT.ASSOCIATED(xc_fun)) EXIT
              CALL xc_functional_get_info(xc_fun,&
                                          lsd=lsd,&
                                          reference=reference,&
                                          shortform=shortform,&
-                                         ifunc_name=1,&
-                                         error=error)
+                                         ifunc_name=1)
              IF (TRIM(xc_fun%section%name) == "LIBXC") THEN
 #if defined(__LIBXC3)
                CALL xc_f90_version(vmajor,vminor,vmicro)
@@ -100,14 +97,13 @@ CONTAINS
                  WRITE (output_unit, fmt="(' FUNCTIONAL| ',a)") reference(68:134)
                  WRITE (output_unit, fmt="(' FUNCTIONAL| ',a)") reference(134:il)
                END IF
-               CALL section_vals_val_get(xc_fun,"functional",c_vals=func_name,error=error)
+               CALL section_vals_val_get(xc_fun,"functional",c_vals=func_name)
                DO ifunc_name=2, SIZE(func_name)
                  CALL xc_functional_get_info(xc_fun,&
                                              lsd=lsd,&
                                              reference=reference,&
                                              shortform=shortform,&
-                                             ifunc_name=ifunc_name,&
-                                             error=error)
+                                             ifunc_name=ifunc_name)
                  WRITE (output_unit, fmt="(A,i1,A,i1,A,i1,A)") ' FUNCTIONAL| LIBXC Vers. ', vmajor, ".", vminor, &
                         ".", vmicro,' (Marques, Oliveira, Burnus, CPC 183, 2272 (2012))'
                  WRITE (output_unit, fmt="(' FUNCTIONAL| ',a,':')") TRIM(shortform)

@@ -97,12 +97,11 @@
 !> \param error ...
 !> \author Mauro Del Ben 
 ! *****************************************************************************
-   SUBROUTINE get_minimax_coeff(k,Rc,aw,ierr,error)
+   SUBROUTINE get_minimax_coeff(k,Rc,aw,ierr)
     INTEGER                                  :: k
     REAL(KIND=dp)                            :: Rc
     REAL(KIND=dp), ALLOCATABLE, DIMENSION(:) :: aw
     INTEGER                                  :: ierr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_minimax_coeff', &
       routineP = moduleN//':'//routineN

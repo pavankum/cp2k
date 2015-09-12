@@ -94,12 +94,11 @@ CONTAINS
 !> \param calculate_forces ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE build_lri_matrices(lri_env,qs_env,calculate_forces,error)
+  SUBROUTINE build_lri_matrices(lri_env,qs_env,calculate_forces)
 
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(qs_environment_type), POINTER       :: qs_env
     LOGICAL, INTENT(IN)                      :: calculate_forces
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'build_lri_matrices', &
       routineP = moduleN//':'//routineN
@@ -107,7 +106,7 @@ CONTAINS
 ! calculate the integrals needed to do the local (2-center) expansion
 ! of the (pair) densities
 
-    CALL calculate_lri_integrals(lri_env,qs_env,calculate_forces,error)
+    CALL calculate_lri_integrals(lri_env,qs_env,calculate_forces)
 
   END SUBROUTINE build_lri_matrices
 
@@ -119,12 +118,11 @@ CONTAINS
 !> \param calculate_forces ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE calculate_lri_integrals(lri_env,qs_env,calculate_forces,error)
+  SUBROUTINE calculate_lri_integrals(lri_env,qs_env,calculate_forces)
 
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(qs_environment_type), POINTER       :: qs_env
     LOGICAL, INTENT(IN)                      :: calculate_forces
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'calculate_lri_integrals', &
       routineP = moduleN//':'//routineN
@@ -156,16 +154,15 @@ CONTAINS
       soo_list => lri_env%soo_list
 
       CALL get_qs_env(qs_env=qs_env,cell=cell,dft_control=dft_control,&
-                      nkind=nkind,particle_set=particle_set,virial=virial,&
-                      error=error)
+                      nkind=nkind,particle_set=particle_set,virial=virial)
 
       IF ( ASSOCIATED(lri_env%lri_ints) ) THEN
-        CALL deallocate_lri_ints (lri_env%lri_ints,error)
+        CALL deallocate_lri_ints (lri_env%lri_ints)
       END IF
 
       ! allocate matrices storing the LRI integrals
       CALL allocate_lri_ints(lri_env,lri_env%lri_ints,nkind,&
-                             calculate_forces,virial,error)
+                             calculate_forces,virial)
       lri_ints => lri_env%lri_ints
 
       CALL neighbor_list_iterator_create(nl_iterator,soo_list)
@@ -204,10 +201,10 @@ CONTAINS
          ! calculate integrals (fa,fb), (a,b), (a,b,fa) and (a,b,fb)
          IF(lri_env%use_shg_integrals) THEN
            CALL lri_int_shg(lri_env,lrii,ra,rb,rab,obasa,obasb,fbasa,fbasb,&
-                            iatom,jatom,ikind,jkind,error)
+                            iatom,jatom,ikind,jkind)
          ELSE
            CALL lri_int_os(lri_env,lrii,ra,rb,rab,obasa,obasb,fbasa,fbasb,&
-                           iatom,jatom,ikind,error)
+                           iatom,jatom,ikind)
          ENDIF
 
          ! construct and invert S matrix
@@ -218,7 +215,7 @@ CONTAINS
            lrii%sinv(nfa+1:nn,1:nfa) = TRANSPOSE(lrii%sab(1:nfa,1:nfb))
            lrii%sinv(nfa+1:nn,nfa+1:nn) = lri_env%bas_prop(jkind)%ri_ovlp(1:nfb,1:nfb)
          ENDIF
-         CALL inverse_lri_overlap(lri_env,lrii%sinv,error)
+         CALL inverse_lri_overlap(lri_env,lrii%sinv)
 
          ! calculate Sinv*n and n*Sinv*n
          lrii%n(1:nfa) = lri_env%bas_prop(ikind)%int_fbas(1:nfa)
@@ -234,7 +231,7 @@ CONTAINS
          ! calculate derivative of fit coefficients, needed for update of KS matrix
          IF(.NOT.dft_control%qs_control%lri_optbas) THEN
            CALL lri_calculate_derivative_acoef(lri_env,lrii,iatom,jatom,nba,nbb,&
-                                               nfa,nfb,dab,error)
+                                               nfa,nfb,dab)
          ENDIF
  
       END DO
@@ -242,7 +239,7 @@ CONTAINS
       CALL neighbor_list_iterator_release(nl_iterator)
 
       IF(lri_env%debug) THEN
-        CALL output_debug_info(lri_env,qs_env,lri_ints,soo_list,error)
+        CALL output_debug_info(lri_env,qs_env,lri_ints,soo_list)
       ENDIF
 
     END IF
@@ -258,11 +255,10 @@ CONTAINS
 !> \param qs_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE calculate_lri_overlap_aabb(lri_env,qs_env,error)
+  SUBROUTINE calculate_lri_overlap_aabb(lri_env,qs_env)
 
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(qs_environment_type), POINTER       :: qs_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'calculate_lri_overlap_aabb', &
       routineP = moduleN//':'//routineN
@@ -294,13 +290,13 @@ CONTAINS
       soo_list => lri_env%soo_list
 
       CALL get_qs_env(qs_env=qs_env,nkind=nkind,particle_set=particle_set,&
-                      cell=cell,error=error)
+                      cell=cell)
 
       IF ( ASSOCIATED(lri_env%lri_ints_rho) ) THEN
-        CALL deallocate_lri_ints_rho (lri_env%lri_ints_rho,error)
+        CALL deallocate_lri_ints_rho (lri_env%lri_ints_rho)
       END IF
 
-      CALL allocate_lri_ints_rho(lri_env,lri_env%lri_ints_rho,nkind,error)
+      CALL allocate_lri_ints_rho(lri_env,lri_env%lri_ints_rho,nkind)
       lri_ints_rho => lri_env%lri_ints_rho
 
       CALL neighbor_list_iterator_create(nl_iterator,soo_list)
@@ -327,7 +323,7 @@ CONTAINS
  
          ! calculate integrals (aa,bb) 
          CALL lri_int_aabb(lriir%soaabb,obasa,obasb,rab,ra,rb,lri_env%debug,&
-                           lriir%dmax_aabb,error)
+                           lriir%dmax_aabb)
 
       END DO
 
@@ -355,7 +351,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE calculate_lri_densities(lri_env,lri_density,qs_env,pmatrix,&
-                                    lri_rho_struct,atomic_kind_set,para_env,error)
+                                    lri_rho_struct,atomic_kind_set,para_env)
 
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(lri_density_type), POINTER          :: lri_density
@@ -366,15 +362,14 @@ CONTAINS
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'calculate_lri_densities', &
       routineP = moduleN//':'//routineN
 
-    CALL calculate_avec(lri_env,lri_density,qs_env,pmatrix,error)
+    CALL calculate_avec(lri_env,lri_density,qs_env,pmatrix)
 
     CALL distribute_lri_density_on_the_grid(lri_env,lri_density,qs_env,& 
-                          lri_rho_struct,atomic_kind_set,para_env,error)   
+                          lri_rho_struct,atomic_kind_set,para_env)   
  
    END SUBROUTINE calculate_lri_densities
  
@@ -389,14 +384,13 @@ CONTAINS
 !> \param pmatrix ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE calculate_avec(lri_env,lri_density,qs_env,pmatrix,error)
+  SUBROUTINE calculate_avec(lri_env,lri_density,qs_env,pmatrix)
 
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(lri_density_type), POINTER          :: lri_density
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(cp_dbcsr_p_type), DIMENSION(:), &
       POINTER                                :: pmatrix
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'calculate_avec', &
       routineP = moduleN//':'//routineN
@@ -426,12 +420,12 @@ CONTAINS
       nspin = SIZE(pmatrix)
       nkind = lri_env%lri_ints%nkind
 
-      CALL lri_density_release(lri_density,error)
-      CALL lri_density_create(lri_density,error)
+      CALL lri_density_release(lri_density)
+      CALL lri_density_create(lri_density)
       lri_density%nspin = nspin
 
       ! allocate structure lri_rhos and vectors tvec and avec
-      CALL allocate_lri_rhos(lri_env,lri_density%lri_rhos,nspin,nkind,error)
+      CALL allocate_lri_rhos(lri_env,lri_density%lri_rhos,nspin,nkind)
 
       DO ispin = 1, nspin
          pmat => pmatrix(ispin)%matrix
@@ -457,7 +451,7 @@ CONTAINS
               CALL cp_dbcsr_get_block_p(matrix=pmat,row=jatom,col=iatom,block=pbij,found=found)
               trans = .TRUE.
             END IF
-            CPPostcondition(found,cp_failure_level,routineP,error,failure)
+            CPPostcondition(found,cp_failure_level,routineP,failure)
 
             lrho => lri_rho%lri_atom(iac)%lri_node(ilist)%lri_rhoab(jneighbor)
             lrii => lri_env%lri_ints%lri_atom(iac)%lri_node(ilist)%lri_int(jneighbor)
@@ -501,7 +495,7 @@ CONTAINS
 
             ! solve the linear system of equations
             ALLOCATE(m(nn),STAT=stat)
-            CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+            CPPostcondition(stat==0,cp_failure_level,routineP,failure)
             m = 0._dp
             IF(iatom == jatom.AND.dab < lri_env%delta) THEN
               m(1:nfa) = lrho%tvec(1:nfa) + lrho%lambda * lrii%n(1:nfa)
@@ -513,14 +507,14 @@ CONTAINS
                          m(1),1,0.0_dp,lrho%avec,1)
             ENDIF
             DEALLOCATE(m,STAT=stat)
-            CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+            CPPostcondition(stat==0,cp_failure_level,routineP,failure)
            
          END DO
          CALL neighbor_list_iterator_release(nl_iterator)
 
       END DO
 
-      CALL set_qs_env(qs_env, lri_density=lri_density, error=error)
+      CALL set_qs_env(qs_env, lri_density=lri_density)
 
     END IF
 
@@ -542,7 +536,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE distribute_lri_density_on_the_grid(lri_env,lri_density,qs_env,&
-                                    lri_rho_struct,atomic_kind_set,para_env,error)
+                                    lri_rho_struct,atomic_kind_set,para_env)
 
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(lri_density_type), POINTER          :: lri_density
@@ -551,7 +545,6 @@ CONTAINS
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: &
       routineN = 'distribute_lri_density_on_the_grid', &
@@ -587,12 +580,12 @@ CONTAINS
 
       CALL get_atomic_kind_set(atomic_kind_set=atomic_kind_set,natom=nat)
       ALLOCATE(atom_of_kind(nat),STAT=stat)
-      CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(stat==0,cp_failure_level,routineP,failure)
       CALL get_atomic_kind_set(atomic_kind_set=atomic_kind_set,&
                                atom_of_kind=atom_of_kind)
 
       ! allocate the arrays to hold RI expansion coefficients lri_coefs
-      CALL allocate_lri_coefs(lri_env,lri_density,atomic_kind_set,error)
+      CALL allocate_lri_coefs(lri_env,lri_density,atomic_kind_set)
       DO ispin = 1, nspin
 
          lri_coef => lri_density%lri_coefs(ispin)%lri_kinds  
@@ -643,18 +636,18 @@ CONTAINS
 
       !distribute fitted density on the grid
       CALL qs_rho_get(lri_rho_struct, rho_r=rho_r, rho_g=rho_g,&
-                      tot_rho_r=tot_rho_r, error=error)
+                      tot_rho_r=tot_rho_r)
       DO ispin=1,nspin
        CALL calculate_lri_rho_elec(rho_g(ispin),&
                                    rho_r(ispin), qs_env, &
                                    lri_density%lri_coefs(ispin)%lri_kinds,&
-                                   tot_rho_r(ispin), error)
+                                   tot_rho_r(ispin))
       ENDDO
 
-      CALL set_qs_env(qs_env, lri_density=lri_density, error=error)
+      CALL set_qs_env(qs_env, lri_density=lri_density)
 
       DEALLOCATE(atom_of_kind,STAT=stat)
-      CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     END IF
 
@@ -680,14 +673,13 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE lri_int_os(lri_env,lrii,ra,rb,rab,obasa,obasb,fbasa,fbasb,&
-                        iatom,jatom,ikind,error)
+                        iatom,jatom,ikind)
     
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(lri_int_type), POINTER              :: lrii
     REAL(KIND=dp), DIMENSION(3), INTENT(IN)  :: ra, rb, rab
     TYPE(gto_basis_set_type), POINTER        :: obasa, obasb, fbasa, fbasb
     INTEGER, INTENT(IN)                      :: iatom, jatom, ikind
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'lri_int_os', &
       routineP = moduleN//':'//routineN
@@ -714,26 +706,24 @@ CONTAINS
       !*** (a,a,fa)
       CALL lri_int_aba(lrii%abaint,ra=ra,rb=rb,rab=rab,oba=obasa,obb=obasb,&
                        fba=fbasa, calculate_forces=.FALSE.,debug=lri_env%debug,&
-                       dmax=lrii%dmax_aba,error=error)
+                       dmax=lrii%dmax_aba)
       lrii%dabdaint = 0.0_dp
       lrii%dabbint  = 0.0_dp
     ELSE
       !*** (fa,fb)
       CALL lri_int_ab(lrii%sab,lrii%dsab,ra,rb,rab,fbasa,fbasb,&
                       lrii%calc_force_pair,lri_env%debug,&
-                      lrii%dmax_ab,error)
+                      lrii%dmax_ab)
       !*** (a,b)
       CALL lri_int_ab(lrii%soo,lrii%dsoo,ra,rb,rab,obasa,obasb,&
                       lrii%calc_force_pair,lri_env%debug,&
-                      lrii%dmax_oo,error=error)
+                      lrii%dmax_oo)
       !*** (a,b,fa)
       CALL lri_int_aba(lrii%abaint,lrii%dabdaint,ra,rb,rab,obasa,obasb,fbasa,&
-                       lrii%calc_force_pair,lri_env%debug,lrii%dmax_aba,&
-                       error=error)
+                       lrii%calc_force_pair,lri_env%debug,lrii%dmax_aba)
       !*** (a,b,fb)
       CALL lri_int_abb(lrii%abbint,lrii%dabbint,ra,rb,rab,obasa,obasb,fbasb,&
-                       lrii%calc_force_pair,lri_env%debug,lrii%dmax_abb,&
-                       error=error)
+                       lrii%calc_force_pair,lri_env%debug,lrii%dmax_abb)
     ENDIF
 
     CALL timestop(handle)
@@ -758,14 +748,13 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE lri_int_shg(lri_env,lrii,ra,rb,rab,obasa,obasb,fbasa,fbasb,&
-                        iatom,jatom,ikind,jkind,error)
+                        iatom,jatom,ikind,jkind)
     
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(lri_int_type), POINTER              :: lrii
     REAL(KIND=dp), DIMENSION(3), INTENT(IN)  :: ra, rb, rab
     TYPE(gto_basis_set_type), POINTER        :: obasa, obasb, fbasa, fbasb
     INTEGER, INTENT(IN)                      :: iatom, jatom, ikind, jkind
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'lri_int_shg', &
       routineP = moduleN//':'//routineN
@@ -803,7 +792,7 @@ CONTAINS
       !*** (a,a,fa)
       CALL lri_int_aba(lrii%abaint,ra=ra,rb=rb,rab=rab,oba=obasa,obb=obasb,&
                        fba=fbasa, calculate_forces=.FALSE.,debug=lri_env%debug,&
-                       dmax=lrii%dmax_aba,error=error)
+                       dmax=lrii%dmax_aba)
       lrii%dabdaint = 0.0_dp
       lrii%dabbint  = 0.0_dp
     ELSE
@@ -812,23 +801,23 @@ CONTAINS
       scon_ria    => lri_env%bas_prop(ikind)%scon_ri       
       scon_rib    => lri_env%bas_prop(jkind)%scon_ri       
       CALL precalc_angular_shg_part(obasa,obasb,fbasa,fbasb,rab,Waux_mat,dWaux_mat,&
-                                    lrii%calc_force_pair,error) 
+                                    lrii%calc_force_pair) 
       !*** (fa,fb)
       CALL lri_int_ab_shg(lrii%sab,lrii%dsab,rab,fbasa,fbasb,scon_ria,scon_rib,&
-                          Waux_mat,dWaux_mat,lrii%calc_force_pair,error)
+                          Waux_mat,dWaux_mat,lrii%calc_force_pair)
       !*** (a,b)
       CALL lri_int_ab_shg(lrii%soo,lrii%dsoo,rab,obasa,obasb,scon_orba,scon_orbb,&
-                          Waux_mat,dWaux_mat,lrii%calc_force_pair,error)
+                          Waux_mat,dWaux_mat,lrii%calc_force_pair)
       !*** (a,b,fa)
        CALL lri_int_aba_shg(lri_env,lrii%abaint,lrii%dabdaint,rab,obasa,obasb,fbasa,&
                             scon_orba,scon_orbb,scon_ria,Waux_mat,dWaux_mat,&
-                            lrii%calc_force_pair,error=error)
+                            lrii%calc_force_pair)
       !*** (a,b,fb)
       CALL lri_int_abb_shg(lri_env,lrii%abbint,lrii%dabbint,rab,obasa,obasb,fbasb,&
                            scon_orba,scon_orbb,scon_rib,Waux_mat,dWaux_mat,&
-                           lrii%calc_force_pair,error=error)
+                           lrii%calc_force_pair)
       DEALLOCATE(Waux_mat,dWaux_mat,STAT=stat)
-      CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ENDIF
 
     CALL timestop(handle)
@@ -853,14 +842,13 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE lri_calculate_derivative_acoef(lri_env,lrii,iatom,jatom,nba,nbb,&
-                                            nfa,nfb,dab,error)
+                                            nfa,nfb,dab)
 
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(lri_int_type), POINTER              :: lrii
     INTEGER, INTENT(IN)                      :: iatom, jatom, nba, nbb, nfa, &
                                                 nfb
     REAL(KIND=dp), INTENT(IN)                :: dab
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: &
       routineN = 'lri_calculate_derivative_acoef', &
@@ -879,13 +867,13 @@ CONTAINS
     nn = nfa + nfb
  
     ALLOCATE(R(nba,nbb,nn),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE(dlambdadp(nba,nbb),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE(Q(nba,nbb,nn),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE(abxint_work(nba,nbb,nn),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     R(:,:,:)  = 0._dp
     dlambdadp = 0._dp
@@ -921,13 +909,13 @@ CONTAINS
     ENDIF
     
     DEALLOCATE(abxint_work,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(R,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(dlambdadp,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(Q,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     CALL timestop(handle)
   
@@ -939,11 +927,10 @@ CONTAINS
 !> \param sinv on entry overlap matrix, on exit its inverse
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE inverse_lri_overlap(lri_env,sinv,error)
+  SUBROUTINE inverse_lri_overlap(lri_env,sinv)
 
     TYPE(lri_environment_type)               :: lri_env
     REAL(KIND=dp), DIMENSION(:, :), POINTER  :: sinv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'inverse_lri_overlap', &
       routineP = moduleN//':'//routineN
@@ -966,28 +953,28 @@ CONTAINS
 
     SELECT CASE(lri_env%lri_overlap_inv)
     CASE(do_lri_inv)
-       CALL invmat_symm(sinv,error=error)
+       CALL invmat_symm(sinv)
     CASE(do_lri_pseudoinv_svd)
        ALLOCATE(s(n,n),STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        s(:,:) = sinv
-       CALL get_pseudo_inverse_svd(s,sinv,rskip,error)
+       CALL get_pseudo_inverse_svd(s,sinv,rskip)
        DEALLOCATE(s,STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     CASE(do_lri_pseudoinv_diag)
        ALLOCATE(s(n,n),STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        s(:,:) = sinv
-       CALL get_pseudo_inverse_diag(s,sinv,rskip,error)
+       CALL get_pseudo_inverse_diag(s,sinv,rskip)
        DEALLOCATE(s,STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     CASE(do_lri_inv_auto)
        ! decide whether to calculate inverse or pseudoinverse
        ALLOCATE(s(n,n),STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        s(:,:) = sinv
        ALLOCATE(work(3*n),iwork(n),STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        ! norm of matrix
        anorm = dlange('1',n,n,sinv,n,work)
        ! Cholesky factorization (fails if matrix not positive definite)
@@ -999,15 +986,15 @@ CONTAINS
              CALL stop_program(routineN,moduleN,__LINE__,"DPOCON failed")
            ENDIF
            IF(LOG(1._dp/rcond) > lri_env%cond_max) THEN
-             CALL get_pseudo_inverse_svd(s,sinv,rskip,error)
+             CALL get_pseudo_inverse_svd(s,sinv,rskip)
            ELSE
-             CALL invmat_symm(sinv,"U",error)
+             CALL invmat_symm(sinv,"U")
            ENDIF
        ELSE
-           CALL get_pseudo_inverse_svd(s,sinv,rskip,error)
+           CALL get_pseudo_inverse_svd(s,sinv,rskip)
        END IF
        DEALLOCATE(s,work,iwork,STAT=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     CASE DEFAULT
        CALL cp_assert(.FALSE.,cp_fatal_level,cp_assertion_failed,&
                  routineP,"No initialization for LRI overlap available?",&
@@ -1026,14 +1013,13 @@ CONTAINS
 !> \param soo_list ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE output_debug_info(lri_env,qs_env,lri_ints,soo_list,error)
+  SUBROUTINE output_debug_info(lri_env,qs_env,lri_ints,soo_list)
 
     TYPE(lri_environment_type), POINTER      :: lri_env
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(lri_list_type), POINTER             :: lri_ints
     TYPE(neighbor_list_set_p_type), &
       DIMENSION(:), POINTER                  :: soo_list
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'output_debug_info', &
       routineP = moduleN//':'//routineN
@@ -1054,7 +1040,7 @@ CONTAINS
     CALL timeset(routineN,handle)
     NULLIFY(input, logger, lrii, lriir, nl_iterator, para_env)
     CALL get_qs_env(qs_env,dft_control=dft_control,input=input,nkind=nkind,&
-                    para_env=para_env,error=error)
+                    para_env=para_env)
     dmax_ab   = 0._dp
     dmax_oo   = 0._dp
     dmax_aba  = 0._dp
@@ -1089,9 +1075,9 @@ CONTAINS
     CALL mp_max(dmax_abb,para_env%group)
     CALL mp_max(dmax_aabb,para_env%group)
 
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     iunit=cp_print_key_unit_nr(logger,input,"PRINT%PROGRAM_RUN_INFO",&
-                               extension=".lridebug",error=error)
+                               extension=".lridebug")
 
     IF (iunit > 0) THEN
        WRITE(iunit,FMT="(/,T2,A)") "DEBUG INFO FOR LRI INTEGRALS"
@@ -1111,7 +1097,7 @@ CONTAINS
     ENDIF
 
     CALL cp_print_key_finished_output(iunit,logger,input,&
-                    "PRINT%PROGRAM_RUN_INFO", error=error)
+                    "PRINT%PROGRAM_RUN_INFO")
     CALL timestop(handle)
   
   END SUBROUTINE output_debug_info

@@ -103,11 +103,10 @@ CONTAINS
 !> \param error      : CP2K error handler container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  RECURSIVE SUBROUTINE fb_hash_table_add(hash_table, key, val, error)
+  RECURSIVE SUBROUTINE fb_hash_table_add(hash_table, key, val)
     TYPE(fb_hash_table_obj), INTENT(INOUT)   :: hash_table
     INTEGER(KIND=int_8), INTENT(IN)          :: key
     INTEGER, INTENT(IN)                      :: val
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_add', &
       routineP = moduleN//':'//routineN
@@ -117,17 +116,16 @@ CONTAINS
 
     failure = .FALSE.
     check_ok = fb_hash_table_has_data(hash_table)
-    CPPostcondition(check_ok, cp_failure_level, routineP, error, failure)
+    CPPostcondition(check_ok, cp_failure_level, routineP,failure)
     ! check hash table size, if too small rehash in a larger table
     IF (hash_table%obj%nelements*ENLARGE_RATIO .GE. &
         hash_table%obj%nmax) THEN
        CALL fb_hash_table_rehash(hash_table=hash_table, &
-                                 nmax=hash_table%obj%nmax*EXPAND_FACTOR, &
-                                 error=error)
+                                 nmax=hash_table%obj%nmax*EXPAND_FACTOR)
     END IF
     ! find the right slot for the given key
     islot = fb_hash_table_linear_probe(hash_table, key)
-    CPPostcondition(islot>0, cp_failure_level, routineP, error, failure)
+    CPPostcondition(islot>0, cp_failure_level, routineP,failure)
     ! we are adding a new entry only if islot points to an empty slot,
     ! otherwise just change the val of the existing entry
     IF (hash_table%obj%table(islot)%key == EMPTY_KEY) THEN
@@ -159,10 +157,9 @@ CONTAINS
 !> \param error      : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  SUBROUTINE fb_hash_table_create(hash_table, nmax, error)
+  SUBROUTINE fb_hash_table_create(hash_table, nmax)
     TYPE(fb_hash_table_obj), INTENT(INOUT)   :: hash_table
     INTEGER, INTENT(IN), OPTIONAL            :: nmax
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_create', &
       routineP = moduleN//':'//routineN
@@ -172,9 +169,9 @@ CONTAINS
 
     failure = .FALSE.
     check_ok = .NOT. fb_hash_table_has_data(hash_table)
-    CPPostcondition(check_ok, cp_failure_level, routineP, error, failure)
+    CPPostcondition(check_ok, cp_failure_level, routineP,failure)
     ALLOCATE(hash_table%obj, STAT=stat)
-    CPPostcondition(stat==0, cp_failure_level, routineP, error, failure)
+    CPPostcondition(stat==0, cp_failure_level, routineP,failure)
     NULLIFY(hash_table%obj%table)
     hash_table%obj%nmax = 0
     hash_table%obj%nelements = 0
@@ -182,8 +179,7 @@ CONTAINS
     my_nmax = 1
     IF (PRESENT(nmax)) my_nmax = nmax
     CALL fb_hash_table_init(hash_table=hash_table, &
-                            nmax=my_nmax, &
-                            error=error)
+                            nmax=my_nmax)
     ! book keeping stuff
     hash_table%obj%ref_count = 1
     hash_table%obj%id_nr = last_fb_hash_table_id + 1
@@ -199,12 +195,11 @@ CONTAINS
 !> \param error      : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  SUBROUTINE fb_hash_table_get(hash_table, key, val, found, error)
+  SUBROUTINE fb_hash_table_get(hash_table, key, val, found)
     TYPE(fb_hash_table_obj), INTENT(IN)      :: hash_table
     INTEGER(KIND=int_8), INTENT(IN)          :: key
     INTEGER, INTENT(OUT)                     :: val
     LOGICAL, INTENT(OUT)                     :: found
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_get', &
       routineP = moduleN//':'//routineN
@@ -214,7 +209,7 @@ CONTAINS
 
     failure = .FALSE.
     check_ok = fb_hash_table_has_data(hash_table)
-    CPPostcondition(check_ok, cp_failure_level, routineP, error, failure)
+    CPPostcondition(check_ok, cp_failure_level, routineP,failure)
     found = .FALSE.
     val = 0
     islot = fb_hash_table_linear_probe(hash_table, key)
@@ -248,10 +243,9 @@ CONTAINS
 !> \param error      : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  SUBROUTINE fb_hash_table_init(hash_table, nmax, error)
+  SUBROUTINE fb_hash_table_init(hash_table, nmax)
     TYPE(fb_hash_table_obj), INTENT(INOUT)   :: hash_table
     INTEGER, INTENT(IN), OPTIONAL            :: nmax
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_init', &
       routineP = moduleN//':'//routineN
@@ -261,7 +255,7 @@ CONTAINS
 
     failure = .FALSE.
     check_ok = fb_hash_table_has_data(hash_table)
-    CPPostcondition(check_ok, cp_failure_level, routineP, error, failure)
+    CPPostcondition(check_ok, cp_failure_level, routineP,failure)
     my_nmax = hash_table%obj%nmax
     IF (PRESENT(nmax)) my_nmax = nmax
     ! table length should always be power of 2. Find the least
@@ -274,13 +268,13 @@ CONTAINS
     IF (ASSOCIATED(hash_table%obj%table)) THEN
        IF (SIZE(hash_table%obj%table) .NE. my_nmax) THEN
           DEALLOCATE(hash_table%obj%table, STAT=stat)
-          CPPostcondition(stat==0, cp_failure_level, routineP, error, failure)
+          CPPostcondition(stat==0, cp_failure_level, routineP,failure)
           ALLOCATE(hash_table%obj%table(my_nmax), STAT=stat)
-          CPPostcondition(stat==0, cp_failure_level, routineP, error, failure)
+          CPPostcondition(stat==0, cp_failure_level, routineP,failure)
        END IF
     ELSE
        ALLOCATE(hash_table%obj%table(my_nmax), STAT=stat)
-       CPPostcondition(stat==0, cp_failure_level, routineP, error, failure)
+       CPPostcondition(stat==0, cp_failure_level, routineP,failure)
     END IF
     hash_table%obj%nmax = my_nmax
     hash_table%obj%prime = fb_hash_table_matching_prime(my_nmax)
@@ -311,10 +305,9 @@ CONTAINS
 !> \param error           : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  SUBROUTINE fb_hash_table_rehash(hash_table, nmax, error)
+  SUBROUTINE fb_hash_table_rehash(hash_table, nmax)
     TYPE(fb_hash_table_obj), INTENT(INOUT)   :: hash_table
     INTEGER, INTENT(IN), OPTIONAL            :: nmax
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_rehash', &
       routineP = moduleN//':'//routineN
@@ -326,7 +319,7 @@ CONTAINS
 
     failure = .FALSE.
     IF (.NOT. fb_hash_table_has_data(hash_table)) THEN
-       CALL fb_hash_table_create(hash_table, nmax, error)
+       CALL fb_hash_table_create(hash_table, nmax)
        RETURN
     END IF
     IF (PRESENT(nmax)) THEN
@@ -335,22 +328,20 @@ CONTAINS
        my_nmax = hash_table%obj%nmax
     END IF
     ALLOCATE(tmp_table(hash_table%obj%nmax), STAT=stat)
-    CPPostcondition(stat==0, cp_failure_level, routineP, error, failure)
+    CPPostcondition(stat==0, cp_failure_level, routineP,failure)
     tmp_table(:) = hash_table%obj%table(:)
-    CALL fb_hash_table_release(hash_table, error)
+    CALL fb_hash_table_release(hash_table)
     CALL fb_hash_table_create(hash_table=hash_table, &
-                              nmax=my_nmax, &
-                              error=error)
+                              nmax=my_nmax)
     DO ii = 1, SIZE(tmp_table)
        IF (tmp_table(ii)%key .NE. EMPTY_KEY) THEN
           CALL fb_hash_table_add(hash_table=hash_table, &
                                  key=tmp_table(ii)%key, &
-                                 val=tmp_table(ii)%val, &
-                                 error=error)
+                                 val=tmp_table(ii)%val)
        END IF
     END DO
     DEALLOCATE(tmp_table, STAT=stat)
-    CPPostcondition(stat==0, cp_failure_level, routineP, error, failure)
+    CPPostcondition(stat==0, cp_failure_level, routineP,failure)
   END SUBROUTINE fb_hash_table_rehash
 
 ! *****************************************************************************
@@ -359,9 +350,8 @@ CONTAINS
 !> \param error      : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  SUBROUTINE fb_hash_table_release(hash_table, error)
+  SUBROUTINE fb_hash_table_release(hash_table)
     TYPE(fb_hash_table_obj), INTENT(INOUT)   :: hash_table
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_release', &
       routineP = moduleN//':'//routineN
@@ -372,17 +362,17 @@ CONTAINS
     failure = .FALSE.
     IF (ASSOCIATED(hash_table%obj)) THEN
        check_ok = hash_table%obj%ref_count > 0
-       CPPreconditionNoFail(check_ok, cp_failure_level, routineP, error)
+       CPPreconditionNoFail(check_ok, cp_failure_level, routineP)
        hash_table%obj%ref_count = hash_table%obj%ref_count - 1
        IF (hash_table%obj%ref_count == 0) THEN
           hash_table%obj%ref_count = 1
           IF (ASSOCIATED(hash_table%obj%table)) THEN
              DEALLOCATE(hash_table%obj%table, STAT=stat)
-             CPPostcondition(stat==0, cp_failure_level, routineP, error, failure)
+             CPPostcondition(stat==0, cp_failure_level, routineP,failure)
           END IF
           hash_table%obj%ref_count = 0
           DEALLOCATE(hash_table%obj, STAT=stat)
-          CPPostcondition(stat==0, cp_failure_level, routineP, error, failure)
+          CPPostcondition(stat==0, cp_failure_level, routineP,failure)
        END IF
     ELSE
        NULLIFY(hash_table%obj)
@@ -396,10 +386,9 @@ CONTAINS
 !> \param error      : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  SUBROUTINE fb_hash_table_remove(hash_table, key, error)
+  SUBROUTINE fb_hash_table_remove(hash_table, key)
     TYPE(fb_hash_table_obj), INTENT(INOUT)   :: hash_table
     INTEGER(KIND=int_8), INTENT(IN)          :: key
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_remove', &
       routineP = moduleN//':'//routineN
@@ -409,7 +398,7 @@ CONTAINS
 
     failure = .FALSE.
     check_ok = fb_hash_table_has_data(hash_table)
-    CPPostcondition(check_ok, cp_failure_level, routineP, error, failure)
+    CPPostcondition(check_ok, cp_failure_level, routineP,failure)
     islot = fb_hash_table_linear_probe(hash_table, key)
     ! we are only removing an entry if the key is found
     IF (islot > 0) THEN
@@ -421,11 +410,9 @@ CONTAINS
           IF (hash_table%obj%nelements*REDUCE_RATIO .LT. &
                hash_table%obj%nmax) THEN
              CALL fb_hash_table_rehash(hash_table=hash_table, &
-                                       nmax=hash_table%obj%nmax/SHRINK_FACTOR, &
-                                       error=error)
+                                       nmax=hash_table%obj%nmax/SHRINK_FACTOR)
           ELSE
-             CALL fb_hash_table_rehash(hash_table=hash_table, &
-                                       error=error)
+             CALL fb_hash_table_rehash(hash_table=hash_table)
           END IF
        END IF
     END IF
@@ -437,9 +424,8 @@ CONTAINS
 !> \param error      : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  SUBROUTINE fb_hash_table_retain(hash_table, error)
+  SUBROUTINE fb_hash_table_retain(hash_table)
     TYPE(fb_hash_table_obj), INTENT(INOUT)   :: hash_table
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_retain', &
       routineP = moduleN//':'//routineN
@@ -448,9 +434,9 @@ CONTAINS
 
     failure = .FALSE.
     check_ok = ASSOCIATED(hash_table%obj)
-    CPPostcondition(check_ok, cp_failure_level, routineP, error, failure)
+    CPPostcondition(check_ok, cp_failure_level, routineP,failure)
     check_ok = hash_table%obj%ref_count > 0
-    CPPreconditionNoFail(check_ok, cp_failure_level, routineP, error)
+    CPPreconditionNoFail(check_ok, cp_failure_level, routineP)
     hash_table%obj%ref_count = hash_table%obj%ref_count + 1
   END SUBROUTINE fb_hash_table_retain
 
@@ -463,10 +449,9 @@ CONTAINS
 !> \param error      : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
-  SUBROUTINE fb_hash_table_status(hash_table, nelements, nmax, prime, error)
+  SUBROUTINE fb_hash_table_status(hash_table, nelements, nmax, prime)
     TYPE(fb_hash_table_obj), INTENT(INOUT)   :: hash_table
     INTEGER, INTENT(OUT), OPTIONAL           :: nelements, nmax, prime
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fb_hash_table_status', &
       routineP = moduleN//':'//routineN
@@ -475,7 +460,7 @@ CONTAINS
 
     failure = .FALSE.
     check_ok = fb_hash_table_has_data(hash_table)
-    CPPostcondition(check_ok, cp_failure_level, routineP, error, failure)
+    CPPostcondition(check_ok, cp_failure_level, routineP,failure)
     IF (PRESENT(nelements)) nelements = hash_table%obj%nelements
     IF (PRESENT(nmax)) nmax = hash_table%obj%nmax
     IF (PRESENT(prime)) prime = hash_table%obj%prime

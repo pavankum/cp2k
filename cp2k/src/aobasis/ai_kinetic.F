@@ -57,7 +57,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE kinetic(la_max,la_min,npgfa,rpgfa,zeta,&
                      lb_max,lb_min,npgfb,rpgfb,zetb,&
-                     rab,kab,dab,error)
+                     rab,kab,dab)
     INTEGER, INTENT(IN)                      :: la_max, la_min, npgfa
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: rpgfa, zeta
     INTEGER, INTENT(IN)                      :: lb_max, lb_min, npgfb
@@ -67,7 +67,6 @@ CONTAINS
       INTENT(INOUT), OPTIONAL                :: kab
     REAL(KIND=dp), DIMENSION(:, :, :), &
       INTENT(INOUT), OPTIONAL                :: dab
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'kinetic', &
       routineP = moduleN//':'//routineN
@@ -106,7 +105,7 @@ CONTAINS
 
     ! Allocate space for auxiliary integrals
     ALLOCATE(rr(0:ldrr-1,0:ldrr-1,3),tt(0:ldrr-1,0:ldrr-1,3),STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     ! Number of integrals, check size of arrays
     ofa = ncoset(la_min-1)
@@ -114,13 +113,13 @@ CONTAINS
     na = ncoset(la_max) - ofa
     nb = ncoset(lb_max) - ofb
     IF (PRESENT(kab)) THEN
-       CPPrecondition((SIZE(kab,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(kab,2) >= nb*npgfb),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(kab,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(kab,2) >= nb*npgfb),cp_failure_level,routineP,failure)
     END IF
     IF (PRESENT(dab)) THEN
-       CPPrecondition((SIZE(dab,1) >= na*npgfa),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dab,2) >= nb*npgfb),cp_failure_level,routineP,error,failure)
-       CPPrecondition((SIZE(dab,3) >= 3),cp_failure_level,routineP,error,failure)
+       CPPrecondition((SIZE(dab,1) >= na*npgfa),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dab,2) >= nb*npgfb),cp_failure_level,routineP,failure)
+       CPPrecondition((SIZE(dab,3) >= 3),cp_failure_level,routineP,failure)
     END IF
 
     ! Loops over all pairs of primitive Gaussian-type functions
@@ -232,7 +231,7 @@ CONTAINS
     END DO
 
     DEALLOCATE(rr,tt,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE kinetic
 

@@ -45,12 +45,11 @@ CONTAINS
 !> \author Fawzi Mohamed
 ! *****************************************************************************
   SUBROUTINE cp_para_env_create(para_env, group, source,mepos, num_pe,&
-      owns_group,error)
+      owns_group)
     TYPE(cp_para_env_type), POINTER          :: para_env
     INTEGER, INTENT(in)                      :: group
     INTEGER, INTENT(in), OPTIONAL            :: source, mepos, num_pe
     LOGICAL, INTENT(in), OPTIONAL            :: owns_group
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_para_env_create', &
       routineP = moduleN//':'//routineN
@@ -60,9 +59,9 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(.NOT.ASSOCIATED(para_env),cp_failure_level,routineP,error,failure)
+    CPPrecondition(.NOT.ASSOCIATED(para_env),cp_failure_level,routineP,failure)
     ALLOCATE(para_env,stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     para_env%group=group
     para_env%source=0
     para_env%ref_count=1
@@ -70,7 +69,7 @@ CONTAINS
     IF (PRESENT(source)) para_env%source=source
     IF (PRESENT(owns_group)) para_env%owns_group=owns_group
     IF (.NOT.(PRESENT(mepos).AND.PRESENT(num_pe))) THEN
-       CALL cp_para_env_update(para_env,error=error)
+       CALL cp_para_env_update(para_env)
     ELSE
        para_env%mepos=mepos
        para_env%num_pe=num_pe
@@ -88,9 +87,8 @@ CONTAINS
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cp_para_env_retain(para_env, error)
+  SUBROUTINE cp_para_env_retain(para_env)
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_para_env_retain', &
       routineP = moduleN//':'//routineN
@@ -99,8 +97,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(para_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,failure)
+    CPPrecondition(para_env%ref_count>0,cp_failure_level,routineP,failure)
     para_env%ref_count=para_env%ref_count+1
   END SUBROUTINE cp_para_env_retain
 
@@ -117,9 +115,8 @@ CONTAINS
 !>      to avoid circular dependencies cp_log_handling has a private copy
 !>      of this method (see cp_log_handling:my_cp_para_env_release)!
 ! *****************************************************************************
-  SUBROUTINE cp_para_env_release(para_env, error)
+  SUBROUTINE cp_para_env_release(para_env)
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_para_env_release', &
       routineP = moduleN//':'//routineN
@@ -130,14 +127,14 @@ CONTAINS
     failure=.FALSE.
 
     IF (ASSOCIATED(para_env)) THEN
-      CPPrecondition(para_env%ref_count>0,cp_failure_level,routineP,error,failure)
+      CPPrecondition(para_env%ref_count>0,cp_failure_level,routineP,failure)
       para_env%ref_count=para_env%ref_count-1
       IF (para_env%ref_count<1) THEN
          IF (para_env%owns_group) THEN
             CALL mp_comm_free(para_env%group)
          END IF
          DEALLOCATE(para_env,stat=stat)
-         CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+         CPPostcondition(stat==0,cp_failure_level,routineP,failure)
       END IF
     END IF
     NULLIFY(para_env)
@@ -152,9 +149,8 @@ CONTAINS
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE cp_para_env_update(para_env, error)
+  SUBROUTINE cp_para_env_update(para_env)
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_para_env_update', &
       routineP = moduleN//':'//routineN
@@ -163,8 +159,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,error,failure)
-    CPPrecondition(para_env%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(para_env),cp_failure_level,routineP,failure)
+    CPPrecondition(para_env%ref_count>0,cp_failure_level,routineP,failure)
     CALL mp_environ(taskid=para_env%mepos,numtask=para_env%num_pe,&
          groupid=para_env%group)
     para_env%ionode=para_env%mepos==para_env%source
@@ -180,10 +176,9 @@ CONTAINS
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE cp_para_env_write(para_env,unit_nr,error)
+SUBROUTINE cp_para_env_write(para_env,unit_nr)
     TYPE(cp_para_env_type), POINTER          :: para_env
     INTEGER, INTENT(in)                      :: unit_nr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_para_env_write', &
       routineP = moduleN//':'//routineN
@@ -197,23 +192,23 @@ SUBROUTINE cp_para_env_write(para_env,unit_nr,error)
      WRITE (unit=unit_nr,&
           fmt="(' <cp_para_env>:{ owns_group=',l1,',')",&
           iostat=iostat) para_env%owns_group
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  group=',i10,', ref_count=',i10,',')",&
           iostat=iostat) para_env%group, para_env%ref_count
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  mepos=',i8,',')",&
           iostat=iostat) para_env%mepos
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  source=',i8,',')",&
           iostat=iostat) para_env%source
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  num_pe=',i8,'}')",&
           iostat=iostat) para_env%num_pe
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
   ELSE
      WRITE (unit=unit_nr,&
           fmt="(a)", iostat=iostat) ' <cp_para_env>:*null* '
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
   END IF
 END SUBROUTINE cp_para_env_write
 
@@ -228,11 +223,10 @@ END SUBROUTINE cp_para_env_write
 !>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
-SUBROUTINE cp_cart_create(cart, group, ndims,owns_group, error)
+SUBROUTINE cp_cart_create(cart, group, ndims,owns_group)
     TYPE(cp_para_cart_type), POINTER         :: cart
     INTEGER, INTENT(in)                      :: group, ndims
     LOGICAL, INTENT(in), OPTIONAL            :: owns_group
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cart_create', &
       routineP = moduleN//':'//routineN
@@ -242,9 +236,9 @@ SUBROUTINE cp_cart_create(cart, group, ndims,owns_group, error)
 
     failure=.FALSE.
 
-    CPPrecondition(.NOT.ASSOCIATED(cart),cp_failure_level,routineP,error,failure)
+    CPPrecondition(.NOT.ASSOCIATED(cart),cp_failure_level,routineP,failure)
     ALLOCATE(cart,stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     cart%owns_group=.TRUE.
     IF (PRESENT(owns_group)) cart%owns_group=owns_group
     cart%ndims=ndims
@@ -252,14 +246,14 @@ SUBROUTINE cp_cart_create(cart, group, ndims,owns_group, error)
 
     ALLOCATE(cart%source(ndims),cart%periodic(ndims),cart%mepos(ndims),&
          cart%num_pe(ndims),stat=stat)
-    CPPostcondition(stat==0,cp_fatal_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_fatal_level,routineP,failure)
 
     cart%source=0
     cart%mepos=0
     cart%periodic=.FALSE.
     cart%ref_count=1
     cart%ntask=1
-    CALL cp_cart_update(cart,error=error)
+    CALL cp_cart_update(cart)
   END SUBROUTINE cp_cart_create
 
 ! *****************************************************************************
@@ -269,9 +263,8 @@ SUBROUTINE cp_cart_create(cart, group, ndims,owns_group, error)
 !>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
-SUBROUTINE cp_cart_update(cart,error)
+SUBROUTINE cp_cart_update(cart)
     TYPE(cp_para_cart_type), POINTER         :: cart
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cart_update', &
       routineP = moduleN//':'//routineN
@@ -280,8 +273,8 @@ SUBROUTINE cp_cart_update(cart,error)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(cart),cp_failure_level,routineP,error,failure)
-  CPPrecondition(cart%ref_count>0,cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(cart),cp_failure_level,routineP,failure)
+  CPPrecondition(cart%ref_count>0,cp_failure_level,routineP,failure)
   CALL mp_environ( cart%group, cart%ndims, cart%num_pe, task_coor=cart%mepos, &
        periods=cart%periodic)
   CALL mp_environ( numtask=cart%ntask, taskid=cart%rank, groupid=cart%group)
@@ -294,9 +287,8 @@ END SUBROUTINE cp_cart_update
 !>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
-SUBROUTINE cp_cart_release(cart,error)
+SUBROUTINE cp_cart_release(cart)
     TYPE(cp_para_cart_type), POINTER         :: cart
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cart_release', &
       routineP = moduleN//':'//routineN
@@ -307,16 +299,16 @@ SUBROUTINE cp_cart_release(cart,error)
   failure=.FALSE.
 
   IF (ASSOCIATED(cart)) THEN
-     CPPrecondition(cart%ref_count>0,cp_failure_level,routineP,error,failure)
+     CPPrecondition(cart%ref_count>0,cp_failure_level,routineP,failure)
      cart%ref_count=cart%ref_count-1
      IF (cart%ref_count==0) THEN
         IF (cart%owns_group) THEN
             CALL mp_comm_free(cart%group)
          END IF
         DEALLOCATE(cart%source,cart%periodic,cart%mepos,cart%num_pe,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
         DEALLOCATE(cart,stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
      END IF
   END IF
   NULLIFY(cart)
@@ -329,9 +321,8 @@ END SUBROUTINE cp_cart_release
 !>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
-SUBROUTINE cp_cart_retain(cart,error)
+SUBROUTINE cp_cart_retain(cart)
     TYPE(cp_para_cart_type), POINTER         :: cart
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cart_retain', &
       routineP = moduleN//':'//routineN
@@ -340,8 +331,8 @@ SUBROUTINE cp_cart_retain(cart,error)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(cart),cp_failure_level,routineP,error,failure)
-  CPPrecondition(cart%ref_count>0,cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(cart),cp_failure_level,routineP,failure)
+  CPPrecondition(cart%ref_count>0,cp_failure_level,routineP,failure)
   cart%ref_count=cart%ref_count+1
 END SUBROUTINE cp_cart_retain
 
@@ -353,10 +344,9 @@ END SUBROUTINE cp_cart_retain
 !>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE cp_cart_write(cart,unit_nr,error)
+SUBROUTINE cp_cart_write(cart,unit_nr)
     TYPE(cp_para_cart_type), POINTER         :: cart
     INTEGER, INTENT(in)                      :: unit_nr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cart_write', &
       routineP = moduleN//':'//routineN
@@ -370,32 +360,32 @@ SUBROUTINE cp_cart_write(cart,unit_nr,error)
      WRITE (unit=unit_nr,&
           fmt="(' <cp_cart>:{ owns_group=',l1,',')",&
           iostat=iostat) cart%owns_group
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  group=',i10,', ref_count=',i10,',')",&
           iostat=iostat) cart%group, cart%ref_count
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  ndims=',i8,',')",&
           iostat=iostat) cart%ndims
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  rank=',i8,', ntask=',i8,',')",&
           iostat=iostat) cart%rank, cart%ntask
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  mepos=',10i8)",&
           iostat=iostat) cart%mepos
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  source=',10i8,',')",&
           iostat=iostat) cart%source
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  num_pe=',10i8,'}')",&
           iostat=iostat) cart%num_pe
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
      WRITE (unit=unit_nr,fmt="('  periodic=',10l2,'}')",&
           iostat=iostat) cart%periodic
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
   ELSE
      WRITE (unit=unit_nr,&
           fmt="(a)", iostat=iostat) ' <cp_cart>:*null* '
-     CPInvariant(iostat==0,cp_failure_level,routineP,error,failure)
+     CPInvariant(iostat==0,cp_failure_level,routineP,failure)
   END IF
 END SUBROUTINE cp_cart_write
 

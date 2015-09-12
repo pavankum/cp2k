@@ -36,11 +36,10 @@ CONTAINS
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 ! *****************************************************************************
-  SUBROUTINE mdctrl_callback(mdctrl, md_env, should_stop, error)
+  SUBROUTINE mdctrl_callback(mdctrl, md_env, should_stop)
     TYPE(mdctrl_type), POINTER               :: mdctrl
     TYPE(md_environment_type), POINTER       :: md_env
     LOGICAL, INTENT(inout)                   :: should_stop
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'mdctrl_callback', &
       routineP = moduleN//':'//routineN
@@ -48,11 +47,11 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(md_env), cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(mdctrl), cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(md_env), cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(mdctrl), cp_failure_level,routineP,failure)
 
     IF(ASSOCIATED(mdctrl%glbopt)) THEN
-      CALL glbopt_md_callback(mdctrl%glbopt, md_env, should_stop, error)
+      CALL glbopt_md_callback(mdctrl%glbopt, md_env, should_stop)
 
     !ELSE IF(ASSOCIATED(mdctrl%your_own_hook)) THEN ...
 

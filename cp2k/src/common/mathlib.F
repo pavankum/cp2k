@@ -237,12 +237,11 @@ CONTAINS
 !> \author  MK
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE diamat_all(a,eigval,dac,error)
+  SUBROUTINE diamat_all(a,eigval,dac)
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(INOUT)                          :: a
     REAL(KIND=dp), DIMENSION(:), INTENT(OUT) :: eigval
     LOGICAL, INTENT(IN), OPTIONAL            :: dac
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'diamat_all', &
       routineP = moduleN//':'//routineN
@@ -295,10 +294,10 @@ CONTAINS
     ! Allocate work storage
 
     ALLOCATE (work(lwork),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     IF (divide_and_conquer) THEN
        ALLOCATE (iwork(liwork),STAT=stat)
-       CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     END IF
 
     ! Diagonalize the matrix a
@@ -322,11 +321,11 @@ CONTAINS
     ! Release work storage
 
     DEALLOCATE (work,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     IF (divide_and_conquer) THEN
        DEALLOCATE (iwork,STAT=stat)
-       CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     END IF
 
     CALL timestop(handle)
@@ -424,10 +423,9 @@ CONTAINS
 !> \param info ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE invmat(a,info,error)
+  SUBROUTINE invmat(a,info)
     REAL(KIND=dp), INTENT(INOUT)             :: a(:,:)
     INTEGER, INTENT(OUT)                     :: info
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'invmat', &
       routineP = moduleN//':'//routineN
@@ -441,9 +439,9 @@ CONTAINS
     n = SIZE(a,1)
     lwork = 20*n
     ALLOCATE (ipiv(n),STAT=info)
-    CPPostcondition(info==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(info==0,cp_failure_level,routineP,failure)
     ALLOCATE (work(lwork),STAT=info)
-    CPPostcondition(info==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(info==0,cp_failure_level,routineP,failure)
     ipiv = 0
     work  = 0._dp
     info = 0
@@ -452,7 +450,7 @@ CONTAINS
        CALL dgetri(n,a,n,ipiv,work,lwork,info)
     END IF
     DEALLOCATE (ipiv,work,STAT=info)
-    CPPostcondition(info==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(info==0,cp_failure_level,routineP,failure)
   END SUBROUTINE invmat
 
 ! *****************************************************************************
@@ -466,10 +464,9 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Dorothea Golze [02.2015]
 ! *****************************************************************************
-  SUBROUTINE invmat_symm(a,cholesky_triangle,error)
+  SUBROUTINE invmat_symm(a,cholesky_triangle)
     REAL(KIND=dp), INTENT(INOUT)             :: a(:,:)
     CHARACTER(LEN=1), INTENT(IN), OPTIONAL   :: cholesky_triangle
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'invmat_symm', &
       routineP = moduleN//':'//routineN
@@ -541,14 +538,13 @@ CONTAINS
 !> \version 1.0
 !> \note NB add improve argument, used to disable call to dgerfs
 ! *****************************************************************************
-  SUBROUTINE invert_matrix_d(a,a_inverse,eval_error,option,error,improve)
+  SUBROUTINE invert_matrix_d(a,a_inverse,eval_error,option,improve)
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(IN)                             :: a
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(OUT)                            :: a_inverse
     REAL(KIND=dp), INTENT(OUT)               :: eval_error
     CHARACTER(LEN=1), INTENT(IN), OPTIONAL   :: option
-    TYPE(cp_error_type), INTENT(inout)       :: error
     LOGICAL, INTENT(IN), OPTIONAL            :: improve
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'invert_matrix_d', &
@@ -604,25 +600,25 @@ CONTAINS
 
     ! Allocate work storage
     ALLOCATE (a_lu(n,n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (b(n,n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (berr(n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (ferr(n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (ipiv(n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (iwork(n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (work(4*n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     a_lu(1:n,1:n) = a(1:n,1:n)
 
@@ -699,19 +695,19 @@ CONTAINS
 
     ! Release work storage
     DEALLOCATE (work,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (iwork,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (ipiv,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (ferr,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (berr,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (b,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (a_lu,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE invert_matrix_d
 
@@ -736,14 +732,13 @@ CONTAINS
 !> \author MK
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE invert_matrix_z(a,a_inverse,eval_error,option,error)
+  SUBROUTINE invert_matrix_z(a,a_inverse,eval_error,option)
     COMPLEX(KIND=dp), DIMENSION(:, :), &
       INTENT(IN)                             :: a
     COMPLEX(KIND=dp), DIMENSION(:, :), &
       INTENT(OUT)                            :: a_inverse
     REAL(KIND=dp), INTENT(OUT)               :: eval_error
     CHARACTER(LEN=1), INTENT(IN), OPTIONAL   :: option
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'invert_matrix_z', &
       routineP = moduleN//':'//routineN
@@ -794,25 +789,25 @@ CONTAINS
 
     ! Allocate work storage
     ALLOCATE (a_lu(n,n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (b(n,n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (berr(n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (ferr(n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (ipiv(n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (rwork(2*n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     ALLOCATE (work(2*n),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     a_lu(1:n,1:n) = a(1:n,1:n)
 
@@ -887,19 +882,19 @@ CONTAINS
 
     ! Release work storage
     DEALLOCATE (work,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (rwork,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (ipiv,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (ferr,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (berr,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (b,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE (a_lu,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE invert_matrix_z
 
@@ -913,11 +908,10 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Dorothea Golze [02.2015]
 ! *****************************************************************************
-  SUBROUTINE get_pseudo_inverse_svd(a,a_pinverse,rskip,error)
+  SUBROUTINE get_pseudo_inverse_svd(a,a_pinverse,rskip)
     
     REAL(KIND=dp), DIMENSION(:, :), POINTER  :: a, a_pinverse
     REAL(KIND=dp), INTENT(IN)                :: rskip
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_pseudo_inverse_svd', &
       routineP = moduleN//':'//routineN
@@ -935,7 +929,7 @@ CONTAINS
 
     n=SIZE(a,1)
     ALLOCATE(u(n,n),vt(n,n),sig(n),sig_plus(n,n),iwork(8*n),work(1),temp_mat(n,n),stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     u(:,:)   = 0.0_dp
     vt(:,:)  = 0.0_dp
     sig(:) = 0.0_dp
@@ -954,9 +948,9 @@ CONTAINS
     END IF
     lwork = INT(work(1))
     DEALLOCATE(work,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE(work(lwork),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     ! do SVD
     CALL dgesdd('A',n,n,a(1,1),n,sig(1),u(1,1),n,vt(1,1),n,work(1),&
@@ -981,7 +975,7 @@ CONTAINS
     CALL dgemm("T","N",n,n,n,1._dp,vt,n,temp_mat,n,0._dp,a_pinverse,n)
 
     DEALLOCATE( u,vt,sig,iwork,work,sig_plus,temp_mat,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     CALL timestop(handle)
 
@@ -997,11 +991,10 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Dorothea Golze [02.2015]
 ! *****************************************************************************
-  SUBROUTINE get_pseudo_inverse_diag(a,a_pinverse,rskip,error)
+  SUBROUTINE get_pseudo_inverse_diag(a,a_pinverse,rskip)
 
     REAL(KIND=dp), DIMENSION(:, :), POINTER  :: a, a_pinverse
     REAL(KIND=dp), INTENT(IN)                :: rskip
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_pseudo_inverse_diag', &
       routineP = moduleN//':'//routineN
@@ -1018,7 +1011,7 @@ CONTAINS
 
     n=SIZE(a,1)
     ALLOCATE(dinv(n,n),eig(n),work(1),temp_mat(n,n),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     dinv(:,:) = 0.0_dp
     eig(:)    = 0.0_dp
     work(:)   = 0.0_dp
@@ -1033,9 +1026,9 @@ CONTAINS
     END IF
     lwork = INT(work(1))
     DEALLOCATE(work,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE(work(lwork),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     ! get eigenvalues and eigenvectors
     CALL dsyev('V','U',n,a(1,1),n,eig(1),work(1),lwork,info)
@@ -1059,7 +1052,7 @@ CONTAINS
     CALL dgemm("N","N",n,n,n,1._dp,a,n,temp_mat,n,0._dp,a_pinverse,n)
 
     DEALLOCATE(eig,work,dinv,temp_mat,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     CALL timestop(handle)
 

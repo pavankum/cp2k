@@ -64,11 +64,10 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
-  SUBROUTINE csvr_init(csvr, simpar, section, error)
+  SUBROUTINE csvr_init(csvr, simpar, section)
     TYPE(csvr_system_type), POINTER          :: csvr
     TYPE(simpar_type), POINTER               :: simpar
     TYPE(section_vals_type), POINTER         :: section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csvr_init', &
       routineP = moduleN//':'//routineN
@@ -79,12 +78,12 @@ CONTAINS
     csvr%glob_num_csvr=0
     csvr%dt_fact=1.0_dp
     CALL cite_reference(Bussi2007)
-    CALL section_vals_val_get(section,"TIMECON",r_val=csvr%tau_csvr,error=error)
+    CALL section_vals_val_get(section,"TIMECON",r_val=csvr%tau_csvr)
     ! The CSVR library expects the tau_csv to be in unit of integration timestep
     ! if applied once.. divided by two if the process is applied both to the first
     ! and the second verlet step
     csvr%tau_csvr = csvr%tau_csvr/(0.5_dp*simpar%dt)
-    CALL create_map_info_type(csvr%map_info, error)
+    CALL create_map_info_type(csvr%map_info)
 
   END SUBROUTINE csvr_init
 
@@ -95,9 +94,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
-  SUBROUTINE csvr_thermo_create(csvr, error)
+  SUBROUTINE csvr_thermo_create(csvr)
     TYPE(csvr_system_type), POINTER          :: csvr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csvr_thermo_create', &
       routineP = moduleN//':'//routineN
@@ -110,26 +108,26 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(3, 2)           :: initial_seed, my_seed
 
     failure = .FALSE.
-    CPPrecondition(ASSOCIATED(csvr),cp_fatal_level,routineP,error,failure)
-    CPPrecondition(.NOT.ASSOCIATED(csvr%nvt),cp_fatal_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(csvr),cp_fatal_level,routineP,failure)
+    CPPrecondition(.NOT.ASSOCIATED(csvr%nvt),cp_fatal_level,routineP,failure)
 
     ALLOCATE ( csvr%nvt(csvr%loc_num_csvr),stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     DO i = 1, csvr%loc_num_csvr
        csvr%nvt(i)%thermostat_energy = 0.0_dp
        NULLIFY(csvr%nvt(i)%gaussian_rng_stream)
     END DO
     ! Initialize the gaussian stream random number
     ALLOCATE (seed(3,2,csvr%glob_num_csvr),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-    initial_seed = next_rng_seed(error=error)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
+    initial_seed = next_rng_seed()
 
     seed(:,:,1) = initial_seed
     DO ithermo=2,csvr%glob_num_csvr
-       seed(:,:,ithermo) = next_rng_seed(seed(:,:,ithermo-1),error=error)
+       seed(:,:,ithermo) = next_rng_seed(seed(:,:,ithermo-1))
     END DO
     ! Update initial seed
-    initial_seed = next_rng_seed(seed(:,:,csvr%glob_num_csvr),error=error)
+    initial_seed = next_rng_seed(seed(:,:,csvr%glob_num_csvr))
     DO ithermo = 1, csvr%loc_num_csvr
        my_index = csvr%map_info%index(ithermo)
        my_seed  = seed(:,:,my_index)
@@ -137,10 +135,10 @@ CONTAINS
        CALL compress(name)
        CALL create_rng_stream(rng_stream=csvr%nvt(ithermo)%gaussian_rng_stream,&
             name=name,distribution_type=GAUSSIAN, extended_precision=.TRUE.,&
-            seed=my_seed,error=error)
+            seed=my_seed)
     END DO
     DEALLOCATE (seed,STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE csvr_thermo_create
 
@@ -151,9 +149,8 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
-  SUBROUTINE csvr_dealloc ( csvr, error )
+  SUBROUTINE csvr_dealloc ( csvr)
     TYPE(csvr_system_type), POINTER          :: csvr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csvr_dealloc', &
       routineP = moduleN//':'//routineN
@@ -163,10 +160,10 @@ CONTAINS
 
     failure = .FALSE.
     IF (ASSOCIATED(csvr)) THEN
-       CALL csvr_thermo_dealloc(csvr%nvt, error)
-       CALL release_map_info_type(csvr%map_info, error)
+       CALL csvr_thermo_dealloc(csvr%nvt)
+       CALL release_map_info_type(csvr%map_info)
        DEALLOCATE (csvr, STAT=stat)
-       CPPrecondition(stat==0,cp_fatal_level,routineP,error,failure)
+       CPPrecondition(stat==0,cp_fatal_level,routineP,failure)
     ENDIF
 
   END SUBROUTINE csvr_dealloc
@@ -178,10 +175,9 @@ CONTAINS
 !>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
-  SUBROUTINE csvr_thermo_dealloc ( nvt, error )
+  SUBROUTINE csvr_thermo_dealloc ( nvt)
     TYPE(csvr_thermo_type), DIMENSION(:), &
       POINTER                                :: nvt
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'csvr_thermo_dealloc', &
       routineP = moduleN//':'//routineN
@@ -193,11 +189,11 @@ CONTAINS
     IF (ASSOCIATED(nvt)) THEN
        DO i = 1, SIZE(nvt)
           IF (ASSOCIATED(nvt(i)%gaussian_rng_stream)) THEN
-             CALL delete_rng_stream(nvt(i)%gaussian_rng_stream,error=error)
+             CALL delete_rng_stream(nvt(i)%gaussian_rng_stream)
           ENDIF
        END DO
        DEALLOCATE (nvt, STAT=stat)
-       CPPrecondition(stat==0,cp_fatal_level,routineP,error,failure)
+       CPPrecondition(stat==0,cp_fatal_level,routineP,failure)
     ENDIF
   END SUBROUTINE csvr_thermo_dealloc
 

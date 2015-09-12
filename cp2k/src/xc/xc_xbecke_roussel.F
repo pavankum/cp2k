@@ -86,13 +86,11 @@ CONTAINS
 !>        12.2008 created [mguidon]
 !> \author mguidon
 ! *****************************************************************************
-  SUBROUTINE xbecke_roussel_lda_info(reference,shortform, needs, max_deriv,&
-       error)
+  SUBROUTINE xbecke_roussel_lda_info(reference,shortform, needs, max_deriv)
     CHARACTER(LEN=*), INTENT(OUT), OPTIONAL  :: reference, shortform
     TYPE(xc_rho_cflags_type), &
       INTENT(inout), OPTIONAL                :: needs
     INTEGER, INTENT(out), OPTIONAL           :: max_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xbecke_roussel_lda_info', &
       routineP = moduleN//':'//routineN
@@ -135,13 +133,11 @@ CONTAINS
 !>        12.2008 created [mguidon]
 !> \author mguidon
 ! *****************************************************************************
-  SUBROUTINE xbecke_roussel_lsd_info(reference,shortform, needs, max_deriv,&
-     error)
+  SUBROUTINE xbecke_roussel_lsd_info(reference,shortform, needs, max_deriv)
     CHARACTER(LEN=*), INTENT(OUT), OPTIONAL  :: reference, shortform
     TYPE(xc_rho_cflags_type), &
       INTENT(inout), OPTIONAL                :: needs
     INTEGER, INTENT(out), OPTIONAL           :: max_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xbecke_roussel_lsd_info', &
       routineP = moduleN//':'//routineN
@@ -185,12 +181,11 @@ CONTAINS
 !>        12.2008 created [mguidon]
 !> \author mguidon
 ! *****************************************************************************
-  SUBROUTINE xbecke_roussel_lda_eval(rho_set,deriv_set,grad_deriv,br_params,error)
+  SUBROUTINE xbecke_roussel_lda_eval(rho_set,deriv_set,grad_deriv,br_params)
     TYPE(xc_rho_set_type), POINTER           :: rho_set
     TYPE(xc_derivative_set_type), POINTER    :: deriv_set
     INTEGER, INTENT(in)                      :: grad_deriv
     TYPE(section_vals_type), POINTER         :: br_params
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xbecke_roussel_lda_eval', &
       routineP = moduleN//':'//routineN
@@ -212,20 +207,20 @@ CONTAINS
     failure=.FALSE.
     NULLIFY(bo)
 
-    CPPrecondition(ASSOCIATED(rho_set),cp_failure_level,routineP,error,failure)
-    CPPrecondition(rho_set%ref_count>0,cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(deriv_set),cp_failure_level,routineP,error,failure)
-    CPPrecondition(deriv_set%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(rho_set),cp_failure_level,routineP,failure)
+    CPPrecondition(rho_set%ref_count>0,cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(deriv_set),cp_failure_level,routineP,failure)
+    CPPrecondition(deriv_set%ref_count>0,cp_failure_level,routineP,failure)
     CALL xc_rho_set_get(rho_set, rho=rho, norm_drho=norm_drho, &
          tau=tau,laplace_rho=laplace_rho,local_bounds=bo,&
-         rho_cutoff=epsilon_rho,error=error)
+         rho_cutoff=epsilon_rho)
     npoints=(bo(2,1)-bo(1,1)+1)*(bo(2,2)-bo(1,2)+1)*(bo(2,3)-bo(1,3)+1)
 
     ! meaningful default for the arrays we don't need: let us make compiler
     ! and debugger happy...
     IF (cp_debug) THEN
       ALLOCATE(dummy(bo(1,1):bo(2,1),bo(1,2):bo(2,2),bo(1,3):bo(2,3)),stat=stat)
-      CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ELSE
       dummy=> rho
     END IF
@@ -238,50 +233,50 @@ CONTAINS
 
     IF (grad_deriv>=0) THEN
       deriv => xc_dset_get_derivative(deriv_set,"",&
-           allocate_deriv=.TRUE., error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_0,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_0)
     END IF
     IF (grad_deriv>=1.OR.grad_deriv==-1) THEN
       deriv => xc_dset_get_derivative(deriv_set,"(rho)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_rho,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_rho)
       deriv => xc_dset_get_derivative(deriv_set,"(norm_drho)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_ndrho,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_ndrho)
       deriv => xc_dset_get_derivative(deriv_set,"(tau)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_tau,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_tau)
       deriv => xc_dset_get_derivative(deriv_set,"(laplace_rho)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_laplace_rho,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_laplace_rho)
     END IF
     IF (grad_deriv>1.OR.grad_deriv<-1) THEN
       CALL cp_unimplemented_error(fromWhere=routineP, &
            message="derivatives bigger than 1 not implemented", &
-           error=error, error_level=cp_failure_level)
+           error_level=cp_failure_level)
     END IF
 
-    CALL section_vals_val_get(br_params,"scale_x",r_val=sx,error=error)
-    CALL section_vals_val_get(br_params,"CUTOFF_RADIUS",r_val=R,error=error)
-    CALL section_vals_val_get(br_params,"GAMMA",r_val=gamma,error=error)
+    CALL section_vals_val_get(br_params,"scale_x",r_val=sx)
+    CALL section_vals_val_get(br_params,"CUTOFF_RADIUS",r_val=R)
+    CALL section_vals_val_get(br_params,"GAMMA",r_val=gamma)
 
     !$omp parallel default(none) &
     !$omp          shared(rho, norm_drho, laplace_rho, tau, e_0, e_rho) &
     !$omp          shared(e_ndrho, e_tau, e_laplace_rho, grad_deriv) &
     !$omp          shared(npoints, epsilon_rho) &
-    !$omp          shared(sx, r, gamma, error)
+    !$omp          shared(sx, r, gamma)
 
     CALL xbecke_roussel_lda_calc(rho=rho, norm_drho=norm_drho,&
         laplace_rho=laplace_rho,tau=tau,e_0=e_0,e_rho=e_rho,e_ndrho=e_ndrho,&
         e_tau=e_tau,e_laplace_rho=e_laplace_rho,grad_deriv=grad_deriv, &
         npoints=npoints,epsilon_rho=epsilon_rho,&
-        sx=sx,R=R,gamma=gamma,error=error)
+        sx=sx,R=R,gamma=gamma)
 
     !$omp end parallel
 
     IF (cp_debug) THEN
        DEALLOCATE(dummy,stat=stat)
-       CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+       CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
     ELSE
        NULLIFY(dummy)
     END IF
@@ -319,7 +314,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE xbecke_roussel_lda_calc(rho,norm_drho,laplace_rho,tau,e_0,e_rho,&
                                      e_ndrho,e_tau,e_laplace_rho,grad_deriv,npoints,&
-                                     epsilon_rho,sx,R,gamma,error)
+                                     epsilon_rho,sx,R,gamma)
 
     INTEGER, INTENT(in)                      :: npoints, grad_deriv
     REAL(kind=dp), DIMENSION(1:npoints), &
@@ -329,7 +324,6 @@ CONTAINS
       INTENT(in)                             :: tau, laplace_rho, norm_drho, &
                                                 rho
     REAL(kind=dp), INTENT(in)                :: epsilon_rho, sx, R, gamma
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xbecke_roussel_lda_calc', &
       routineP = moduleN//':'//routineN
@@ -367,7 +361,7 @@ CONTAINS
             e_old = e_0(ip)
             CALL x_br_lsd_y_lte_0(my_rho, my_ndrho, my_tau, my_laplace_rho, e_0(ip), &
                                   e_rho(ip), e_ndrho(ip), e_tau(ip), e_laplace_rho(ip),&
-                                  sx, gamma, grad_deriv, error)
+                                  sx, gamma, grad_deriv)
             ! VERY UGLY HACK e_0 has to multiplied by the factor 2
             e_diff = e_0(ip) - e_old
             e_0(ip) = e_0(ip) + e_diff
@@ -375,7 +369,7 @@ CONTAINS
             e_old = e_0(ip)
             CALL x_br_lsd_y_gt_0(my_rho, my_ndrho, my_tau, my_laplace_rho, e_0(ip), &
                                  e_rho(ip), e_ndrho(ip), e_tau(ip), e_laplace_rho(ip),&
-                                 sx, gamma, grad_deriv, error)
+                                 sx, gamma, grad_deriv)
             ! VERY UGLY HACK e_0 has to multiplied by the factor 2
             e_diff = e_0(ip) - e_old
             e_0(ip) = e_0(ip) + e_diff
@@ -385,7 +379,7 @@ CONTAINS
             e_old = e_0(ip)
             CALL x_br_lsd_y_lte_0_cutoff(my_rho, my_ndrho, my_tau, my_laplace_rho, e_0(ip), &
                                          e_rho(ip), e_ndrho(ip), e_tau(ip), e_laplace_rho(ip),&
-                                         sx, R, gamma, grad_deriv, error)
+                                         sx, R, gamma, grad_deriv)
             ! VERY UGLY HACK e_0 has to multiplied by the factor 2
             e_diff = e_0(ip) - e_old
             e_0(ip) = e_0(ip) + e_diff
@@ -393,7 +387,7 @@ CONTAINS
             e_old = e_0(ip)
             CALL x_br_lsd_y_gt_0_cutoff(my_rho, my_ndrho, my_tau, my_laplace_rho, e_0(ip), &
                                         e_rho(ip), e_ndrho(ip), e_tau(ip), e_laplace_rho(ip),&
-                                        sx, R, gamma, grad_deriv, error)
+                                        sx, R, gamma, grad_deriv)
             ! VERY UGLY HACK e_0 has to multiplied by the factor 2
             e_diff = e_0(ip) - e_old
             e_0(ip) = e_0(ip) + e_diff
@@ -421,12 +415,11 @@ CONTAINS
 !>        12.2008 created [mguidon]
 !> \author mguidon
 ! *****************************************************************************
-  SUBROUTINE xbecke_roussel_lsd_eval(rho_set,deriv_set,grad_deriv,br_params,error)
+  SUBROUTINE xbecke_roussel_lsd_eval(rho_set,deriv_set,grad_deriv,br_params)
     TYPE(xc_rho_set_type), POINTER           :: rho_set
     TYPE(xc_derivative_set_type), POINTER    :: deriv_set
     INTEGER, INTENT(in)                      :: grad_deriv
     TYPE(section_vals_type), POINTER         :: br_params
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xbecke_roussel_lsd_eval', &
       routineP = moduleN//':'//routineN
@@ -447,21 +440,21 @@ CONTAINS
     failure=.FALSE.
     NULLIFY(bo)
 
-    CPPrecondition(ASSOCIATED(rho_set),cp_failure_level,routineP,error,failure)
-    CPPrecondition(rho_set%ref_count>0,cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(deriv_set),cp_failure_level,routineP,error,failure)
-    CPPrecondition(deriv_set%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(rho_set),cp_failure_level,routineP,failure)
+    CPPrecondition(rho_set%ref_count>0,cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(deriv_set),cp_failure_level,routineP,failure)
+    CPPrecondition(deriv_set%ref_count>0,cp_failure_level,routineP,failure)
     CALL xc_rho_set_get(rho_set, rhoa=rhoa, rhob=rhob, norm_drhoa=norm_drhoa, &
          norm_drhob=norm_drhob, tau_a=tau_a, tau_b=tau_b, laplace_rhoa=laplace_rhoa,&
          laplace_rhob=laplace_rhob,local_bounds=bo,&
-         rho_cutoff=epsilon_rho,error=error)
+         rho_cutoff=epsilon_rho)
     npoints=(bo(2,1)-bo(1,1)+1)*(bo(2,2)-bo(1,2)+1)*(bo(2,3)-bo(1,3)+1)
 
     ! meaningful default for the arrays we don't need: let us make compiler
     ! and debugger happy...
     IF (cp_debug) THEN
       ALLOCATE(dummy(bo(1,1):bo(2,1),bo(1,2):bo(2,2),bo(1,3):bo(2,3)),stat=stat)
-      CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ELSE
       dummy=> rhoa
     END IF
@@ -478,53 +471,53 @@ CONTAINS
 
     IF (grad_deriv>=0) THEN
       deriv => xc_dset_get_derivative(deriv_set,"",&
-           allocate_deriv=.TRUE., error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_0,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_0)
     END IF
     IF (grad_deriv>=1.OR.grad_deriv==-1) THEN
       deriv => xc_dset_get_derivative(deriv_set,"(rhoa)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_rhoa,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_rhoa)
       deriv => xc_dset_get_derivative(deriv_set,"(rhob)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_rhob,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_rhob)
 
       deriv => xc_dset_get_derivative(deriv_set,"(norm_drhoa)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_ndrhoa,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_ndrhoa)
       deriv => xc_dset_get_derivative(deriv_set,"(norm_drhob)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_ndrhob,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_ndrhob)
 
       deriv => xc_dset_get_derivative(deriv_set,"(tau_a)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_tau_a,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_tau_a)
       deriv => xc_dset_get_derivative(deriv_set,"(tau_b)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_tau_b,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_tau_b)
 
       deriv => xc_dset_get_derivative(deriv_set,"(laplace_rhoa)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_laplace_rhoa,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_laplace_rhoa)
       deriv => xc_dset_get_derivative(deriv_set,"(laplace_rhob)",&
-           allocate_deriv=.TRUE.,error=error)
-      CALL xc_derivative_get(deriv,deriv_data=e_laplace_rhob,error=error)
+           allocate_deriv=.TRUE.)
+      CALL xc_derivative_get(deriv,deriv_data=e_laplace_rhob)
     END IF
     IF (grad_deriv>1.OR.grad_deriv<-1) THEN
       CALL cp_unimplemented_error(fromWhere=routineP, &
            message="derivatives bigger than 1 not implemented", &
-           error=error, error_level=cp_failure_level)
+           error_level=cp_failure_level)
     END IF
 
-    CALL section_vals_val_get(br_params,"scale_x",r_val=sx,error=error)
-    CALL section_vals_val_get(br_params,"CUTOFF_RADIUS",r_val=R,error=error)
-    CALL section_vals_val_get(br_params,"GAMMA",r_val=gamma,error=error)
+    CALL section_vals_val_get(br_params,"scale_x",r_val=sx)
+    CALL section_vals_val_get(br_params,"CUTOFF_RADIUS",r_val=R)
+    CALL section_vals_val_get(br_params,"GAMMA",r_val=gamma)
 
     !$omp parallel default (none) &
     !$omp          shared(rhoa, norm_drhoa, laplace_rhoa, tau_a, e_0) &
     !$omp          shared(e_rhoa, e_ndrhoa, e_tau_a, e_laplace_rhoa) &
     !$omp          shared(grad_deriv, npoints, epsilon_rho) &
-    !$omp          shared(sx, r, gamma, error) &
+    !$omp          shared(sx, r, gamma) &
     !$omp          shared(rhob, norm_drhob, laplace_rhob, tau_b, e_rhob) &
     !$omp          shared(e_ndrhob, e_tau_b, e_laplace_rhob)
 
@@ -532,19 +525,19 @@ CONTAINS
         laplace_rho=laplace_rhoa,tau=tau_a,e_0=e_0,e_rho=e_rhoa,e_ndrho=e_ndrhoa,&
         e_tau=e_tau_a,e_laplace_rho=e_laplace_rhoa,grad_deriv=grad_deriv, &
         npoints=npoints,epsilon_rho=epsilon_rho,&
-        sx=sx,R=R,gamma=gamma,error=error)
+        sx=sx,R=R,gamma=gamma)
 
     CALL xbecke_roussel_lsd_calc(rho=rhob, norm_drho=norm_drhob,&
         laplace_rho=laplace_rhob,tau=tau_b,e_0=e_0,e_rho=e_rhob,e_ndrho=e_ndrhob,&
         e_tau=e_tau_b,e_laplace_rho=e_laplace_rhob,grad_deriv=grad_deriv, &
         npoints=npoints,epsilon_rho=epsilon_rho,&
-        sx=sx,R=R,gamma=gamma,error=error)
+        sx=sx,R=R,gamma=gamma)
 
     !$omp end parallel
 
     IF (cp_debug) THEN
        DEALLOCATE(dummy,stat=stat)
-       CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+       CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
     ELSE
        NULLIFY(dummy)
     END IF
@@ -580,7 +573,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE xbecke_roussel_lsd_calc(rho,norm_drho,laplace_rho,tau,e_0,e_rho,&
                                      e_ndrho,e_tau,e_laplace_rho,grad_deriv,npoints,&
-                                     epsilon_rho,sx,R,gamma,error)
+                                     epsilon_rho,sx,R,gamma)
 
     INTEGER, INTENT(in)                      :: npoints, grad_deriv
     REAL(kind=dp), DIMENSION(1:npoints), &
@@ -590,7 +583,6 @@ CONTAINS
       INTENT(in)                             :: tau, laplace_rho, norm_drho, &
                                                 rho
     REAL(kind=dp), INTENT(in)                :: epsilon_rho, sx, R, gamma
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'xbecke_roussel_lsd_calc', &
       routineP = moduleN//':'//routineN
@@ -626,21 +618,21 @@ CONTAINS
           IF( yval <= 0.0_dp) THEN
             CALL x_br_lsd_y_lte_0(my_rho, my_ndrho, my_tau, my_laplace_rho, e_0(ip), &
                                   e_rho(ip), e_ndrho(ip), e_tau(ip), e_laplace_rho(ip),&
-                                  sx, gamma, grad_deriv, error)
+                                  sx, gamma, grad_deriv)
           ELSE
             CALL x_br_lsd_y_gt_0(my_rho, my_ndrho, my_tau, my_laplace_rho, e_0(ip), &
                                  e_rho(ip), e_ndrho(ip), e_tau(ip), e_laplace_rho(ip),&
-                                 sx, gamma, grad_deriv, error)
+                                 sx, gamma, grad_deriv)
           END IF
         ELSE
           IF( yval <= 0.0_dp) THEN
             CALL x_br_lsd_y_lte_0_cutoff(my_rho, my_ndrho, my_tau, my_laplace_rho, e_0(ip), &
                                          e_rho(ip), e_ndrho(ip), e_tau(ip), e_laplace_rho(ip),&
-                                         sx, R, gamma, grad_deriv, error)
+                                         sx, R, gamma, grad_deriv)
           ELSE
             CALL x_br_lsd_y_gt_0_cutoff(my_rho, my_ndrho, my_tau, my_laplace_rho, e_0(ip), &
                                         e_rho(ip), e_ndrho(ip), e_tau(ip), e_laplace_rho(ip),&
-                                        sx, R, gamma, grad_deriv, error)
+                                        sx, R, gamma, grad_deriv)
           END IF
         END IF
       END IF
@@ -671,13 +663,12 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE x_br_lsd_y_lte_0(rho, ndrho, tau, laplace_rho, e_0, &
                               e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                              sx, gamma, grad_deriv, error)
+                              sx, gamma, grad_deriv)
     REAL(dp), INTENT(IN)                     :: rho, ndrho, tau, laplace_rho
     REAL(dp), INTENT(INOUT)                  :: e_0, e_rho, e_ndrho, e_tau, &
                                                 e_laplace_rho
     REAL(dp), INTENT(IN)                     :: sx, gamma
     INTEGER, INTENT(IN)                      :: grad_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'x_br_lsd_y_lte_0', &
       routineP = moduleN//':'//routineN
@@ -923,13 +914,12 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE x_br_lsd_y_gt_0(rho, ndrho, tau, laplace_rho, e_0, &
                              e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                             sx, gamma, grad_deriv, error)
+                             sx, gamma, grad_deriv)
     REAL(dp), INTENT(IN)                     :: rho, ndrho, tau, laplace_rho
     REAL(dp), INTENT(INOUT)                  :: e_0, e_rho, e_ndrho, e_tau, &
                                                 e_laplace_rho
     REAL(dp), INTENT(IN)                     :: sx, gamma
     INTEGER, INTENT(IN)                      :: grad_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'x_br_lsd_y_gt_0', &
       routineP = moduleN//':'//routineN
@@ -1190,13 +1180,12 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE x_br_lsd_y_lte_0_cutoff(rho, ndrho, tau, laplace_rho, e_0, &
                                      e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                     sx, R, gamma, grad_deriv, error)
+                                     sx, R, gamma, grad_deriv)
     REAL(dp), INTENT(IN)                     :: rho, ndrho, tau, laplace_rho
     REAL(dp), INTENT(INOUT)                  :: e_0, e_rho, e_ndrho, e_tau, &
                                                 e_laplace_rho
     REAL(dp), INTENT(IN)                     :: sx, R, gamma
     INTEGER, INTENT(IN)                      :: grad_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'x_br_lsd_y_lte_0_cutoff', &
       routineP = moduleN//':'//routineN
@@ -1247,11 +1236,11 @@ CONTAINS
     IF(R>brval) THEN
       CALL x_br_lsd_y_lte_0_cutoff_R_gt_b(rho, ndrho, tau, laplace_rho, e_0, &
                                            e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                           sx, R, gamma, grad_deriv, error)
+                                           sx, R, gamma, grad_deriv)
     ELSE
       CALL x_br_lsd_y_lte_0_cutoff_R_lte_b(rho, ndrho, tau, laplace_rho, e_0, &
                                           e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                          sx, R, gamma, grad_deriv, error)
+                                          sx, R, gamma, grad_deriv)
     END IF
 
   END SUBROUTINE x_br_lsd_y_lte_0_cutoff
@@ -1278,13 +1267,12 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE x_br_lsd_y_lte_0_cutoff_R_gt_b(rho, ndrho, tau, laplace_rho, e_0, &
                                              e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                             sx, R, gamma, grad_deriv, error)
+                                             sx, R, gamma, grad_deriv)
     REAL(dp), INTENT(IN)                     :: rho, ndrho, tau, laplace_rho
     REAL(dp), INTENT(INOUT)                  :: e_0, e_rho, e_ndrho, e_tau, &
                                                 e_laplace_rho
     REAL(dp), INTENT(IN)                     :: sx, R, gamma
     INTEGER, INTENT(IN)                      :: grad_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: &
       routineN = 'x_br_lsd_y_lte_0_cutoff_R_gt_b', &
@@ -1628,13 +1616,12 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE x_br_lsd_y_lte_0_cutoff_R_lte_b(rho, ndrho, tau, laplace_rho, e_0, &
                                              e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                             sx, R, gamma, grad_deriv, error)
+                                             sx, R, gamma, grad_deriv)
     REAL(dp), INTENT(IN)                     :: rho, ndrho, tau, laplace_rho
     REAL(dp), INTENT(INOUT)                  :: e_0, e_rho, e_ndrho, e_tau, &
                                                 e_laplace_rho
     REAL(dp), INTENT(IN)                     :: sx, R, gamma
     INTEGER, INTENT(IN)                      :: grad_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: &
       routineN = 'x_br_lsd_y_lte_0_cutoff_R_lte_b', &
@@ -1976,13 +1963,12 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE x_br_lsd_y_gt_0_cutoff(rho, ndrho, tau, laplace_rho, e_0, &
                                     e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                    sx, R, gamma, grad_deriv, error)
+                                    sx, R, gamma, grad_deriv)
     REAL(dp), INTENT(IN)                     :: rho, ndrho, tau, laplace_rho
     REAL(dp), INTENT(INOUT)                  :: e_0, e_rho, e_ndrho, e_tau, &
                                                 e_laplace_rho
     REAL(dp), INTENT(IN)                     :: sx, R, gamma
     INTEGER, INTENT(IN)                      :: grad_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'x_br_lsd_y_gt_0_cutoff', &
       routineP = moduleN//':'//routineN
@@ -2040,11 +2026,11 @@ CONTAINS
     IF(R>brval) THEN
       CALL x_br_lsd_y_gt_0_cutoff_R_gt_b(rho, ndrho, tau, laplace_rho, e_0, &
                                            e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                           sx, R, gamma, grad_deriv, error)
+                                           sx, R, gamma, grad_deriv)
     ELSE
       CALL x_br_lsd_y_gt_0_cutoff_R_lte_b(rho, ndrho, tau, laplace_rho, e_0, &
                                           e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                          sx, R, gamma, grad_deriv, error)
+                                          sx, R, gamma, grad_deriv)
     END IF
 
   END SUBROUTINE x_br_lsd_y_gt_0_cutoff
@@ -2071,14 +2057,13 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE x_br_lsd_y_gt_0_cutoff_R_gt_b(rho, ndrho, tau, laplace_rho, e_0, &
                                             e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                            sx, R, gamma, grad_deriv, error)
+                                            sx, R, gamma, grad_deriv)
 
     REAL(dp), INTENT(IN)                     :: rho, ndrho, tau, laplace_rho
     REAL(dp), INTENT(INOUT)                  :: e_0, e_rho, e_ndrho, e_tau, &
                                                 e_laplace_rho
     REAL(dp), INTENT(IN)                     :: sx, R, gamma
     INTEGER, INTENT(IN)                      :: grad_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: &
       routineN = 'x_br_lsd_y_gt_0_cutoff_R_gt_b', &
@@ -2436,13 +2421,12 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE x_br_lsd_y_gt_0_cutoff_R_lte_b(rho, ndrho, tau, laplace_rho, e_0, &
                                             e_rho, e_ndrho, e_tau, e_laplace_rho,&
-                                            sx, R, gamma, grad_deriv, error)
+                                            sx, R, gamma, grad_deriv)
     REAL(dp), INTENT(IN)                     :: rho, ndrho, tau, laplace_rho
     REAL(dp), INTENT(INOUT)                  :: e_0, e_rho, e_ndrho, e_tau, &
                                                 e_laplace_rho
     REAL(dp), INTENT(IN)                     :: sx, R, gamma
     INTEGER, INTENT(IN)                      :: grad_deriv
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: &
       routineN = 'x_br_lsd_y_gt_0_cutoff_R_lte_b', &

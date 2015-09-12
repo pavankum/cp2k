@@ -65,11 +65,10 @@ CONTAINS
 !> \author  MK
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE allocate_particle_set(particle_set,nparticle,error)
+  SUBROUTINE allocate_particle_set(particle_set,nparticle)
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
     INTEGER, INTENT(IN)                      :: nparticle
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'allocate_particle_set', &
       routineP = moduleN//':'//routineN
@@ -79,10 +78,10 @@ CONTAINS
 
     failure = .FALSE.
     IF (ASSOCIATED(particle_set)) THEN
-       CALL deallocate_particle_set(particle_set,error=error)
+       CALL deallocate_particle_set(particle_set)
     END IF
     ALLOCATE (particle_set(nparticle),STAT=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     DO iparticle=1,nparticle
       NULLIFY (particle_set(iparticle)%atomic_kind)
@@ -104,10 +103,9 @@ CONTAINS
 !> \author  MK
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE deallocate_particle_set(particle_set,error)
+  SUBROUTINE deallocate_particle_set(particle_set)
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'deallocate_particle_set', &
       routineP = moduleN//':'//routineN
@@ -118,7 +116,7 @@ CONTAINS
     failure = .FALSE.
     IF (ASSOCIATED(particle_set)) THEN
       DEALLOCATE (particle_set,STAT=stat)
-      CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ELSE
       CALL stop_program(routineN,moduleN,__LINE__,&
                         "The pointer particle_set is not associated and "//&
@@ -137,14 +135,13 @@ CONTAINS
 !> \param add ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE update_particle_set ( particle_set, int_group,  pos, vel, for, add, error )
+  SUBROUTINE update_particle_set ( particle_set, int_group,  pos, vel, for, add)
 
     TYPE(particle_type), POINTER             :: particle_set( : )
     INTEGER, INTENT(IN)                      :: int_group
     REAL(KIND=dp), INTENT(INOUT), OPTIONAL   :: pos( :, : ), vel( :, : ), &
                                                 for(:,:)
     LOGICAL, INTENT(IN), OPTIONAL            :: add
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'update_particle_set', &
       routineP = moduleN//':'//routineN

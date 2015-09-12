@@ -62,9 +62,8 @@ CONTAINS
 !> \par History
 !>      04.2006 created [Joost VandeVondele]
 ! *****************************************************************************
-  SUBROUTINE fp_env_create(fp_env,error)
+  SUBROUTINE fp_env_create(fp_env)
     TYPE(fp_type), POINTER                   :: fp_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fp_env_create', &
       routineP = moduleN//':'//routineN
@@ -75,9 +74,9 @@ CONTAINS
     CALL timeset(routineN,handle)
       failure=.FALSE.
 
-      CPPrecondition(.NOT.ASSOCIATED(fp_env),cp_failure_level,routineP,error,failure)
+      CPPrecondition(.NOT.ASSOCIATED(fp_env),cp_failure_level,routineP,failure)
       ALLOCATE(fp_env,stat=stat)
-      CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(stat==0,cp_failure_level,routineP,failure)
       fp_env%ref_count=1
 
       fp_env%use_fp=.FALSE.
@@ -93,9 +92,8 @@ CONTAINS
 !> \param fp_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE fp_env_release(fp_env,error)
+  SUBROUTINE fp_env_release(fp_env)
     TYPE(fp_type), POINTER                   :: fp_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fp_env_release', &
       routineP = moduleN//':'//routineN
@@ -107,12 +105,12 @@ CONTAINS
 
      failure=.FALSE.
      IF (ASSOCIATED(fp_env)) THEN
-        CPPrecondition(fp_env%ref_count>0,cp_failure_level,routineP,error,failure)
+        CPPrecondition(fp_env%ref_count>0,cp_failure_level,routineP,failure)
         fp_env%ref_count=fp_env%ref_count-1
         IF (fp_env%ref_count==0) THEN
            IF (ASSOCIATED(fp_env%inner_atoms)) DEALLOCATE(fp_env%inner_atoms)
            IF (ASSOCIATED(fp_env%outer_atoms)) DEALLOCATE(fp_env%outer_atoms)
-           IF (ASSOCIATED(fp_env%print_section)) CALL section_vals_release(fp_env%print_section,error)
+           IF (ASSOCIATED(fp_env%print_section)) CALL section_vals_release(fp_env%print_section)
            fp_env%use_fp=.FALSE.
            DEALLOCATE(fp_env)
         ENDIF
@@ -126,9 +124,8 @@ CONTAINS
 !> \param fp_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE fp_env_retain(fp_env,error)
+  SUBROUTINE fp_env_retain(fp_env)
     TYPE(fp_type), POINTER                   :: fp_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fp_env_retain', &
       routineP = moduleN//':'//routineN
@@ -136,7 +133,7 @@ CONTAINS
     LOGICAL                                  :: failure
 
       failure=.FALSE.
-      CPPrecondition(ASSOCIATED(fp_env),cp_failure_level,routineP,error,failure)
+      CPPrecondition(ASSOCIATED(fp_env),cp_failure_level,routineP,failure)
       fp_env%ref_count=fp_env%ref_count+1
 
   END SUBROUTINE fp_env_retain
@@ -149,10 +146,9 @@ CONTAINS
 !> \par History
 !>      04.2006 created [Joost VandeVondele]
 ! *****************************************************************************
-  SUBROUTINE fp_env_read(fp_env,fp_section,error)
+  SUBROUTINE fp_env_read(fp_env,fp_section)
     TYPE(fp_type), POINTER                   :: fp_env
     TYPE(section_vals_type), POINTER         :: fp_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fp_env_read', &
       routineP = moduleN//':'//routineN
@@ -163,28 +159,28 @@ CONTAINS
 
     CALL timeset(routineN,handle)
     failure=.FALSE.
-    CPPrecondition(ASSOCIATED(fp_env),cp_failure_level,routineP,error,failure)
-    CALL section_vals_get(fp_section,explicit=fp_env%use_fp,error=error)
+    CPPrecondition(ASSOCIATED(fp_env),cp_failure_level,routineP,failure)
+    CALL section_vals_get(fp_section,explicit=fp_env%use_fp)
     IF (fp_env%use_fp) THEN
-       CALL section_vals_val_get(fp_section,"CENTRAL_ATOM",i_val=fp_env%central_atom,error=error)
+       CALL section_vals_val_get(fp_section,"CENTRAL_ATOM",i_val=fp_env%central_atom)
 
-       CALL section_vals_val_get(fp_section,"INNER_ATOMS",i_vals=tmplist,error=error)
+       CALL section_vals_val_get(fp_section,"INNER_ATOMS",i_vals=tmplist)
        ALLOCATE(fp_env%inner_atoms(SIZE(tmplist,1)))
        fp_env%inner_atoms=tmplist
 
-       CALL section_vals_val_get(fp_section,"OUTER_ATOMS",i_vals=tmplist,error=error)
+       CALL section_vals_val_get(fp_section,"OUTER_ATOMS",i_vals=tmplist)
        ALLOCATE(fp_env%outer_atoms(SIZE(tmplist,1)))
        fp_env%outer_atoms=tmplist
 
-       CALL section_vals_val_get(fp_section,"INNER_RADIUS",r_val=fp_env%inner_radius,error=error)
-       CALL section_vals_val_get(fp_section,"OUTER_RADIUS",r_val=fp_env%outer_radius,error=error)
-       CALL section_vals_val_get(fp_section,"STRENGTH",r_val=fp_env%strength,error=error)
-       CALL section_vals_val_get(fp_section,"SMOOTH_WIDTH",r_val=fp_env%smooth_width,error=error)
-       CALL section_vals_val_get(fp_section,"BIAS",l_val=fp_env%bias,error=error)
-       CALL section_vals_val_get(fp_section,"TEMPERATURE",r_val=fp_env%temperature,error=error)
+       CALL section_vals_val_get(fp_section,"INNER_RADIUS",r_val=fp_env%inner_radius)
+       CALL section_vals_val_get(fp_section,"OUTER_RADIUS",r_val=fp_env%outer_radius)
+       CALL section_vals_val_get(fp_section,"STRENGTH",r_val=fp_env%strength)
+       CALL section_vals_val_get(fp_section,"SMOOTH_WIDTH",r_val=fp_env%smooth_width)
+       CALL section_vals_val_get(fp_section,"BIAS",l_val=fp_env%bias)
+       CALL section_vals_val_get(fp_section,"TEMPERATURE",r_val=fp_env%temperature)
 
-       fp_env%print_section=>section_vals_get_subs_vals(fp_section,"WEIGHTS",error=error)
-       CALL section_vals_retain(fp_env%print_section,error=error)
+       fp_env%print_section=>section_vals_get_subs_vals(fp_section,"WEIGHTS")
+       CALL section_vals_retain(fp_env%print_section)
     ENDIF
     CALL timestop(handle)
 
@@ -198,10 +194,9 @@ CONTAINS
 !> \par History
 !>      04.2006 created [Joost VandeVondele]
 ! *****************************************************************************
-  SUBROUTINE fp_env_write(fp_env,fp_section,error)
+  SUBROUTINE fp_env_write(fp_env,fp_section)
     TYPE(fp_type), POINTER                   :: fp_env
     TYPE(section_vals_type), POINTER         :: fp_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fp_env_write', &
       routineP = moduleN//':'//routineN
@@ -213,12 +208,12 @@ CONTAINS
 
     CALL timeset(routineN,handle)
     failure=.FALSE.
-    logger => cp_error_get_logger(error)
-    CPPrecondition(ASSOCIATED(fp_env),cp_failure_level,routineP,error,failure)
+    logger => cp_error_get_logger()
+    CPPrecondition(ASSOCIATED(fp_env),cp_failure_level,routineP,failure)
 
     IF (fp_env%use_fp) THEN
-       PRINT=>section_vals_get_subs_vals(fp_section,"CONTROL",error=error)
-       output_unit=cp_print_key_unit_nr(logger,PRINT,"",extension=".Log",error=error)
+       PRINT=>section_vals_get_subs_vals(fp_section,"CONTROL")
+       output_unit=cp_print_key_unit_nr(logger,PRINT,"",extension=".Log")
        IF (output_unit>0) THEN
           WRITE (UNIT=output_unit,FMT="(T2,A,T79,A)")&
              "FP| Flexible partitioning is ","ON"
@@ -248,7 +243,7 @@ CONTAINS
                      "FP| Flexible partitioning bias is" ,"OFF"
           ENDIF
        ENDIF
-       CALL cp_print_key_finished_output(output_unit,logger,PRINT,"",error=error)
+       CALL cp_print_key_finished_output(output_unit,logger,PRINT,"")
     ENDIF
     CALL timestop(handle)
 

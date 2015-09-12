@@ -102,10 +102,9 @@ CONTAINS
 !> \param scptb_parameter ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE allocate_scptb_parameter(scptb_parameter,error)
+  SUBROUTINE allocate_scptb_parameter(scptb_parameter)
 
     TYPE(scptb_parameter_type), POINTER      :: scptb_parameter
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'allocate_scptb_parameter', &
       routineP = moduleN//':'//routineN
@@ -114,10 +113,10 @@ CONTAINS
     LOGICAL                                  :: failure
 
     IF (ASSOCIATED(scptb_parameter)) &
-            CALL deallocate_scptb_parameter(scptb_parameter,error)
+            CALL deallocate_scptb_parameter(scptb_parameter)
 
     ALLOCATE (scptb_parameter,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     scptb_parameter % key = ""
     scptb_parameter % parameterization = ""
@@ -146,10 +145,9 @@ CONTAINS
 !> \param scptb_parameter ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE deallocate_scptb_parameter(scptb_parameter,error)
+  SUBROUTINE deallocate_scptb_parameter(scptb_parameter)
 
     TYPE(scptb_parameter_type), POINTER      :: scptb_parameter
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'deallocate_scptb_parameter', &
       routineP = moduleN//':'//routineN
@@ -157,9 +155,9 @@ CONTAINS
     INTEGER                                  :: istat
     LOGICAL                                  :: failure
 
-    CPPrecondition(ASSOCIATED(scptb_parameter),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(scptb_parameter),cp_failure_level,routineP,failure)
     DEALLOCATE (scptb_parameter,STAT=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
   END SUBROUTINE deallocate_scptb_parameter
 
@@ -188,7 +186,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE get_scptb_parameter(scptb_parameter,key,atomname,parameterization,defined,z,zeff,natorb,&
-    lmaxorb,lmaxscp,norb,nqm,zeta,hcore,occupation,energy,crep,pol,ag,rcpair,error)
+    lmaxorb,lmaxscp,norb,nqm,zeta,hcore,occupation,energy,crep,pol,ag,rcpair)
 
     TYPE(scptb_parameter_type), POINTER      :: scptb_parameter
     CHARACTER(LEN=*), INTENT(OUT), OPTIONAL  :: key, atomname, &
@@ -205,15 +203,13 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(3), OPTIONAL    :: crep
     REAL(KIND=dp), DIMENSION(1:3), OPTIONAL  :: pol
     REAL(KIND=dp), OPTIONAL                  :: ag, rcpair
-    TYPE(cp_error_type), INTENT(INOUT), &
-      OPTIONAL                               :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'get_scptb_parameter', &
       routineP = moduleN//':'//routineN
 
     LOGICAL                                  :: failure
 
-    CPPrecondition(ASSOCIATED(scptb_parameter),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(scptb_parameter),cp_failure_level,routineP,failure)
 
     IF (PRESENT(key)) key = scptb_parameter%key
     IF (PRESENT(atomname)) atomname = scptb_parameter%atomname
@@ -262,7 +258,7 @@ CONTAINS
 !> \param error ...
 ! *****************************************************************************
   SUBROUTINE set_scptb_parameter(scptb_parameter,key,atomname,parameterization,defined,z,zeff,natorb,&
-    lmaxorb,lmaxscp,norb,nqm,zeta,hcore,occupation,energy,crep,pol,ag,rcpair,error)
+    lmaxorb,lmaxscp,norb,nqm,zeta,hcore,occupation,energy,crep,pol,ag,rcpair)
 
     TYPE(scptb_parameter_type), POINTER      :: scptb_parameter
     CHARACTER(LEN=*), OPTIONAL               :: key, atomname, &
@@ -279,15 +275,13 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(3), OPTIONAL    :: crep
     REAL(KIND=dp), DIMENSION(1:3), OPTIONAL  :: pol
     REAL(KIND=dp), OPTIONAL                  :: ag, rcpair
-    TYPE(cp_error_type), INTENT(INOUT), &
-      OPTIONAL                               :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'set_scptb_parameter', &
       routineP = moduleN//':'//routineN
 
     LOGICAL                                  :: failure
 
-    CPPrecondition(ASSOCIATED(scptb_parameter),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(scptb_parameter),cp_failure_level,routineP,failure)
 
     IF (PRESENT(key)) scptb_parameter%key = key
     IF (PRESENT(atomname)) scptb_parameter%atomname = atomname
@@ -317,11 +311,10 @@ CONTAINS
 !> \param section ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE write_scptb_parameter(scptb_parameter,section,error)
+  SUBROUTINE write_scptb_parameter(scptb_parameter,section)
 
     TYPE(scptb_parameter_type), POINTER      :: scptb_parameter
     TYPE(section_vals_type), POINTER         :: section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'write_scptb_parameter', &
       routineP = moduleN//':'//routineN
@@ -340,17 +333,17 @@ CONTAINS
     TYPE(cp_logger_type), POINTER            :: logger
 
     NULLIFY(logger)
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
     IF (ASSOCIATED(scptb_parameter).AND.&
         BTEST(cp_print_key_should_output(logger%iter_info,section,&
-         "PRINT%KINDS/POTENTIAL",error=error),cp_p_file)) THEN
+         "PRINT%KINDS/POTENTIAL"),cp_p_file)) THEN
 
        output_unit = cp_print_key_unit_nr(logger,section,"PRINT%KINDS",&
-            extension=".Log",error=error)
+            extension=".Log")
 
        IF (output_unit >0) THEN
           CALL get_scptb_parameter(scptb_parameter,key=key,atomname=atomname,&
-               parameterization=parameterization,defined=defined,error=error)
+               parameterization=parameterization,defined=defined)
 
           WRITE (UNIT=output_unit,FMT="(/,T10,A,T67,A14)") " SCPTB  parameters: ",TRIM(atomname)
           WRITE (UNIT=output_unit,FMT="(T67,A14)") TRIM(key)
@@ -359,8 +352,7 @@ CONTAINS
             CALL get_scptb_parameter(scptb_parameter,&
                  zeff=zeff,natorb=natorb,lmaxorb=lmaxorb,lmaxscp=lmaxscp,&
                  norb=norb,nqm=nqm,zeta=zeta,hcore=hcore,&
-                 energy=energy,crep=crep,pol=pol,ag=ag,rcpair=rcpair,&
-                 error=error)
+                 energy=energy,crep=crep,pol=pol,ag=ag,rcpair=rcpair)
             WRITE (UNIT=output_unit,FMT="(T16,A,T71,F10.2)") "Effective core charge:",zeff
             WRITE (UNIT=output_unit,FMT="(T16,A,T71,I10)") "Total number of orbitals:",natorb
             WRITE (UNIT=output_unit,FMT="(T16,A,T30,A,T71,A)") "l-QM n-QM  i","Exponent","H core"
@@ -381,7 +373,7 @@ CONTAINS
          END IF
        END IF
        CALL cp_print_key_finished_output(output_unit,logger,section,&
-            "PRINT%KINDS",error=error)
+            "PRINT%KINDS")
     END IF
 
   END SUBROUTINE write_scptb_parameter
@@ -394,11 +386,10 @@ CONTAINS
 !> \param nbasis ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_create(scp_vec, nkind, natoms, nbasis, error)
+  SUBROUTINE scp_vector_create(scp_vec, nkind, natoms, nbasis)
     TYPE(scp_vector_type), POINTER           :: scp_vec
     INTEGER, INTENT(IN)                      :: nkind
     INTEGER, DIMENSION(:), INTENT(IN)        :: natoms, nbasis
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_create', &
       routineP = moduleN//':'//routineN
@@ -406,12 +397,12 @@ CONTAINS
     INTEGER                                  :: ikind, istat, tl
     LOGICAL                                  :: failure
 
-    CALL scp_vector_release(scp_vec, error)
+    CALL scp_vector_release(scp_vec)
 
     ALLOCATE(scp_vec,stat=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
     ALLOCATE(scp_vec%vector(nkind),stat=istat)
-    CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(istat==0,cp_failure_level,routineP,failure)
 
     tl=0
     DO ikind=1,nkind
@@ -419,7 +410,7 @@ CONTAINS
        scp_vec%vector(ikind)%nbasis = nbasis(ikind)
        tl=tl+natoms(ikind)*nbasis(ikind)
        ALLOCATE(scp_vec%vector(ikind)%vmat(nbasis(ikind),natoms(ikind)),stat=istat)
-       CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(istat==0,cp_failure_level,routineP,failure)
        scp_vec%vector(ikind)%vmat=0._dp
     END DO
     scp_vec%total_length = tl
@@ -431,9 +422,8 @@ CONTAINS
 !> \param scp_vec ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_release(scp_vec, error)
+  SUBROUTINE scp_vector_release(scp_vec)
     TYPE(scp_vector_type), POINTER           :: scp_vec
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_release', &
       routineP = moduleN//':'//routineN
@@ -445,14 +435,14 @@ CONTAINS
       IF(ASSOCIATED(scp_vec%vector)) THEN
         DO ikind=1,SIZE(scp_vec%vector)
            DEALLOCATE(scp_vec%vector(ikind)%vmat,stat=istat)
-           CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+           CPPostcondition(istat==0,cp_failure_level,routineP,failure)
         END DO
         DEALLOCATE(scp_vec%vector,stat=istat)
-        CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+        CPPostcondition(istat==0,cp_failure_level,routineP,failure)
         NULLIFY(scp_vec%vector)
       END IF
       DEALLOCATE(scp_vec,stat=istat)
-      CPPostcondition(istat==0,cp_failure_level,routineP,error,failure)
+      CPPostcondition(istat==0,cp_failure_level,routineP,failure)
     END IF
 
   END SUBROUTINE scp_vector_release
@@ -463,10 +453,9 @@ CONTAINS
 !> \param value ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_set(scp_vec, value, error)
+  SUBROUTINE scp_vector_set(scp_vec, value)
     TYPE(scp_vector_type)                    :: scp_vec
     REAL(KIND=dp), INTENT(IN)                :: value
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_set', &
       routineP = moduleN//':'//routineN
@@ -486,10 +475,9 @@ CONTAINS
 !> \param vecy ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_add(alpha, vecx, vecy, error)
+  SUBROUTINE scp_vector_add(alpha, vecx, vecy)
     REAL(KIND=dp), INTENT(IN)                :: alpha
     TYPE(scp_vector_type)                    :: vecx, vecy
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_add', &
       routineP = moduleN//':'//routineN
@@ -508,9 +496,8 @@ CONTAINS
 !> \param vec_out ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_copy(vec_in, vec_out, error)
+  SUBROUTINE scp_vector_copy(vec_in, vec_out)
     TYPE(scp_vector_type)                    :: vec_in, vec_out
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_copy', &
       routineP = moduleN//':'//routineN
@@ -529,10 +516,9 @@ CONTAINS
 !> \param vec ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_scale(scale, vec, error)
+  SUBROUTINE scp_vector_scale(scale, vec)
     REAL(KIND=dp), INTENT(IN)                :: scale
     TYPE(scp_vector_type)                    :: vec
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_scale', &
       routineP = moduleN//':'//routineN
@@ -551,9 +537,8 @@ CONTAINS
 !> \param vecy ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_mult(vecx, vecy, error)
+  SUBROUTINE scp_vector_mult(vecx, vecy)
     TYPE(scp_vector_type)                    :: vecx, vecy
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_mult', &
       routineP = moduleN//':'//routineN
@@ -573,10 +558,9 @@ CONTAINS
 !> \param vec2 ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_dot(RESULT, vec1, vec2, error)
+  SUBROUTINE scp_vector_dot(RESULT, vec1, vec2)
     REAL(KIND=dp), INTENT(OUT)               :: RESULT
     TYPE(scp_vector_type)                    :: vec1, vec2
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_dot', &
       routineP = moduleN//':'//routineN
@@ -596,10 +580,9 @@ CONTAINS
 !> \param vec ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_norm(RESULT, vec, error)
+  SUBROUTINE scp_vector_norm(RESULT, vec)
     REAL(KIND=dp), INTENT(OUT)               :: RESULT
     TYPE(scp_vector_type)                    :: vec
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_norm', &
       routineP = moduleN//':'//routineN
@@ -620,10 +603,9 @@ CONTAINS
 !> \param para_env ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_sync(vec, para_env, error)
+  SUBROUTINE scp_vector_sync(vec, para_env)
     TYPE(scp_vector_type)                    :: vec
     TYPE(cp_para_env_type), POINTER          :: para_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_sync', &
       routineP = moduleN//':'//routineN
@@ -641,9 +623,8 @@ CONTAINS
 !> \param vec ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE scp_vector_print(vec, error)
+  SUBROUTINE scp_vector_print(vec)
     TYPE(scp_vector_type)                    :: vec
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'scp_vector_print', &
       routineP = moduleN//':'//routineN

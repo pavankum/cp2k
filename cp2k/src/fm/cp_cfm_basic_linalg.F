@@ -45,10 +45,9 @@ CONTAINS
 !> \param matrix_c ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_cfm_schur_product(matrix_a,matrix_b,matrix_c,error)
+  SUBROUTINE cp_cfm_schur_product(matrix_a,matrix_b,matrix_c)
 
     TYPE(cp_cfm_type), POINTER               :: matrix_a, matrix_b, matrix_c
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_schur_product', &
       routineP = moduleN//':'//routineN
@@ -88,10 +87,9 @@ CONTAINS
 !> \param matrix_c ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE cp_cfm_schur_product_cc(matrix_a,matrix_b,matrix_c,error)
+  SUBROUTINE cp_cfm_schur_product_cc(matrix_a,matrix_b,matrix_c)
 
     TYPE(cp_cfm_type), POINTER               :: matrix_a, matrix_b, matrix_c
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_schur_product_cc', &
       routineP = moduleN//':'//routineN
@@ -134,12 +132,11 @@ CONTAINS
 !> \author  Matthias Krack
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE cp_cfm_add(alpha,matrix_a,beta,matrix_b,error)
+  SUBROUTINE cp_cfm_add(alpha,matrix_a,beta,matrix_b)
     COMPLEX(KIND=dp), INTENT(IN)             :: alpha
     TYPE(cp_cfm_type), POINTER               :: matrix_a
     COMPLEX(KIND=dp), INTENT(in), OPTIONAL   :: beta
     TYPE(cp_cfm_type), OPTIONAL, POINTER     :: matrix_b
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_add', &
       routineP = moduleN//':'//routineN
@@ -157,8 +154,8 @@ CONTAINS
     IF(PRESENT(beta)) my_beta=beta
     NULLIFY(a,b)
 
-    CPPrecondition(ASSOCIATED(matrix_a),cp_failure_level,routineP,error,failure)
-    CPPrecondition(matrix_a%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(matrix_a),cp_failure_level,routineP,failure)
+    CPPrecondition(matrix_a%ref_count>0,cp_failure_level,routineP,failure)
     ! to do: use dscal,dcopy,daxp
     myprow=matrix_a%matrix_struct%context%mepos(1)
     mypcol=matrix_a%matrix_struct%context%mepos(2)
@@ -176,18 +173,18 @@ CONTAINS
        END IF
 
     ELSE
-       CPPrecondition(PRESENT(matrix_b),cp_failure_level,routineP,error,failure)
-       CPPrecondition(ASSOCIATED(matrix_b),cp_failure_level,routineP,error,failure)
-       CPPrecondition(matrix_b%ref_count>0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(PRESENT(matrix_b),cp_failure_level,routineP,failure)
+       CPPrecondition(ASSOCIATED(matrix_b),cp_failure_level,routineP,failure)
+       CPPrecondition(matrix_b%ref_count>0,cp_failure_level,routineP,failure)
        CALL cp_assert(matrix_a%matrix_struct%context%group==&
             matrix_b%matrix_struct%context%group,cp_failure_level,&
             cp_assertion_failed,fromWhere=routineP,&
             message="matrixes must be in the same blacs context"//&
 CPSourceFileRef,&
-            error=error,failure=failure)
+            failure=failure)
 
        IF (cp_fm_struct_equivalent(matrix_a%matrix_struct,&
-            matrix_b%matrix_struct,error=error)) THEN
+            matrix_b%matrix_struct)) THEN
 
           b => matrix_b%local_data
 
@@ -209,9 +206,9 @@ CPSourceFileRef,&
        ELSE
 #ifdef __SCALAPACK
           CALL cp_unimplemented_error(fromWhere=routineP, &
-               message="to do (pdscal,pdcopy,pdaxpy)", error=error)
+               message="to do (pdscal,pdcopy,pdaxpy)")
 #else
-          CPAssert(.FALSE.,cp_failure_level,routineP,error,failure)
+          CPAssert(.FALSE.,cp_failure_level,routineP,failure)
 #endif
        END IF
     END IF
@@ -230,12 +227,11 @@ CPSourceFileRef,&
 !> \author  JGH
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE cp_cfm_add_fm(alpha,matrix_a,beta,matrix_b,error)
+  SUBROUTINE cp_cfm_add_fm(alpha,matrix_a,beta,matrix_b)
     COMPLEX(KIND=dp), INTENT(IN)             :: alpha
     TYPE(cp_cfm_type), POINTER               :: matrix_a
     COMPLEX(KIND=dp), INTENT(IN)             :: beta
     TYPE(cp_fm_type), POINTER                :: matrix_b
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_add_fm', &
       routineP = moduleN//':'//routineN
@@ -251,7 +247,7 @@ CPSourceFileRef,&
     failure=.FALSE.
     NULLIFY(a,b)
 
-    CPPrecondition(ASSOCIATED(matrix_a),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(matrix_a),cp_failure_level,routineP,failure)
     myprow=matrix_a%matrix_struct%context%mepos(1)
     mypcol=matrix_a%matrix_struct%context%mepos(2)
 
@@ -268,16 +264,16 @@ CPSourceFileRef,&
        END IF
 
     ELSE
-       CPPrecondition(ASSOCIATED(matrix_b),cp_failure_level,routineP,error,failure)
+       CPPrecondition(ASSOCIATED(matrix_b),cp_failure_level,routineP,failure)
        CALL cp_assert(matrix_a%matrix_struct%context%group==&
             matrix_b%matrix_struct%context%group,cp_failure_level,&
             cp_assertion_failed,fromWhere=routineP,&
             message="matrices must be in the same blacs context"//&
 CPSourceFileRef,&
-            error=error,failure=failure)
+            failure=failure)
 
        IF (cp_fm_struct_equivalent(matrix_a%matrix_struct,&
-            matrix_b%matrix_struct,error=error)) THEN
+            matrix_b%matrix_struct)) THEN
 
           b => matrix_b%local_data
 
@@ -299,9 +295,9 @@ CPSourceFileRef,&
        ELSE
 #ifdef __SCALAPACK
           CALL cp_unimplemented_error(fromWhere=routineP, &
-               message="to do (pdscal,pdcopy,pdaxpy)", error=error)
+               message="to do (pdscal,pdcopy,pdaxpy)")
 #else
-          CPAssert(.FALSE.,cp_failure_level,routineP,error,failure)
+          CPAssert(.FALSE.,cp_failure_level,routineP,failure)
 #endif
        END IF
     END IF
@@ -322,10 +318,9 @@ CPSourceFileRef,&
 !> \author  Matthias Krack
 !> \version 1.0
 ! *****************************************************************************
-  SUBROUTINE cp_cfm_lu_decompose(matrix_a,almost_determinant,error)
+  SUBROUTINE cp_cfm_lu_decompose(matrix_a,almost_determinant)
     TYPE(cp_cfm_type), POINTER               :: matrix_a
     COMPLEX(KIND=dp), INTENT(OUT)            :: almost_determinant
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_lu_decompose', &
       routineP = moduleN//':'//routineN
@@ -349,7 +344,7 @@ CPSourceFileRef,&
     a => matrix_a%local_data
     n = matrix_a%matrix_struct%nrow_global
     ALLOCATE(ipivot(n))
-    CALL cp_cfm_get_info(matrix_a,row_indices=row_indices,nrow_local=nrow_local,error=error)
+    CALL cp_cfm_get_info(matrix_a,row_indices=row_indices,nrow_local=nrow_local)
 #if defined(__SCALAPACK)
     desca(:) = matrix_a%matrix_struct%descriptor(:)
     CALL pzgetrf(n,n,a(1,1),1,1,desca,ipivot,info)
@@ -406,14 +401,13 @@ CPSourceFileRef,&
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE cp_cfm_gemm(transa,transb,m,n,k,alpha,matrix_a,matrix_b,beta,&
-       matrix_c,error,b_first_col)
+       matrix_c,b_first_col)
     CHARACTER(LEN=1), INTENT(IN)             :: transa, transb
     INTEGER, INTENT(IN)                      :: m, n, k
     COMPLEX(KIND=dp), INTENT(IN)             :: alpha
     TYPE(cp_cfm_type), POINTER               :: matrix_a, matrix_b
     COMPLEX(KIND=dp), INTENT(IN)             :: beta
     TYPE(cp_cfm_type), POINTER               :: matrix_c
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER, INTENT(IN), OPTIONAL            :: b_first_col
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_gemm', &
@@ -517,10 +511,9 @@ CPSourceFileRef,&
 !> \param error ...
 !> \author Florian Schiffmann
 ! *****************************************************************************
-  SUBROUTINE cp_cfm_solve(matrix_a,general_a,determinant,error)
+  SUBROUTINE cp_cfm_solve(matrix_a,general_a,determinant)
     TYPE(cp_cfm_type), POINTER               :: matrix_a, general_a
     COMPLEX(KIND=dp), OPTIONAL               :: determinant
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_solve', &
       routineP = moduleN//':'//routineN
@@ -543,7 +536,7 @@ CPSourceFileRef,&
     a => matrix_a%local_data
     a_general => general_a%local_data
     n = matrix_a%matrix_struct%nrow_global
-    CALL cp_cfm_get_info(matrix_a,row_indices=row_indices,nrow_local=nrow_local,error=error)
+    CALL cp_cfm_get_info(matrix_a,row_indices=row_indices,nrow_local=nrow_local)
     ALLOCATE(ipivot(n))
 
 #if defined(__SCALAPACK)
@@ -605,10 +598,9 @@ CPSourceFileRef,&
 !>      12.2002 updated, added n optional parm [fawzi]
 !> \author Joost
 ! *****************************************************************************
-  SUBROUTINE cp_cfm_cholesky_decompose(matrix,n,error)
+  SUBROUTINE cp_cfm_cholesky_decompose(matrix,n)
     TYPE(cp_cfm_type), POINTER               :: matrix
     INTEGER, INTENT(in), OPTIONAL            :: n
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_cholesky_decompose', &
       routineP = moduleN//':'//routineN
@@ -627,7 +619,7 @@ CPSourceFileRef,&
     my_n = MIN(matrix%matrix_struct%nrow_global,&
          matrix%matrix_struct%ncol_global)
     IF (PRESENT(n)) THEN
-       CPPrecondition(n<=my_n,cp_failure_level,routineP,error,failure)
+       CPPrecondition(n<=my_n,cp_failure_level,routineP,failure)
        my_n=n
     END IF
 
@@ -643,7 +635,7 @@ CPSourceFileRef,&
 
 #endif
 
-    CPPostcondition(info==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(info==0,cp_failure_level,routineP,failure)
 
     CALL timestop(handle)
 
@@ -687,7 +679,7 @@ CPSourceFileRef,&
 ! *****************************************************************************
 SUBROUTINE cp_cfm_triangular_multiply(triangular_matrix,matrix_b,side,&
      transa_tr, invert_tr, uplo_tr,unit_diag_tr, n_rows, n_cols, &
-     alpha,error)
+     alpha)
     TYPE(cp_cfm_type), POINTER               :: triangular_matrix, matrix_b
     CHARACTER, INTENT(in), OPTIONAL          :: side, transa_tr
     LOGICAL, INTENT(in), OPTIONAL            :: invert_tr
@@ -695,7 +687,6 @@ SUBROUTINE cp_cfm_triangular_multiply(triangular_matrix,matrix_b,side,&
     LOGICAL, INTENT(in), OPTIONAL            :: unit_diag_tr
     INTEGER, INTENT(in), OPTIONAL            :: n_rows, n_cols
     COMPLEX(KIND=dp), INTENT(in), OPTIONAL   :: alpha
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_cfm_triangular_multiply', &
       routineP = moduleN//':'//routineN
@@ -715,7 +706,7 @@ SUBROUTINE cp_cfm_triangular_multiply(triangular_matrix,matrix_b,side,&
   transa='N'
   invert=.FALSE.
   al=CMPLX(1.0_dp,0.0_dp,dp)
-  CALL cp_cfm_get_info(matrix_b, nrow_global=m, ncol_global=n, error=error)
+  CALL cp_cfm_get_info(matrix_b, nrow_global=m, ncol_global=n)
   IF (PRESENT(side)) side_char=side
   IF (PRESENT(invert_tr)) invert=invert_tr
   IF (PRESENT(uplo_tr)) uplo=uplo_tr
@@ -774,11 +765,10 @@ SUBROUTINE cp_cfm_triangular_multiply(triangular_matrix,matrix_b,side,&
 !> \param error ...
 !> \author MI
 ! *****************************************************************************
-  SUBROUTINE cp_cfm_triangular_invert(matrix_a,uplo_tr,error)
+  SUBROUTINE cp_cfm_triangular_invert(matrix_a,uplo_tr)
 
     TYPE(cp_cfm_type), POINTER               :: matrix_a
     CHARACTER, INTENT(IN), OPTIONAL          :: uplo_tr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'cp_cfm_triangular_invert', &
       routineP = moduleN//':'//routineN

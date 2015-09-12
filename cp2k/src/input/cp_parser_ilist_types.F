@@ -38,9 +38,8 @@ CONTAINS
 !> \date  08.2008
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  SUBROUTINE create_ilist_type(ilist, error)
+  SUBROUTINE create_ilist_type(ilist)
     TYPE(ilist_type), POINTER                :: ilist
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'create_ilist_type', &
       routineP = moduleN//':'//routineN
@@ -49,9 +48,9 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure = .FALSE.
-    CPPostcondition(.NOT.ASSOCIATED(ilist),cp_failure_level,routineP,error,failure)
+    CPPostcondition(.NOT.ASSOCIATED(ilist),cp_failure_level,routineP,failure)
     ALLOCATE(ilist, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ilist%istart   = HUGE(0)
     ilist%iend     = HUGE(0)
     ilist%nel_list = HUGE(0)
@@ -67,9 +66,8 @@ CONTAINS
 !> \date  08.2008
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
-  SUBROUTINE release_ilist_type(ilist, error)
+  SUBROUTINE release_ilist_type(ilist)
     TYPE(ilist_type), POINTER                :: ilist
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'release_ilist_type', &
       routineP = moduleN//':'//routineN
@@ -78,9 +76,9 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure = .FALSE.
-    CPPostcondition(ASSOCIATED(ilist),cp_failure_level,routineP,error,failure)
+    CPPostcondition(ASSOCIATED(ilist),cp_failure_level,routineP,failure)
     DEALLOCATE(ilist, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   END SUBROUTINE release_ilist_type
 
 END MODULE cp_parser_ilist_types

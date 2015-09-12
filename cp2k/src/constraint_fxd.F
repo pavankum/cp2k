@@ -63,9 +63,8 @@ CONTAINS
 !>      - optionally apply fix atom constraint to random forces (Langevin)
 !>        (04.10.206,MK)
 ! *****************************************************************************
-  SUBROUTINE fix_atom_control( force_env, error, w)
+  SUBROUTINE fix_atom_control( force_env,w)
     TYPE(force_env_type), POINTER            :: force_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
     REAL(KIND=dp), DIMENSION(:, :), OPTIONAL :: w
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fix_atom_control', &
@@ -107,8 +106,7 @@ CONTAINS
 
     NULLIFY(lfixd_list)
     CALL force_env_get(force_env=force_env,&
-                       subsys=subsys,&
-                       error=error)
+                       subsys=subsys)
     CALL cp_subsys_get(subsys=subsys,&
                        atomic_kinds=atomic_kinds,&
                        core_particles=core_particles,&
@@ -118,18 +116,17 @@ CONTAINS
                        ncore=ncore,&
                        nshell=nshell,&
                        particles=particles,&
-                       shell_particles=shell_particles,&
-                       error=error)
+                       shell_particles=shell_particles)
     CALL get_atomic_kind_set(atomic_kind_set=atomic_kinds%els,&
                              shell_present=shell_present)
 
     particle_set => particles%els
-    CPPostcondition((SIZE(particle_set) == natom),cp_failure_level,routineP,error,failure)
+    CPPostcondition((SIZE(particle_set) == natom),cp_failure_level,routineP,failure)
     IF (shell_present) THEN
        core_particle_set => core_particles%els
-       CPPostcondition((SIZE(core_particle_set) == ncore),cp_failure_level,routineP,error,failure)
+       CPPostcondition((SIZE(core_particle_set) == ncore),cp_failure_level,routineP,failure)
        shell_particle_set => shell_particles%els
-       CPPostcondition((SIZE(shell_particle_set) == nshell),cp_failure_level,routineP,error,failure)
+       CPPostcondition((SIZE(shell_particle_set) == nshell),cp_failure_level,routineP,failure)
     END IF
     nparticle = natom + nshell
     molecule_kind_set => molecule_kinds%els
@@ -146,7 +143,7 @@ CONTAINS
        IF (.NOT.PRESENT(w)) THEN
           ! Allocate scratch array
           ALLOCATE (force(3,nparticle),STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
           force(:,:) = 0.0_dp
           DO i=1,SIZE(local_particles%n_el)
              nparticle_local = local_particles%n_el(i)
@@ -164,7 +161,7 @@ CONTAINS
        END IF
 
        ! Create the list of locally fixed atoms
-       CALL create_local_fixd_list(lfixd_list,nkind,molecule_kind_set,local_particles,error)
+       CALL create_local_fixd_list(lfixd_list,nkind,molecule_kind_set,local_particles)
 
        ! Apply fixed atom constraint
        DO ifixd=1,SIZE(lfixd_list)
@@ -243,7 +240,7 @@ CONTAINS
              END IF
           END IF
        END DO
-       CALL release_local_fixd_list(lfixd_list,error=error)
+       CALL release_local_fixd_list(lfixd_list)
 
        IF (.NOT.PRESENT(w)) THEN
           CALL mp_sum(force,force_env%para_env%group)
@@ -257,7 +254,7 @@ CONTAINS
              END IF
           END DO
           DEALLOCATE (force,STAT=stat)
-          CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        END IF
     END IF
 
@@ -441,13 +438,12 @@ CONTAINS
 !> \author Teodoro Laino [tlaino] - 11.2008
 ! *****************************************************************************
   SUBROUTINE create_local_fixd_list(lfixd_list, nkind, molecule_kind_set, &
-       local_particles, error)
+       local_particles)
     TYPE(local_fixd_constraint_type), &
       POINTER                                :: lfixd_list(:)
     INTEGER, INTENT(IN)                      :: nkind
     TYPE(molecule_kind_type), POINTER        :: molecule_kind_set(:)
     TYPE(distribution_1d_type), POINTER      :: local_particles
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'create_local_fixd_list', &
       routineP = moduleN//':'//routineN
@@ -465,7 +461,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
     failure = .FALSE.
-    CPPostcondition(.NOT.ASSOCIATED(lfixd_list),cp_failure_level,routineP,error,failure)
+    CPPostcondition(.NOT.ASSOCIATED(lfixd_list),cp_failure_level,routineP,failure)
     nsize = 0
     DO ikind = 1, nkind
        molecule_kind => molecule_kind_set(ikind)
@@ -476,13 +472,13 @@ CONTAINS
     END DO
     IF (nsize/=0) THEN
        ALLOCATE(fixed_atom_all(nsize), stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        ALLOCATE(work0(nsize), stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        ALLOCATE(work1(nsize), stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        ALLOCATE(kind_index_all(nsize), stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        nsize = 0
        DO ikind = 1, nkind
           molecule_kind => molecule_kind_set(ikind)
@@ -505,9 +501,9 @@ CONTAINS
           nparticle_local_all   = nparticle_local_all + local_particles%n_el(i)
        END DO
        ALLOCATE(local_particle_all(nparticle_local_all),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        ALLOCATE(work2(nparticle_local_all),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        nparticle_local_all = 0
        DO i = 1, SIZE(local_particles%n_el)
           nparticle_local   = local_particles%n_el(i)
@@ -535,7 +531,7 @@ CONTAINS
 
        ! Allocate local fixed atom array
        ALLOCATE(lfixd_list(ncnst),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
        ! Fill array with constraints infos
        ncnst = 0
@@ -557,19 +553,19 @@ CONTAINS
 
        ! Deallocate working arrays
        DEALLOCATE(local_particle_all,stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        DEALLOCATE(work2,stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        DEALLOCATE(fixed_atom_all, stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        DEALLOCATE(work1, stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
        DEALLOCATE(kind_index_all, stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ELSE
        ! Allocate local fixed atom array with dimension 0
        ALLOCATE(lfixd_list(0),stat=stat)
-       CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+       CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     END IF
     CALL timestop(handle)
   END SUBROUTINE create_local_fixd_list
@@ -580,10 +576,9 @@ CONTAINS
 !> \param lfixd_list ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE release_local_fixd_list(lfixd_list, error)
+  SUBROUTINE release_local_fixd_list(lfixd_list)
     TYPE(local_fixd_constraint_type), &
       POINTER                                :: lfixd_list(:)
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'release_local_fixd_list', &
       routineP = moduleN//':'//routineN
@@ -592,9 +587,9 @@ CONTAINS
     LOGICAL                                  :: failure
 
     failure = .FALSE.
-    CPPostcondition(ASSOCIATED(lfixd_list),cp_failure_level,routineP,error,failure)
+    CPPostcondition(ASSOCIATED(lfixd_list),cp_failure_level,routineP,failure)
     DEALLOCATE(lfixd_list, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   END SUBROUTINE release_local_fixd_list
 
 END MODULE constraint_fxd

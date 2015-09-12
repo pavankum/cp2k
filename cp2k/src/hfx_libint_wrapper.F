@@ -114,10 +114,9 @@ MODULE hfx_libint_wrapper
 !> \param max_am ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE initialize_libint(lib,max_am,error)
+  SUBROUTINE initialize_libint(lib,max_am)
     TYPE(lib_int)                            :: lib
     INTEGER                                  :: max_am
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'initialize_libint', &
       routineP = moduleN//':'//routineN
@@ -137,13 +136,13 @@ MODULE hfx_libint_wrapper
        IF(storage_required(i,0) < 0) EXIT
     ENDDO
     CALL cp_assert(libint_max_am==i, cp_failure_level,cp_assertion_failed,routineP,&
-                    "CP2K and libint were compiled with different LIBINT_MAX_AM.", error,failure)
+                    "CP2K and libint were compiled with different LIBINT_MAX_AM.",failure)
 
     lib_storage = init_lib(lib, max_am_local, max_prim)
     IF (lib_storage<0) THEN
       CALL cp_assert( .FALSE. , cp_failure_level,cp_assertion_failed,routineP,&
                      " the angular momentum needed exceeds the value assumed when configuring libint ", &
-                     error,failure)
+                     failure)
     ENDIF
   END SUBROUTINE initialize_libint
 
@@ -153,10 +152,9 @@ MODULE hfx_libint_wrapper
 !> \param max_am ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE initialize_libderiv(deriv,max_am,error)
+  SUBROUTINE initialize_libderiv(deriv,max_am)
     TYPE(lib_deriv)                          :: deriv
     INTEGER                                  :: max_am
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'initialize_libderiv', &
       routineP = moduleN//':'//routineN
@@ -178,13 +176,13 @@ MODULE hfx_libint_wrapper
        IF(storage_required_deriv1(i,0,0) < 0) EXIT
     ENDDO
     CALL cp_assert(libderiv_max_am1==i, cp_failure_level,cp_assertion_failed,routineP,&
-                    "CP2K and libderiv were compiled with different LIBDERIV_MAX_AM1.", error,failure)
+                    "CP2K and libderiv were compiled with different LIBDERIV_MAX_AM1.",failure)
 
     lib_deriv_storage = init_deriv1(deriv, max_am_local, max_prim, max_classes)
     IF (lib_deriv_storage<0) THEN
       CALL cp_assert( .FALSE. , cp_failure_level,cp_assertion_failed,routineP,&
                      " the angular momentum needed exceeds the value assumed when configuring libderiv ", &
-                     error,failure)
+                     failure)
     ENDIF
   END SUBROUTINE initialize_libderiv
 
@@ -293,10 +291,9 @@ MODULE hfx_libint_wrapper
 !> \param max_am ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE initialize_libint(lib,max_am,error)
+  SUBROUTINE initialize_libint(lib,max_am)
     TYPE(lib_int)                            :: lib
     INTEGER                                  :: max_am
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'initialize_libint', &
       routineP = moduleN//':'//routineN
@@ -306,7 +303,7 @@ MODULE hfx_libint_wrapper
     failure = .FALSE.
     CALL cp_assert( .FALSE. , cp_failure_level,cp_assertion_failed,routineP,&
                    " This CP2K executable has not been linked against the library libint, required for HFX.", &
-                   error,failure)
+                   failure)
 
   END SUBROUTINE initialize_libint
 
@@ -316,10 +313,9 @@ MODULE hfx_libint_wrapper
 !> \param max_am ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE initialize_libderiv(deriv,max_am,error)
+  SUBROUTINE initialize_libderiv(deriv,max_am)
     TYPE(lib_deriv)                          :: deriv
     INTEGER                                  :: max_am
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'initialize_libderiv', &
       routineP = moduleN//':'//routineN
@@ -329,7 +325,7 @@ MODULE hfx_libint_wrapper
     failure = .FALSE.
     CALL cp_assert( .FALSE. , cp_failure_level,cp_assertion_failed,routineP,&
                    " This CP2K executable has not been linked against the library libint, required for HFX.", &
-                   error,failure)
+                   failure)
 
   END SUBROUTINE initialize_libderiv
 

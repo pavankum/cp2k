@@ -49,10 +49,9 @@ CONTAINS
 !> \param wavelet ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE ps_wavelet_release(wavelet,error)
+  SUBROUTINE ps_wavelet_release(wavelet)
 
     TYPE(ps_wavelet_type), POINTER           :: wavelet
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'ps_wavelet_release', &
       routineP = moduleN//':'//routineN

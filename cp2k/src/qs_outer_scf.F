@@ -55,9 +55,8 @@ CONTAINS
 !> \par History
 !>      03.2006 created [Joost VandeVondele]
 ! *****************************************************************************
-  FUNCTION outer_loop_variables_count(scf_control,error) RESULT(res)
+  FUNCTION outer_loop_variables_count(scf_control) RESULT(res)
     TYPE(scf_control_type), POINTER          :: scf_control
-    TYPE(cp_error_type), INTENT(inout)       :: error
     INTEGER                                  :: res
 
     SELECT CASE(scf_control%outer_scf%type)
@@ -83,10 +82,9 @@ CONTAINS
 !> \par History
 !>      03.2006 created [Joost VandeVondele]
 ! *****************************************************************************
-  SUBROUTINE outer_loop_gradient(qs_env, scf_env, error)
+  SUBROUTINE outer_loop_gradient(qs_env, scf_env)
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(qs_scf_env_type), POINTER           :: scf_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'outer_loop_gradient', &
       routineP = moduleN//':'//routineN
@@ -104,11 +102,11 @@ CONTAINS
     failure = .FALSE.
 
     CALL get_qs_env(qs_env=qs_env,scf_control=scf_control, &
-         dft_control=dft_control,energy=energy,error=error)
-    CPPrecondition(scf_control%outer_scf%have_scf,cp_failure_level,routineP,error,failure)
+         dft_control=dft_control,energy=energy)
+    CPPrecondition(scf_control%outer_scf%have_scf,cp_failure_level,routineP,failure)
 
     ihistory=scf_env%outer_scf%iter_count
-    CPPrecondition(ihistory<=SIZE(scf_env%outer_scf%energy,1),cp_failure_level,routineP,error,failure)
+    CPPrecondition(ihistory<=SIZE(scf_env%outer_scf%energy,1),cp_failure_level,routineP,failure)
 
     scf_env%outer_scf%energy(ihistory)=energy%total
 
@@ -118,35 +116,35 @@ CONTAINS
        scf_env%outer_scf%variables(1,ihistory)=scf_env%iter_delta
        scf_env%outer_scf%gradient(1,ihistory)=scf_env%iter_delta
     CASE (outer_scf_ddapc_constraint)
-       CPPrecondition(dft_control%qs_control%ddapc_restraint,cp_failure_level,routineP,error,failure)
+       CPPrecondition(dft_control%qs_control%ddapc_restraint,cp_failure_level,routineP,failure)
        DO n=1,SIZE(dft_control%qs_control%ddapc_restraint_control)
           NULLIFY(ddapc_restraint_control)
           ddapc_restraint_control=>dft_control%qs_control%ddapc_restraint_control(n)%ddapc_restraint_control
           is_constraint=(ddapc_restraint_control%functional_form==do_ddapc_constraint)
           IF(is_constraint)EXIT
        END DO
-       CPPrecondition(is_constraint,cp_failure_level,routineP,error,failure)
+       CPPrecondition(is_constraint,cp_failure_level,routineP,failure)
 
        scf_env%outer_scf%variables(:,ihistory)=ddapc_restraint_control%strength
        scf_env%outer_scf%gradient(:,ihistory) =ddapc_restraint_control%ddapc_order_p- &
             ddapc_restraint_control%target
     CASE (outer_scf_s2_constraint)
-       CPPrecondition(dft_control%qs_control%s2_restraint,cp_failure_level,routineP,error,failure)
+       CPPrecondition(dft_control%qs_control%s2_restraint,cp_failure_level,routineP,failure)
        s2_restraint_control=>dft_control%qs_control%s2_restraint_control
        is_constraint=(s2_restraint_control%functional_form==do_s2_constraint)
-       CPPrecondition(is_constraint,cp_failure_level,routineP,error,failure)
+       CPPrecondition(is_constraint,cp_failure_level,routineP,failure)
 
        scf_env%outer_scf%variables(:,ihistory)=s2_restraint_control%strength
        scf_env%outer_scf%gradient(:,ihistory) =s2_restraint_control%s2_order_p- &
             s2_restraint_control%target
     CASE (outer_scf_becke_constraint)
-       CPPrecondition(dft_control%qs_control%becke_restraint,cp_failure_level,routineP,error,failure)
+       CPPrecondition(dft_control%qs_control%becke_restraint,cp_failure_level,routineP,failure)
        becke_control=>dft_control%qs_control%becke_control
        scf_env%outer_scf%variables(:,ihistory)=becke_control%strength
        scf_env%outer_scf%gradient(:,ihistory) =becke_control%becke_order_p- &
             becke_control%target
     CASE DEFAULT
-       CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
+       CPPrecondition(.FALSE.,cp_failure_level,routineP,failure)
     END SELECT
 
     CALL timestop(handle)
@@ -163,10 +161,9 @@ CONTAINS
 !> \note
 !>       ought to be general, and independent of the actual kind of variables
 ! *****************************************************************************
-  SUBROUTINE outer_loop_optimize(scf_env, scf_control, error)
+  SUBROUTINE outer_loop_optimize(scf_env, scf_control)
     TYPE(qs_scf_env_type), POINTER           :: scf_env
     TYPE(scf_control_type), POINTER          :: scf_control
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'outer_loop_optimize', &
       routineP = moduleN//':'//routineN
@@ -191,7 +188,7 @@ CONTAINS
 
     SELECT CASE(optimizer_type)
     CASE(outer_scf_optimizer_bisect) ! bisection on the gradient, needs to be 1D
-       CPPrecondition(SIZE(scf_env%outer_scf%gradient(:,1))==1,cp_failure_level,routineP,error,failure)
+       CPPrecondition(SIZE(scf_env%outer_scf%gradient(:,1))==1,cp_failure_level,routineP,failure)
        ! find the pair of points that bracket a zero of the gradient, with the smallest interval possible
        ilow=-1
        ihigh=-1
@@ -231,7 +228,7 @@ CONTAINS
        scf_env%outer_scf%variables(:,ihistory+1)=scf_env%outer_scf%variables(:,ihistory) - &
             scf_control%outer_scf%step_size*scf_env%outer_scf%gradient(:,ihistory)
     CASE(outer_scf_optimizer_diis)
-       CPPrecondition(scf_control%outer_scf%diis_buffer_length>0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(scf_control%outer_scf%diis_buffer_length>0,cp_failure_level,routineP,failure)
        ! set up DIIS matrix
        nb=MIN(ihistory,scf_control%outer_scf%diis_buffer_length)
        IF (nb<2) THEN
@@ -252,7 +249,7 @@ CONTAINS
           b(:,nb+1)=-1.0_dp
           b(nb+1,nb+1)=0.0_dp
 
-          CALL diamat_all(b,ev,error=error)
+          CALL diamat_all(b,ev)
           a(:,:)=b
           DO I=1,nb+1
              IF (ABS(ev(I)).LT.1.0E-12_dp) THEN
@@ -272,7 +269,7 @@ CONTAINS
           DEALLOCATE(b,ev)
        ENDIF
     CASE DEFAULT
-       CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
+       CPPrecondition(.FALSE.,cp_failure_level,routineP,failure)
     END SELECT
     EXIT
     ENDDO
@@ -290,10 +287,9 @@ CONTAINS
 !> \par History
 !>      03.2006 created [Joost VandeVondele]
 ! *****************************************************************************
-  SUBROUTINE outer_loop_update_qs_env(qs_env, scf_env, error)
+  SUBROUTINE outer_loop_update_qs_env(qs_env, scf_env)
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(qs_scf_env_type), POINTER           :: scf_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'outer_loop_update_qs_env', &
       routineP = moduleN//':'//routineN
@@ -310,7 +306,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    CALL get_qs_env(qs_env=qs_env,scf_control=scf_control, dft_control=dft_control,error=error)
+    CALL get_qs_env(qs_env=qs_env,scf_control=scf_control, dft_control=dft_control)
     ihistory=scf_env%outer_scf%iter_count
 
     SELECT CASE(scf_control%outer_scf%type)
@@ -331,7 +327,7 @@ CONTAINS
        becke_control=>dft_control%qs_control%becke_control
        becke_control%strength=scf_env%outer_scf%variables(1,ihistory+1)
     CASE DEFAULT
-       CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
+       CPPrecondition(.FALSE.,cp_failure_level,routineP,failure)
     END SELECT
 
     CALL timestop(handle)
@@ -349,9 +345,8 @@ CONTAINS
 !>       it assumes that the current value of qs_env still needs to be added to the history
 !>       simple multilinear extrapolation is employed
 ! *****************************************************************************
-  SUBROUTINE outer_loop_extrapolate(qs_env, error)
+  SUBROUTINE outer_loop_extrapolate(qs_env)
     TYPE(qs_environment_type), POINTER       :: qs_env
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'outer_loop_extrapolate', &
       routineP = moduleN//':'//routineN
@@ -373,13 +368,13 @@ CONTAINS
 
     CALL get_qs_env(qs_env,outer_scf_history=outer_scf_history, &
          outer_scf_ihistory=outer_scf_ihistory, &
-         scf_control=scf_control, dft_control=dft_control,error=error)
+         scf_control=scf_control, dft_control=dft_control)
 
     nvariables=SIZE(outer_scf_history,1)
     nhistory=SIZE(outer_scf_history,2)
     ALLOCATE(extrapolation(nvariables),STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
-    CPPrecondition(nhistory>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
+    CPPrecondition(nhistory>0,cp_failure_level,routineP,failure)
 
     ! add the current version of qs_env to the history
     outer_scf_ihistory=outer_scf_ihistory+1
@@ -403,9 +398,9 @@ CONTAINS
        outer_scf_history(1,ivec)= &
             dft_control%qs_control%becke_control%strength
     CASE DEFAULT
-       CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
+       CPPrecondition(.FALSE.,cp_failure_level,routineP,failure)
     END SELECT
-    CALL set_qs_env(qs_env,outer_scf_ihistory=outer_scf_ihistory,error=error)
+    CALL set_qs_env(qs_env,outer_scf_ihistory=outer_scf_ihistory)
 
     ! multilinear extrapolation
     nvec=MIN(nhistory,outer_scf_ihistory)
@@ -429,11 +424,11 @@ CONTAINS
     CASE (outer_scf_becke_constraint)
        dft_control%qs_control%becke_control%strength=extrapolation(1)
     CASE DEFAULT
-       CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
+       CPPrecondition(.FALSE.,cp_failure_level,routineP,failure)
     END SELECT
 
     DEALLOCATE(extrapolation,STAT=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
 
     CALL timestop(handle)
 

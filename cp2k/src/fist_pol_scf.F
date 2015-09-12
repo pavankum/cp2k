@@ -73,7 +73,7 @@ CONTAINS
   SUBROUTINE fist_pol_evaluate (atomic_kind_set, multipoles, ewald_env, &
        ewald_pw, fist_nonbond_env, cell, particle_set, local_particles, &
        thermo, vg_coulomb, pot_nonbond, f_nonbond, fg_coulomb,use_virial, &
-       pv_g, pv_nonbond, mm_section, do_ipol, error)
+       pv_g, pv_nonbond, mm_section, do_ipol)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
@@ -92,7 +92,6 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(3, 3)           :: pv_g, pv_nonbond
     TYPE(section_vals_type), POINTER         :: mm_section
     INTEGER                                  :: do_ipol
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fist_pol_evaluate', &
       routineP = moduleN//':'//routineN
@@ -102,12 +101,12 @@ CONTAINS
       CALL fist_pol_evaluate_sc(atomic_kind_set, multipoles, ewald_env, &
         ewald_pw, fist_nonbond_env, cell, particle_set, local_particles, &
         thermo, vg_coulomb, pot_nonbond, f_nonbond, fg_coulomb,use_virial, &
-        pv_g, pv_nonbond, mm_section, error)
+        pv_g, pv_nonbond, mm_section)
     CASE (do_fist_pol_cg)
       CALL fist_pol_evaluate_cg(atomic_kind_set, multipoles, ewald_env, &
         ewald_pw, fist_nonbond_env, cell, particle_set, local_particles, &
         thermo, vg_coulomb, pot_nonbond, f_nonbond, fg_coulomb,use_virial, &
-        pv_g, pv_nonbond, mm_section, error)
+        pv_g, pv_nonbond, mm_section)
     END SELECT
 
   END SUBROUTINE fist_pol_evaluate
@@ -143,8 +142,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE fist_pol_evaluate_sc (atomic_kind_set, multipoles, ewald_env, ewald_pw,&
        fist_nonbond_env, cell, particle_set, local_particles, thermo, vg_coulomb,&
-       pot_nonbond, f_nonbond, fg_coulomb,use_virial, pv_g, pv_nonbond, mm_section,&
-       error)
+       pot_nonbond, f_nonbond, fg_coulomb,use_virial, pv_g, pv_nonbond, mm_section)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
@@ -162,7 +160,6 @@ CONTAINS
     LOGICAL, INTENT(IN)                      :: use_virial
     REAL(KIND=dp), DIMENSION(3, 3)           :: pv_g, pv_nonbond
     TYPE(section_vals_type), POINTER         :: mm_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fist_pol_evaluate_sc', &
       routineP = moduleN//':'//routineN
@@ -182,21 +179,21 @@ CONTAINS
     CALL timeset(routineN,handle)
     failure = .FALSE.
     NULLIFY(logger,atomic_kind)
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     iw = cp_print_key_unit_nr(logger,mm_section,"PRINT%ITER_INFO",&
-         extension=".mmLog",error=error)
+         extension=".mmLog")
     iw2= cp_print_key_unit_nr(logger,mm_section,"PRINT%EWALD_INFO",&
-         extension=".mmLog",error=error)
+         extension=".mmLog")
 
     CALL ewald_env_get (ewald_env, max_ipol_iter=max_ipol_iter, eps_pol=eps_pol,&
-         ewald_type=ewald_type, error=error)
+         ewald_type=ewald_type)
 
     natoms = SIZE ( particle_set )
     ALLOCATE (efield1(3,natoms), STAT=stat )
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE (efield2(9,natoms), STAT=stat )
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     nkind = SIZE(atomic_kind_set)
     IF (iw>0) WRITE(iw,FMT='(/,T5,"POL_SCF|","Method: self-consistent")')
@@ -208,7 +205,7 @@ CONTAINS
             multipoles, do_correction_bonded=.TRUE., do_forces=.FALSE., &
             do_stress=.FALSE., do_efield=.TRUE., iw2=iw2, do_debug=.FALSE.,&
             atomic_kind_set=atomic_kind_set, mm_section=mm_section,&
-            efield1=efield1, efield2=efield2, error=error)
+            efield1=efield1, efield2=efield2)
        CALL mp_sum(pot_nonbond_local,logger%para_env%group)
 
        ! compute the new dipoles, qudrupoles, and check for convergence
@@ -302,7 +299,7 @@ CONTAINS
          do_stress=use_virial, do_efield=.FALSE., iw2=iw2, do_debug=.FALSE.,&
          atomic_kind_set=atomic_kind_set, mm_section=mm_section,&
          forces_local=fg_coulomb, forces_glob=f_nonbond, &
-         pv_local=pv_g, pv_glob=pv_nonbond, error=error)
+         pv_local=pv_g, pv_glob=pv_nonbond)
     pot_nonbond=pot_nonbond+pot_nonbond_local
     CALL mp_sum(pot_nonbond_local,logger%para_env%group)
 
@@ -314,13 +311,13 @@ CONTAINS
 
     ! Deallocate working arrays
     DEALLOCATE(efield1,stat=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(efield2,stat=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     CALL cp_print_key_finished_output(iw2,logger,mm_section,&
-         "PRINT%EWALD_INFO",error=error)
+         "PRINT%EWALD_INFO")
     CALL cp_print_key_finished_output(iw,logger,mm_section,&
-         "PRINT%ITER_INFO",error=error)
+         "PRINT%ITER_INFO")
 
     CALL timestop(handle)
   END SUBROUTINE fist_pol_evaluate_sc
@@ -370,8 +367,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE fist_pol_evaluate_cg (atomic_kind_set, multipoles, ewald_env, ewald_pw,&
        fist_nonbond_env, cell, particle_set, local_particles, thermo, vg_coulomb,&
-       pot_nonbond, f_nonbond, fg_coulomb,use_virial, pv_g, pv_nonbond, mm_section,&
-       error)
+       pot_nonbond, f_nonbond, fg_coulomb,use_virial, pv_g, pv_nonbond, mm_section)
 
     TYPE(atomic_kind_type), DIMENSION(:), &
       POINTER                                :: atomic_kind_set
@@ -389,7 +385,6 @@ CONTAINS
     LOGICAL, INTENT(IN)                      :: use_virial
     REAL(KIND=dp), DIMENSION(3, 3)           :: pv_g, pv_nonbond
     TYPE(section_vals_type), POINTER         :: mm_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fist_pol_evaluate_cg', &
       routineP = moduleN//':'//routineN
@@ -411,30 +406,30 @@ CONTAINS
     CALL timeset(routineN,handle)
     failure = .FALSE.
     NULLIFY(logger,atomic_kind)
-    logger => cp_error_get_logger(error)
+    logger => cp_error_get_logger()
 
     iw = cp_print_key_unit_nr(logger,mm_section,"PRINT%ITER_INFO",&
-         extension=".mmLog",error=error)
+         extension=".mmLog")
     iw2= cp_print_key_unit_nr(logger,mm_section,"PRINT%EWALD_INFO",&
-         extension=".mmLog",error=error)
+         extension=".mmLog")
 
     CALL ewald_env_get (ewald_env, max_ipol_iter=max_ipol_iter, eps_pol=eps_pol,&
-         ewald_type=ewald_type, error=error)
+         ewald_type=ewald_type)
 
     ! allocate work arrays
     natoms = SIZE ( particle_set )
     ALLOCATE (efield1(3,natoms), STAT=stat )
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE (tmp_dipoles(3,natoms), STAT=stat )
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE (residual(3,natoms), STAT=stat )
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE (conjugate(3,natoms), STAT=stat )
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE (conjugate_applied(3,natoms), STAT=stat )
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     ALLOCATE (efield1_ext(3,natoms), STAT=stat )
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
     ! Compute the 'external' electrostatic field (all inducible dipoles
     ! equal to zero). this is required for the conjugate gradient solver.
@@ -446,7 +441,7 @@ CONTAINS
          multipoles, do_correction_bonded=.TRUE., do_forces=.FALSE., &
          do_stress=.FALSE., do_efield=.TRUE., iw2=iw2, do_debug=.FALSE., &
          atomic_kind_set=atomic_kind_set, mm_section=mm_section, &
-         efield1=efield1_ext, error=error)
+         efield1=efield1_ext)
     multipoles%dipoles = tmp_dipoles ! restore backup
 
     ! Compute the electric field with the initial guess of the dipoles.
@@ -455,7 +450,7 @@ CONTAINS
         multipoles, do_correction_bonded=.TRUE., do_forces=.FALSE., &
         do_stress=.FALSE., do_efield=.TRUE., iw2=iw2, do_debug=.FALSE., &
         atomic_kind_set=atomic_kind_set, mm_section=mm_section, &
-        efield1=efield1, error=error)
+        efield1=efield1)
 
     ! Compute the first residual explicitly.
     nkind = SIZE(atomic_kind_set)
@@ -491,7 +486,7 @@ CONTAINS
                multipoles, do_correction_bonded=.TRUE., do_forces=.FALSE., &
                do_stress=.FALSE., do_efield=.TRUE., iw2=iw2, do_debug=.FALSE., &
                atomic_kind_set=atomic_kind_set, mm_section=mm_section, &
-               efield1=efield1, error=error)
+               efield1=efield1)
           ! inapropriate use of denom to check the error on the residual
           denom = 0.0_dp
        END IF
@@ -532,7 +527,7 @@ CONTAINS
             multipoles, do_correction_bonded=.TRUE., do_forces=.FALSE., &
             do_stress=.FALSE., do_efield=.TRUE., iw2=iw2, do_debug=.FALSE., &
             atomic_kind_set=atomic_kind_set, mm_section=mm_section, &
-            efield1=conjugate_applied, error=error)
+            efield1=conjugate_applied)
        multipoles%dipoles = tmp_dipoles ! restore backup
        conjugate_applied(:,:) = efield1_ext - conjugate_applied
 
@@ -614,7 +609,7 @@ CONTAINS
             do_stress=use_virial, do_efield=.TRUE., iw2=iw2, do_debug=.FALSE.,&
             atomic_kind_set=atomic_kind_set, mm_section=mm_section,&
             forces_local=fg_coulomb, forces_glob=f_nonbond, &
-            pv_local=pv_g, pv_glob=pv_nonbond, efield1=efield1, error=error)
+            pv_local=pv_g, pv_glob=pv_nonbond, efield1=efield1)
 
        ! Do a final check on the convergence: compute the residual explicitely
        rmsd = 0.0_dp
@@ -648,7 +643,7 @@ CONTAINS
             do_stress=use_virial, do_efield=.FALSE., iw2=iw2, do_debug=.FALSE.,&
             atomic_kind_set=atomic_kind_set, mm_section=mm_section,&
             forces_local=fg_coulomb, forces_glob=f_nonbond, &
-            pv_local=pv_g, pv_glob=pv_nonbond, error=error)
+            pv_local=pv_g, pv_glob=pv_nonbond)
     ENDIF
     pot_nonbond=pot_nonbond+pot_nonbond_local
     CALL mp_sum(pot_nonbond_local, logger%para_env%group)
@@ -660,21 +655,21 @@ CONTAINS
 
     ! Deallocate working arrays
     DEALLOCATE(efield1,stat=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(tmp_dipoles,stat=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(residual,stat=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(conjugate,stat=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(conjugate_applied,stat=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     DEALLOCATE(efield1_ext,stat=stat)
-    CPPrecondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(stat==0,cp_failure_level,routineP,failure)
     CALL cp_print_key_finished_output(iw2,logger,mm_section,&
-         "PRINT%EWALD_INFO",error=error)
+         "PRINT%EWALD_INFO")
     CALL cp_print_key_finished_output(iw,logger,mm_section,&
-         "PRINT%ITER_INFO",error=error)
+         "PRINT%ITER_INFO")
 
     CALL timestop(handle)
   END SUBROUTINE fist_pol_evaluate_cg
@@ -715,7 +710,7 @@ CONTAINS
        cell, particle_set, local_particles, vg_coulomb, pot_nonbond, thermo,&
        multipoles, do_correction_bonded, do_forces, do_stress, do_efield, iw2,&
        do_debug, atomic_kind_set, mm_section, efield0, efield1, efield2, forces_local,&
-       forces_glob, pv_local, pv_glob, error)
+       forces_glob, pv_local, pv_glob)
 
     INTEGER, INTENT(IN)                      :: ewald_type
     TYPE(ewald_environment_type), POINTER    :: ewald_env
@@ -741,7 +736,6 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(INOUT), OPTIONAL                :: forces_local, forces_glob, &
                                                 pv_local, pv_glob
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'eval_pol_ewald', &
       routineP = moduleN//':'//routineN
@@ -764,16 +758,15 @@ CONTAINS
             dipoles=multipoles%dipoles, quadrupoles=multipoles%quadrupoles,&
             forces_local=forces_local, forces_glob=forces_glob, pv_local=pv_local,&
             pv_glob=pv_glob, iw=iw2, do_debug=do_debug, atomic_kind_set=atomic_kind_set,&
-            mm_section=mm_section, efield0=efield0, efield1=efield1, efield2=efield2, &
-           error=error)
+            mm_section=mm_section, efield0=efield0, efield1=efield1, efield2=efield2)
     CASE(do_ewald_pme)
        CALL cp_unimplemented_error(fromWhere=routineP, &
             message="Multipole Ewald not yet implemented within a PME scheme!", &
-            error=error, error_level=cp_fatal_level)
+            error_level=cp_fatal_level)
     CASE(do_ewald_spme)
        CALL cp_unimplemented_error(fromWhere=routineP, &
             message="Multipole Ewald not yet implemented within a SPME scheme!", &
-            error=error, error_level=cp_fatal_level)
+            error_level=cp_fatal_level)
     END SELECT
     CALL timestop(handle)
   END SUBROUTINE eval_pol_ewald

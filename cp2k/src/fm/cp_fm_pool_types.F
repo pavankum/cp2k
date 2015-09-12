@@ -84,11 +84,9 @@ CONTAINS
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE fm_pool_create(pool, el_struct,&
-        error)
+  SUBROUTINE fm_pool_create(pool, el_struct)
     TYPE(cp_fm_pool_type), POINTER           :: pool
     TYPE(cp_fm_struct_type), POINTER         :: el_struct
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pool_create', &
       routineP = moduleN//':'//routineN
@@ -99,9 +97,9 @@ CONTAINS
     failure=.FALSE.
 
     ALLOCATE(pool, stat=stat)
-    CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+    CPPostcondition(stat==0,cp_failure_level,routineP,failure)
     pool%el_struct=> el_struct
-    CALL cp_fm_struct_retain(pool%el_struct,error=error)
+    CALL cp_fm_struct_retain(pool%el_struct)
     last_fm_pool_id_nr=last_fm_pool_id_nr+1
     pool%id_nr=last_fm_pool_id_nr
     pool%ref_count=1
@@ -118,9 +116,8 @@ CONTAINS
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE fm_pool_retain(pool,error)
+  SUBROUTINE fm_pool_retain(pool)
     TYPE(cp_fm_pool_type), POINTER           :: pool
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pool_retain', &
       routineP = moduleN//':'//routineN
@@ -129,8 +126,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,error,failure)
-    CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,failure)
+    CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,failure)
 
     pool%ref_count=pool%ref_count+1
   END SUBROUTINE fm_pool_retain
@@ -144,9 +141,8 @@ CONTAINS
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE fm_pool_flush_cache(pool,error)
+  SUBROUTINE fm_pool_flush_cache(pool)
     TYPE(cp_fm_pool_type), POINTER           :: pool
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pool_flush_cache', &
       routineP = moduleN//':'//routineN
@@ -157,14 +153,14 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,error,failure)
-    CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,failure)
+    CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,failure)
     iterator => pool%cache
     DO
-       IF (.NOT.cp_sll_fm_next(iterator,el_att=el_att,error=error)) EXIT
-       CALL cp_fm_release(el_att,error=error)
+       IF (.NOT.cp_sll_fm_next(iterator,el_att=el_att)) EXIT
+       CALL cp_fm_release(el_att)
     END DO
-    CALL cp_sll_fm_dealloc(pool%cache,error=error)
+    CALL cp_sll_fm_dealloc(pool%cache)
   END SUBROUTINE fm_pool_flush_cache
 
 ! *****************************************************************************
@@ -176,9 +172,8 @@ CONTAINS
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE fm_pool_release(pool,error)
+  SUBROUTINE fm_pool_release(pool)
     TYPE(cp_fm_pool_type), POINTER           :: pool
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pool_release', &
       routineP = moduleN//':'//routineN
@@ -189,16 +184,16 @@ CONTAINS
     failure=.FALSE.
 
     IF (ASSOCIATED(pool)) THEN
-       CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,error,failure)
+       CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,failure)
        pool%ref_count=pool%ref_count-1
        IF (pool%ref_count==0) THEN
           pool%ref_count=1
-          CALL fm_pool_flush_cache(pool,error=error)
-          CALL cp_fm_struct_release(pool%el_struct,error=error)
+          CALL fm_pool_flush_cache(pool)
+          CALL cp_fm_struct_release(pool%el_struct)
           pool%ref_count=0
 
           DEALLOCATE(pool,stat=stat)
-          CPPostcondition(stat==0,cp_warning_level,routineP,error,failure)
+          CPPostcondition(stat==0,cp_warning_level,routineP,failure)
        END IF
     END IF
     NULLIFY(pool)
@@ -217,11 +212,10 @@ CONTAINS
 !> \author Fawzi Mohamed
 ! *****************************************************************************
   SUBROUTINE fm_pool_create_fm(pool, element,&
-       name, error)
+       name)
     TYPE(cp_fm_pool_type), POINTER           :: pool
     TYPE(cp_fm_type), POINTER                :: element
     CHARACTER(len=*), INTENT(in), OPTIONAL   :: name
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pool_create_fm', &
       routineP = moduleN//':'//routineN
@@ -230,15 +224,15 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,error,failure)
-    CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,failure)
+    CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,failure)
     IF (ASSOCIATED(pool%cache)) THEN
-       element => cp_sll_fm_get_first_el(pool%cache,error=error)
-       CALL cp_sll_fm_rm_first_el(pool%cache,error=error)
+       element => cp_sll_fm_get_first_el(pool%cache)
+       CALL cp_sll_fm_rm_first_el(pool%cache)
        
     ELSE
        NULLIFY(element)
-       CALL cp_fm_create(element,matrix_struct=pool%el_struct,error=error)
+       CALL cp_fm_create(element,matrix_struct=pool%el_struct)
     END IF
     
  IF (PRESENT(name)) THEN
@@ -250,8 +244,8 @@ CONTAINS
    ! guarantee output unicity?
  END IF
  
-    CPPostcondition(ASSOCIATED(element),cp_failure_level,routineP,error,failure)
-    CPPostcondition(element%ref_count==1,cp_warning_level,routineP,error,failure)
+    CPPostcondition(ASSOCIATED(element),cp_failure_level,routineP,failure)
+    CPPostcondition(element%ref_count==1,cp_warning_level,routineP,failure)
   END SUBROUTINE fm_pool_create_fm
 
 ! *****************************************************************************
@@ -268,10 +262,9 @@ CONTAINS
 !>      (it is as if you had called cp_fm_release)
 !>      Accept give_backs of non associated elements?
 ! *****************************************************************************
-  SUBROUTINE fm_pool_give_back_fm(pool, element, error)
+  SUBROUTINE fm_pool_give_back_fm(pool, element)
     TYPE(cp_fm_pool_type), POINTER           :: pool
     TYPE(cp_fm_type), POINTER                :: element
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pool_give_back_fm', &
       routineP = moduleN//':'//routineN
@@ -280,22 +273,22 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,error,failure)
-    CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,error,failure)
-    CPPrecondition(ASSOCIATED(element),cp_warning_level,routineP,error,failure)
+    CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,failure)
+    CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,failure)
+    CPPrecondition(ASSOCIATED(element),cp_warning_level,routineP,failure)
     CALL cp_assert(pool%el_struct%id_nr==element%matrix_struct%id_nr,&
       cp_failure_level, cp_assertion_failed, routineP,&
       "pool cannot reuse matrixes with another structure "//&
 CPSourceFileRef,&
-      error=error,failure=failure)
+      failure=failure)
 
-    CPPreconditionNoFail(element%ref_count==1,cp_warning_level,routineP,error)
+    CPPreconditionNoFail(element%ref_count==1,cp_warning_level,routineP)
     IF (cp_debug) THEN
        CALL cp_sll_fm_insert_ordered(pool%cache, el=element,&
-            insert_equals=.FALSE., did_insert=did_insert, error=error)
-       CPPostcondition(did_insert,cp_failure_level,routineP,error,failure)
+            insert_equals=.FALSE., did_insert=did_insert)
+       CPPostcondition(did_insert,cp_failure_level,routineP,failure)
     ELSE
-       CALL cp_sll_fm_insert_el(pool%cache, el=element,error=error)
+       CALL cp_sll_fm_insert_el(pool%cache, el=element)
     END IF
     NULLIFY(element)
   END SUBROUTINE fm_pool_give_back_fm
@@ -310,9 +303,8 @@ CPSourceFileRef,&
 !>      05.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-FUNCTION fm_pool_get_el_struct(pool,error) RESULT(res)
+FUNCTION fm_pool_get_el_struct(pool) RESULT(res)
     TYPE(cp_fm_pool_type), POINTER           :: pool
-    TYPE(cp_error_type), INTENT(inout)       :: error
     TYPE(cp_fm_struct_type), POINTER         :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pool_get_el_struct', &
@@ -322,8 +314,8 @@ FUNCTION fm_pool_get_el_struct(pool,error) RESULT(res)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,error,failure)
-  CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(pool),cp_failure_level,routineP,failure)
+  CPPrecondition(pool%ref_count>0,cp_failure_level,routineP,failure)
   res => pool%el_struct
 END FUNCTION fm_pool_get_el_struct
 
@@ -339,10 +331,9 @@ END FUNCTION fm_pool_get_el_struct
 !>      11.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE fm_pools_copy(source_pools, target_pools, error)
+SUBROUTINE fm_pools_copy(source_pools, target_pools)
     TYPE(cp_fm_pool_p_type), DIMENSION(:), &
       POINTER                                :: source_pools, target_pools
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pools_copy', &
       routineP = moduleN//':'//routineN
@@ -352,12 +343,12 @@ SUBROUTINE fm_pools_copy(source_pools, target_pools, error)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(source_pools),cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(source_pools),cp_failure_level,routineP,failure)
   ALLOCATE(target_pools(SIZE(source_pools)),stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   DO i=1,SIZE(source_pools)
      target_pools(i)%pool => source_pools(i)%pool
-     CALL fm_pool_retain(source_pools(i)%pool,error=error)
+     CALL fm_pool_retain(source_pools(i)%pool)
   END DO
 END SUBROUTINE fm_pools_copy
 
@@ -370,10 +361,9 @@ END SUBROUTINE fm_pools_copy
 !>      11.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE fm_pools_dealloc(pools, error)
+SUBROUTINE fm_pools_dealloc(pools)
     TYPE(cp_fm_pool_p_type), DIMENSION(:), &
       POINTER                                :: pools
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pools_dealloc', &
       routineP = moduleN//':'//routineN
@@ -385,10 +375,10 @@ SUBROUTINE fm_pools_dealloc(pools, error)
 
   IF (ASSOCIATED(pools)) THEN
      DO i=1,SIZE(pools)
-        CALL fm_pool_release(pools(i)%pool,error=error)
+        CALL fm_pool_release(pools(i)%pool)
      END DO
      DEALLOCATE(pools,stat=stat)
-     CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+     CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
   END IF
 END SUBROUTINE fm_pools_dealloc
 
@@ -404,13 +394,12 @@ END SUBROUTINE fm_pools_dealloc
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 SUBROUTINE fm_pools_create_fm_vect(pools,elements,&
-     name,error)
+     name)
     TYPE(cp_fm_pool_p_type), DIMENSION(:), &
       POINTER                                :: pools
     TYPE(cp_fm_p_type), DIMENSION(:), &
       POINTER                                :: elements
     CHARACTER(len=*), INTENT(in), OPTIONAL   :: name
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pools_create_fm_vect', &
       routineP = moduleN//':'//routineN
@@ -422,19 +411,17 @@ SUBROUTINE fm_pools_create_fm_vect(pools,elements,&
   failure=.FALSE.
   NULLIFY(pool)
 
-  CPPrecondition(ASSOCIATED(pools),cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(pools),cp_failure_level,routineP,failure)
   ALLOCATE(elements(SIZE(pools)),stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
   DO i=1,SIZE(pools)
      NULLIFY(elements(i)%matrix)
      pool => pools(i)%pool
      IF (PRESENT(name)) THEN
       CALL fm_pool_create_fm(pool,elements(i)%matrix,&
-        name=name//"-"//ADJUSTL(cp_to_string(i)),&
-        error=error)
+        name=name//"-"//ADJUSTL(cp_to_string(i)))
    ELSE
-      CALL fm_pool_create_fm(pool,elements(i)%matrix,&
-        error=error)
+      CALL fm_pool_create_fm(pool,elements(i)%matrix)
    END IF
 
   END DO
@@ -454,12 +441,11 @@ END SUBROUTINE fm_pools_create_fm_vect
 !> \note
 !>      accept unassociated vect?
 ! *****************************************************************************
-SUBROUTINE fm_pools_give_back_fm_vect(pools,elements,error)
+SUBROUTINE fm_pools_give_back_fm_vect(pools,elements)
     TYPE(cp_fm_pool_p_type), DIMENSION(:), &
       POINTER                                :: pools
     TYPE(cp_fm_p_type), DIMENSION(:), &
       POINTER                                :: elements
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fm_pools_give_back_fm_vect', &
       routineP = moduleN//':'//routineN
@@ -469,15 +455,15 @@ SUBROUTINE fm_pools_give_back_fm_vect(pools,elements,error)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(pools),cp_failure_level,routineP,error,failure)
-  CPPrecondition(ASSOCIATED(elements),cp_failure_level,routineP,error,failure)
-  CPPrecondition(SIZE(pools)==SIZE(elements),cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(pools),cp_failure_level,routineP,failure)
+  CPPrecondition(ASSOCIATED(elements),cp_failure_level,routineP,failure)
+  CPPrecondition(SIZE(pools)==SIZE(elements),cp_failure_level,routineP,failure)
   DO i=1,SIZE(pools)
      CALL fm_pool_give_back_fm(pools(i)%pool,&
-          elements(i)%matrix,error=error)
+          elements(i)%matrix)
   END DO
   DEALLOCATE(elements, stat=stat)
-  CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+  CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
   NULLIFY(elements)
 END SUBROUTINE fm_pools_give_back_fm_vect
 

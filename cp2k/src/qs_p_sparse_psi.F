@@ -74,14 +74,13 @@ CONTAINS
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE p_proj_create(p_proj, atoms, particle_set, qs_kind_set, error)
+SUBROUTINE p_proj_create(p_proj, atoms, particle_set, qs_kind_set)
     TYPE(qs_p_projection_type), POINTER      :: p_proj
     INTEGER, DIMENSION(:), INTENT(in)        :: atoms
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particle_set
     TYPE(qs_kind_type), DIMENSION(:), &
       POINTER                                :: qs_kind_set
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'p_proj_create', &
       routineP = moduleN//':'//routineN
@@ -100,7 +99,7 @@ SUBROUTINE p_proj_create(p_proj, atoms, particle_set, qs_kind_set, error)
 
     CALL get_particle_set(particle_set, qs_kind_set,&
                           first_sgf=first_sgf,&
-                          last_sgf=last_sgf,error=error)
+                          last_sgf=last_sgf)
     size_proj = 0
     DO i=1,SIZE(p_proj%atoms)
       size_proj = size_proj + last_sgf(p_proj%atoms(i)) -&
@@ -133,9 +132,8 @@ END SUBROUTINE p_proj_create
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE p_proj_retain(p_proj, error)
+SUBROUTINE p_proj_retain(p_proj)
     TYPE(qs_p_projection_type), POINTER      :: p_proj
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'p_proj_retain', &
       routineP = moduleN//':'//routineN
@@ -144,8 +142,8 @@ SUBROUTINE p_proj_retain(p_proj, error)
 
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(p_proj),cp_failure_level,routineP,error,failure)
-  CPPrecondition(p_proj%ref_count>0,cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(p_proj),cp_failure_level,routineP,failure)
+  CPPrecondition(p_proj%ref_count>0,cp_failure_level,routineP,failure)
   p_proj%ref_count=p_proj%ref_count+1
 END SUBROUTINE p_proj_retain
 
@@ -159,9 +157,8 @@ END SUBROUTINE p_proj_retain
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-SUBROUTINE p_proj_release(p_proj, error)
+SUBROUTINE p_proj_release(p_proj)
     TYPE(qs_p_projection_type), POINTER      :: p_proj
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'p_proj_release', &
       routineP = moduleN//':'//routineN
@@ -172,16 +169,16 @@ SUBROUTINE p_proj_release(p_proj, error)
   failure=.FALSE.
 
   IF (ASSOCIATED(p_proj)) THEN
-     CPPrecondition(p_proj%ref_count>0,cp_failure_level,routineP,error,failure)
+     CPPrecondition(p_proj%ref_count>0,cp_failure_level,routineP,failure)
      p_proj%ref_count=p_proj%ref_count-1
      IF (p_proj%ref_count<1) THEN
         DEALLOCATE(p_proj%atoms,stat=stat)
-        CPPostcondition(stat==0,cp_warning_level,routineP,error,failure)
+        CPPostcondition(stat==0,cp_warning_level,routineP,failure)
         DEALLOCATE(p_proj%proj_indexes,stat=stat)
-        CPPostcondition(stat==0,cp_warning_level,routineP,error,failure)
+        CPPostcondition(stat==0,cp_warning_level,routineP,failure)
         p_proj%ref_count=0
         DEALLOCATE(p_proj, stat=stat)
-        CPPostcondition(stat==0,cp_warning_level,routineP,error,failure)
+        CPPostcondition(stat==0,cp_warning_level,routineP,failure)
      END IF
   END IF
 END SUBROUTINE p_proj_release
@@ -206,12 +203,11 @@ END SUBROUTINE p_proj_release
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 SUBROUTINE p_proj_transfer_blacs_to_f(p_proj, min_m, full_m,&
-     start_col_full, start_col_min, ncol, error)
+     start_col_full, start_col_min, ncol)
     TYPE(qs_p_projection_type), POINTER      :: p_proj
     TYPE(cp_fm_type), POINTER                :: min_m, full_m
     INTEGER, INTENT(in), OPTIONAL            :: start_col_full, &
                                                 start_col_min, ncol
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'p_proj_transfer_blacs_to_f', &
       routineP = moduleN//':'//routineN
@@ -226,12 +222,10 @@ SUBROUTINE p_proj_transfer_blacs_to_f(p_proj, min_m, full_m,&
   CALL timeset(routineN,handle)
   failure=.FALSE.
 
-  CPPrecondition(ASSOCIATED(p_proj),cp_failure_level,routineP,error,failure)
-  CPPrecondition(p_proj%ref_count>0,cp_failure_level,routineP,error,failure)
-  CALL cp_fm_get_info(min_m, nrow_global=nrow_min, ncol_global=ncol_min,&
-       error=error)
-  CALL cp_fm_get_info(full_m, nrow_global=nrow_full, ncol_global=ncol_full,&
-       error=error)
+  CPPrecondition(ASSOCIATED(p_proj),cp_failure_level,routineP,failure)
+  CPPrecondition(p_proj%ref_count>0,cp_failure_level,routineP,failure)
+  CALL cp_fm_get_info(min_m, nrow_global=nrow_min, ncol_global=ncol_min)
+  CALL cp_fm_get_info(full_m, nrow_global=nrow_full, ncol_global=ncol_full)
 
   my_start_col_full=1
   IF (PRESENT(start_col_full)) my_start_col_full=start_col_full
@@ -241,21 +235,20 @@ SUBROUTINE p_proj_transfer_blacs_to_f(p_proj, min_m, full_m,&
   IF (PRESENT(ncol)) my_ncol=ncol
   blocksize=MIN(my_ncol,max_blocksize)
 
-  CPPrecondition(my_ncol>=0,cp_failure_level,routineP,error,failure)
-  CPPrecondition(my_start_col_min+my_ncol<ncol_min+2,cp_failure_level,routineP,error,failure)
-  CPPrecondition(my_start_col_full+my_ncol<ncol_full+2,cp_failure_level,routineP,error,failure)
-  CPPrecondition(nrow_min>=SIZE(p_proj%proj_indexes),cp_failure_level,routineP,error,failure)
+  CPPrecondition(my_ncol>=0,cp_failure_level,routineP,failure)
+  CPPrecondition(my_start_col_min+my_ncol<ncol_min+2,cp_failure_level,routineP,failure)
+  CPPrecondition(my_start_col_full+my_ncol<ncol_full+2,cp_failure_level,routineP,failure)
+  CPPrecondition(nrow_min>=SIZE(p_proj%proj_indexes),cp_failure_level,routineP,failure)
 
   ALLOCATE(tmp_min(blocksize,nrow_min), tmp_full(blocksize,nrow_full),&
        stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
   DO icol=0,my_ncol-1,blocksize
      IF (icol+blocksize>my_ncol) blocksize=my_ncol-icol
      CALL cp_fm_get_submatrix(min_m, target_m=tmp_min, &
           start_col=icol+my_start_col_min, n_cols=blocksize, &
-          transpose=.TRUE.,&
-          error=error)
+          transpose=.TRUE.)
 
      CALL dcopy(SIZE(tmp_full,1)*SIZE(tmp_full,2),0.0_dp,0,tmp_full(1,1),1)
      DO i=1,SIZE(p_proj%proj_indexes)
@@ -264,12 +257,11 @@ SUBROUTINE p_proj_transfer_blacs_to_f(p_proj, min_m, full_m,&
 
      CALL cp_fm_set_submatrix(full_m, new_values=tmp_full, &
           start_col=icol+my_start_col_full, n_cols=blocksize, &
-          transpose=.TRUE.,&
-          error=error)
+          transpose=.TRUE.)
   END DO
 
   DEALLOCATE(tmp_min, tmp_full, stat=stat)
-  CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+  CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
 
   CALL timestop(handle)
 END SUBROUTINE p_proj_transfer_blacs_to_f
@@ -290,11 +282,10 @@ END SUBROUTINE p_proj_transfer_blacs_to_f
 !> \note
 !>      keep_row could easily reduced to (min(proj_indexes):max(proj_indexes))
 ! *****************************************************************************
-SUBROUTINE p_proj_restrain_f(p_proj, full_m,start_col, ncol, error)
+SUBROUTINE p_proj_restrain_f(p_proj, full_m,start_col, ncol)
     TYPE(qs_p_projection_type), POINTER      :: p_proj
     TYPE(cp_fm_type), POINTER                :: full_m
     INTEGER, INTENT(in), OPTIONAL            :: start_col, ncol
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'p_proj_restrain_f', &
       routineP = moduleN//':'//routineN
@@ -312,19 +303,19 @@ SUBROUTINE p_proj_restrain_f(p_proj, full_m,start_col, ncol, error)
   failure=.FALSE.
   NULLIFY(row_indices,col_indices)
 
-  CPPrecondition(ASSOCIATED(p_proj),cp_failure_level,routineP,error,failure)
-  CPPrecondition(p_proj%ref_count>0,cp_failure_level,routineP,error,failure)
-  CPPrecondition(ASSOCIATED(full_m),cp_failure_level,routineP,error,failure)
-  CPPrecondition(full_m%ref_count>0,cp_failure_level,routineP,error,failure)
+  CPPrecondition(ASSOCIATED(p_proj),cp_failure_level,routineP,failure)
+  CPPrecondition(p_proj%ref_count>0,cp_failure_level,routineP,failure)
+  CPPrecondition(ASSOCIATED(full_m),cp_failure_level,routineP,failure)
+  CPPrecondition(full_m%ref_count>0,cp_failure_level,routineP,failure)
   min_index=MINVAL(p_proj%proj_indexes)
   max_index=MAXVAL(p_proj%proj_indexes)
   ALLOCATE(keep_row(min_index:max_index),stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
 
   my_start_col=1
   IF (PRESENT(start_col)) my_start_col=start_col
   CALL cp_fm_get_info(full_m,ncol_global=my_end_col, &
-       row_indices=row_indices, col_indices=col_indices,error=error)
+       row_indices=row_indices, col_indices=col_indices)
   IF (PRESENT(ncol)) my_end_col=start_col+ncol
 
   keep_row=.FALSE.
@@ -347,7 +338,7 @@ SUBROUTINE p_proj_restrain_f(p_proj, full_m,start_col, ncol, error)
   END DO
 
   DEALLOCATE(keep_row,stat=stat)
-  CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+  CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
 
   CALL timestop(handle)
 END SUBROUTINE p_proj_restrain_f

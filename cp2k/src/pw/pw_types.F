@@ -84,9 +84,8 @@ CONTAINS
 !> \note
 !>      see doc/ReferenceCounting.html
 ! *****************************************************************************
-  SUBROUTINE pw_retain(pw, error)
+  SUBROUTINE pw_retain(pw)
     TYPE(pw_type), POINTER                   :: pw
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pw_retain', &
       routineP = moduleN//':'//routineN
@@ -95,8 +94,8 @@ CONTAINS
 
     failure=.FALSE.
 
-    CPPrecondition(ASSOCIATED(pw),cp_failure_level,routineP,error,failure)
-    CPPreconditionNoFail(pw%ref_count>0,cp_failure_level,routineP,error)
+    CPPrecondition(ASSOCIATED(pw),cp_failure_level,routineP,failure)
+    CPPreconditionNoFail(pw%ref_count>0,cp_failure_level,routineP)
     pw%ref_count=pw%ref_count+1
   END SUBROUTINE pw_retain
 
@@ -111,9 +110,8 @@ CONTAINS
 !> \note
 !>      see doc/ReferenceCounting.html
 ! *****************************************************************************
-SUBROUTINE pw_release(pw, error)
+SUBROUTINE pw_release(pw)
     TYPE(pw_type), POINTER                   :: pw
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pw_release', &
       routineP = moduleN//':'//routineN
@@ -124,7 +122,7 @@ SUBROUTINE pw_release(pw, error)
   failure=.FALSE.
 
   IF (ASSOCIATED(pw)) THEN
-     CPPreconditionNoFail(pw%ref_count>0,cp_failure_level,routineP,error)
+     CPPreconditionNoFail(pw%ref_count>0,cp_failure_level,routineP)
      pw%ref_count=pw%ref_count-1
      IF (pw%ref_count==0) THEN
         pw%ref_count=1
@@ -133,28 +131,28 @@ SUBROUTINE pw_release(pw, error)
         SELECT CASE(pw % in_use)
         CASE (REALDATA1D)
            DEALLOCATE ( pw % cr, STAT = stat )
-           CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
         CASE(COMPLEXDATA1D)
            DEALLOCATE ( pw % cc, STAT = stat )
-           CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
         CASE(REALDATA3D)
            IF (ASSOCIATED(pw%cr3d)) THEN
               !FM optimizations of pools might have removed the 3d field to cache it
               DEALLOCATE ( pw % cr3d, STAT = stat )
-              CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+              CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
            END IF
         CASE(COMPLEXDATA3D)
            DEALLOCATE ( pw % cc3d, STAT = stat )
-           CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+           CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
         CASE(NODATA)
         CASE default
            CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP,&
-                "unknown data type "//cp_to_string(pw%in_use),error,failure)
+                "unknown data type "//cp_to_string(pw%in_use),failure)
         END SELECT
-        CALL pw_grid_release(pw%pw_grid, error=error)
+        CALL pw_grid_release(pw%pw_grid)
         pw%ref_count=0
         DEALLOCATE(pw, stat=stat)
-        CPPostconditionNoFail(stat==0,cp_warning_level,routineP,error)
+        CPPostconditionNoFail(stat==0,cp_warning_level,routineP)
      END IF
   END IF
   NULLIFY(pw)
@@ -174,14 +172,13 @@ END SUBROUTINE pw_release
 !>      11.2003 created [fawzi]
 !> \author fawzi
 ! *****************************************************************************
-SUBROUTINE pw_create(pw, pw_grid, use_data, in_space, cr3d_ptr, error)
+SUBROUTINE pw_create(pw, pw_grid, use_data, in_space, cr3d_ptr)
     TYPE(pw_type), POINTER                   :: pw
     TYPE(pw_grid_type), POINTER              :: pw_grid
     INTEGER, INTENT(in)                      :: use_data
     INTEGER, INTENT(in), OPTIONAL            :: in_space
     REAL(KIND=dp), DIMENSION(:, :, :), &
       OPTIONAL, POINTER                      :: cr3d_ptr
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pw_create', &
       routineP = moduleN//':'//routineN
@@ -194,10 +191,10 @@ SUBROUTINE pw_create(pw, pw_grid, use_data, in_space, cr3d_ptr, error)
   failure=.FALSE.
 
   CALL timeset(routineN,handle)
-  CPPrecondition(.NOT.ASSOCIATED(pw),cp_failure_level,routineP,error,failure)
+  CPPrecondition(.NOT.ASSOCIATED(pw),cp_failure_level,routineP,failure)
   ALLOCATE(pw,stat=stat)
-  CPPostcondition(stat==0,cp_failure_level,routineP,error,failure)
-  logger => cp_error_get_logger(error)
+  CPPostcondition(stat==0,cp_failure_level,routineP,failure)
+  logger => cp_error_get_logger()
   IF (debug_this_module) THEN
      WRITE (cp_logger_get_default_unit_nr(logger),"('*** allocated pw ***')")
      IF (PRESENT(cr3d_ptr)) THEN
@@ -210,7 +207,7 @@ SUBROUTINE pw_create(pw, pw_grid, use_data, in_space, cr3d_ptr, error)
 
   IF (PRESENT(cr3d_ptr)) THEN
      IF (ASSOCIATED(cr3d_ptr)) THEN
-        CPAssertNoFail(use_data==REALDATA3D,cp_failure_level,routineP,error)
+        CPAssertNoFail(use_data==REALDATA3D,cp_failure_level,routineP)
      END IF
   END IF
 
@@ -220,7 +217,7 @@ SUBROUTINE pw_create(pw, pw_grid, use_data, in_space, cr3d_ptr, error)
   NULLIFY ( pw % pw_grid )
   pw % in_use = use_data
   pw % pw_grid => pw_grid
-  CALL pw_grid_retain(pw%pw_grid, error=error)
+  CALL pw_grid_retain(pw%pw_grid)
   pw % in_space = NOSPACE
   bounds => pw % pw_grid % bounds_local
 
@@ -231,18 +228,18 @@ SUBROUTINE pw_create(pw, pw_grid, use_data, in_space, cr3d_ptr, error)
   SELECT CASE(use_data)
   CASE(REALDATA1D)
      ALLOCATE ( pw % cr ( pw % pw_grid % ngpts_cut_local ), STAT = stat )
-     CPPostcondition(stat==0,cp_fatal_level,routineP,error,failure)
+     CPPostcondition(stat==0,cp_fatal_level,routineP,failure)
 
   CASE(COMPLEXDATA1D)
      ALLOCATE ( pw % cc ( pw % pw_grid % ngpts_cut_local ), STAT = stat )
-     CPPostcondition(stat==0,cp_fatal_level,routineP,error,failure)
+     CPPostcondition(stat==0,cp_fatal_level,routineP,failure)
 
   CASE (REALDATA3D)
      IF (PRESENT(cr3d_ptr)) THEN
         IF (ASSOCIATED(cr3d_ptr)) THEN
            IF (ALL(bounds(1,:) <= bounds(2,:))) THEN
-             CPPreconditionNoFail(ALL(LBOUND(cr3d_ptr)==bounds(1,:)),cp_failure_level,routineP,error)
-             CPPreconditionNoFail(ALL(UBOUND(cr3d_ptr)==bounds(2,:)),cp_failure_level,routineP,error)
+             CPPreconditionNoFail(ALL(LBOUND(cr3d_ptr)==bounds(1,:)),cp_failure_level,routineP)
+             CPPreconditionNoFail(ALL(UBOUND(cr3d_ptr)==bounds(2,:)),cp_failure_level,routineP)
            END IF
            pw%cr3d => cr3d_ptr
         END IF
@@ -252,7 +249,7 @@ SUBROUTINE pw_create(pw, pw_grid, use_data, in_space, cr3d_ptr, error)
              bounds ( 1, 1 ) : bounds ( 2, 1 ), &
              bounds ( 1, 2 ) : bounds ( 2, 2 ), &
              bounds ( 1, 3 ) : bounds ( 2, 3 ) ), STAT = stat )
-        CPPostcondition(stat==0,cp_fatal_level,routineP,error,failure)
+        CPPostcondition(stat==0,cp_fatal_level,routineP,failure)
      END IF
 
   CASE(COMPLEXDATA3D)
@@ -260,11 +257,11 @@ SUBROUTINE pw_create(pw, pw_grid, use_data, in_space, cr3d_ptr, error)
           bounds ( 1, 1 ) : bounds ( 2, 1 ), &
           bounds ( 1, 2 ) : bounds ( 2, 2 ), &
           bounds ( 1, 3 ) : bounds ( 2, 3 ) ), STAT = stat )
-     CPPostcondition(stat==0,cp_fatal_level,routineP,error,failure)
+     CPPostcondition(stat==0,cp_fatal_level,routineP,failure)
   CASE(NODATA)
   CASE default
      CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,routineP,&
-          "unknown data type",error,failure)
+          "unknown data type",failure)
   END SELECT
   IF (PRESENT(in_space)) pw%in_space=in_space
   CALL timestop(handle)

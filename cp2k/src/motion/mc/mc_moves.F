@@ -139,7 +139,7 @@ CONTAINS
   SUBROUTINE mc_conformation_change ( mc_par,force_env,bias_env, moves,&
                         move_updates,start_atom,molecule_type,box_number,&
                         bias_energy,move_type,lreject,&
-                        rng_stream,error)
+                        rng_stream)
 
     TYPE(mc_simpar_type), POINTER            :: mc_par
     TYPE(force_env_type), POINTER            :: force_env, bias_env
@@ -150,7 +150,6 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN)             :: move_type
     LOGICAL, INTENT(OUT)                     :: lreject
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'mc_conformation_change', &
       routineP = moduleN//':'//routineN
@@ -224,20 +223,19 @@ CONTAINS
       IF(lbias) THEN
 
 ! grab the coordinates
-         CALL force_env_get(bias_env,subsys=subsys,error=error)
+         CALL force_env_get(bias_env,subsys=subsys)
 ! save the energy
          bias_energy_old=bias_energy
 
       ELSE
 
 ! grab the coordinates
-         CALL force_env_get(force_env,subsys=subsys,error=error)
+         CALL force_env_get(force_env,subsys=subsys)
       ENDIF
 
 ! now find the molecule type associated with this guy
       CALL cp_subsys_get(subsys, &
-           particles=particles, molecule_kinds_new=molecule_kinds_new,&
-           error=error)
+           particles=particles, molecule_kinds_new=molecule_kinds_new)
       DO imol_type=1,SIZE(molecule_kinds_new%els(:))
          molecule_kind_test => molecule_kinds_new%els(imol_type)
          CALL get_molecule_kind(molecule_kind_test,name=name)
@@ -274,7 +272,7 @@ CONTAINS
 
 ! do the move
          CALL change_bond_length(r_old,r_new,mc_par,molecule_type,&
-              molecule_kind,dis_length,particles,rng_stream,error=error)
+              molecule_kind,dis_length,particles,rng_stream)
 
       ELSEIF( move_type == 'angle') THEN
 
@@ -294,7 +292,7 @@ CONTAINS
 
 ! do the move
          CALL change_bond_angle(r_old,r_new,mc_par,molecule_type,&
-              molecule_kind,particles,rng_stream,error=error)
+              molecule_kind,particles,rng_stream)
          dis_length=1.0E0_dp
       ELSE
 ! record the attempt
@@ -313,7 +311,7 @@ CONTAINS
 
 ! do the move
          CALL change_dihedral(r_old,r_new,mc_par,molecule_type,&
-              molecule_kind,particles,rng_stream,error=error)
+              molecule_kind,particles,rng_stream)
          dis_length=1.0E0_dp
 
       ENDIF
@@ -344,9 +342,9 @@ CONTAINS
          IF(loverlap) THEN
             w=0.0E0_dp
          ELSE
-            CALL force_env_calc_energy_force(bias_env,calc_force=.FALSE.,error=error)
+            CALL force_env_calc_energy_force(bias_env,calc_force=.FALSE.)
             CALL force_env_get(bias_env,&
-               potential_energy=bias_energy_new,error=error)
+               potential_energy=bias_energy_new)
 ! accept or reject the move based on the Metropolis rule with a
 ! correction factor for the change in phase space...dis_length is
 ! made unitless in change_bond_length
@@ -366,7 +364,7 @@ CONTAINS
             rand=0.0E0_dp
          ELSE
             IF(ionode) THEN
-               rand=next_random_number(rng_stream,error=error)
+               rand=next_random_number(rng_stream)
             ENDIF
             CALL mp_bcast(rand,source,group)
          ENDIF
@@ -404,12 +402,12 @@ CONTAINS
 
 ! reject the move
 ! restore the coordinates
-            CALL force_env_get(bias_env,subsys=subsys,error=error)
-            CALL cp_subsys_get(subsys,particles=particles, error=error)
+            CALL force_env_get(bias_env,subsys=subsys)
+            CALL cp_subsys_get(subsys,particles=particles)
             DO ipart=start_atom,end_atom
                particles%els(ipart)%r(1:3)=r_old(1:3,ipart-start_atom+1)
             ENDDO
-            CALL cp_subsys_set(subsys,particles=particles,error=error)
+            CALL cp_subsys_set(subsys,particles=particles)
 
          ENDIF
 
@@ -454,7 +452,7 @@ END SUBROUTINE mc_conformation_change
  SUBROUTINE mc_molecule_translation(  mc_par,force_env, bias_env,moves,&
                       move_updates,start_atom,box_number,&
                       bias_energy,molecule_type,&
-                        lreject,rng_stream,error)
+                        lreject,rng_stream)
 
     TYPE(mc_simpar_type), POINTER            :: mc_par
     TYPE(force_env_type), POINTER            :: force_env, bias_env
@@ -464,7 +462,6 @@ END SUBROUTINE mc_conformation_change
     INTEGER, INTENT(IN)                      :: molecule_type
     LOGICAL, INTENT(OUT)                     :: lreject
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'mc_molecule_translation', &
       routineP = moduleN//':'//routineN
@@ -533,8 +530,8 @@ END SUBROUTINE mc_conformation_change
       IF(lbias) THEN
 
 ! grab the coordinates
-         CALL force_env_get(bias_env,subsys=subsys,error=error)
-         CALL cp_subsys_get(subsys,particles=particles, error=error)
+         CALL force_env_get(bias_env,subsys=subsys)
+         CALL cp_subsys_get(subsys,particles=particles)
 
 ! save the coordinates
          DO ipart=1,nunits_tot(box_number)
@@ -547,8 +544,8 @@ END SUBROUTINE mc_conformation_change
       ELSE
 
 ! grab the coordinates
-         CALL force_env_get(force_env,subsys=subsys,error=error)
-         CALL cp_subsys_get(subsys,particles=particles, error=error)
+         CALL force_env_get(force_env,subsys=subsys)
+         CALL cp_subsys_get(subsys,particles=particles)
       ENDIF
 
 ! record the attempt
@@ -566,13 +563,13 @@ END SUBROUTINE mc_conformation_change
 ! move one molecule in the system
 
 ! call a random number to figure out which direction we're moving
-      IF(ionode) rand=next_random_number(rng_stream,error=error)
+      IF(ionode) rand=next_random_number(rng_stream)
       CALL mp_bcast(rand,source,group)
       ! 1,2,3 with equal prob
       move_direction=INT(3*rand)+1
 
 ! call a random number to figure out how far we're moving
-      IF(ionode) rand=next_random_number(rng_stream,error=error)
+      IF(ionode) rand=next_random_number(rng_stream)
       CALL mp_bcast(rand,source,group)
       dis_mol=rmtrans(molecule_type)*(rand-0.5E0_dp)*2.0E0_dp
 
@@ -581,7 +578,7 @@ END SUBROUTINE mc_conformation_change
          particles%els(iparticle)%r(move_direction)=&
              particles%els(iparticle)%r(move_direction)+dis_mol
       ENDDO
-      CALL cp_subsys_set(subsys,particles=particles,error=error)
+      CALL cp_subsys_set(subsys,particles=particles)
 
 ! figure out if there is any overlap...need the number of the molecule
       lreject=.FALSE.
@@ -603,9 +600,9 @@ END SUBROUTINE mc_conformation_change
          IF(loverlap) THEN
             w=0.0E0_dp
          ELSE
-            CALL force_env_calc_energy_force(bias_env,calc_force=.FALSE.,error=error)
+            CALL force_env_calc_energy_force(bias_env,calc_force=.FALSE.)
             CALL force_env_get(bias_env,&
-               potential_energy=bias_energy_new,error=error)
+               potential_energy=bias_energy_new)
 ! accept or reject the move based on the Metropolis rule
             value=-BETA*(bias_energy_new-bias_energy_old)
             IF    (value .GT. exp_max_val) THEN
@@ -622,7 +619,7 @@ END SUBROUTINE mc_conformation_change
             w=1.0E0_dp
             rand=0.0E0_dp
          ELSE
-            IF(ionode) rand=next_random_number(rng_stream,error=error)
+            IF(ionode) rand=next_random_number(rng_stream)
             CALL mp_bcast(rand,source,group)
          ENDIF
 
@@ -642,12 +639,12 @@ END SUBROUTINE mc_conformation_change
 
 ! reject the move
 ! restore the coordinates
-            CALL force_env_get(bias_env,subsys=subsys,error=error)
-            CALL cp_subsys_get(subsys,particles=particles, error=error)
+            CALL force_env_get(bias_env,subsys=subsys)
+            CALL cp_subsys_get(subsys,particles=particles)
             DO ipart=1,nunits_tot(box_number)
                particles%els(ipart)%r(1:3)=r_old(1:3,ipart)
             ENDDO
-            CALL cp_subsys_set(subsys,particles=particles,error=error)
+            CALL cp_subsys_set(subsys,particles=particles)
 
          ENDIF
 
@@ -690,7 +687,7 @@ END SUBROUTINE mc_conformation_change
  SUBROUTINE mc_molecule_rotation ( mc_par,force_env, bias_env,moves,&
                       move_updates,box_number,&
                       start_atom,molecule_type,bias_energy,lreject,&
-                      rng_stream,error)
+                      rng_stream)
 
     TYPE(mc_simpar_type), POINTER            :: mc_par
     TYPE(force_env_type), POINTER            :: force_env, bias_env
@@ -700,7 +697,6 @@ END SUBROUTINE mc_conformation_change
     REAL(KIND=dp), INTENT(INOUT)             :: bias_energy
     LOGICAL, INTENT(OUT)                     :: lreject
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'mc_molecule_rotation', &
       routineP = moduleN//':'//routineN
@@ -778,8 +774,8 @@ END SUBROUTINE mc_conformation_change
       IF(lbias) THEN
 
 ! grab the coordinates
-         CALL force_env_get(bias_env,subsys=subsys,error=error)
-         CALL cp_subsys_get(subsys,particles=particles, error=error)
+         CALL force_env_get(bias_env,subsys=subsys)
+         CALL cp_subsys_get(subsys,particles=particles)
 
 ! save the coordinates
          DO ipart=1,nunits_tot(box_number)
@@ -792,8 +788,8 @@ END SUBROUTINE mc_conformation_change
       ELSE
 
 ! grab the coordinates
-         CALL force_env_get(force_env,subsys=subsys,error=error)
-         CALL cp_subsys_get(subsys,particles=particles, error=error)
+         CALL force_env_get(force_env,subsys=subsys)
+         CALL cp_subsys_get(subsys,particles=particles)
       ENDIF
 
 ! grab the masses
@@ -814,7 +810,7 @@ END SUBROUTINE mc_conformation_change
 ! rotate one molecule in the system
 
 ! call a random number to figure out which direction we're moving
-      IF(ionode) rand=next_random_number(rng_stream,error=error)
+      IF(ionode) rand=next_random_number(rng_stream)
 !      CALL RANDOM_NUMBER(rand)
       CALL mp_bcast(rand,source,group)
       ! 1,2,3 with equal prob
@@ -841,7 +837,7 @@ END SUBROUTINE mc_conformation_change
       nzcm = nzcm / masstot
 
 ! call a random number to figure out how far we're moving
-      IF(ionode) rand=next_random_number(rng_stream,error=error)
+      IF(ionode) rand=next_random_number(rng_stream)
       CALL mp_bcast(rand,source,group)
       dgamma=rmrot(molecule_type)*(rand-0.5E0_dp)*2.0E0_dp
 
@@ -896,7 +892,7 @@ END SUBROUTINE mc_conformation_change
          ENDDO
 
       ENDIF
-      CALL cp_subsys_set(subsys,particles=particles,error=error)
+      CALL cp_subsys_set(subsys,particles=particles)
 
 ! check for overlap
       lreject=.FALSE.
@@ -919,9 +915,9 @@ END SUBROUTINE mc_conformation_change
          IF(loverlap) THEN
             w=0.0E0_dp
          ELSE
-            CALL force_env_calc_energy_force(bias_env,calc_force=.FALSE.,error=error)
+            CALL force_env_calc_energy_force(bias_env,calc_force=.FALSE.)
             CALL force_env_get(bias_env,&
-            potential_energy=bias_energy_new,error=error)
+            potential_energy=bias_energy_new)
 ! accept or reject the move based on the Metropolis rule
             value=-BETA*(bias_energy_new-bias_energy_old)
             IF    (value .GT. exp_max_val) THEN
@@ -938,7 +934,7 @@ END SUBROUTINE mc_conformation_change
             w=1.0E0_dp
             rand=0.0E0_dp
          ELSE
-            IF(ionode) rand=next_random_number(rng_stream,error=error)
+            IF(ionode) rand=next_random_number(rng_stream)
             CALL mp_bcast(rand,source,group)
          ENDIF
 
@@ -956,12 +952,12 @@ END SUBROUTINE mc_conformation_change
 
 ! reject the move
 ! restore the coordinates
-            CALL force_env_get(bias_env,subsys=subsys,error=error)
-            CALL cp_subsys_get(subsys,particles=particles, error=error)
+            CALL force_env_get(bias_env,subsys=subsys)
+            CALL cp_subsys_get(subsys,particles=particles)
             DO ipart=1,nunits_tot(box_number)
                particles%els(ipart)%r(1:3)=r_old(1:3,ipart)
             ENDDO
-            CALL cp_subsys_set(subsys,particles=particles,error=error)
+            CALL cp_subsys_set(subsys,particles=particles)
 
          ENDIF
 
@@ -1004,7 +1000,7 @@ END SUBROUTINE mc_conformation_change
 ! *****************************************************************************
   SUBROUTINE mc_volume_move ( mc_par,force_env, moves,move_updates,&
                         old_energy,box_number,&
-                        energy_check,r_old,iw,discrete_array,rng_stream,error)
+                        energy_check,r_old,iw,discrete_array,rng_stream)
 
     TYPE(mc_simpar_type), POINTER            :: mc_par
     TYPE(force_env_type), POINTER            :: force_env
@@ -1018,7 +1014,6 @@ END SUBROUTINE mc_conformation_change
     INTEGER, DIMENSION(1:3, 1:2), &
       INTENT(INOUT)                          :: discrete_array
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'mc_volume_move', &
       routineP = moduleN//':'//routineN
@@ -1085,13 +1080,11 @@ END SUBROUTINE mc_conformation_change
       move_updates%volume%attempts=move_updates%volume%attempts+1
 
 ! now let's grab the cell length and particle positions
-      CALL force_env_get(force_env,subsys=oldsys,cell=cell,&
-         error=error)
+      CALL force_env_get(force_env,subsys=oldsys,cell=cell)
       CALL get_cell(cell,abc=abc)
-      CALL cell_create(cell_old,error=error)
-      CALL cell_clone(cell,cell_old,error=error)
-      CALL cp_subsys_get(oldsys,particles=particles_old, &
-         error=error)
+      CALL cell_create(cell_old)
+      CALL cell_clone(cell,cell_old)
+      CALL cp_subsys_get(oldsys,particles=particles_old)
 
 ! find the old cell length
       old_cell_length(1)=abc(1)
@@ -1106,7 +1099,7 @@ END SUBROUTINE mc_conformation_change
 ! now do the move
 
 ! call a random number to figure out how far we're moving
-      IF (ionode) rand=next_random_number(rng_stream,error=error)
+      IF (ionode) rand=next_random_number(rng_stream)
       CALL mp_bcast(rand,source,group)
 
 ! find the test cell lenghts for the discrete volume move
@@ -1122,7 +1115,7 @@ END SUBROUTINE mc_conformation_change
 ! if we're increasing the volume, we need to find a side we can increase
          IF(lincrease) THEN
             DO
-               IF(ionode) rand=next_random_number(rng_stream,error=error)
+               IF(ionode) rand=next_random_number(rng_stream)
                CALL mp_bcast(rand,source,group)
                iside_change=CEILING(3.0_dp*rand)
                IF(discrete_array(iside_change,1) .EQ. 1) THEN
@@ -1133,7 +1126,7 @@ END SUBROUTINE mc_conformation_change
             ENDDO
          ELSE
             DO
-               IF(ionode) rand=next_random_number(rng_stream,error=error)
+               IF(ionode) rand=next_random_number(rng_stream)
                CALL mp_bcast(rand,source,group)
                iside_change=CEILING(3.0_dp*rand)
                IF(discrete_array(iside_change,2) .EQ. 1) THEN
@@ -1177,7 +1170,7 @@ END SUBROUTINE mc_conformation_change
          DEALLOCATE(r,STAT=istat)
          IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
             "r")
-         logger=>cp_error_get_logger(error)
+         logger=>cp_error_get_logger()
          output_unit=cp_logger_get_default_io_unit(logger)
          IF(output_unit>0) WRITE(output_unit,*) &
             "Volume move rejected because we tried to make too small of box.",vol_dis
@@ -1191,8 +1184,8 @@ END SUBROUTINE mc_conformation_change
       hmat_test(1,1)=new_cell_length(1)
       hmat_test(2,2)=new_cell_length(2)
       hmat_test(3,3)=new_cell_length(3)
-      CALL cell_create(cell_test,hmat=hmat_test(:,:),periodic=cell%perd,error=error)
-      CALL cp_subsys_set(oldsys, cell=cell_test, error=error)
+      CALL cell_create(cell_test,hmat=hmat_test(:,:),periodic=cell%perd)
+      CALL cp_subsys_set(oldsys, cell=cell_test)
 
 ! now we need to scale the coordinates of all the molecules by the
 ! center of mass, using the minimum image (not all molecules are in
@@ -1239,14 +1232,14 @@ END SUBROUTINE mc_conformation_change
          IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
             "r")
 
-         logger=>cp_error_get_logger(error)
+         logger=>cp_error_get_logger()
          output_unit=cp_logger_get_default_io_unit(logger)
          IF(output_unit>0) WRITE(output_unit,*) &
             "Volume move rejected due to overlap.",vol_dis
 !     end the timing
          CALL timestop(handle)
 ! reset the cell and particle positions
-         CALL cp_subsys_set(oldsys, cell=cell_old, error=error)
+         CALL cp_subsys_set(oldsys, cell=cell_old)
          DO iatom=1,nunits_tot(box_number)
             particles_old%els(iatom)%r(1:3)=r_old(1:3,iatom)
          ENDDO
@@ -1275,9 +1268,9 @@ END SUBROUTINE mc_conformation_change
               "Attempted a volume move where box size got too small.")
 
 ! now compute the energy
-      CALL force_env_calc_energy_force(force_env,calc_force=.FALSE.,error=error)
+      CALL force_env_calc_energy_force(force_env,calc_force=.FALSE.)
       CALL force_env_get(force_env,&
-         potential_energy=new_energy,error=error)
+         potential_energy=new_energy)
 
 ! accept or reject the move
 ! to prevent overflows
@@ -1304,7 +1297,7 @@ END SUBROUTINE mc_conformation_change
          w=1.0E0_dp
          rand=0.0E0_dp
       ELSE
-         IF(ionode) rand=next_random_number(rng_stream,error=error)
+         IF(ionode) rand=next_random_number(rng_stream)
          CALL mp_bcast(rand,source,group)
       ENDIF
 
@@ -1331,7 +1324,7 @@ END SUBROUTINE mc_conformation_change
       ELSE
 
 ! reset the cell and particle positions
-         CALL cp_subsys_set(oldsys, cell=cell_old, error=error)
+         CALL cp_subsys_set(oldsys, cell=cell_old)
          DO iatom=1,nunits_tot(box_number)
             particles_old%els(iatom)%r(1:3)=r_old(1:3,iatom)
          ENDDO
@@ -1342,8 +1335,8 @@ END SUBROUTINE mc_conformation_change
       DEALLOCATE(r,STAT=istat)
       IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
                        "r")
-      CALL cell_release(cell_test,error=error)
-      CALL cell_release(cell_old,error=error)
+      CALL cell_release(cell_test)
+      CALL cell_release(cell_old)
 
 ! end the timing
       CALL timestop(handle)
@@ -1369,7 +1362,7 @@ END SUBROUTINE mc_conformation_change
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE change_bond_length ( r_old,r_new,mc_par,molecule_type,molecule_kind,&
-      dis_length,particles,rng_stream,error)
+      dis_length,particles,rng_stream)
 
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(IN)                             :: r_old
@@ -1381,7 +1374,6 @@ END SUBROUTINE mc_conformation_change
     REAL(KIND=dp), INTENT(OUT)               :: dis_length
     TYPE(particle_list_type), POINTER        :: particles
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'change_bond_length', &
       routineP = moduleN//':'//routineN
@@ -1419,7 +1411,7 @@ END SUBROUTINE mc_conformation_change
 
 ! pick which bond in the molecule at random
       IF(ionode) THEN
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
       ENDIF
       CALL mp_bcast(rand,source,group)
       CALL get_molecule_kind(molecule_kind,natom=natom,nbond=nbond,&
@@ -1488,7 +1480,7 @@ END SUBROUTINE mc_conformation_change
       ENDDO
 
 ! choose a displacement
-      IF(ionode) rand=next_random_number(rng_stream,error=error)
+      IF(ionode) rand=next_random_number(rng_stream)
       CALL mp_bcast(rand,source,group)
 
       dis_length=rmbond(molecule_type)*2.0E0_dp*(rand-0.5E0_dp)
@@ -1563,7 +1555,7 @@ END SUBROUTINE mc_conformation_change
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE change_bond_angle ( r_old,r_new,mc_par,molecule_type,molecule_kind,&
-      particles,rng_stream,error)
+      particles,rng_stream)
 
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(IN)                             :: r_old
@@ -1574,7 +1566,6 @@ END SUBROUTINE mc_conformation_change
     TYPE(molecule_kind_type), POINTER        :: molecule_kind
     TYPE(particle_list_type), POINTER        :: particles
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'change_bond_angle', &
       routineP = moduleN//':'//routineN
@@ -1616,7 +1607,7 @@ END SUBROUTINE mc_conformation_change
 
 ! pick which bond in the molecule at random
       IF(ionode) THEN
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
       ENDIF
       CALL mp_bcast(rand,source,group)
       CALL get_molecule_kind(molecule_kind,natom=natom,nbend=nbend,&
@@ -1682,7 +1673,7 @@ END SUBROUTINE mc_conformation_change
       ENDDO
 
 ! choose a displacement
-      IF(ionode) rand=next_random_number(rng_stream,error=error)
+      IF(ionode) rand=next_random_number(rng_stream)
       CALL mp_bcast(rand,source,group)
 
       dis_angle=rmangle(molecule_type)*2.0E0_dp*(rand-0.5E0_dp)
@@ -1850,7 +1841,7 @@ END SUBROUTINE mc_conformation_change
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE change_dihedral ( r_old,r_new,mc_par,molecule_type,molecule_kind,&
-      particles,rng_stream,error)
+      particles,rng_stream)
 
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(IN)                             :: r_old
@@ -1861,7 +1852,6 @@ END SUBROUTINE mc_conformation_change
     TYPE(molecule_kind_type), POINTER        :: molecule_kind
     TYPE(particle_list_type), POINTER        :: particles
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'change_dihedral', &
       routineP = moduleN//':'//routineN
@@ -1904,7 +1894,7 @@ END SUBROUTINE mc_conformation_change
 
 ! pick which bond in the molecule at random
       IF(ionode) THEN
-         rand=next_random_number(rng_stream,error=error)
+         rand=next_random_number(rng_stream)
 !      CALL RANDOM_NUMBER(rand)
       ENDIF
       CALL mp_bcast(rand,source,group)
@@ -1973,7 +1963,7 @@ END SUBROUTINE mc_conformation_change
       ENDDO
 
 ! choose a displacement
-      IF(ionode) rand=next_random_number(rng_stream,error=error)
+      IF(ionode) rand=next_random_number(rng_stream)
       CALL mp_bcast(rand,source,group)
 
       dis_angle=rmdihedral(molecule_type)*2.0E0_dp*(rand-0.5E0_dp)
@@ -2095,7 +2085,7 @@ END SUBROUTINE mc_conformation_change
                         energy_check,r_old,old_energy,start_atom_swap,&
                         target_atom,&
                         molecule_type,box_number,bias_energy_old,last_bias_energy,&
-                        move_type,rng_stream,error)
+                        move_type,rng_stream)
 
     TYPE(mc_simpar_type), POINTER            :: mc_par
     TYPE(force_env_type), POINTER            :: force_env, bias_env
@@ -2110,7 +2100,6 @@ END SUBROUTINE mc_conformation_change
                                                 last_bias_energy
     CHARACTER(LEN=*), INTENT(IN)             :: move_type
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'mc_avbmc_move', &
       routineP = moduleN//':'//routineN
@@ -2173,10 +2162,9 @@ END SUBROUTINE mc_conformation_change
       IF(lbias) THEN
 
 ! grab the coordinates
-         CALL force_env_get(bias_env,cell=cell,subsys=subsys,error=error)
+         CALL force_env_get(bias_env,cell=cell,subsys=subsys)
          CALL cp_subsys_get(subsys, &
-            particles=particles, molecule_kinds_new=molecule_kinds_new,&
-            error=error)
+            particles=particles, molecule_kinds_new=molecule_kinds_new)
          molecule_kind => molecule_kinds_new%els(1)
          CALL get_molecule_kind(molecule_kind,natom=natom)
          CALL get_cell(cell,abc=abc)
@@ -2187,10 +2175,9 @@ END SUBROUTINE mc_conformation_change
       ELSE
 
 ! grab the coordinates
-         CALL force_env_get(force_env,cell=cell,subsys=subsys,error=error)
+         CALL force_env_get(force_env,cell=cell,subsys=subsys)
          CALL cp_subsys_get(subsys, &
-            particles=particles,  molecule_kinds_new=molecule_kinds_new,&
-            error=error)
+            particles=particles,  molecule_kinds_new=molecule_kinds_new)
          molecule_kind => molecule_kinds_new%els(1)
          CALL get_molecule_kind(molecule_kind,natom=natom)
          CALL get_cell(cell,abc=abc)
@@ -2248,7 +2235,7 @@ END SUBROUTINE mc_conformation_change
                  weight_old,start_atom_swap,nunits_tot(box_number),nunits,nunits(molecule_type),&
                  mass(:,molecule_type),ldum, rdum,&
                  bias_energy_old,ionode,.TRUE.,mol_type(start_mol:end_mol),nchains(:,box_number),&
-                 source,group,rng_stream,error,&
+                 source,group,rng_stream,&
                  avbmc_atom=avbmc_atom(molecule_type),&
                  rmin=avbmc_rmin(molecule_type),rmax=avbmc_rmax(molecule_type),move_type='out',&
                  target_atom=target_atom)
@@ -2261,7 +2248,7 @@ END SUBROUTINE mc_conformation_change
                 weight_old,start_atom_swap,nunits_tot(box_number),nunits,nunits(molecule_type),&
                 mass(:,molecule_type),ldum, rdum,&
                 bias_energy_old,ionode,.TRUE.,mol_type(start_mol:end_mol),nchains(:,box_number),&
-                source,group,rng_stream,error,&
+                source,group,rng_stream,&
                 avbmc_atom=avbmc_atom(molecule_type),&
                 rmin=avbmc_rmin(molecule_type),rmax=avbmc_rmax(molecule_type),move_type='in',&
                 target_atom=target_atom)
@@ -2274,7 +2261,7 @@ END SUBROUTINE mc_conformation_change
               weight_new,start_atom_swap,nunits_tot(box_number),nunits,nunits(molecule_type),&
               mass(:,molecule_type),loverlap, bias_energy_new,&
               bias_energy_old,ionode,.FALSE.,mol_type(start_mol:end_mol),nchains(:,box_number),&
-              source,group,rng_stream,error,&
+              source,group,rng_stream,&
               avbmc_atom=avbmc_atom(molecule_type),&
               rmin=avbmc_rmin(molecule_type),rmax=avbmc_rmax(molecule_type),move_type=move_type,&
               target_atom=target_atom)
@@ -2294,7 +2281,7 @@ END SUBROUTINE mc_conformation_change
                  exp_min_val,nswapmoves,&
                  weight_old,start_atom_swap,nunits_tot(box_number),nunits,nunits(molecule_type),&
                  mass(:,molecule_type),ldum,rdum,old_energy,&
-                 ionode,.TRUE.,mol_type(start_mol:end_mol),nchains(:,box_number),source,group,rng_stream,error,&
+                 ionode,.TRUE.,mol_type(start_mol:end_mol),nchains(:,box_number),source,group,rng_stream,&
                  avbmc_atom=avbmc_atom(molecule_type),&
                  rmin=avbmc_rmin(molecule_type),rmax=avbmc_rmax(molecule_type),move_type='out',&
                  target_atom=target_atom)
@@ -2306,7 +2293,7 @@ END SUBROUTINE mc_conformation_change
                  exp_min_val,nswapmoves,&
                  weight_old,start_atom_swap,nunits_tot(box_number),nunits,nunits(molecule_type),&
                  mass(:,molecule_type),ldum,rdum,old_energy,&
-                 ionode,.TRUE.,mol_type(start_mol:end_mol),nchains(:,box_number),source,group,rng_stream,error,&
+                 ionode,.TRUE.,mol_type(start_mol:end_mol),nchains(:,box_number),source,group,rng_stream,&
                  avbmc_atom=avbmc_atom(molecule_type),&
                  rmin=avbmc_rmin(molecule_type),rmax=avbmc_rmax(molecule_type),move_type='in',&
                  target_atom=target_atom)
@@ -2318,7 +2305,7 @@ END SUBROUTINE mc_conformation_change
              exp_min_val,nswapmoves,&
              weight_new,start_atom_swap,nunits_tot(box_number),nunits,nunits(molecule_type),&
              mass(:,molecule_type),loverlap,new_energy,old_energy,&
-             ionode,.FALSE.,mol_type(start_mol:end_mol),nchains(:,box_number),source,group,rng_stream,error,&
+             ionode,.FALSE.,mol_type(start_mol:end_mol),nchains(:,box_number),source,group,rng_stream,&
              avbmc_atom=avbmc_atom(molecule_type),&
              rmin=avbmc_rmin(molecule_type),rmax=avbmc_rmax(molecule_type),move_type=move_type,&
              target_atom=target_atom)
@@ -2332,11 +2319,11 @@ END SUBROUTINE mc_conformation_change
 
 ! need to reset the old coordinates
          IF(lbias) THEN
-            CALL force_env_get(bias_env,subsys=subsys,error=error)
-            CALL cp_subsys_get(subsys,particles=particles,error=error)
+            CALL force_env_get(bias_env,subsys=subsys)
+            CALL cp_subsys_get(subsys,particles=particles)
          ELSE
-            CALL force_env_get(force_env,subsys=subsys,error=error)
-            CALL cp_subsys_get(subsys,particles=particles,error=error)
+            CALL force_env_get(force_env,subsys=subsys)
+            CALL cp_subsys_get(subsys,particles=particles)
          ENDIF
          DO ipart=1,nunits_tot(box_number)
             particles%els(ipart)%r(1:3)=r_old(1:3,ipart)
@@ -2351,18 +2338,18 @@ END SUBROUTINE mc_conformation_change
 ! potential
       IF(lbias) THEN
 ! need to give the force_env the coords from the bias_env
-         CALL force_env_get(force_env,subsys=subsys_force,error=error)
-         CALL cp_subsys_get(subsys_force,particles=particles_force,error=error)
-         CALL force_env_get(bias_env,subsys=subsys,error=error)
-         CALL cp_subsys_get(subsys,particles=particles,error=error)
+         CALL force_env_get(force_env,subsys=subsys_force)
+         CALL cp_subsys_get(subsys_force,particles=particles_force)
+         CALL force_env_get(bias_env,subsys=subsys)
+         CALL cp_subsys_get(subsys,particles=particles)
          DO ipart=1,nunits_tot(box_number)
             particles_force%els(ipart)%r(1:3)=particles%els(ipart)%r(1:3)
          ENDDO
 
          CALL force_env_calc_energy_force(force_env,&
-            calc_force=.FALSE.,error=error)
+            calc_force=.FALSE.)
          CALL force_env_get(force_env,&
-            potential_energy=new_energy,error=error)
+            potential_energy=new_energy)
 
       ENDIF
 
@@ -2406,7 +2393,7 @@ END SUBROUTINE mc_conformation_change
       IF(w .GE. 1.0E0_dp) THEN
          rand=0.0E0_dp
       ELSE
-         IF(ionode) rand=next_random_number(rng_stream,error=error)
+         IF(ionode) rand=next_random_number(rng_stream)
          CALL mp_bcast(rand,source,group)
       ENDIF
 
@@ -2450,27 +2437,27 @@ END SUBROUTINE mc_conformation_change
          ENDIF
 
 ! update coordinates
-         CALL force_env_get(force_env,subsys=subsys,error=error)
-         CALL cp_subsys_get(subsys,particles=particles,error=error)
+         CALL force_env_get(force_env,subsys=subsys)
+         CALL cp_subsys_get(subsys,particles=particles)
          DO ipart=1,nunits_tot(box_number)
             r_old(1:3,ipart)=particles%els(ipart)%r(1:3)
          ENDDO
       ELSE
 ! reject the move...need to restore the old coordinates
          IF(lbias) THEN
-            CALL force_env_get(bias_env,subsys=subsys,error=error)
-            CALL cp_subsys_get(subsys,particles=particles, error=error)
+            CALL force_env_get(bias_env,subsys=subsys)
+            CALL cp_subsys_get(subsys,particles=particles)
             DO ipart=1,nunits_tot(box_number)
                particles%els(ipart)%r(1:3)=r_old(1:3,ipart)
             ENDDO
-            CALL cp_subsys_set(subsys,particles=particles,error=error)
+            CALL cp_subsys_set(subsys,particles=particles)
          ENDIF
-         CALL force_env_get(force_env,subsys=subsys,error=error)
-         CALL cp_subsys_get(subsys,particles=particles, error=error)
+         CALL force_env_get(force_env,subsys=subsys)
+         CALL cp_subsys_get(subsys,particles=particles)
          DO ipart=1,nunits_tot(box_number)
             particles%els(ipart)%r(1:3)=r_old(1:3,ipart)
          ENDDO
-         CALL cp_subsys_set(subsys,particles=particles,error=error)
+         CALL cp_subsys_set(subsys,particles=particles)
 
       ENDIF
 
@@ -2508,7 +2495,7 @@ END SUBROUTINE mc_conformation_change
 ! *****************************************************************************
   SUBROUTINE mc_hmc_move ( mc_par,force_env, globenv, moves,move_updates,&
                         old_energy,box_number,&
-                        energy_check,r_old,rng_stream,error)
+                        energy_check,r_old,rng_stream)
 
     TYPE(mc_simpar_type), POINTER            :: mc_par
     TYPE(force_env_type), POINTER            :: force_env
@@ -2520,7 +2507,6 @@ END SUBROUTINE mc_conformation_change
     REAL(KIND=dp), DIMENSION(:, :), &
       INTENT(INOUT)                          :: r_old
     TYPE(rng_stream_type), POINTER           :: rng_stream
-    TYPE(cp_error_type), INTENT(INOUT)       :: error
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'mc_hmc_move', &
       routineP = moduleN//':'//routineN
@@ -2566,10 +2552,8 @@ END SUBROUTINE mc_conformation_change
       move_updates%hmc%attempts=move_updates%hmc%attempts+1
 
 ! now let's grab the particle positions
-      CALL force_env_get(force_env,subsys=oldsys,&
-         error=error)
-      CALL cp_subsys_get(oldsys,particles=particles_old, &
-         error=error)
+      CALL force_env_get(force_env,subsys=oldsys)
+      CALL cp_subsys_get(oldsys,particles=particles_old)
 
 ! save the old coordinates
       DO iatom=1,nunits_tot(box_number)
@@ -2577,12 +2561,12 @@ END SUBROUTINE mc_conformation_change
       ENDDO
 
 ! now run the MD simulation
-      CALL qs_mol_dyn(force_env,globenv,error=error,hmc_e_initial=hmc_ekin%initial_ekin,hmc_e_final=hmc_ekin%final_ekin)
+      CALL qs_mol_dyn(force_env,globenv,hmc_e_initial=hmc_ekin%initial_ekin,hmc_e_final=hmc_ekin%final_ekin)
 
 
 ! get the energy
       CALL force_env_get(force_env,&
-         potential_energy=new_energy,error=error)
+         potential_energy=new_energy)
 
 ! accept or reject the move
 ! to prevent overflows
@@ -2601,7 +2585,7 @@ END SUBROUTINE mc_conformation_change
          w=1.0E0_dp
          rand=0.0E0_dp
       ELSE
-         IF(ionode) rand=next_random_number(rng_stream,error=error)
+         IF(ionode) rand=next_random_number(rng_stream)
          CALL mp_bcast(rand,source,group)
       ENDIF
 
