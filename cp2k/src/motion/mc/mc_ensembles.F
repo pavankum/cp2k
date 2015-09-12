@@ -110,7 +110,6 @@ CONTAINS
 !> \param rng_stream the stream we pull random numbers from
 !>
 !>    Suitable for parallel.
-!> \param error the error type
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE mc_run_ensemble ( mc_env, para_env, globenv, input_declaration, nboxes, rng_stream)
@@ -1196,7 +1195,6 @@ CONTAINS
 !> \param rng_stream the stream we pull random numbers from
 !>
 !>    Suitable for parallel.
-!> \param error the error type
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE mc_compute_virial ( mc_env, rng_stream)

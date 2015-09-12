@@ -73,7 +73,6 @@ CONTAINS
 !>                 dimensions that are related to the output of the PS_dim4allocation routine
 !>                 it MUST be created by following the same geocode as the Poisson Solver.
 !> \param pw_grid ...
-!> \param error ...
 !> \date February 2007
 !> \author Luigi Genovese
 !> \note The dimensions of the arrays must be compatible with geocode, nproc, 

@@ -58,7 +58,6 @@ CONTAINS
 !> \param pw_pool pool of plane wave grid 
 !> \param poisson_params poisson_env parameters   
 !> \param dbcs the DBC region to be created 
-!> \param error cp2k error
 !> \par History
 !>       10.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -248,8 +247,6 @@ CONTAINS
 !> \param z_locl z grid vetor of the simulation box local to this process 
 !> \param dirichlet_bc the dirichlet_bc object to be partitioned 
 !> \param verbose whether or not to print out the coordinates of the vertices
-!> \param error cp2k error
-!>
 !> \par History
 !>       10.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -427,7 +424,6 @@ CONTAINS
 !> \param dbcs  the x-axis-aligned cylindrical gate region to be created
 !> \param apx_type the type of the n-gonal prism approximating the cylinder
 !> \param verbose whether or not to print out the coordinates of the vertices
-!> \param error cp2k error
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -590,7 +586,6 @@ CONTAINS
 !> \param dbc_id unique ID for the planar Dirichlet region
 !> \param dirichlet_bc the dirichlet_bc object to be created 
 !> \param verbose whether or not to print out the coordinates of the vertices
-!> \param error cp2k error
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -727,7 +722,6 @@ CONTAINS
 !> \param dbc_id unique ID for the planar Dirichlet region
 !> \param dirichlet_bc the dirichlet_bc object to be created 
 !> \param verbose whether or not to print out the coordinates of the vertices
-!> \param error cp2k error
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -856,7 +850,6 @@ CONTAINS
 !> \param dbc_id unique ID for the planar Dirichlet region
 !> \param dirichlet_bc the dirichlet_bc object to be created 
 !> \param verbose whether or not to print out the coordinates of the vertices
-!> \param error cp2k error
 !> \par History
 !>       12.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian

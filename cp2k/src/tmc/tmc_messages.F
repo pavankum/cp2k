@@ -82,8 +82,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief checks if the core is the group master
 !> \param para_env defines the mpi communicator
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval master return value, logical
 !> \author Mandes 01.2013
 ! *****************************************************************************
@@ -120,8 +118,6 @@ CONTAINS
 !> \param result_count ...
 !> \param wait_for_message ...
 !> \param success ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE tmc_message(msg_type, send_recv, dest, para_env, tmc_params, &
@@ -403,8 +399,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief set the messege just with an status tag
 !> \param m_send the message structure
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
 
@@ -514,8 +508,6 @@ CONTAINS
 !> \brief the message for the initial values (cell size) to the workers
 !> \param tmc_params to send the cell properties
 !> \param m_send the message structure
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 07.2013
 ! *****************************************************************************
   SUBROUTINE create_worker_init_message(tmc_params, m_send)
@@ -570,8 +562,6 @@ CONTAINS
 !> \brief the message for the initial values (cell size) to the workers
 !> \param tmc_params to send the cell properties
 !> \param m_send the message structure
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 07.2013
 ! *****************************************************************************
   SUBROUTINE read_worker_init_message(tmc_params, m_send)
@@ -625,8 +615,6 @@ CONTAINS
 !> \param result_count ...
 !> \param tmc_params to send the cell properties
 !> \param m_send the message structure
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_start_conf_message(msg_type, elem, result_count, &
@@ -713,8 +701,6 @@ CONTAINS
 !> \param result_count ...
 !> \param m_send the message structure
 !> \param tmc_params the param struct with necessary values for allocation
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE read_start_conf_message(msg_type, elem, result_count, m_send, &
@@ -794,8 +780,6 @@ CONTAINS
 !> \param elem tree element with new coordinates 
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_energy_request_message(elem, m_send, &
@@ -857,8 +841,6 @@ CONTAINS
 !> \param elem tree element with new coordinates 
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE read_energy_request_message(elem, m_send, tmc_params)
@@ -911,8 +893,6 @@ CONTAINS
 !> \param elem tree element  with calculated energy
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_energy_result_message(elem, m_send, tmc_params)
@@ -982,8 +962,6 @@ CONTAINS
 !> \param elem tree element for storing new energy
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE read_energy_result_message(elem, m_send, tmc_params)
@@ -1039,8 +1017,6 @@ CONTAINS
 !> \param elem tree element with calculated approx energy 
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_approx_energy_result_message(elem, m_send, &
@@ -1090,8 +1066,6 @@ CONTAINS
 !> \param elem tree element for storing new energy
 !> \param m_send the message structure
 !> \param tmc_params the param struct with necessary parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE read_approx_energy_result(elem, m_send, tmc_params)
@@ -1132,8 +1106,6 @@ CONTAINS
 !> \param elem tree element  with calculated energy
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_NMC_request_massage(msg_type, elem, m_send, &
@@ -1227,8 +1199,6 @@ CONTAINS
 !> \param elem tree element with new coordinates 
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE read_NMC_request_massage(msg_type, elem, m_send, &
@@ -1312,8 +1282,6 @@ CONTAINS
 !> \param elem tree element  with calculated energy
 !> \param m_send the message structure
 !> \param tmc_params environment with move types and sizes
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_NMC_result_massage(msg_type, elem, m_send, tmc_params)
@@ -1446,8 +1414,6 @@ CONTAINS
 !> \param elem tree element  with calculated energy
 !> \param m_send the message structure
 !> \param tmc_params environment with move types and sizes
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE read_NMC_result_massage(msg_type, elem, m_send, tmc_params)
@@ -1566,8 +1532,6 @@ CONTAINS
 !> \param list_elem ...
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_analysis_request_message(list_elem, m_send, &
@@ -1629,8 +1593,6 @@ CONTAINS
 !> \param elem tree element with new coordinates 
 !> \param m_send the message structure
 !> \param tmc_params stuct with parameters (global settings)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE read_analysis_request_message(elem, m_send, tmc_params)
@@ -1686,8 +1648,6 @@ CONTAINS
 !> \brief routine cancel the other group participants
 !> \param elem tree element  with approximated energy
 !> \param m_send the message structure
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE read_scf_step_ener(elem, m_send)
@@ -1718,8 +1678,6 @@ CONTAINS
 !> \param atoms ...
 !> \param source ...
 !> \param para_env the communicator environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE communicate_atom_types(atoms, source, para_env)
@@ -1763,8 +1721,6 @@ CONTAINS
 !> \param para_env ...
 !> \param worker_info ...
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \param 
 !> \author Mandes 01.2013

@@ -57,8 +57,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the force_eval section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_force_eval_section(section)
@@ -166,7 +164,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the section for applying an external potential
 !> \param section ...
-!> \param error ...
 !> \date 03.2008
 !> \author teo
 ! *****************************************************************************
@@ -243,8 +240,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the section controlling the rescaling of forces
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_rescale_force_section(section)
@@ -280,8 +275,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_f_env_print_section(section)

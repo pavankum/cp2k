@@ -196,7 +196,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief 1. Just NULLIFY and zero all the stuff
 !> \param topology ...
-!> \param error ...
 !> \par History
 !>      none
 ! *****************************************************************************
@@ -307,7 +306,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief 1. Just NULLIFY and zero all the stuff
 !> \param constraint_info ...
-!> \param error ...
 !> \par History
 !>      none
 ! *****************************************************************************
@@ -399,7 +397,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief 1. Just DEALLOCATE all the stuff
 !> \param topology ...
-!> \param error ...
 !> \par History
 !>      none
 ! *****************************************************************************
@@ -605,7 +602,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief 1. Just DEALLOCATE all the stuff
 !> \param constraint_info ...
-!> \param error ...
 !> \par History
 !>      none
 ! *****************************************************************************
@@ -887,7 +883,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate possibly allocated arrays before reading topology
 !> \param topology ...
-!> \param error ...
 !> \par History
 !>      none
 ! *****************************************************************************

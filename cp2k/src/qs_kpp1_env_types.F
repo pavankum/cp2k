@@ -91,8 +91,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases a kpp1_env (see doc/ReferenceCounting.html)
 !> \param kpp1_env the environement to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -162,8 +160,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains a kpp1_env (see doc/ReferenceCounting.html)
 !> \param kpp1_env the environement to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -192,8 +188,6 @@ CONTAINS
 !>        (defaults to false)
 !> \param local if the unit is a local unit or a global unit
 !>        (defaults to false, i.e. global)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author fawzi

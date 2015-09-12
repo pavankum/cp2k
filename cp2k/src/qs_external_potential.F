@@ -57,7 +57,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief  Computes the external potential on the grid
 !> \param qs_env ...
-!> \param error ...
 !> \date   12.2009
 !> \author Teodoro Laino [tlaino]
 ! *****************************************************************************
@@ -125,7 +124,6 @@ CONTAINS
 !> \brief  Computes the force and the energy due to the external potential on the cores
 !> \param qs_env ...
 !> \param calculate_forces ...
-!> \param error ...
 !> \date   12.2009
 !> \author Teodoro Laino [tlaino]
 ! *****************************************************************************
@@ -225,7 +223,6 @@ CONTAINS
 !> \param func             external potential at r
 !> \param dfunc            derivative of the external potential at r
 !> \param calc_derivatives Whether to calulate dfunc
-!> \param error ...
 !> \date   12.2009
 !> \par History
 !>      12.2009            created [tlaino] 
@@ -301,7 +298,6 @@ CONTAINS
 !> \param func             value of vee at r
 !> \param dfunc            derivatives of vee at r
 !> \param calc_derivatives calc dfunc
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE interpolate_external_potential(r, grid, func, dfunc, calc_derivatives)
     REAL(KIND=dp), DIMENSION(3), INTENT(IN)  :: r

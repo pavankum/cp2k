@@ -74,8 +74,6 @@ CONTAINS
 !> \param section ...
 !> \param periodic ...
 !> \param label ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   RECURSIVE SUBROUTINE create_cell_section(section,periodic,label)
@@ -228,8 +226,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the random number restart section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_rng_section(section)
@@ -261,8 +257,6 @@ CONTAINS
 !> \brief creates the structure of a subsys, i.e. a full set of
 !>      atoms+mol+bounds+cell
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_subsys_section(section)
@@ -340,8 +334,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the subsys print section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_subsys_print_section(section)
@@ -587,8 +579,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the multipole section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_multipole_section(section)
@@ -642,8 +632,6 @@ CONTAINS
 !> \brief creates structure data section for output.. both subsys  (for initialization)
 !>      and motion section..
 !> \param print_key ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE create_structure_data_section(print_key)
     TYPE(section_type), POINTER              :: print_key
@@ -709,8 +697,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the velocity section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_velocity_section(section)
@@ -754,8 +740,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the shell velocity section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_shell_vel_section(section)
@@ -791,8 +775,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the shell velocity section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_core_vel_section(section)
@@ -828,8 +810,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &POTENTIAL section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_potential_section(section)
@@ -858,8 +838,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &KG_POTENTIAL section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE create_kgpot_section(section)
@@ -888,8 +866,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &BASIS section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_basis_section(section)
@@ -949,8 +925,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &COORD section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_coord_section(section)
@@ -999,8 +973,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &SHELL_COORD section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_shell_coord_section(section)
@@ -1049,8 +1021,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &core_COORD section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_core_coord_section(section)
@@ -1099,8 +1069,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the QM/MM section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_kind_section(section)
@@ -1350,7 +1318,6 @@ CONTAINS
 !>             different from default in initialization of the density  matrix
 !>             it works only with GUESS ATOMIC
 !> \param section ...
-!> \param error ...
 !> \date       05.08.2009
 !> \author     MI
 !> \version    1.0
@@ -1486,8 +1453,6 @@ CONTAINS
 !> \brief Create the topology section for FIST.. and the base is running running...
 !>      Contains all information regarding topology to be read in input file..
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_topology_section(section)
@@ -1721,8 +1686,6 @@ CONTAINS
 !> \brief Setup a list of fine exclusion elements
 !> \param section the section to create
 !> \param header ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - 12.2009
 ! *****************************************************************************
   SUBROUTINE create_exclude_list_section(section, header)
@@ -1757,8 +1720,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Specify keywords used to center molecule in the box
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 06.2009
 ! *****************************************************************************
   SUBROUTINE create_center_section(section)
@@ -1797,8 +1758,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Specify keywords used to setup several molecules with few connectivity files
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 08.2008
 ! *****************************************************************************
   SUBROUTINE create_molset_section(section)
@@ -1897,8 +1856,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Specify keywords used to generate connectivity
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 08.2008
 ! *****************************************************************************
   SUBROUTINE create_generate_section(section)
@@ -2096,8 +2053,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print gen section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_gen_print_section(section)
@@ -2136,8 +2091,6 @@ CONTAINS
 !> \brief Specify keywords used to define connectivity
 !> \param section the section to create
 !> \param default ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE connectivity_framework(section,default)
@@ -2195,7 +2148,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief      Create CP2K input section for the DFT+U method parameters
 !> \param section ...
-!> \param error ...
 !> \date       01.11.2007
 !> \author     Matthias Krack (MK)
 !> \version    1.0

@@ -105,8 +105,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author mguidon (01.2009)
 ! *****************************************************************************
   SUBROUTINE xbr_pbe_lda_hole_tc_lr_lda_info(reference,shortform, needs, max_deriv)
@@ -148,8 +146,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author mguidon (01.2009)
 ! *****************************************************************************
   SUBROUTINE xbr_pbe_lda_hole_tc_lr_lsd_info(reference,shortform, needs, max_deriv)
@@ -192,8 +188,6 @@ CONTAINS
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param params parameters for functional
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author mguidon (01.2009)
 ! *****************************************************************************
   SUBROUTINE xbr_pbe_lda_hole_tc_lr_lda_eval(rho_set,deriv_set,grad_deriv,params)
@@ -324,8 +318,6 @@ CONTAINS
 !> \param sx parameters for  functional
 !> \param R parameters for  functional
 !> \param gamma parameters for  functional
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author mguidon (01.2009)
 ! *****************************************************************************
   SUBROUTINE xbr_pbe_lda_hole_tc_lr_lda_calc(rho,norm_drho,laplace_rho,tau,e_0,e_rho,&
@@ -494,8 +486,6 @@ CONTAINS
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param params parameters for functional
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author mguidon (01.2009)
 ! *****************************************************************************
   SUBROUTINE xbr_pbe_lda_hole_tc_lr_lsd_eval(rho_set,deriv_set,grad_deriv,params)
@@ -653,8 +643,6 @@ CONTAINS
 !> \param sx parameters for  functional 
 !> \param R parameters for  functional 
 !> \param gamma parameters for  functional 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author mguidon (01.2009)
 ! *****************************************************************************
   SUBROUTINE xbr_pbe_lda_hole_tc_lr_lsd_calc(rho,norm_drho,laplace_rho,tau,e_0,e_rho,&

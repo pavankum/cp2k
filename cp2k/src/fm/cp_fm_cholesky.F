@@ -37,8 +37,6 @@ CONTAINS
 !> \param n the number of row (and columns) of the matrix &
 !>        (defaults to the min(size(matrix)))
 !> \param info_out ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2002 created [JVdV]
 !>      12.2002 updated, added n optional parm [fawzi]
@@ -107,8 +105,6 @@ CONTAINS
 !> \brief used to replace the cholesky decomposition by the inverse
 !> \param matrix the matrix to invert (must be an upper triangular matrix)
 !> \param n size of the matrix to invert (defaults to the min(size(matrix)))
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2002 created [JVdV]
 !> \author Joost VandeVondele
@@ -177,8 +173,6 @@ CONTAINS
 !> \param matrix the symmetric matrix A
 !> \param matrixb the cholesky decomposition of matrix B
 !> \param itype ...
-!> \param error variable to control error logging, stopping,...
-!>              see module cp_error_handling
 !> \par History
 !>      05.2002 created [JVdV]
 !> \author Joost VandeVondele
@@ -250,7 +244,6 @@ CPSourceFileRef,&
 !> \param op ...
 !> \param pos ...
 !> \param transa ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_fm_cholesky_restore(matrix,neig,matrixb,matrixout,op,pos,transa)
     TYPE(cp_fm_type), POINTER          :: matrix,matrixb,matrixout

@@ -79,8 +79,6 @@ MODULE xc_xpbe_hole_t_c_lr
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv controls the number of derivatives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>        01.2009 created [mguidon]
 !> \author mguidon
@@ -112,8 +110,6 @@ MODULE xc_xpbe_hole_t_c_lr
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv controls the number of derivatives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>        01.2009 created [mguidon]
 !> \author mguidon
@@ -147,8 +143,6 @@ MODULE xc_xpbe_hole_t_c_lr
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param params input parameters (scaling,cutoff)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2009 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -265,8 +259,6 @@ MODULE xc_xpbe_hole_t_c_lr
 !> \param epsilon_rho cutoffs
 !> \param sx functional parameters
 !> \param R functional parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2009 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -335,8 +327,6 @@ MODULE xc_xpbe_hole_t_c_lr
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param params input parameters (scaling,cutoff)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2009 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -465,8 +455,6 @@ MODULE xc_xpbe_hole_t_c_lr
 !> \param epsilon_rho cutoffs
 !> \param sx functional parameters
 !> \param R functional parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2009 created [Manuel Guidon]
 !> \author Manuel Guidon

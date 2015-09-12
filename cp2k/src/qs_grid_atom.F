@@ -47,7 +47,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   Deallocate a Gaussian-type orbital (GTO) basis set data set.
 !> \param grid_atom ...
-!> \param error ...
 !> \date    03.11.2000
 !> \author  MK
 !> \author Matthias Krack (MK)
@@ -91,7 +90,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   Deallocate a Gaussian-type orbital (GTO) basis set data set.
 !> \param grid_atom ...
-!> \param error ...
 !> \date    03.11.2000
 !> \author  MK
 !> \version 1.0

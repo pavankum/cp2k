@@ -71,7 +71,6 @@ CONTAINS
 !> \brief Allocates data 
 !> \param env ...
 !> \param nfrags - number of entries
-!> \param error ...
 !> \par History
 !>       2014.10 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -103,7 +102,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroyes both data and environment
 !> \param env ...
-!> \param error ...
 !> \par History
 !>       2014.10 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -138,7 +136,6 @@ CONTAINS
 !> \param mscfg_env - env containing MOs of fragments
 !> \param matrix_out - all existing blocks will be deleted!
 !> \param iset - which set of MOs in mscfg_env has to be converted (e.g. spin)
-!> \param error ...
 !> \par History
 !>       10.2014 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -213,7 +210,6 @@ CONTAINS
 !> \param offset ...
 !> \param submatrix_size ...
 !> \param matrix_size ...
-!> \param error ...
 !> \par History
 !>       10.2014 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin

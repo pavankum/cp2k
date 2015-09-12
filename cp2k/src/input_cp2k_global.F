@@ -72,8 +72,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief section to hold global settings for the whole program
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_global_section(section)
@@ -499,7 +497,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   Creates the machine architecture section
 !> \param section ...
-!> \param error ...
 !> \date    2011-08-15
 !> \author  Christiane Pousa Ribeiro
 ! *****************************************************************************
@@ -634,7 +631,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   Creates the dbcsr section for configuring DBCSR
 !> \param section ...
-!> \param error ...
 !> \date    2011-04-05
 !> \author  Urban Borstnik
 ! *****************************************************************************
@@ -845,7 +841,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   Creates the dbcsr section for configuring FM
 !> \param section ...
-!> \param error ...
 !> \date    2011-04-05
 !> \author  Florian Schiffmann
 ! *****************************************************************************

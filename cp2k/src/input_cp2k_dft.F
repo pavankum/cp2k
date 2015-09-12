@@ -148,8 +148,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the dft section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_dft_section(section)
@@ -424,8 +422,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Implicit Solvation Model
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_implicit_solv_section(section)
@@ -476,8 +472,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create Sphere cavity
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_sphere_section(section)
@@ -515,8 +509,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_center_section(section)
@@ -573,7 +565,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief parameters fo the localization of wavefunctions
 !> \param section ...
-!> \param error ...
 !> \par History
 !>      03.2005 created [MI]
 ! *****************************************************************************
@@ -804,8 +795,6 @@ CONTAINS
 !> \brief Controls the printing of the basic info coming from the LOCALIZE
 !>        section
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE print_wanniers(section)
@@ -894,8 +883,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print dft section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_print_dft_section(section)
@@ -2006,7 +1993,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for dealing with homo lumos, including dumping cubes
 !> \param print_key ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_mo_cubes_section(print_key)
     TYPE(section_type), POINTER              :: print_key
@@ -2060,7 +2046,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param print_key ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_stm_section(print_key)
     TYPE(section_type), POINTER              :: print_key
@@ -2137,7 +2122,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_wfn_mix_section(section)
 
@@ -2248,8 +2232,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the molecular states
 !> \param print_key ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_molecular_states_section(print_key)
@@ -2307,7 +2289,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param print_key ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_wannier_states_section(print_key)
     TYPE(section_type), POINTER              :: print_key
@@ -2363,8 +2344,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the qs part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_qs_section(section)
@@ -2749,7 +2728,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_dftb_control_section(section)
     TYPE(section_type), POINTER              :: section
@@ -2828,7 +2806,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_scptb_control_section(section)
     TYPE(section_type), POINTER              :: section
@@ -2922,7 +2899,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_admm_section(section)
     TYPE(section_type), POINTER              :: section
@@ -3026,7 +3002,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_dftb_parameter_section(section)
 
@@ -3131,7 +3106,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_se_control_section(section)
     TYPE(section_type), POINTER              :: section
@@ -3285,8 +3259,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the COULOMB se section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \date  03.2009
 !> \author Teodoro Laino [tlaino]
 ! *****************************************************************************
@@ -3332,8 +3304,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the COULOMB se section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \date  03.2009
 !> \author Teodoro Laino [tlaino]
 ! *****************************************************************************
@@ -3381,8 +3351,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the EXCHANGE se section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \date  03.2009
 !> \author Teodoro Laino [tlaino]
 ! *****************************************************************************
@@ -3433,8 +3401,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the SCREENING se section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \date  03.2009
 !> \author Teodoro Laino [tlaino]
 ! *****************************************************************************
@@ -3473,8 +3439,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print se section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_se_print_section(section)
@@ -3519,7 +3483,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for use with the GA part of the code
 !> \param section the section to create
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - University of Zurich - 05.2008
 ! *****************************************************************************
   SUBROUTINE create_se_ga_section(section)
@@ -3553,8 +3516,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the se-memory part integral storage
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 05.2008
 ! *****************************************************************************
   SUBROUTINE create_se_memory_section(section)
@@ -3605,7 +3566,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_mulliken_section(section)
     TYPE(section_type), POINTER              :: section
@@ -3647,7 +3607,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_density_fitting_section(section)
     TYPE(section_type), POINTER              :: section
@@ -3726,7 +3685,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_ddapc_restraint_section(section)
     TYPE(section_type), POINTER              :: section
@@ -3804,7 +3762,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_becke_restraint_section(section)
     TYPE(section_type), POINTER              :: section
@@ -3882,7 +3839,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_s2_restraint_section(section)
     TYPE(section_type), POINTER              :: section
@@ -3929,8 +3885,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the tddfpt part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_tddfpt_section(section)
@@ -4086,8 +4040,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the relativistic part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jens
 ! *****************************************************************************
   SUBROUTINE create_relativistic_section(section)
@@ -4166,8 +4118,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the structure of the section with the DFT SCF parameters
 !> \param section will contain the SCF section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_scf_section(section)
@@ -4480,7 +4430,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the KG section
 !> \param section ...
-!> \param error ...
 !> \author Martin Haeufel [2012.07]
 ! *****************************************************************************
   SUBROUTINE create_kg_section(section)
@@ -4574,8 +4523,6 @@ CONTAINS
 !> \brief creates the structure of the section with SCF parameters
 !>      controlling an other loop
 !> \param section will contain the SCF section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost VandeVondele [2006.03]
 ! *****************************************************************************
   SUBROUTINE create_outer_scf_section(section)
@@ -4678,8 +4625,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the BSSE section for counterpoise correction
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_bsse_section(section)
@@ -4778,8 +4723,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print bsse section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_print_bsse_section(section)
@@ -4819,8 +4762,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the interpolation section for the periodic QM/MM
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_gspace_interp_section(section)
@@ -4901,8 +4842,6 @@ CONTAINS
 !> \brief input section for optional parameters for LRIGPW
 !>        LRI: local resolution of identity
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze [02.2015]
 ! *****************************************************************************
   SUBROUTINE create_lrigpw_section(section)
@@ -4977,8 +4916,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief input section for optimization of the auxililary basis for LRIGPW
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze [05.2014]
 ! *****************************************************************************
   SUBROUTINE create_optimize_lri_basis_section(section)
@@ -5066,8 +5003,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief input section for constraints for auxiliary basis set optimization
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze [11.2014]
 ! *****************************************************************************
   SUBROUTINE create_constrain_exponents_section(section)
@@ -5109,8 +5044,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the multigrid
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_mgrid_section(section)
@@ -5212,8 +5145,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the interpolation section
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_interp_section(section)
@@ -5311,8 +5242,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the sic (self interaction correction) section
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_sic_section(section)
@@ -5383,7 +5312,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the low spin roks section
 !> \param section ...
-!> \param error ...
 !> \author Joost VandeVondele
 ! *****************************************************************************
   SUBROUTINE create_low_spin_roks_section(section)
@@ -5425,7 +5353,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the section for applying an electrostatic external potential
 !> \param section ...
-!> \param error ...
 !> \date 12.2009
 !> \author teo
 ! *****************************************************************************
@@ -5519,7 +5446,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ZMP Creates the section for reading user supplied external density
 !> \param section ...
-!> \param error ...
 !> \date 03.2011
 !> \author D. Varsano [daniele.varsano@nano.cnr.it]
 ! *****************************************************************************
@@ -5590,7 +5516,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ZMP Creates the section for creating the external v_xc
 !> \param section ...
-!> \param error ...
 !> \date 03.2011
 !> \author D. Varsano [daniele.varsano@nano.cnr.it]
 ! *****************************************************************************
@@ -5629,8 +5554,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for static periodic fields
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Florian Schiffmann
 ! *****************************************************************************
   SUBROUTINE create_per_efield_section(section)
@@ -5683,8 +5606,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for time dependent nonperiodic fields
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Florian Schiffmann
 ! *****************************************************************************
   SUBROUTINE create_efield_section(section)
@@ -5768,7 +5689,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief makes the orbital transformation section
 !> \param section ...
-!> \param error ...
 !> \par History
 !>      11.2004 created [Joost VandeVondele]
 ! *****************************************************************************
@@ -6136,7 +6056,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the diagonalization section
 !> \param section ...
-!> \param error ...
 !> \par History
 !>      10.2008 created [JGH]
 ! *****************************************************************************
@@ -6260,7 +6179,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Input section for filter matrix diagonalisation method
 !> \param section : section to be created
-!> \param error   : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE create_filtermatrix_section(section)
@@ -6335,7 +6253,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_davidson_section(section)
     TYPE(section_type), POINTER              :: section
@@ -6425,7 +6342,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_krylov_section(section)
     TYPE(section_type), POINTER              :: section
@@ -6490,7 +6406,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_diag_subspace_section(section)
     TYPE(section_type), POINTER              :: section
@@ -6557,7 +6472,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief makes the input section for core-level spectroscopy simulations
 !> \param section ...
-!> \param error ...
 !> \par History
 !>      03.2005 created [MI]
 ! *****************************************************************************
@@ -6834,7 +6748,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief      Create CP2K input section for the smearing of occupation numbers
 !> \param section ...
-!> \param error ...
 !> \date       27.08.2008
 !> \author     Matthias Krack (MK)
 !> \version    1.0
@@ -6952,7 +6865,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_rtp_section(section)
     TYPE(section_type), POINTER              :: section
@@ -7212,7 +7124,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_constant_env_section(section)
     TYPE(section_type), POINTER              :: section
@@ -7251,7 +7162,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_gaussian_env_section(section)
     TYPE(section_type), POINTER              :: section
@@ -7291,7 +7201,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_ramp_env_section(section)
     TYPE(section_type), POINTER              :: section
@@ -7344,7 +7253,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief      Create CP2K input section for the SCCS model
 !> \param section ...
-!> \param error ...
 !> \par History:
 !>      - Creation (10.10.2013,MK)
 !> \author     Matthias Krack (MK)

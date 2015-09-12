@@ -60,8 +60,6 @@ CONTAINS
 !> \param prob return value, the probability of reaching the tree node
 !> \param n_acc drection of branch the next tree node should extend
 !> \param search_energy_node ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \parma search_energy_node flag if configuration for calculating exact 
 !>        energy sould be searched
 !> \author Mandes 12.2012
@@ -230,8 +228,6 @@ CONTAINS
 !> \param new_gt_elem return value the energy should be calculated for
 !> \param stat routine status return value
 !> \param react_count reactivation counter
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE search_next_energy_calc(gt_head, new_gt_elem, stat, react_count)
@@ -283,15 +279,12 @@ CONTAINS
 ! *****************************************************************************
 !> \brief searching the parent element (last accepted configuration before)
 !> \param current actual tree element 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval parent parent tree element (last accepted one)
 !> \author Mandes 12.2012
 !> \note routine searches last (assumed) accepted element in subtree
 ! *****************************************************************************
   RECURSIVE FUNCTION search_parent_element(current) RESULT(parent)
-    TYPE(tree_type), POINTER                 :: current
-    TYPE(tree_type), POINTER                 :: parent
+    TYPE(tree_type), POINTER                 :: current, parent
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'search_parent_element', &
       routineP = moduleN//':'//routineN
@@ -324,8 +317,6 @@ CONTAINS
 !> \brief search the next global element in the Markov Chain to check
 !> \param ptr start point for search, should be on the known Markov Chain
 !> \param found flag if routine was successful
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   RECURSIVE SUBROUTINE search_next_gt_element_to_check(ptr, found)
@@ -385,8 +376,6 @@ CONTAINS
 !> \param gt_act_elem actual global tree element
 !> \param elem1 two subtree elements which should be compared
 !> \param elem2 two subtree elements which should be compared
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE get_subtree_elements_to_check(gt_act_elem, elem1, elem2)
@@ -440,8 +429,6 @@ CONTAINS
 !>        also found the last accepted element before
 !> \param last_acc returns last accepted element in cleaned tree part
 !> \param tree_ptr end point of search
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   RECURSIVE SUBROUTINE search_end_of_clean_g_tree(last_acc, tree_ptr)
@@ -497,8 +484,6 @@ CONTAINS
 !>        node in the tree branch
 !> \param tree_ptr  ...
 !> \param last_acc ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   RECURSIVE SUBROUTINE search_end_of_clean_tree(tree_ptr, last_acc)
@@ -541,8 +526,6 @@ CONTAINS
 !> \param prob the acceptance probability of the tree element to define 
 !>        the direction to start with
 !> \param tmc_env TMC environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   RECURSIVE SUBROUTINE search_canceling_elements(pt_elem_in, prob, tmc_env)
@@ -620,8 +603,6 @@ CONTAINS
 !> \brief searches for created configurations in all subtrees
 !> \param global_tree_ptr pointer to one global tree element
 !> \param counters array returning the counters for each subtree
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   SUBROUTINE count_prepared_nodes_in_trees(global_tree_ptr, counters)
@@ -663,8 +644,6 @@ CONTAINS
 !> \param tree_ptr pointer to one subtree element 
 !> \param counter returning the amount of prepared 
 !>        (ready for energy calculation) elements ind certain sub tree
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   RECURSIVE SUBROUTINE count_prepared_nodes_in_subtree(tree_ptr, counter)
@@ -723,8 +702,6 @@ CONTAINS
 !> \param counters array returning the counters for each subtree
 !> \param head_elements_nr node number of the existing 
 !>        global and sub tree heads
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   SUBROUTINE count_nodes_in_trees(global_tree_ptr, end_of_clean_trees, &
@@ -779,8 +756,6 @@ CONTAINS
 !> \brief counts existing nodes in global tree
 !> \param ptr global tree head 
 !> \param counter return value with the amount of existing global tree elements
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   RECURSIVE SUBROUTINE count_nodes_in_global_tree(ptr, counter)
@@ -808,8 +783,6 @@ CONTAINS
 !> \brief counts existing nodes in certain sub tree
 !> \param ptr subtree tree head 
 !> \param counter return value with the amount of existing sub tree elements
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   RECURSIVE SUBROUTINE count_nodes_in_tree(ptr, counter)

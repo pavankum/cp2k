@@ -65,7 +65,6 @@ CONTAINS
 !> \param mb      Second dimension of cb, optional
 !> \param fscale  Optional scaling of output
 !> \param trans   Optional transposition of output
-!> \param error   CP2K error reporting
 ! *****************************************************************************
   SUBROUTINE contraction_ab(sab,qab,ca,na,ma,cb,nb,mb,fscale,trans)
 
@@ -197,7 +196,6 @@ CONTAINS
 !> \param cc      Transformation matrix (index 3), optional
 !> \param nc      First dimension of cc, optional
 !> \param mc      Second dimension of cc, optional
-!> \param error   CP2K error reporting
 ! *****************************************************************************
   SUBROUTINE contraction_abc(sabc,qabc,ca,na,ma,cb,nb,mb,cc,nc,mc)
 
@@ -330,7 +328,6 @@ CONTAINS
 !> \param nb      First dimension of cb
 !> \param mb      Second dimension of cb
 !> \param trans   Optional transposition of input matrix
-!> \param error   CP2K error reporting
 ! *****************************************************************************
   SUBROUTINE decontraction_ab(sab,qab,ca,na,ma,cb,nb,mb,trans)
 
@@ -394,7 +391,6 @@ CONTAINS
 !> \param nb      Active second dimension
 !> \param m       Number of matrices to be traced
 !> \param trans   Matrices are transposed (Sab and Pab)
-!> \param error   CP2K errror reporting
 ! *****************************************************************************
   SUBROUTINE force_trace_ab(force,sab,pab,na,nb,m,trans)
 
@@ -447,7 +443,6 @@ CONTAINS
 !> \param ia     Starting index in qab first dimension
 !> \param ib     Starting index in qab second dimension
 !> \param trans  Matrices (qab and sab) are transposed
-!> \param error  CP2K error reporting
 ! *****************************************************************************
   SUBROUTINE block_add_ab(dir,sab,na,nb,qab,ia,ib,trans)
 

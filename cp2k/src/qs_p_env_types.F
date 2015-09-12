@@ -105,8 +105,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given p_env (see doc/ReferenceCounting.html)
 !> \param p_env the p_env to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -129,8 +127,6 @@ END SUBROUTINE p_env_retain
 ! *****************************************************************************
 !> \brief relases the given p_env (see doc/ReferenceCounting.html)
 !> \param p_env the environment to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed

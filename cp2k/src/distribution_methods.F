@@ -97,8 +97,6 @@ CONTAINS
 !>        prev_local_molecules
 !> \param prev_local_molecules previous distribution of molecules, new one will 
 !>        be identical if all the prev_* arguments are present and associated
-!> \param error variable to control error logging, stopping, ...
-!>               see module cp_error_handling
 !> \par History
 !>      none
 !> \author MK (Jun. 2003)
@@ -530,8 +528,6 @@ CONTAINS
 !> \param blacs_env the parallel environement at the basis of the
 !>                   distribution
 !> \param force_env_section ...
-!> \param error variable to control error logging, stopping, ...
-!>               see module cp_error_handling
 !> \par History
 !>      - local_rows & cols blocksize optimizations (Aug. 2003, MK)
 !>      - cleanup of distribution_2d (Sep. 2003, fawzi)
@@ -978,7 +974,6 @@ CONTAINS
 !> \param row_distribution ...
 !> \param npcols ...
 !> \param col_distribution ...
-!> \param error ...
 !> \par History
 !> - Created 2010-08-06 UB
 ! *****************************************************************************
@@ -1055,7 +1050,6 @@ CONTAINS
 !> \param row_distribution ...
 !> \param npcols ...
 !> \param col_distribution ...
-!> \param error ...
 !> \par History
 !> - Created 2010-11-11 Joost VandeVondele
 ! *****************************************************************************
@@ -1175,7 +1169,6 @@ CONTAINS
 !> \param row_distribution the resulting distribution over proc_rows of atomic blocks
 !> \param npcols number of precessors per col on the 2d grid
 !> \param col_distribution the resulting distribution over proc_cols of atomic blocks
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE make_cluster_distribution(coords, scaled_coords, cell, costs, &
        nprows, row_distribution, npcols, col_distribution)
@@ -1279,7 +1272,6 @@ CONTAINS
 !> \param ncluster number of clusters still to be created on a given recursion level
 !> \param icluster the index of the current cluster to be created
 !> \param fin_cluster_cost total cost of the final clusters
-!> \param error ...
 ! *****************************************************************************
   RECURSIVE SUBROUTINE cluster_recurse(coord, scaled_coord, cell, costs, cluster_inds, ncluster, icluster, fin_cluster_cost)
     REAL(KIND=dp), DIMENSION(:, :), &
@@ -1409,7 +1401,6 @@ CONTAINS
 !> \param nat_cl atoms per cluster
 !> \param seed seed for the RNG. Algorithm might need multiple tries to deliver best results
 !> \param tot_var the total variance of the clusters around the centers
-!> \param error ...
 ! *****************************************************************************
  SUBROUTINE kmeans(ncent,coord,scaled_coord,cell,cluster,nat_cl,seed,tot_var)
     INTEGER                                  :: ncent

@@ -76,8 +76,6 @@ CONTAINS
 !> \param accept result (configuration accepted of rejected)
 !> \param rnd_nr random number for acceptance check
 !> \param approx_ener for NMC the approximated energies schould be used
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE acceptance_check(tree_element, parent_element, tmc_params, &
@@ -207,8 +205,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !> \param conf2 sub tree element of higher temperature
 !> \param tmc_params TMC environment parameters
 !> \param accept acceptance of configurational change
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE swap_acceptance_check(tree_elem, conf1, conf2, tmc_params, accept)
@@ -286,8 +282,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !> \param rnd_nr random number to check with
 !> \param tmc_params TMC environment parameters
 !> \param accept Monte Carlo move acceptance (result)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE volume_acceptance_check(parent_elem, new_elem, temperature, &
@@ -367,8 +361,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !>        when ready 
 !> \param tree_elem actual tree element with calculated energy
 !> \param tmc_env TMC environment parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE check_acceptance_of_depending_subtree_nodes(tree_elem, tmc_env)
@@ -451,8 +443,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !> \param act_elem actual tree element (new configuration)
 !> \param parent_elem parent tree element (old configuration)
 !> \param tmc_env TMC environment parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE check_and_change_status_of_subtree_elem(act_elem, parent_elem, tmc_env)
@@ -534,8 +524,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !>        should change status
 !> \param stat the status of the global tree element
 !> \param tmc_params TMC emvironment parameters for drawing
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE subtree_configuration_stat_change(gt_ptr, stat, tmc_params)
@@ -591,8 +579,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !> \brief checks if the element is ready for an acceptance check
 !> \param elem sub tree element
 !> \param ready return value
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE elem_ready_to_check(elem, ready)
@@ -635,8 +621,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !> \param tmc_env TMC environment
 !> \param check_done successful checked? (result)
 !> \param result_acc checked configuration accepted? (result)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE check_elements(gt_act_elem, tmc_env, check_done, result_acc)
@@ -747,8 +731,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !> \param tmc_env TMC environment
 !> \param result_acc checked configuration accepted? (result)
 !> \param something_updated ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \param 
 !> \author Mandes 12.2012
@@ -915,8 +897,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !> \brief checks if element is ready for accaptance probability update
 !>        checks status and the amount of already received intermediate energies
 !> \param elem sub tree element to update
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval ready return value
 !> \author Mandes 12.2012
 ! *****************************************************************************
@@ -944,8 +924,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !>        global tree elements (pt references)
 !> \param tree_elem sub tree element to update
 !> \param tmc_env TMC environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE check_elements_for_acc_prob_update(tree_elem, tmc_env)
@@ -1020,8 +998,6 @@ CPPrecondition(.FALSE. ,cp_failure_level,routineP,failure)
 !> \param act_parent flag if updated element is the actual (TRUE) or 
 !>        the parent (FALSE) element
 !> \param tmc_env TMC environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE update_prob_gt_node_list(reference_list, act_elem, parent_elem, act_parent, tmc_env)

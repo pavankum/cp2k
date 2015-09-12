@@ -118,8 +118,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Retains a eip environment (see doc/ReferenceCounting.html)
 !> \param eip_env The eip environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -145,8 +143,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Releases the given eip environment (see doc/ReferenceCounting.html)
 !> \param eip_env The eip environment to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -226,8 +222,6 @@ CONTAINS
 !>
 !>      For possible missing arguments see the attributes of
 !>      eip_environment_type
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -347,8 +341,6 @@ CONTAINS
 !>                      simulation cell is used
 !> \param eip_kinetic_energy The EIP kinetic energy
 !> \param eip_potential_energy The EIP potential energy
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -475,11 +467,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Reinitializes the eip environment
 !> \param eip_env The eip environment to be reinitialized
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>
-!>      For possible missing arguments see the attributes of
-!>      eip_environment_type
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -527,11 +514,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the eip environment
 !> \param eip_env The eip environment to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>
-!>      For possible missing arguments see the attributes of
-!>      eip_environment_type
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)

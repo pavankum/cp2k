@@ -110,8 +110,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates a pw_env, if qs_env is given calls pw_env_rebuild
 !> \param pw_env the pw_env that gets created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -148,8 +146,6 @@ END SUBROUTINE pw_env_create
 !> \param pw_env the environment to rebuild
 !> \param qs_env the qs_env where to get the cell, cutoffs,...
 !> \param external_para_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -728,7 +724,6 @@ END SUBROUTINE pw_env_rebuild
 !> \param radius ...
 !> \param pw_env ...
 !> \param qs_env ...
-!> \param error ...
 !> \par History
 !>      10.2010 refactored [Joost VandeVondele]
 !> \author Joost VandeVondele
@@ -918,7 +913,6 @@ END SUBROUTINE compute_max_radius
 !> \param my_ncommensurate ...
 !> \param uf_grid ...
 !> \param print_section ...
-!> \param error ...
 !> \author 03-2005 Teodoro Laino [teo]
 !> \note
 !>      move somewere else?
@@ -1012,7 +1006,6 @@ END SUBROUTINE compute_max_radius
 !> \param method preferred finite difference derivative method 
 !> \param input input file
 !> \param pw_grid plane-wave grid
-!> \param error cp2k error
 !> \par History
 !>       12.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian

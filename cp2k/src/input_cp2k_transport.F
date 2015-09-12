@@ -42,7 +42,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the TRABSPORT section
 !> \param[inout] section the section to be created
-!> \param[inout] error   CP2K error
 ! *****************************************************************************
   SUBROUTINE create_transport_section(section)
     TYPE(section_type), POINTER              :: section

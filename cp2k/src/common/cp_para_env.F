@@ -38,8 +38,6 @@ CONTAINS
 !> \param mepos the id of the actual processor
 !> \param num_pe the number of processors in the group
 !> \param owns_group if the group is owned by this object (defaults to true)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -81,8 +79,6 @@ CONTAINS
 !> \brief retains the para object (to be called when you want to keep a
 !>      shared copy of this object)
 !> \param para_env the new group
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -106,8 +102,6 @@ CONTAINS
 !> \brief releases the para object (to be called when you don't want anymore
 !>      the shared copy of this object)
 !> \param para_env the new group
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -143,8 +137,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief gets again the position and size of the group from the mpi_group
 !> \param para_env the new group
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -170,8 +162,6 @@ CONTAINS
 !> \brief writes a description of the parallel environment to the given unit
 !> \param para_env the parallel environment to output
 !> \param unit_nr the unit where to output
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -219,8 +209,6 @@ END SUBROUTINE cp_para_env_write
 !> \param ndims the number of dimensions of the cart
 !> \param owns_group if this object owns the underlying cart (and should
 !>        free it)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE cp_cart_create(cart, group, ndims,owns_group)
@@ -259,8 +247,6 @@ SUBROUTINE cp_cart_create(cart, group, ndims,owns_group)
 ! *****************************************************************************
 !> \brief updates the information about the given cart
 !> \param cart the cart to update
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE cp_cart_update(cart)
@@ -283,8 +269,6 @@ END SUBROUTINE cp_cart_update
 ! *****************************************************************************
 !> \brief releases the given cart
 !> \param cart the cart to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE cp_cart_release(cart)
@@ -317,8 +301,6 @@ END SUBROUTINE cp_cart_release
 ! *****************************************************************************
 !> \brief retains the given cart
 !> \param cart the cart to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE cp_cart_retain(cart)
@@ -340,8 +322,6 @@ END SUBROUTINE cp_cart_retain
 !> \brief writes out the informations about the cart
 !> \param cart the parallel environment to output
 !> \param unit_nr the unit where to output
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 SUBROUTINE cp_cart_write(cart,unit_nr)

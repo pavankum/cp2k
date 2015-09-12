@@ -70,8 +70,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input structure of the file used by cp2k
 !> \param root_section the input structure to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_cp2k_root_section(root_section)
@@ -152,8 +150,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief section with the tests of the libraries or external code that cp2k uses
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_test_section(section)
@@ -277,8 +273,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief section to setup debugging parameter
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_debug_section(section)
@@ -344,8 +338,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the multiple force_eval section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_multi_force_section(section)
@@ -388,8 +380,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the exteranal restart section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_ext_restart_section(section)
@@ -622,8 +612,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the farming section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_farming_section(section)
@@ -774,7 +762,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   creates the rs_pw_transfer section for use in the test section
 !> \param section ...
-!> \param error ...
 !> \date    2008-03-09
 !> \author  Joost VandeVondele
 ! *****************************************************************************
@@ -833,7 +820,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   creates the rs_pw_transfer section for use in the test section
 !> \param section ...
-!> \param error ...
 !> \date    2008-03-09
 !> \author  Joost VandeVondele
 ! *****************************************************************************
@@ -916,7 +902,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   creates the cp_fm_gemm section for use in the test section
 !> \param section ...
-!> \param error ...
 !> \date    2009-06-15
 !> \author  Joost VandeVondele
 ! *****************************************************************************
@@ -1009,7 +994,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   creates the eigensolver section for use in the test section
 !> \param section ...
-!> \param error ...
 !> \date    2010-03-10
 !> \author  Joost VandeVondele
 ! *****************************************************************************
@@ -1074,7 +1058,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   creates the cp_dbcsr section for use in the test section
 !> \param section ...
-!> \param error ...
 !> \date    2010-02-08
 !> \author  Urban Borstnik
 ! *****************************************************************************

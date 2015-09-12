@@ -78,7 +78,6 @@ CONTAINS
 !> \param   matrix_p density matrix for force calculation (optional)
 !> \param   matrixkp_p density matrix for force calculation with kpoints (optional)
 !> \param   eps_filter Filter final matrix (optional)
-!> \param   error for error handling
 !> \date    11.10.2010
 !> \par     History
 !>          Ported from qs_overlap, replaces code in build_core_hamiltonian

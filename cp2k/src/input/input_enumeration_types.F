@@ -57,8 +57,6 @@ CONTAINS
 !> \param desc ...
 !> \param strict if integer values not in the list should be accepted,
 !>        defaults defaults to true
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE enum_create(enum,c_vals,i_vals,desc,strict)
@@ -118,8 +116,6 @@ END SUBROUTINE enum_create
 ! *****************************************************************************
 !> \brief retains the given enumeration
 !> \param enum the obect to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE enum_retain(enum)
@@ -139,8 +135,6 @@ SUBROUTINE enum_retain(enum)
 ! *****************************************************************************
 !> \brief releases the given enumeration
 !> \param enum the obect to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE enum_release(enum)
@@ -177,8 +171,6 @@ SUBROUTINE enum_release(enum)
 !> \brief maps an integer to a string
 !> \param enum the enumeration to use for the mapping
 !> \param i the value to map
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -225,8 +217,6 @@ END FUNCTION enum_i2c
 !> \brief maps a string to an integer
 !> \param enum the enumeration to use for the mapping
 !> \param c the value to map
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************

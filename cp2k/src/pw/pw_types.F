@@ -76,8 +76,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains a pw type
 !> \param pw the pw to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2003 created [fawzi]
 !> \author fawzi
@@ -102,8 +100,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given pw
 !> \param pw the pw to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -166,8 +162,6 @@ END SUBROUTINE pw_release
 !> \param in_space in which space the pw is (real or reciprocal)
 !> \param cr3d_ptr pointer with the cr3d data (make sense only if
 !>        use_data==REALDATA3D)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi

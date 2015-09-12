@@ -41,7 +41,6 @@ MODULE glbopt_input
 ! *****************************************************************************
 !> \brief Declares the SWARM%GLOBAL_OPT input section
 !> \param swarm_section ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE glbopt_declare_input(swarm_section)
@@ -122,7 +121,6 @@ MODULE glbopt_input
 ! *****************************************************************************
 !> \brief Declares the SWARM%GLOBAL_OPT%HISTORY input section
 !> \param glbopt_section ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE history_declare_input(glbopt_section)
@@ -160,7 +158,6 @@ MODULE glbopt_input
 ! *****************************************************************************
 !> \brief Declares the SWARM%GLOBAL_OPT%MINIMA_HOPPING input section
 !> \param glbopt_section ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE minhop_declare_input(glbopt_section)
@@ -237,7 +234,6 @@ MODULE glbopt_input
 ! *****************************************************************************
 !> \brief Declares the SWARM%GLOBAL_OPT%MINIMA_CRAWLING input section
 !> \param glbopt_section ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE mincrawl_declare_input(glbopt_section)

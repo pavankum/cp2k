@@ -38,8 +38,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE hcth_lda_info(iparset,reference,shortform, needs, max_deriv)
@@ -106,8 +104,6 @@ CONTAINS
 !> \param grad_deriv degree of the derivative that should be evalated,
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE hcth_lda_eval(iparset,rho_set,deriv_set,grad_deriv)
@@ -173,8 +169,6 @@ CONTAINS
 !> \param e_ndrho the derivative of the functional wrt. norm_drho
 !> \param epsilon_rho the cutoff on rho
 !> \param npoints ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi (copying from the routine of Matthias Krack in functionals.F)
 !> \note
 !>     Literature:- F. A. Hamprecht, A. J. Cohen, D. J. Tozer, and N. C. Handy,

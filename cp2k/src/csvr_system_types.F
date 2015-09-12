@@ -60,8 +60,6 @@ CONTAINS
 !> \param csvr ...
 !> \param simpar ...
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
   SUBROUTINE csvr_init(csvr, simpar, section)
@@ -90,8 +88,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Initialize NVT type for CSVR thermostat
 !> \param csvr ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
   SUBROUTINE csvr_thermo_create(csvr)
@@ -145,8 +141,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate type for CSVR thermostat
 !> \param csvr ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
   SUBROUTINE csvr_dealloc ( csvr)
@@ -171,8 +165,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate NVT type for CSVR thermostat
 !> \param nvt ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 10.2007- University of Zurich
 ! *****************************************************************************
   SUBROUTINE csvr_thermo_dealloc ( nvt)

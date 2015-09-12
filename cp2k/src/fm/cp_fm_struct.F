@@ -115,8 +115,6 @@ CONTAINS
 !> \param template_fmstruct a matrix structure where to take the default values
 !> \param square_blocks ...
 !> \param force_block ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -310,8 +308,6 @@ END SUBROUTINE cp_fm_struct_create
 ! *****************************************************************************
 !> \brief retains a full matrix structure
 !> \param fmstruct the structure to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -334,8 +330,6 @@ END SUBROUTINE cp_fm_struct_retain
 ! *****************************************************************************
 !> \brief releases a full matrix structure
 !> \param fmstruct the structure to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -385,8 +379,6 @@ END SUBROUTINE cp_fm_struct_release
 !>      otherwise.
 !> \param fmstruct1 one of the full matrix structures to compare
 !> \param fmstruct2 the second of the full matrix structures to compare
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      08.2002 created [fawzi]
@@ -427,8 +419,6 @@ END FUNCTION cp_fm_struct_equivalent
 !> \param fmstruct the structure to print
 !> \param unit_nr the number of the unit where to write the description
 !> \param long_description ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -554,9 +544,6 @@ END SUBROUTINE cp_fm_struct_write
 !> \param nrow_locals ...
 !> \param ncol_locals ...
 !> \param local_leading_dimension ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>      see cp_fm_struct_type attributes for the other arguments
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -668,8 +655,6 @@ END SUBROUTINE cp_fm_struct_get
 !> \param context ...
 !> \param col in which direction the matrix should be enlarged
 !> \param row in which direction the matrix should be enlarged
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2009 created [fschiff]
 !> \author Florian Schiffmann

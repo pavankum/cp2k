@@ -262,8 +262,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates and initializes an lri_env
 !> \param lri_env the lri_environment you want to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE lri_env_create (lri_env)
 
@@ -302,8 +300,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given lri_env
 !> \param lri_env the lri environment to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE lri_env_release(lri_env)
 
@@ -371,8 +367,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates and initializes an lri_density environment
 !> \param lri_density the lri_density environment you want to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE lri_density_create(lri_density)
 
@@ -402,8 +396,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given lri_density
 !> \param lri_density the lri_density to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE lri_density_release(lri_density)
     TYPE(lri_density_type), POINTER          :: lri_density
@@ -437,7 +429,6 @@ CONTAINS
 !> \param nkind number of atom kinds 
 !> \param calculate_forces ...
 !> \param virial ...
-!> \param error variable to control error logging, stopping,...
 ! *****************************************************************************
   SUBROUTINE allocate_lri_ints(lri_env,lri_ints,nkind,calculate_forces,&
                                virial)
@@ -603,7 +594,6 @@ CONTAINS
 !> \param lri_env ...
 !> \param lri_ints_rho structure storing the integrals (aa,bb)
 !> \param nkind number of atom kinds 
-!> \param error variable to control error logging, stopping,...
 ! *****************************************************************************
   SUBROUTINE allocate_lri_ints_rho(lri_env,lri_ints_rho,nkind)
 
@@ -687,7 +677,6 @@ CONTAINS
 !> \param lri_rhos structure storing tvec and avec
 !> \param nspin ...
 !> \param nkind number of atom kinds 
-!> \param error variable to control error logging, stopping,...
 ! *****************************************************************************
   SUBROUTINE allocate_lri_rhos(lri_env,lri_rhos,nspin,nkind)
 
@@ -798,7 +787,6 @@ CONTAINS
 !> \param lri_env ...
 !> \param lri_density ...
 !> \param atomic_kind_set ...
-!> \param error variable to control error logging, stopping,...
 ! *****************************************************************************
   SUBROUTINE allocate_lri_coefs(lri_env, lri_density, atomic_kind_set)
 
@@ -861,7 +849,6 @@ CONTAINS
 !> \param lri_force ...
 !> \param nfa and nfb number of fit functions on a/b
 !> \param nfb ...
-!> \param error variable to control error logging, stopping,...
 ! *****************************************************************************
   SUBROUTINE allocate_lri_force_components(lri_force,nfa,nfb)
 
@@ -918,8 +905,6 @@ CONTAINS
 !> \brief deallocates one-center overlap integrals, integral of ri basis
 !>        and scon matrices
 !> \param lri_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE deallocate_bas_properties (lri_env)
 
@@ -952,8 +937,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates the given lri_ints
 !> \param lri_ints ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE deallocate_lri_ints (lri_ints)
 
@@ -1013,8 +996,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates the given lri_ints_rho
 !> \param lri_ints_rho ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE deallocate_lri_ints_rho (lri_ints_rho)
 
@@ -1063,8 +1044,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates the given lri_rhos
 !> \param lri_rhos ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE deallocate_lri_rhos(lri_rhos)
 
@@ -1130,8 +1109,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given lri_coefs
 !> \param lri_coefs the integral storage environment that is released 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE deallocate_lri_coefs(lri_coefs)
     TYPE(lri_spin_type), DIMENSION(:), &
@@ -1178,8 +1155,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given lri_force_type
 !> \param lri_force the integral storage environment that is released 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE deallocate_lri_force_components(lri_force)
 

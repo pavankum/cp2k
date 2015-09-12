@@ -50,8 +50,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv the highest derivative available
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE tpss_lda_info(tpss_params,reference,shortform, needs, max_deriv)
@@ -104,8 +102,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv the highest derivative available
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE tpss_lsd_info(tpss_params,reference,shortform, needs, max_deriv)
@@ -160,8 +156,6 @@ CONTAINS
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param tpss_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE tpss_lda_eval(rho_set,deriv_set,grad_deriv,tpss_params)
@@ -284,8 +278,6 @@ CONTAINS
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param tpss_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE tpss_lsd_eval(rho_set,deriv_set,grad_deriv,tpss_params)
@@ -437,8 +429,6 @@ CONTAINS
 !> \param scale_ec ...
 !> \param scale_ex ...
 !> \param non_coer ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      maple is nice, but if you want the uman readable version of the code
@@ -988,8 +978,6 @@ CONTAINS
 !> \param scale_ec ...
 !> \param scale_ex ...
 !> \param non_coer ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      maple is nice, but if you want the uman readable version of the code

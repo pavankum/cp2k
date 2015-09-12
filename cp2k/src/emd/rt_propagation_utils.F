@@ -78,8 +78,6 @@ MODULE  rt_propagation_utils
 !>        only needed for ehrenfest MD.
 !>
 !> \param qs_env the qs environment
-!> \param error ...
-!>
 !> \par History
 !>      02.2009 created [Manuel Guidon]
 !>      02.2014 switched to dbcsr matrices [Samuel Andermatt]
@@ -235,7 +233,6 @@ MODULE  rt_propagation_utils
 ! *****************************************************************************
 !> \brief reads the restart file. At the moment only SCF (means only real)
 !> \param qs_env ...
-!> \param error ...
 !> \author Florian Schiffmann (02.09)
 ! *****************************************************************************
 
@@ -365,7 +362,6 @@ MODULE  rt_propagation_utils
 !> \brief calculates the density from the complex MOs and passes the density to
 !>        qs_env.
 !> \param qs_env ...
-!> \param error ...
 !> \author Florian Schiffmann (02.09)
 ! *****************************************************************************
 
@@ -431,7 +427,6 @@ MODULE  rt_propagation_utils
 ! *****************************************************************************
 !> \brief Copies the density matrix back into the qs_env%rho%rho_ao
 !> \param qs_env ...
-!> \param error ...
 !> \author Samuel Andermatt (3.14)
 ! *****************************************************************************
 
@@ -512,7 +507,6 @@ MODULE  rt_propagation_utils
 !> \param rtp ...
 !> \param matrix_p_im ...
 !> \param keep_sparsity ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE calculate_P_imaginary(rtp,matrix_p_im,keep_sparsity)
     TYPE(rt_prop_type), POINTER              :: rtp

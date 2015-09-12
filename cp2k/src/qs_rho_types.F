@@ -102,7 +102,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Allocates a new instance of rho.
 !> \param rho ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
  SUBROUTINE qs_rho_create(rho)
@@ -124,8 +123,6 @@ CONTAINS
 !> \brief retains a rho_struct by increasing the reference count by one
 !>      (to be called when you want to keep a shared copy)
 !> \param rho_struct the structure to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -150,8 +147,6 @@ CONTAINS
 !>      and deallocating if it reaches 0 (to be called when you don't want
 !>      anymore a shared copy)
 !> \param rho_struct the structure to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -183,7 +178,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocates all components, whithout deallocating rho_struct itself.
 !> \param rho_struct ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE qs_rho_clear(rho_struct)
@@ -270,9 +264,6 @@ CONTAINS
 !> \param tot_rho_g ...
 !> \param rho_r_sccs ...
 !> \param soft_valid ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>      For the other inputs the qs_rho_type attributes
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -355,7 +346,6 @@ CONTAINS
 !> \param tot_rho_g ...
 !> \param rho_r_sccs ...
 !> \param soft_valid ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE qs_rho_set(rho_struct, rho_ao, rho_ao_im, rho_ao_kp, rho_r, drho_r, &

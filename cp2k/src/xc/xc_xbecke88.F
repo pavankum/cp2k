@@ -45,8 +45,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -82,8 +80,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -121,8 +117,6 @@ CONTAINS
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param xb88_params input parameters (scaling)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !>      01.2007 added scaling [Manuel Guidon]
@@ -275,8 +269,6 @@ CONTAINS
 !> \param npoints ...
 !> \param epsilon_rho ...
 !> \param sx scaling-parameter for exchange
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !>      01.2007 added scaling [Manuel Guidon]
@@ -669,8 +661,6 @@ CONTAINS
 !> \param deriv_set ...
 !> \param grad_deriv ...
 !> \param xb88_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !>      01.2007 added scaling [Manuel Guidon]
@@ -873,8 +863,6 @@ CONTAINS
 !> \param npoints ...
 !> \param epsilon_rho ...
 !> \param sx scaling-parameter for exchange
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2004 created [fawzi]
 !>      01.2007 added scaling [Manuel Guidon]

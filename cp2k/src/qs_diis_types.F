@@ -75,8 +75,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains a diis buffer (see doc/ReferenceCounting.html)
 !> \param diis_buffer the buffer to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -99,8 +97,6 @@ END SUBROUTINE qs_diis_b_retain
 ! *****************************************************************************
 !> \brief releases the given diis buffer (see doc/ReferenceCounting.html)
 !> \param diis_buffer the buffer to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -151,8 +147,6 @@ END SUBROUTINE qs_diis_b_release
 ! *****************************************************************************
 !> \brief releases the given diis buffer (see doc/ReferenceCounting.html)
 !> \param diis_buffer the buffer to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10-11-14 created [FA] modified from qs_diis_b_release
 !> \author Fredy W. Aquino

@@ -1002,7 +1002,6 @@ CONTAINS
 !> \param sabc integrals [a|b|c]
 !> \param sdabc derivative [da/dAi|b|c] 
 !> \param sabdc derivative [a|b|dc/dCi] 
-!> \param error ...
 !> \par History
 !>      08.2011 created (JGH) 
 !>      04.2014 added derivatives (Dorothea Golze)
@@ -1314,7 +1313,6 @@ CONTAINS
 !> \param sabc integrals [a|b|c]
 !> \param sdabc derivative [da/dAi|b|c] 
 !> \param sabdc derivative [a|b|dc/dCi] 
-!> \param error ...
 !> \par History
 !>      05.2014 created (Dorothea Golze) 
 !> \author Dorothea Golze

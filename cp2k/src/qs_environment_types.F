@@ -443,7 +443,6 @@ CONTAINS
 !> \param potential_changed ...
 !> \param forces_up_to_date ...
 !> \param mscfg_env ...
-!> \param error ...
 !> \date    23.01.2002
 !> \author  MK
 !> \version 1.0
@@ -822,7 +821,6 @@ CONTAINS
 !> \brief  Initialise the QUICKSTEP environment.
 !> \param qs_env ...
 !> \param globenv ...
-!> \param error ...
 !> \date    25.01.2002
 !> \author  MK
 !> \version 1.0
@@ -973,7 +971,6 @@ CONTAINS
 !> \param mp2_env ...
 !> \param kg_env ...
 !> \param WannierCentres ...
-!> \param error ...
 !> \date    23.01.2002
 !> \author  MK
 !> \version 1.0
@@ -1249,8 +1246,6 @@ CONTAINS
 !> \brief allocates and intitializes a qs_env
 !> \param qs_env the object to create
 !> \param globenv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -1275,8 +1270,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given qs_env (see doc/ReferenceCounting.html)
 !> \param qs_env the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -1299,8 +1292,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given qs_env (see doc/ReferenceCounting.html)
 !> \param qs_env the object to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed

@@ -58,8 +58,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the md section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_md_section(section)
@@ -284,8 +282,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Defines LANGEVIN section
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_langevin_section(section)
@@ -341,8 +337,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Defines print section for MD
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_md_print_section(section)
@@ -442,8 +436,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Defines parameters for RESPA integration scheme
 !> \param section will contain the coeff section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_respa_section(section)
@@ -483,8 +475,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Defines parameters for REFTRAJ analysis
 !> \param section will contain the coeff section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_reftraj_section(section)
@@ -593,8 +583,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Defines parameters for MSD calculation along a REFTRAJ analysis
 !> \param section will contain the coeff section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author MI
 ! *****************************************************************************
   SUBROUTINE create_msd_section(section)
@@ -680,8 +668,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the coeff section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_msst_section(section)
@@ -753,8 +739,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief section will contain some parameters for the shells dynamics
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE create_shell_section(section)
     TYPE(section_type), POINTER              :: section
@@ -823,8 +807,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief section will contain some parameters for the adiabatic dynamics
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE create_adiabatic_section(section)
     TYPE(section_type), POINTER              :: section
@@ -903,7 +885,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief section will contain parameters for the velocity softening
 !> \param section ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE create_softening_section(section)
@@ -952,7 +933,6 @@ CONTAINS
 !> \brief input section used to define regions with different temperature
 !>        initialization and control
 !> \param section ...
-!> \param error ...
 !> \par History
 !>   - Added input for langevin regions in thermal regions section
 !>     (2014/02/04, LT)
@@ -1074,8 +1054,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   Defines the parameters for the setup of a cascade simulation
 !> \param section ...
-!> \param   error variable to control error logging, stopping,...
-!>          see module cp_error_handling
 !> \date    03.02.2012
 !> \author  Matthias Krack (MK)
 !> \version 1.0
@@ -1149,8 +1127,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Defines AVERAGES section
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_avgs_section(section)
@@ -1207,8 +1183,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Defines the AVERAGES RESTART section
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_avgs_restart_section(section)

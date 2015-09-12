@@ -91,7 +91,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Configures options for Machine Architecture
 !> \param root_section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_config(root_section)
     TYPE(section_vals_type), POINTER         :: root_section
@@ -202,7 +201,6 @@ END SUBROUTINE cp_ma_net_affinity
 ! *****************************************************************************
 !> \brief Print the configuration options for Machine Architecture
 !> \param unit_nr ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_print_config(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
@@ -265,7 +263,6 @@ END SUBROUTINE cp_ma_net_affinity
 ! *****************************************************************************
 !> \brief Prints the Machine Architecture
 !> \param unit_nr ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_print_machine(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
@@ -311,7 +308,6 @@ END SUBROUTINE cp_ma_net_affinity
 ! *****************************************************************************
 !> \brief Prints where the process is running - Also print the memory policy
 !> \brief associated with the process
-!> \param error ...
 !> \param unit_nr ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_run_on(unit_nr)
@@ -347,7 +343,6 @@ END SUBROUTINE cp_ma_net_affinity
 ! *****************************************************************************
 !> \brief Get the number of neighbors for a process. Neighbors is the process
 !> \brief running on the same machine
-!> \param error ...
 !> \retval nr_neighbors ...
 ! *****************************************************************************
   FUNCTION cp_ma_get_neighbors() RESULT (nr_neighbors)
@@ -364,7 +359,6 @@ END SUBROUTINE cp_ma_net_affinity
 !> \brief Set the number of neighbors for a process. Neighbors is the process
 !> \brief running on the same machine
 !> \param para_env ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_set_neighbors(para_env)
     TYPE(cp_para_env_type), POINTER          :: para_env
@@ -395,7 +389,6 @@ END SUBROUTINE cp_ma_net_affinity
 !> \brief Prints where the threads are running
 !> Note: Should be used with the cp_ma_sched and outside of a parallel OMP
 !> \param unit_nr ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_thread_run_on(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
@@ -435,7 +428,6 @@ END SUBROUTINE cp_ma_net_affinity
 !> Note: must be used within a parallel OMP region
 !> \param id ...
 !> \param unit_nr ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_current_thread_run(id, unit_nr)
     INTEGER                                  :: id
@@ -474,7 +466,6 @@ END SUBROUTINE cp_ma_net_affinity
 ! *****************************************************************************
 !> \brief Apply a memory binding strategy
 !> Note: set the configuration keywords in the input file
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_mempol()
 
@@ -515,7 +506,6 @@ END SUBROUTINE cp_ma_net_affinity
 ! *****************************************************************************
 !> \brief Get or apply a process scheduling strategy
 !> Note: set the configuration keywords in the input file
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_mpi_sched()
 
@@ -564,7 +554,6 @@ END SUBROUTINE cp_ma_net_affinity
 !> \brief Get or apply a thread scheduling strategy
 !> Note: set the configuration keywords in the input file
 !> \param id ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_thread_sched(id)
     INTEGER, INTENT(IN)                      :: id
@@ -604,7 +593,6 @@ END SUBROUTINE cp_ma_net_affinity
 !> \brief Verify the thread scheduling
 !> \param id ...
 !> \param unit_nr ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_verify_place(id, unit_nr)
     INTEGER, INTENT(IN)                      :: id
@@ -660,7 +648,6 @@ END SUBROUTINE cp_ma_net_affinity
 ! *****************************************************************************
 !> \brief ...
 !> \param unit_nr ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_print_strategy(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
@@ -738,7 +725,6 @@ END SUBROUTINE cp_ma_net_affinity
 !> \brief ...
 !> \param mp_comm ...
 !> \param mp_reorder ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_mpi_reordering (mp_comm,mp_reorder)
     INTEGER, INTENT(INOUT)                   :: mp_comm
@@ -796,7 +782,6 @@ END SUBROUTINE cp_ma_net_affinity
 !> \brief Initializes Machine Architecture
 !> \param init_mpi ...
 !> \param group ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_init_lib (init_mpi, group)
     LOGICAL, INTENT(IN)                      :: init_mpi
@@ -888,7 +873,6 @@ END SUBROUTINE cp_ma_net_affinity
 
 ! *****************************************************************************
 !> \brief Finalizes Machine Architecture
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_ma_finalize_lib ()
 

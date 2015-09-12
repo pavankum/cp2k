@@ -85,8 +85,6 @@ CONTAINS
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv maximum implemented derivative of the xc functional
 !> \param ifunc_name the index of the functional as given in the input file
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author F. Tran
 ! *****************************************************************************
   SUBROUTINE libxc_lda_info(libxc_params,reference,shortform,needs,max_deriv,ifunc_name)
@@ -199,8 +197,6 @@ CONTAINS
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv maximum implemented derivative of the xc functional
 !> \param ifunc_name the index of the functional as given in the input file
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author F. Tran
 ! *****************************************************************************
   SUBROUTINE libxc_lsd_info(libxc_params,reference,shortform,needs,max_deriv,ifunc_name)
@@ -316,8 +312,6 @@ CONTAINS
 !>        if negative only the given degree is calculated
 !> \param libxc_params input parameter (functional name, scaling and parameters)
 !> \param ifunc_name the index of the functional as given in the input file
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author F. Tran
 ! *****************************************************************************
   SUBROUTINE libxc_lda_eval(rho_set,deriv_set,grad_deriv,libxc_params,ifunc_name)
@@ -584,8 +578,6 @@ CONTAINS
 !>        if negative only the given degree is calculated
 !> \param libxc_params input parameter (functional name, scaling and parameters)
 !> \param ifunc_name the index of the functional as given in the input file
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author F. Tran
 ! *****************************************************************************
   SUBROUTINE libxc_lsd_eval(rho_set,deriv_set,grad_deriv,libxc_params,ifunc_name)
@@ -1173,8 +1165,6 @@ CONTAINS
 !> \param func_name name of the functional
 !> \param sc scaling factor
 !> \param params parameters of the functional
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author F. Tran
 ! *****************************************************************************
   SUBROUTINE libxc_lda_calc(rho,norm_drho,laplace_rho,tau,&
@@ -1602,8 +1592,6 @@ CONTAINS
 !> \param func_name name of the functional
 !> \param sc scaling factor
 !> \param params parameters of the functional
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author F. Tran
 ! *****************************************************************************
   SUBROUTINE libxc_lsd_calc(rhoa,rhob,norm_drho,norm_drhoa,&

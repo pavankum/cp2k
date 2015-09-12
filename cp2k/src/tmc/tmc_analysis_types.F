@@ -135,8 +135,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates a new structure environment for TMC analysis
 !> \param tmc_ana structure with parameters for TMC analysis
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 02.2013
 ! *****************************************************************************
   SUBROUTINE tmc_ana_env_create(tmc_ana)
@@ -189,8 +187,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure environment for TMC analysis
 !> \param tmc_ana structure with parameters for TMC analysis
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 02.2013
 ! *****************************************************************************
   SUBROUTINE tmc_ana_env_release(tmc_ana)
@@ -236,8 +232,6 @@ CONTAINS
 !> \brief creates a new structure environment for TMC analysis
 !> \param ana_dens structure with parameters for TMC density analysis
 !> \param nr_bins ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 02.2013
 ! *****************************************************************************
   SUBROUTINE tmc_ana_density_create(ana_dens, nr_bins)
@@ -276,8 +270,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure environment for TMC analysis
 !> \param ana_dens structure with parameters for TMC analysis
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 02.2013
 ! *****************************************************************************
   SUBROUTINE tmc_ana_dens_release(ana_dens)
@@ -307,8 +299,6 @@ CONTAINS
 !> \brief creates a new structure environment for TMC analysis
 !> \param ana_pair_correl ...
 !> \param nr_bins ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -339,8 +329,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure environment for TMC analysis
 !> \param ana_pair_correl ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -369,8 +357,6 @@ CONTAINS
 !> \param n1 atom names
 !> \param n2 atom names
 !> \param list_end ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval ind ...
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -418,8 +404,6 @@ CONTAINS
 !> \param charge_atm ...
 !> \param charge ...
 !> \param dim_per_elem ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -460,8 +444,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure environment for TMC analysis
 !> \param ana_dip_mom ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -489,8 +471,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates a new structure environment for TMC analysis
 !> \param ana_dip_ana ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -526,8 +506,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure environment for TMC analysis
 !> \param ana_dip_ana ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -562,8 +540,6 @@ CONTAINS
 !> \brief creates a new structure environment for TMC analysis
 !> \param ana_disp ...
 !> \param dim_per_elem ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -592,8 +568,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases a structure environment for TMC analysis
 !> \param ana_disp ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param
 !> \author Mandes 02.2013
 ! *****************************************************************************

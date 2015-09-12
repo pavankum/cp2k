@@ -53,7 +53,6 @@ CONTAINS
 !> \param use_inv_as_guess logical whether input can be used as guess for inverse
 !> \param norm_convergence convergence threshold for the 2-norm, useful for approximate solutions
 !> \param filter_eps filter_eps for matrix multiplications, if not passed nothing is filteres
-!> \param error ...
 !> \par History
 !>       2010.10 created [Joost VandeVondele]
 !>       2011.10 guess option added [Rustam Z Khaliullin]
@@ -212,7 +211,6 @@ CONTAINS
 !> \param matrix_sign ...
 !> \param matrix ...
 !> \param threshold ...
-!> \param error ...
 !> \par History
 !>       2010.10 created [Joost VandeVondele]
 !> \author Joost VandeVondele
@@ -327,7 +325,6 @@ CONTAINS
 !> \param order ...
 !> \param eps_lanczos ...
 !> \param max_iter_lanczos ...
-!> \param error ...
 !> \par History
 !>       2010.10 created [Joost VandeVondele]
 !> \author Joost VandeVondele
@@ -541,7 +538,6 @@ CONTAINS
 !> \param omega ...
 !> \param alpha ...
 !> \param threshold ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE matrix_exponential(matrix_exp,matrix,omega,alpha,threshold)
     ! compute matrix_exp=omega*exp(alpha*matrix)
@@ -653,7 +649,6 @@ CONTAINS
 !> \param matrix_p Matrix to purify (needs to be almost idempotent already)
 !> \param threshold Threshold used as filter_eps and convergence criteria
 !> \param max_steps Max number of iterations
-!> \param error The error-handler
 !> \par History
 !>       2013.01 created [Florian Schiffmann]
 !>       2014.07 slightly refactored [Ole Schuett]
@@ -716,7 +711,6 @@ CONTAINS
 !> \param matrix_s Overlap-Matrix
 !> \param threshold Threshold used as filter_eps and convergence criteria
 !> \param max_steps Max number of iterations
-!> \param error The error-handler
 !> \par History
 !>       2013.01 created [Florian Schiffmann]
 !>       2014.07 slightly refactored [Ole Schuett]

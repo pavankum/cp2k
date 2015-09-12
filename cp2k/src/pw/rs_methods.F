@@ -53,7 +53,6 @@ CONTAINS
 !> \param f  input function
 !> \param df derivative of f
 !> \param rs_grid real-space grid
-!> \param error cp2k error
 !> \par History:
 !>      - Creation (15.11.2013,MK)
 !>      - Refactored and moved here from qs_sccs.F (12.2014, Hossein Bani-Hashemian)
@@ -132,7 +131,6 @@ CONTAINS
 !> \param f  input function
 !> \param df derivative of f
 !> \param rs_grid real-space grid
-!> \param error cp2k error
 !> \par History:
 !>      - Creation (15.11.2013,MK)
 !>      - Refactored and moved here from qs_sccs.F (12.2014, Hossein Bani-Hashemian)
@@ -211,7 +209,6 @@ CONTAINS
 !> \param f  input function
 !> \param df derivative of f
 !> \param rs_grid real-space grid
-!> \param error cp2k error
 !> \par History:
 !>      - Creation (15.11.2013,MK)
 !>      - Refactored and moved here from qs_sccs.F (12.2014, Hossein Bani-Hashemian)
@@ -298,7 +295,6 @@ CONTAINS
 !> \param x_locl x grid vetor of the simulation box local to this process
 !> \param y_locl y grid vetor of the simulation box local to this process
 !> \param z_locl z grid vetor of the simulation box local to this process
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !>       07.2015 moved here from dirichlet_bc_utils.F [Hossein Bani-Hashemian]
@@ -395,7 +391,6 @@ CONTAINS
 !> \param z_glbl z grid vetor of the simulation box
 !> \param pw_in the input function
 !> \param pw_out the convoluted function
-!> \param error cp2k error
 !> \par History
 !>       10.2014 created [Hossein Bani-Hashemian]
 !>       07.2015 moved here from ps_implicit_methods.F [Hossein Bani-Hashemian]

@@ -118,8 +118,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases a snapshot of a wavefunction (see doc/ReferenceCounting.html)
 !> \param snapshot the snapshot to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !>      02.2005 wf_mol added [MI]
@@ -171,8 +169,6 @@ END SUBROUTINE wfs_release
 ! *****************************************************************************
 !> \brief retains a wf history (see doc/ReferenceCounting.html)
 !> \param wf_history the wf_history to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -196,8 +192,6 @@ END SUBROUTINE wfi_retain
 !> \brief releases a wf_history of a wavefunction
 !>      (see doc/ReferenceCounting.html)
 !> \param wf_history the wf_history to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -235,8 +229,6 @@ END SUBROUTINE wfi_release
 !> \brief returns a snapshot, the first being the latest snapshot
 !> \param wf_history the plage where to get the snapshot
 !> \param index the index of the snapshot you want
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      12.2002 created [fawzi]

@@ -69,7 +69,6 @@ CONTAINS
 !> \brief Builds the SCPTB core Hamiltonian matrix and its derivatives
 !> \param qs_env           The QS environment
 !> \param calculate_forces Flag to toggle force calculation
-!> \param error            CP2K error reporting
 ! *****************************************************************************
   SUBROUTINE build_scptb_core_matrix(qs_env,calculate_forces)
 

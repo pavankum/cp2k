@@ -129,8 +129,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given replica environment
 !> \param rep_env the replica environment to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      here and not in replica_types to allow the use of replica_env_type
@@ -241,8 +239,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given replica environment
 !> \param rep_env the replica environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE rep_env_retain(rep_env)
@@ -266,8 +262,6 @@ CONTAINS
 !> \brief writes out information about the rep_env
 !> \param rep_env the replica env to describe
 !> \param unit_nr the unit to write to
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE rep_env_write(rep_env, unit_nr)
@@ -330,8 +324,6 @@ CONTAINS
 !>      on replica j/=i data from replica i overwrites val(:,i)
 !> \param rep_env replica environment
 !> \param vals the values to synchronize (second index runs over replicas)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      could be optimized: bcast in inter_rep, all2all or shift vs sum
@@ -366,8 +358,6 @@ CONTAINS
 !>      in this case the result type is passed
 !> \param rep_env replica environment
 !> \param results is an array of result_types
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff
 ! *****************************************************************************
   SUBROUTINE rep_env_sync_results(rep_env,results)
@@ -434,8 +424,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief adds the given rep_env to the list of controlled rep_envs.
 !> \param rep_env the rep_env to add
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE rep_envs_add_rep_env(rep_env)
@@ -482,8 +470,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief removes the given rep_env to the list of controlled rep_envs.
 !> \param rep_env the rep_env to remove
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE rep_envs_rm_rep_env(rep_env)
@@ -525,8 +511,6 @@ CONTAINS
 !> \brief returns the local index of the replica (-1 if it is not a local replica)
 !> \param rep_env the replica env
 !> \param global_index the global replica index
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************

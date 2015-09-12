@@ -101,8 +101,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given parser
 !> \param parser the parser to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE parser_retain(parser)
@@ -122,7 +120,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases the parser
 !> \param parser ...
-!> \param error ...
 !> \date    14.02.2001
 !> \author  MK
 !> \version 1.0
@@ -171,7 +168,6 @@ CONTAINS
 !> \param parse_white_lines ...
 !> \param initial_variables ...
 !> \param apply_preprocessing ...
-!> \param error ...
 !> \date    14.02.2001
 !> \author  MK
 !> \version 1.0
@@ -289,7 +285,6 @@ CONTAINS
 !> \brief   Resets the parser: rewinding the unit and re-initializing all
 !>          parser structures
 !> \param parser ...
-!> \param error ...
 !> \date    12.2008
 !> \author  Teodoro Laino [tlaino]
 ! *****************************************************************************

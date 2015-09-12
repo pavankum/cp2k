@@ -37,7 +37,6 @@ CONTAINS
 ! ****************************************************************************
 !> \brief creates the parser status type
 !> \param status ...
-!> \param error ...
 !> \date  08.2008
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
@@ -67,7 +66,6 @@ CONTAINS
 ! ****************************************************************************
 !> \brief releases the parser status type
 !> \param status ...
-!> \param error ...
 !> \date  08.2008
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************

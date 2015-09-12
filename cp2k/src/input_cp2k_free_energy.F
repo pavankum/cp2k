@@ -51,8 +51,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the free energy section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_fe_section(section)
@@ -110,8 +108,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the metadynamics section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_metadyn_section(section)
@@ -383,8 +379,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the multiple walker section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teodoro laino [tlaino] 10.2008
 ! *****************************************************************************
   SUBROUTINE create_multiple_walkers_section(section)
@@ -454,8 +448,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the alchemical section for free energy evaluation
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teodoro laino [tlaino] 04.2007
 ! *****************************************************************************
   SUBROUTINE create_ac_section(section)
@@ -508,8 +500,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the umbrella integration section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teodoro laino [tlaino] 01.2007
 ! *****************************************************************************
   SUBROUTINE create_ui_section(section)
@@ -544,8 +534,6 @@ CONTAINS
 !> \brief Creates the velocity section
 !> \param section the section to create
 !> \param metadyn_section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_metadyn_history(section, metadyn_section)
@@ -675,8 +663,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the metavar section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_metavar_section(section)
@@ -859,8 +845,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the uvar section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_uvar_section(section)
@@ -893,8 +877,6 @@ CONTAINS
 !> \brief  creates the section specifying parameters to control the convergence
 !>         of the free energy
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teodoro laino [tlaino] 01.2007
 ! *****************************************************************************
   SUBROUTINE create_uvar_conv_section(section)

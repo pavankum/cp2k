@@ -151,8 +151,6 @@ CONTAINS
 !> \param unit_str specifies an unit of measure for output quantity. If not
 !>        provided the control is totally left to how the output was coded
 !>        (i.e. USERS have no possibility to change it)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_print_key_section_create(print_key_section, name, description, &
@@ -327,8 +325,6 @@ CONTAINS
 !> \param used_print_key here the print_key that was used is returned
 !> \param first_time if it ist the first time that an output is written
 !>        (not fully correct, but most of the time)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 !> \note
@@ -427,8 +423,6 @@ CONTAINS
 !>      does not look if this iteration it should be printed
 !> \param iteration_info information about the actual iteration level
 !> \param print_key the section values of the key to be printed
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -463,8 +457,6 @@ CONTAINS
 !> \param print_key the section values of the key to be printed
 !> \param first_time returns if it is the first time that output is written
 !>        (not fully correct, but most of the time)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -529,8 +521,6 @@ CONTAINS
 !>        (and should consequently ignore some iteration levels depending
 !>        on COMMON_ITERATION_LEVELS).
 !>        Defaults to false.
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 !> \note
@@ -595,8 +585,6 @@ CONTAINS
 !> \param iter_nr ...
 !> \param increment ...
 !> \param iter_nr_out ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      this is supposed to be called at the beginning of each iteration
@@ -641,8 +629,6 @@ CONTAINS
 !>        to be added
 !> \param level_name the name of this level, for pretty printing only, right now
 !> \param n_rlevel_new number of iteration levels after this call 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_add_iter_level(iteration_info,level_name,n_rlevel_new)
@@ -692,8 +678,6 @@ CONTAINS
 !>        to be removed
 !> \param level_name level_name to be destroyed (if does not match gives an error)
 !> \param n_rlevel_att iteration level before the call (to do some checks)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_rm_iter_level(iteration_info,level_name,n_rlevel_att)
@@ -746,8 +730,6 @@ CONTAINS
 !> \param extension extension to be applied to the filename (including the ".")
 !> \param my_local if the unit should be local to this task, or global to the
 !>        program (defaults to false).
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval filename ...
 !> \author Fawzi Mohamed
 ! *****************************************************************************
@@ -838,7 +820,6 @@ CONTAINS
 !> \param do_backup ...
 !> \param on_file ...
 !> \param is_new_file true if this rank created a new (or rewound) file, false otherwise
-!> \param error ...
 !> \retval res ...
 ! *****************************************************************************
   FUNCTION cp_print_key_unit_nr(logger, basis_section, print_key_path, extension,&
@@ -1011,7 +992,6 @@ CONTAINS
 !> \param local ...
 !> \param ignore_should_output ...
 !> \param on_file ...
-!> \param error ...
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -1083,8 +1063,6 @@ CONTAINS
 !> \param ignore_should_output if true always returns a valid unit (ignoring
 !>        cp_print_key_should_output)
 !> \param on_file ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_print_key_log(logger, basis_section, print_key_path, extension,&

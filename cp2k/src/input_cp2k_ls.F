@@ -48,7 +48,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the linear scaling scf section
 !> \param section ...
-!> \param error ...
 !> \author Joost VandeVondele [2010-10]
 ! *****************************************************************************
   SUBROUTINE create_ls_scf_section(section)
@@ -284,7 +283,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the DOS section
 !> \param section ...
-!> \param error ...
 !> \author Joost VandeVondele, Jinwoong Cha [2012-10]
 ! *****************************************************************************
   SUBROUTINE create_chebyshev_section(section)
@@ -367,7 +365,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the curvy_steps section in linear scaling scf 
 !> \param section ...
-!> \param error ...
 !> \author Florian Schiffmann [2012-10]
 ! *****************************************************************************
   SUBROUTINE create_ls_curvy_section(section)
@@ -442,7 +439,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the PEXSI library subsection of the linear scaling section.
 !> \param section ...
-!> \param error ...
 !> \par History
 !>      11.2014 created [Patrick Seewald]
 !> \author Patrick Seewald

@@ -67,7 +67,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Write helium parameters to the output unit.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-06-03
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -242,7 +241,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Writes out a line of text to the default output unit.
 !> \param line ...
-!> \param error ...
 !> \date   2009-07-10
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -272,7 +270,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Writes out helium energies according to HELIUM%PRINT%ENERGY
 !> \param helium ...
-!> \param error ...
 !> \date   2009-06-08
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -352,7 +349,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Writes out helium energies according to HELIUM%PRINT%SDENSITY
 !> \param helium ...
-!> \param error ...
 !> \date   2010-06-15
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -397,7 +393,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Writes out helium winding number according to HELIUM%PRINT%WNUMBER
 !> \param helium ...
-!> \param error ...
 !> \date   2009-10-19
 !> \par    History
 !>         2010-06-15 output W for each He environment/processor [lwalewski]
@@ -458,7 +453,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Writes out acceptance counts according to HELIUM%PRINT%ACCEPTS
 !> \param helium ...
-!> \param error ...
 !> \date   2010-05-27
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -525,7 +519,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Writes out permutation state according to HELIUM%PRINT%PERM
 !> \param helium ...
-!> \param error ...
 !> \date   2010-06-07
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -591,7 +584,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Writes helium configuration according to HELIUM%PRINT%COORDINATES
 !> \param helium ...
-!> \param error ...
 !> \date   2009-07-16
 !> \par    History
 !>         2010-02-15 output from all processors added [lwalewski]
@@ -826,7 +818,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Write helium RDF according to HELIUM%PRINT%RDF
 !> \param helium ...
-!> \param error ...
 !> \date   2009-07-23
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -883,7 +874,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Write helium densities according to HELIUM%PRINT%RHO
 !> \param helium ...
-!> \param error ...
 !> \date   2011-06-21
 !> \par    History
 !>         2011-11-11 output of any number of density estimators to different
@@ -1002,7 +992,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Write helium permutation length according to HELIUM%PRINT%PLENGTH
 !> \param helium ...
-!> \param error ...
 !> \date   2010-06-07
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -1057,7 +1046,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Write helium force according to HELIUM%PRINT%FORCE
 !> \param helium ...
-!> \param error ...
 !> \date   2010-01-27
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -1132,7 +1120,6 @@ MODULE helium_io
 ! ***************************************************************************
 !> \brief  Write instantaneous helium forces
 !> \param helium ...
-!> \param error ...
 !> \date   2010-01-29
 !> \author Lukasz Walewski
 !> \note Collects instantaneous helium forces from all processors on

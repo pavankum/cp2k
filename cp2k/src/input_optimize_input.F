@@ -38,7 +38,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the optimize_input section
 !> \param section ...
-!> \param error ...
 !> \author Joost VandeVondele
 ! *****************************************************************************
   SUBROUTINE create_optimize_input_section(section)

@@ -45,8 +45,6 @@ CONTAINS
 !>      has [0,L] as boundaries.
 !> \param qmmm_env ...
 !> \param pw_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2004 created [tlaino]
 !> \author Teodoro Laino
@@ -115,8 +113,6 @@ CONTAINS
 !> \param pw_grid_in the pw grid to duplicate
 !> \param pw_grid_out the output pw_grid_type
 !> \param pw_mode ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2004 created [tlaino]
 !>      04.2005 completly rewritten the duplicate routine, fixed parallel

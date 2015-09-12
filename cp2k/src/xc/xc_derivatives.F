@@ -144,8 +144,6 @@ CONTAINS
 !>        functional are set to true (the flags not needed aren't touched)
 !> \param max_deriv the maximal derivative available
 !> \param ifunc_name ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE xc_functional_get_info(functional,lsd,reference,shortform,&
@@ -361,8 +359,6 @@ END SUBROUTINE xc_functional_get_info
 !>        them when adding derivatives of various functionals they might contain
 !>        the derivative of just one functional)
 !> \param ifunc_name ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -601,8 +597,6 @@ END SUBROUTINE xc_functional_eval
 !>        the code all the derivatives might be calculated, you should ignore
 !>        them when adding derivatives of various functionals they might contain
 !>        the derivative of just one functional)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE xc_functionals_eval(functionals, lsd, rho_set, deriv_set, &
@@ -658,8 +652,6 @@ END SUBROUTINE xc_functionals_eval
 !> \param add_basic_components makes sure that if some gradient combination
 !>        is needed also the gradient components are requested, and if lsd
 !>        is true rho_spin is requested. Defaults to false.
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval needs ...
 !> \author fawzi
 ! *****************************************************************************

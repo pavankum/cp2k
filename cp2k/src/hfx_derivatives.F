@@ -103,8 +103,6 @@ MODULE hfx_derivatives
 !> \param irep ID of HFX replica
 !> \param use_virial ...
 !> \param adiabatic_rescale_factor parameter used for MCY3 hybrid
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2007 created [Manuel Guidon]
 !>      08.2007 optimized load balance [Manuel Guidon]

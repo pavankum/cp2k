@@ -291,7 +291,6 @@ CONTAINS
 !> \param pot1 ...
 !> \param pot2 ...
 !> \param compare ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 05.2006
 ! *****************************************************************************
   SUBROUTINE compare_pot(pot1, pot2, compare)
@@ -406,7 +405,6 @@ CONTAINS
 !> \brief Creates the potential parameter type
 !> \param potparm ...
 !> \param nset ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_single_create(potparm, nset)
@@ -456,7 +454,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Cleans the potential parameter type
 !> \param potparm ...
-!> \param error ...
 !> \author unknown
 ! *****************************************************************************
   SUBROUTINE pair_potential_single_clean(potparm)
@@ -506,7 +503,6 @@ CONTAINS
 !> \brief Copy two potential parameter type
 !> \param potparm_source ...
 !> \param potparm_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_single_copy(potparm_source, potparm_dest)
@@ -566,7 +562,6 @@ CONTAINS
 !>      Used in case of multiple_potential definition
 !> \param potparm_source ...
 !> \param potparm_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_single_add(potparm_source, potparm_dest)
@@ -694,7 +689,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Release Data-structure that constains potential parameters of a single pair
 !> \param potparm ...
-!> \param error ...
 !> \author Teodoro Laino [Teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_single_release ( potparm)
@@ -740,7 +734,6 @@ CONTAINS
 !> \brief Data-structure that constains potential parameters
 !> \param potparm ...
 !> \param nkinds ...
-!> \param error ...
 !> \author unknown
 ! *****************************************************************************
   SUBROUTINE pair_potential_pp_create ( potparm, nkinds)
@@ -776,7 +769,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Release Data-structure that constains potential parameters
 !> \param potparm ...
-!> \param error ...
 !> \par History
 !>      Teodoro Laino [Teo] 11.2005 : Reorganizing the structures to optimize
 !>                                    memory management
@@ -815,7 +807,6 @@ CONTAINS
 !> \param ndim ...
 !> \param ub ...
 !> \param lb ...
-!> \param error ...
 !> \author unknown
 ! *****************************************************************************
   SUBROUTINE pair_potential_p_create ( potparm, ndim, ub, lb)
@@ -860,7 +851,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Release Data-structure that constains potential parameters
 !> \param potparm ...
-!> \param error ...
 !> \par History
 !>      Teodoro Laino [Teo] 11.2005 : Reorganizing the structures to optimize
 !>                                    memory management
@@ -897,7 +887,6 @@ CONTAINS
 !> \param dest ...
 !> \param istart ...
 !> \param iend ...
-!> \param error ...
 !> \author Teodoro Laino [Teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_p_copy(source, dest, istart, iend)
@@ -943,7 +932,6 @@ CONTAINS
 !> \param gp ...
 !> \param tersoff ...
 !> \param siepmann ...
-!> \param error ...
 !> \author Teodoro Laino [Teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_reallocate(p,lb1_new,ub1_new,lj,lj_charmm,williams,&
@@ -1133,7 +1121,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the generic potential type
 !> \param gp ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_gp_create(gp)
@@ -1158,7 +1145,6 @@ CONTAINS
 !> \brief Copy two generic potential type
 !> \param gp_source ...
 !> \param gp_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_gp_copy(gp_source, gp_dest)
@@ -1194,7 +1180,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Cleans the generic potential type
 !> \param gp ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_gp_clean(gp)
@@ -1224,7 +1209,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the generic potential type
 !> \param gp ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_gp_release(gp)
@@ -1255,7 +1239,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Cleans the LJ potential type
 !> \param lj ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_lj_create(lj)
@@ -1278,7 +1261,6 @@ CONTAINS
 !> \brief Copy two LJ potential type
 !> \param lj_source ...
 !> \param lj_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_lj_copy(lj_source, lj_dest)
@@ -1301,7 +1283,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the LJ potential type
 !> \param lj ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_lj_clean(lj)
@@ -1322,7 +1303,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the LJ potential type
 !> \param lj ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_lj_release(lj)
@@ -1345,7 +1325,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the WILLIAMS potential type
 !> \param willis ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_williams_create(willis)
@@ -1369,7 +1348,6 @@ CONTAINS
 !> \brief Copy two WILLIAMS potential type
 !> \param willis_source ...
 !> \param willis_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_williams_copy(willis_source, willis_dest)
@@ -1392,7 +1370,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the WILLIAMS potential type
 !> \param willis ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_williams_clean(willis)
@@ -1414,7 +1391,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the WILLIAMS potential type
 !> \param willis ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_williams_release(willis)
@@ -1438,7 +1414,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the GOODWIN potential type
 !> \param goodwin ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_goodwin_create(goodwin)
@@ -1462,7 +1437,6 @@ CONTAINS
 !> \brief Copy two GOODWIN potential type
 !> \param goodwin_source ...
 !> \param goodwin_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_goodwin_copy(goodwin_source, goodwin_dest)
@@ -1487,7 +1461,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the GOODWIN potential type
 !> \param goodwin ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_goodwin_clean(goodwin)
@@ -1510,7 +1483,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the GOODWIN potential type
 !> \param goodwin ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_goodwin_release(goodwin)
@@ -1534,7 +1506,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the EAM potential type
 !> \param eam ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_eam_create(eam)
@@ -1559,7 +1530,6 @@ CONTAINS
 !> \brief Copy two EAM potential type
 !> \param eam_source ...
 !> \param eam_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_eam_copy(eam_source, eam_dest)
@@ -1601,7 +1571,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the EAM potential type
 !> \param eam ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_eam_clean(eam)
@@ -1632,7 +1601,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the EAM potential type
 !> \param eam ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_eam_release(eam)
@@ -1686,7 +1654,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the QUIP potential type
 !> \param quip ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_quip_create(quip)
@@ -1712,7 +1679,6 @@ CONTAINS
 !> \brief Copy two QUIP potential type
 !> \param quip_source ...
 !> \param quip_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_quip_copy(quip_source, quip_dest)
@@ -1735,7 +1701,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the QUIP potential type
 !> \param quip ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_quip_clean(quip)
@@ -1756,7 +1721,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the QUIP potential type
 !> \param quip ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_quip_release(quip)
@@ -1778,7 +1742,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the BMHFT (TOSI-FUMI) potential type
 !> \param ft ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_bmhft_create(ft)
@@ -1801,7 +1764,6 @@ CONTAINS
 !> \brief Copy two BMHFT (TOSI-FUMI) potential type
 !> \param ft_source ...
 !> \param ft_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_bmhft_copy(ft_source, ft_dest)
@@ -1825,7 +1787,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the BMHFT (TOSI-FUMI) potential type
 !> \param ft ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_bmhft_clean(ft)
@@ -1847,7 +1808,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the BMHFT potential type
 !> \param ft ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_bmhft_release(ft)
@@ -1870,7 +1830,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the BMHFTD (damped TOSI-FUMI) potential type
 !> \param ftd ...
-!> \param error ...
 !> \author Mathieu Salanne 05.2010
 ! *****************************************************************************
   SUBROUTINE pair_potential_bmhftd_create(ftd)
@@ -1893,7 +1852,6 @@ CONTAINS
 !> \brief Copy two BMHFTD (Damped TOSI-FUMI) potential type
 !> \param ftd_source ...
 !> \param ftd_dest ...
-!> \param error ...
 !> \author Mathieu Salanne 05.2010
 ! *****************************************************************************
   SUBROUTINE pair_potential_bmhftd_copy(ftd_source, ftd_dest)
@@ -1918,7 +1876,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Cleans the BMHFTD (damped TOSI-FUMI) potential type
 !> \param ftd ...
-!> \param error ...
 !> \author Mathieu Salanne
 ! *****************************************************************************
   SUBROUTINE pair_potential_bmhftd_clean(ftd)
@@ -1941,7 +1898,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the BMHFTD potential type
 !> \param ftd ...
-!> \param error ...
 !> \author Mathieu Salanne 05.2010
 ! *****************************************************************************
   SUBROUTINE pair_potential_bmhftd_release(ftd)
@@ -1965,7 +1921,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the IPBV potential type
 !> \param ipbv ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_ipbv_create(ipbv)
@@ -1988,7 +1943,6 @@ CONTAINS
 !> \brief Copy two IPBV potential type
 !> \param ipbv_source ...
 !> \param ipbv_dest ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_ipbv_copy(ipbv_source, ipbv_dest)
@@ -2012,7 +1966,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the IPBV potential type
 !> \param ipbv ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_ipbv_clean(ipbv)
@@ -2034,7 +1987,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the IPBV potential type
 !> \param ipbv ...
-!> \param error ...
 !> \author Teodoro Laino [teo] 11.2005
 ! *****************************************************************************
   SUBROUTINE pair_potential_ipbv_release(ipbv)
@@ -2057,7 +2009,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the Buckingham 4 ranges  potential type
 !> \param buck4r ...
-!> \param error ...
 !> \author MI 10.2006
 ! *****************************************************************************
   SUBROUTINE pair_potential_buck4r_create(buck4r)
@@ -2080,7 +2031,6 @@ CONTAINS
 !> \brief Copy two Buckingham 4 ranges  potential type
 !> \param buck4r_source ...
 !> \param buck4r_dest ...
-!> \param error ...
 !> \author MI 10.2006
 ! *****************************************************************************
   SUBROUTINE pair_potential_buck4r_copy(buck4r_source, buck4r_dest)
@@ -2110,7 +2060,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the Buckingham 4 ranges  potential type
 !> \param buck4r ...
-!> \param error ...
 !> \author MI 10.2006
 ! *****************************************************************************
   SUBROUTINE pair_potential_buck4r_clean(buck4r)
@@ -2138,7 +2087,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the Buckingham 4 ranges potential type
 !> \param buck4r ...
-!> \param error ...
 !> \author MI  10.2006
 ! *****************************************************************************
   SUBROUTINE pair_potential_buck4r_release(buck4r)
@@ -2162,7 +2110,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the Buckingham plus Morse potential type
 !> \param buckmo ...
-!> \param error ...
 !> \author MI 10.2006
 ! *****************************************************************************
   SUBROUTINE pair_potential_buckmo_create(buckmo)
@@ -2185,7 +2132,6 @@ CONTAINS
 !> \brief Copy two Buckingham plus Morse  potential type
 !> \param buckmo_source ...
 !> \param buckmo_dest ...
-!> \param error ...
 !> \author MI 10.2006
 ! *****************************************************************************
   SUBROUTINE pair_potential_buckmo_copy(buckmo_source, buckmo_dest)
@@ -2214,7 +2160,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the Buckingham plus Morse  potential type
 !> \param buckmo ...
-!> \param error ...
 !> \author MI 10.2006
 ! *****************************************************************************
   SUBROUTINE pair_potential_buckmo_clean(buckmo)
@@ -2241,7 +2186,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Destroys the Buckingham plus Morse potential type
 !> \param buckmo ...
-!> \param error ...
 !> \author MI  10.2006
 ! *****************************************************************************
   SUBROUTINE pair_potential_buckmo_release(buckmo)
@@ -2266,7 +2210,6 @@ CONTAINS
 !> \brief Creates the Tersoff potential type
 !>      (Tersoff, J. PRB 39(8), 5566, 1989)
 !> \param tersoff ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pair_potential_tersoff_create(tersoff)
     TYPE(tersoff_pot_type), POINTER          :: tersoff
@@ -2290,7 +2233,6 @@ CONTAINS
 !>      (Tersoff, J. PRB 39(8), 5566, 1989)
 !> \param tersoff_source ...
 !> \param tersoff_dest ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pair_potential_tersoff_copy(tersoff_source, tersoff_dest)
     TYPE(tersoff_pot_type), POINTER          :: tersoff_source, tersoff_dest
@@ -2324,7 +2266,6 @@ CONTAINS
 !> \brief Creates the Tersoff potential type
 !>      (Tersoff, J. PRB 39(8), 5566, 1989)
 !> \param tersoff ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pair_potential_tersoff_clean(tersoff)
     TYPE(tersoff_pot_type), POINTER          :: tersoff
@@ -2356,7 +2297,6 @@ CONTAINS
 !> \brief Destroys the Tersoff
 !>      (Tersoff, J. PRB 39(8), 5566, 1989)
 !> \param tersoff ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pair_potential_tersoff_release(tersoff)
     TYPE(tersoff_pot_type), POINTER          :: tersoff
@@ -2380,7 +2320,6 @@ CONTAINS
 !> \brief Creates the Siepmann-Sprik potential type
 !>      (Siepmann and Sprik, J. Chem. Phys. 102(1) 511, 1995)  
 !> \param siepmann ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pair_potential_siepmann_create(siepmann)
     TYPE(siepmann_pot_type), POINTER         :: siepmann
@@ -2403,7 +2342,6 @@ CONTAINS
 !>      (Siepmann and Sprik, J. Chem. Phys. 102(1) 511, 1995)  
 !> \param siepmann_source ...
 !> \param siepmann_dest ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pair_potential_siepmann_copy(siepmann_source, siepmann_dest)
     TYPE(siepmann_pot_type), POINTER         :: siepmann_source, siepmann_dest
@@ -2430,7 +2368,6 @@ CONTAINS
 !> \brief Creates the Siepmann-Sprik potential type
 !>      (Siepmann and Sprik, J. Chem. Phys. 102(1) 511, 1995)  
 !> \param siepmann ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pair_potential_siepmann_clean(siepmann)
     TYPE(siepmann_pot_type), POINTER         :: siepmann
@@ -2456,7 +2393,6 @@ CONTAINS
 !> \brief Destroys the Siepmann-Sprik potential
 !>      (Siepmann and Sprik, J. Chem. Phys. 102(1) 511, 1995)  
 !> \param siepmann ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pair_potential_siepmann_release(siepmann)
     TYPE(siepmann_pot_type), POINTER         :: siepmann

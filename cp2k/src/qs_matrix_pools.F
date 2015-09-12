@@ -81,8 +81,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given qs_matrix_pools_type
 !> \param mpools the matrix pools type to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -105,8 +103,6 @@ END SUBROUTINE mpools_retain
 ! *****************************************************************************
 !> \brief releases the given mpools
 !> \param mpools the matrix pools type to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -150,8 +146,6 @@ END SUBROUTINE mpools_release
 !> \param mo_mo_fm_pools ...
 !> \param ao_mosub_fm_pools ...
 !> \param mosub_mosub_fm_pools ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -225,9 +219,6 @@ END SUBROUTINE mpools_set
 !> \param maxao_maxmo_fm_pool ...
 !> \param maxao_maxao_fm_pool ...
 !> \param maxmo_maxmo_fm_pool ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>      see qs_matrix_pools_type attributes
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -281,8 +272,6 @@ END SUBROUTINE mpools_get
 ! *****************************************************************************
 !> \brief creates a mpools
 !> \param mpools the mpools to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -317,8 +306,6 @@ END SUBROUTINE mpools_create
 !> \param para_env the parallel environment of the matrixes
 !> \param nmosub number of the orbitals for the creation
 !>        of the pools containing only a subset of mos (OPTIONAL)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !>      04.2005 added pools for a subset of mos [MI]

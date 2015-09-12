@@ -67,8 +67,6 @@ CONTAINS
 !>        (instead of the ending) 
 !> \param file_name original file name 
 !> \param extra string to be added before the file extention
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval result_file_name the new filename
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -101,8 +99,6 @@ CONTAINS
 !>        (before the file extention) 
 !> \param file_name original file name 
 !> \param extra string to be added before the file extention
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval result_file_name the new filename
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -135,8 +131,6 @@ CONTAINS
 !>        (before the file extention) 
 !> \param file_name original file name 
 !> \param rvalue temperature to be added
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval result_file_name the new filename
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -179,8 +173,6 @@ CONTAINS
 !>        (before the file extention) 
 !> \param file_name original file name 
 !> \param ivalue number to be added
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval result_file_name the new filename
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -229,8 +221,6 @@ CONTAINS
 !>        temperatures
 !> \param job_counts the counters for counting the submitted different job types
 !> \param timings ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE print_restart_file(tmc_env, job_counts, timings)
@@ -307,8 +297,6 @@ CONTAINS
 !> \param job_counts the counters for counting the submitted different job types
 !> \param timings ...
 !> \param file_name the restart file name
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE read_restart_file(tmc_env, job_counts, timings, file_name)
@@ -405,8 +393,6 @@ CONTAINS
 !> \param conf_updated index of the updated (modified element)
 !> \param accepted acceptance flag
 !> \param tmc_params TMC environment parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 02.2013
 ! *****************************************************************************
   SUBROUTINE write_result_list_element(result_list, result_count,conf_updated,&
@@ -467,8 +453,6 @@ CONTAINS
 !> \param file_name file name will be extended by type of file (pos, cell,...)
 !> \param conf_nr Markov chain element number
 !> \param conf_info whole header line
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE write_element_in_file(elem, tmc_params, temp_index, file_name, conf_nr, &
@@ -623,8 +607,6 @@ CONTAINS
 !> \param conf_nr ...
 !> \param dip ...
 !> \param file_ext ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -675,8 +657,6 @@ CONTAINS
 !> \param conf_nr Markov chain element number 
 !>        (input the old number and read only if conf nr from file is greater
 !> \param stat ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 03.2013
 ! *****************************************************************************
   SUBROUTINE read_element_from_file(elem, tmc_ana, conf_nr, stat)
@@ -815,8 +795,6 @@ CONTAINS
 !> \param conf_nr Markov chain element number 
 !>        (input the old number and read only if conf nr from file is greater
 !> \param header_info ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 03.2013
 ! *****************************************************************************
   SUBROUTINE read_pos_from_file(elem, tmc_ana, stat, conf_nr, header_info)
@@ -897,8 +875,6 @@ CONTAINS
 !> \param stat ...
 !> \param conf_nr Markov chain element number 
 !>        (input the old number and read only if conf nr from file is greater
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 03.2013
 ! *****************************************************************************
   SUBROUTINE read_dipole_from_file(elem, tmc_ana, stat, conf_nr)
@@ -958,8 +934,6 @@ CONTAINS
 !> \param stat ...
 !> \param conf_nr Markov chain element number 
 !>        (input the old number and read only if conf nr from file is greater
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 03.2013
 ! *****************************************************************************
   SUBROUTINE read_cell_from_file(elem, tmc_ana, stat, conf_nr)
@@ -1029,8 +1003,6 @@ CONTAINS
 !> \param tmc_ana ...
 !> \param stat ...
 !> \param dir_ind ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \author Mandes 02.2013
 ! *****************************************************************************
@@ -1135,8 +1107,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief close the files for reading configurations data to analyze
 !> \param tmc_ana ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \author Mandes 02.2013
 ! *****************************************************************************

@@ -50,8 +50,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the exteranal restart section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_vib_section(section)
@@ -124,8 +122,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print section for VIB
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - 10.2008
 ! *****************************************************************************
   SUBROUTINE create_print_vib_section(section)
@@ -183,8 +179,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the input section for MODE selective
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff
 ! *****************************************************************************
   SUBROUTINE create_mode_selective_section(section)
@@ -287,8 +281,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the input section for Ivolved_atoms keyword in mode selective
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff
 ! *****************************************************************************
   SUBROUTINE create_involved_atoms_section(section)

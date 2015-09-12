@@ -85,8 +85,6 @@ MODULE replica_methods
 !>        basis (defaults to true for QS jobs)
 !> \param row_force to use the new mapping to the cart with rows
 !>        working on force instead of columns.
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE rep_env_create(rep_env, para_env, input, input_declaration, nrep, prep,&
@@ -385,8 +383,6 @@ MODULE replica_methods
 !>        forces
 !> \param calc_f if true calculates also the forces, if false only the
 !>        energy
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      indirect through f77_int_low to work around fortran madness
@@ -456,8 +452,6 @@ MODULE replica_methods
 !> \brief calculates energy and force, internal private method
 !> \param rep_env the replica env to update
 !> \param calc_f if the force should be calculated as well (defaults to true)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      this is the where the real work is done

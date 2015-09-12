@@ -158,8 +158,6 @@ CONTAINS
 !> \brief creates a unit parsing a string
 !> \param unit the unit to initialize
 !> \param string the string containing the description of the unit
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_unit_create(unit, string)
@@ -462,8 +460,6 @@ CONTAINS
 !>        cp_ukind_*
 !> \param unit_id the actual unit (use constants cp_units_*)
 !> \param power ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_unit_create2(unit, kind_id, unit_id, power)
@@ -566,8 +562,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given unit
 !> \param unit the unit to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      at the moment not needed, there for completeness
@@ -590,8 +584,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given unit
 !> \param unit the unit to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      at the moment not needed, there for completeness
@@ -623,8 +615,6 @@ CONTAINS
 !> \param basic_unit the unit to check
 !> \param error_level error level of the errors due to invalid values.
 !>        Defaults to cp_failure_level
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -749,8 +739,6 @@ CONTAINS
 !> \param basic_kind the kind of the unit of the value
 !> \param basic_unit the unit of the value
 !> \param power the power of the unit (defaults to 1)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -946,8 +934,6 @@ CONTAINS
 !> \param basic_unit the unit of the value
 !> \param power the power of the unit (defaults to 1)
 !> \param accept_undefined ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -1203,8 +1189,6 @@ CONTAINS
 !> \param defaults defaults for the undefined units, optional
 !> \param accept_undefined if defaults is not present or is not associated
 !>        whether undefined units should be accepted (defaults to false)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -1264,8 +1248,6 @@ CONTAINS
 !> \param defaults the defaults unit for those that are left free
 !>        (cp_units_none)
 !> \param power the power of the unit (defaults to 1)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -1317,8 +1299,6 @@ CONTAINS
 !> \param defaults the defaults unit for those that are left free
 !>        (cp_units_none)
 !> \param power the power of the unit (defaults to 1)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -1354,8 +1334,6 @@ CONTAINS
 !> \param defaults the defaults unit for those that are left free
 !>        (cp_units_none)
 !> \param power the power of the unit (defaults to 1)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -1390,8 +1368,6 @@ CONTAINS
 !> \param defaults the defaults unit for those that are left free
 !>        (cp_units_none)
 !> \param power the power of the unit (defaults to 1)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -1423,8 +1399,6 @@ CONTAINS
 !> \brief returs true if the two units are compatible
 !> \param ref_unit ...
 !> \param unit ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author Teodoro Laino [tlaino] - 11.2007 - University of Zurich
 ! *****************************************************************************
@@ -1452,8 +1426,6 @@ CONTAINS
 !> \param unit_set the set to initialize
 !> \param name the name of the set, used for the dafault initialization of
 !>        the various units
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_unit_set_create(unit_set,name)
@@ -1538,8 +1510,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given unit set
 !> \param unit_set the unit set to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_unit_set_retain(unit_set)
@@ -1560,8 +1530,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given unit set
 !> \param unit_set the unit set to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE cp_unit_set_release(unit_set)

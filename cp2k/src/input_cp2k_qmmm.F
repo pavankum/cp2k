@@ -85,8 +85,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the QM/MM section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_qmmm_section(section)
@@ -280,8 +278,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Input section to create MM kinds sections
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_qmmm_mm_kinds(section)
@@ -324,8 +320,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Input section to create FORCE_MIXING sections
 !> \param section ...
-!> \param error variable to control error logging, stopping,... 
-!>        see module cp_error_handling 
 !> \author noam
 ! *****************************************************************************
   SUBROUTINE create_qmmm_force_mixing_section(section)
@@ -568,8 +562,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Input section to create QM kinds sections
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_qmmm_qm_kinds(section)
@@ -606,8 +598,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Input section to set QM/MM periodic boundary conditions
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_qmmm_walls_section(section)
@@ -663,8 +653,6 @@ CONTAINS
 ! ****************************************************************************
 !> \brief Input section for QM/MM image charge calculations
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze
 ! *****************************************************************************
   SUBROUTINE create_qmmm_image_charge_section (section)
@@ -746,8 +734,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Input section to set QM/MM periodic boundary conditions
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_qmmm_periodic_section(section)
@@ -811,8 +797,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Section to set-up parameters for decoupling using the Bloechl scheme
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      Dorothea Golze [04.2014] copied from input_cp2k_poisson.F and
 !>      enabled switch-on/off 
@@ -901,8 +885,6 @@ CONTAINS
 !> \brief creates the qm/mm forcefield section to override to the FF specification
 !>      given in the FIST input
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_qmmm_forcefield_section(section)
@@ -945,8 +927,6 @@ CONTAINS
 !> \brief creates the qm/mm forcefield section to override to the FF specification
 !>      given in the FIST input - NONBONDED PART
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_qmmm_ff_nb_section(section)
@@ -987,8 +967,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the qm/mm link section
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_qmmm_link_section(section)
@@ -1189,8 +1167,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the interpolation section
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_qmmm_interp_section(section)
@@ -1293,8 +1269,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print qmmm section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_print_qmmm_section(section)

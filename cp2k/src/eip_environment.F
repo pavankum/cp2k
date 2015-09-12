@@ -64,8 +64,6 @@ CONTAINS
 !> \param para_env ...
 !> \param force_env_section ...
 !> \param subsys_section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -136,8 +134,6 @@ CONTAINS
 !> \param cell_ref Pointer to the reference cell, used e.g. in NPT simulations
 !> \param use_ref_cell Logical which indicates if cell_ref is in use
 !> \param subsys_section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -224,8 +220,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Initialize the empirical interatomic potnetial (force field) model
 !> \param eip_env The eip environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)

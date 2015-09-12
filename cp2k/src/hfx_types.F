@@ -468,8 +468,6 @@ MODULE hfx_types
 !> \param qs_kind_set ...
 !> \param dft_control ...
 !> \param cell ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param do_exx ...
 !> \par History
 !>      09.2007 created [Manuel Guidon]
@@ -897,7 +895,6 @@ MODULE hfx_types
 !> \param eps target accuracy
 !> \param omg screening parameter
 !> \param r_cutoff cutoff radius 
-!> \param error ...
 !> \par History
 !>      10.2012 created [Hossein Banihashemian]
 !> \author Hossein Banihashemian
@@ -956,7 +953,6 @@ MODULE hfx_types
 !> \param basis_info ...
 !> \param qs_kind_set ...
 !> \param do_admm ...
-!> \param error ...
 !> \par History
 !>      07.2011 refactored
 ! *****************************************************************************
@@ -1103,7 +1099,6 @@ MODULE hfx_types
 ! *****************************************************************************
 !> \brief ...
 !> \param basis_parameter ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE hfx_release_basis_types(basis_parameter)
     TYPE(hfx_basis_type), DIMENSION(:), &
@@ -1143,7 +1138,6 @@ MODULE hfx_types
 !> \param irep ...
 !> \param skip_disk ...
 !> \param skip_in_core_forces ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE parse_memory_section(memory_parameter, hf_sub_section, storage_id,&
        i_thread, n_threads, para_env, irep, skip_disk, skip_in_core_forces)
@@ -1240,8 +1234,6 @@ MODULE hfx_types
 ! *****************************************************************************
 !> \brief - This routine deallocates all data structures
 !> \param x_data contains all relevant data structures for hfx runs
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -1405,8 +1397,6 @@ MODULE hfx_types
 !> \param pbc_shells number of shells taken into account
 !> \param cell cell
 !> \param i_thread current thread ID
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -1895,8 +1885,6 @@ MODULE hfx_types
 !> \param container container that contains the compressed elements
 !> \param memory_usage ...
 !> \param do_disk_storage ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -1951,8 +1939,6 @@ MODULE hfx_types
 !>        for the energy
 !> \param ptr_to_distr contains data to store
 !> \param x_data contains all relevant data structures for hfx runs
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -1982,8 +1968,6 @@ MODULE hfx_types
 !>        for the forces
 !> \param ptr_to_distr contains data to store
 !> \param x_data contains all relevant data structures for hfx runs
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -2041,8 +2025,6 @@ MODULE hfx_types
 !> \param x_data contains all relevant data structures for hfx runs
 !> \param hfx_section HFX input section
 !> \param i_rep current replica ID
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2008 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -2159,7 +2141,6 @@ MODULE hfx_types
 !> \brief ...
 !> \param x_data ...
 !> \param eval_type ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE dealloc_containers(x_data, eval_type)
     TYPE(hfx_type), POINTER                  :: x_data
@@ -2235,7 +2216,6 @@ MODULE hfx_types
 !> \param x_data ...
 !> \param bin_size ...
 !> \param eval_type ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE alloc_containers(x_data, bin_size, eval_type)
     TYPE(hfx_type), POINTER                  :: x_data

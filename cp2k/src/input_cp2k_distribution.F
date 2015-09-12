@@ -36,8 +36,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the distribution section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost VandeVondele
 ! *****************************************************************************
   SUBROUTINE create_distribution_section(section)

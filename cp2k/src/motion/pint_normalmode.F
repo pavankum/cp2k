@@ -44,8 +44,6 @@ CONTAINS
 !> \param normalmode_section ...
 !> \param p ...
 !> \param kT ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_env_create(normalmode_env,normalmode_section,p,kT)
@@ -120,8 +118,6 @@ CONTAINS
 ! ***************************************************************************
 !> \brief releases the normalmode environment
 !> \param normalmode_env the normalmode_env to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_release(normalmode_env)
@@ -156,8 +152,6 @@ CONTAINS
 ! ***************************************************************************
 !> \brief retains a normalmode_env
 !> \param normalmode_env the normalmode_env to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_retain(normalmode_env)
@@ -186,8 +180,6 @@ CONTAINS
 !> \param mass_beads masses of the beads
 !> \param mass_fict the fictitious masses
 !> \param Q masses of the nose thermostats
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_init_masses(normalmode_env,mass,mass_beads,mass_fict,&
@@ -239,8 +231,6 @@ CONTAINS
 !> \param normalmode_env the environment for the normal mode transformation
 !> \param ux will contain the u variable
 !> \param x the positions to transform
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_x2u(normalmode_env,ux,x)
@@ -271,8 +261,6 @@ CONTAINS
 !> \param normalmode_env the environment for the normal mode transformation
 !> \param ux the u variable (positions to be backtransformed)
 !> \param x will contain the positions
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_u2x(normalmode_env,ux,x)
@@ -302,8 +290,6 @@ CONTAINS
 !> \param normalmode_env the environment for the normal mode transformation
 !> \param uf will contain the forces for the transformed variables afterwards
 !> \param f the forces to transform
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_f2uf(normalmode_env,uf,f)
@@ -335,8 +321,6 @@ CONTAINS
 !> \param ux the positions of the beads in the staging basis
 !> \param uf_h the harmonic forces (not accelerations)
 !> \param e_h ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Harald Forbert
 ! *****************************************************************************
   SUBROUTINE normalmode_calc_uf_h(normalmode_env,mass_beads,ux,uf_h,e_h)

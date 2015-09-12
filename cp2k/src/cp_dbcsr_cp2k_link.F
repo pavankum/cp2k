@@ -77,7 +77,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Configures options for DBCSR
 !> \param root_section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_config(root_section)
     TYPE(section_vals_type), POINTER         :: root_section
@@ -168,7 +167,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Prints configuration for DBCSR
 !> \param unit_nr ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_print_config(unit_nr)
     INTEGER, INTENT(IN), OPTIONAL            :: unit_nr
@@ -271,7 +269,6 @@ CONTAINS
 !> \brief allocate the blocks of a dbcsr based on the neighbor list
 !> \param matrix        the matrix
 !> \param sab_orb       the corresponding neighbor list
-!> \param error ...
 !> \par History
 !>      11.2009 created vw
 !>      01.2014 moved here from cp_dbcsr_operations (Ole Schuett)
@@ -372,7 +369,6 @@ CONTAINS
 !>                              the DBCSR matrix that is used to create the CSR
 !>                              matrix. It must have symmetric DBCSR format and 
 !>                              must not be filtered.
-!> \param error ...
 !> \par History
 !>      02.2015 created [Patrick Seewald]
 !> \author Patrick Seewald

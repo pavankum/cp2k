@@ -152,8 +152,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given force env
 !> \param force_env the force environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -178,8 +176,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given force env
 !> \param force_env the force environment to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -273,9 +269,6 @@ CONTAINS
 !> \param method_name_id ...
 !> \param root_section ...
 !> \param mixed_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>      for the orther arguments see the attributes of force_env_type
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -470,8 +463,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief returns the number of atoms
 !> \param force_env the force_env you what information about
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval n_atom the number of atoms
 !> \date   22.11.2010 updated (MK)
 !> \author fawzi
@@ -498,8 +489,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief returns the number of particles in a force environment
 !> \param force_env the force_env you what information about
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval n_particle the number of particles
 !> \date   22.11.2010 (MK)
 !> \author Matthias Krack
@@ -528,8 +517,6 @@ CONTAINS
 !> \param force_env the force_env you want to get the forces
 !> \param frc the array of the forces
 !> \param n ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \date   22.11.2010 Creation
 !> \author Matthias Krack
 ! *****************************************************************************
@@ -561,8 +548,6 @@ CONTAINS
 !> \param force_env the force_env you want to get the positions
 !> \param pos the array of the positions
 !> \param n ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \date   22.11.2010 updated (MK)
 !> \author fawzi
 ! *****************************************************************************
@@ -594,8 +579,6 @@ CONTAINS
 !> \param force_env the force_env you want to get the velocities
 !> \param vel the array of the velocities
 !> \param n ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \date   22.11.2010 Creation (MK)
 !> \author Matthias Krack
 ! *****************************************************************************
@@ -630,8 +613,6 @@ CONTAINS
 !> \param force_env_section ...
 !> \param method_name_id ...
 !> \param additional_potential ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -690,8 +671,6 @@ CONTAINS
 !> \param root_section ...
 !> \param i_force_eval ...
 !> \param nforce_eval ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE multiple_fe_list(force_env_sections, root_section, i_force_eval, nforce_eval)

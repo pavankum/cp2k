@@ -96,8 +96,6 @@ CONTAINS
 !> \param cancel_count counter of canceled elements
 !> \param para_env communication environment
 !> \param tmc_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE cancel_calculations(cancel_list, work_list, cancel_count,&
@@ -178,8 +176,6 @@ CONTAINS
 !> \param ana_worker_info ...
 !> \param para_env communication environment
 !> \param tmc_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE send_analysis_tasks(ana_list, ana_worker_info, para_env, tmc_env)
@@ -227,8 +223,6 @@ CONTAINS
 !>        distribution with workers
 !> \param tmc_env structure for storing all the tmc parameters
 !> \param globenv global environment for external control
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE do_tmc_master(tmc_env, globenv)
@@ -968,8 +962,6 @@ CONTAINS
 !>        hence the program can stop with a proper finailze
 !> \param time actual calculation time
 !> \param walltime_delay the actual biggest calculation time
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE set_walltime_delay(time, walltime_delay)

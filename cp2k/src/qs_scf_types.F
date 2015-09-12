@@ -134,8 +134,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief allocates and initialize an scf_env
 !> \param scf_env the scf env to initialize
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -206,8 +204,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains an scf_env (see doc/ReferenceCounting.html)
 !> \param scf_env the environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -237,8 +233,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief function to be called to inform the scf_env about changes
 !> \param scf_env the scf env to inform
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2003 created [fawzi]
 !> \author fawzi
@@ -273,8 +267,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases an scf_env (see doc/ReferenceCounting.html)
 !> \param scf_env the environment to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -394,7 +386,6 @@ CONTAINS
 !> \brief  creates krylov space
 !> \param krylov_space ...
 !> \param scf_section ...
-!> \param error ...
 !> \par History
 !>      05.2009 created [MI]
 !> \author [MI]
@@ -445,7 +436,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases krylov space
 !> \param krylov_space ...
-!> \param error ...
 !> \par History
 !>      05.2009 created [MI]
 !> \author [MI]
@@ -514,7 +504,6 @@ CONTAINS
 !> \param subspace_env ...
 !> \param scf_section ...
 !> \param ecut ...
-!> \param error ...
 !> \par History
 !>      09.2009 created [MI]
 !> \author [MI]
@@ -574,7 +563,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases subspace-rotation environment
 !> \param subspace_env ...
-!> \param error ...
 !> \par History
 !>      09.2009 created [MI]
 !> \author [MI]

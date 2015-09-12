@@ -97,8 +97,6 @@ CONTAINS
 ! **********************************************************************
 !> \brief retains the given fb_env
 !> \param fb_env : the fb_env to retain
-!> \param error  : variable to control error logging, stopping, ...
-!>                 see module cp_error_handling
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_retain(fb_env)
@@ -120,8 +118,6 @@ CONTAINS
 !> \brief releases a given fb_env
 !> \brief ...
 !> \param fb_env : the fb_env to release
-!> \param error  : variable to control error logging, stopping, ...
-!>                 see module cp_error_handling
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_release(fb_env)
@@ -217,8 +213,6 @@ CONTAINS
 !> \brief creates an empty fb_env object
 !> \param fb_env : its content must be a NULL fb_env pointer on input,
 !>                 and the output returns an empty fb_env object
-!> \param error  : variable to control error logging, stopping, ...
-!>                 see module cp_error_handling
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_create(fb_env)
@@ -253,8 +247,6 @@ CONTAINS
 !> \brief ...
 !> \param fb_env : the fb_env object, which must not be NULL or
 !>                 UNDEFINED upon entry
-!> \param error  : variable to control error logging, stopping, ...
-!>                 see module cp_error_handling
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_init(fb_env)
@@ -303,8 +295,6 @@ CONTAINS
 !> \param collective_com     : outputs pointer to trial_fns
 !> \param local_atoms        : outputs pointer to local_atoms
 !> \param nlocal_atoms       : outputs pointer to nlocal_atoms
-!> \param error  : variable to control error logging, stopping, ...
-!>                 see module cp_error_handling
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_get(fb_env, &
@@ -368,8 +358,6 @@ CONTAINS
 !> \param collective_com     : sets collective_com attribute of fb_env (optional)
 !> \param local_atoms        : sets local_atoms attribute of fb_env (optional)
 !> \param nlocal_atoms       : sets nlocal_atoms attribute of fb_env (optional)
-!> \param error  : variable to control error logging, stopping, ...
-!>                 see module cp_error_handling
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_set(fb_env, &

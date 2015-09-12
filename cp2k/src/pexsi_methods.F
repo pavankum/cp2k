@@ -69,7 +69,6 @@ CONTAINS
 !> \brief Read CP2K input section PEXSI and pass it to the PEXSI environment
 !> \param pexsi_section ...
 !> \param pexsi_env ...
-!> \param error ...
 !> \par History
 !>      11.2014 created [Patrick Seewald]
 !> \author Patrick Seewald
@@ -158,7 +157,6 @@ CONTAINS
 !> \param pexsi_env ...
 !> \param template_matrix DBCSR matrix that defines the block structure and
 !>        sparsity pattern of all matrices that are sent to PEXSI
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pexsi_init_scf(ks_env, pexsi_env, template_matrix)
     TYPE(qs_ks_env_type), POINTER            :: ks_env
@@ -237,7 +235,6 @@ CONTAINS
 !> \brief Deallocations and post-processing after SCF
 !> \param pexsi_env ...
 !> \param mu_spin ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pexsi_finalize_scf(pexsi_env,mu_spin)
     TYPE(lib_pexsi_env), INTENT(INOUT)       :: pexsi_env
@@ -299,7 +296,6 @@ CONTAINS
 !> \param[out] mu               chemical potential calculated by PEXSI
 !> \param[in] iscf              SCF step
 !> \param[in] ispin             Number of spin
-!> \param error ...
 !> \par History
 !>      11.2014 created [Patrick Seewald]
 !> \author Patrick Seewald
@@ -550,7 +546,6 @@ CONTAINS
 !>        with delta_scf as initial convergence error
 !> \param check_convergence is set to .FALSE. if convergence in number of electrons
 !>        will not be achieved in next SCF step
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE pexsi_set_convergence_tolerance(pexsi_env, delta_scf, eps_scf, initialize, &
                                              check_convergence)
@@ -596,7 +591,6 @@ CONTAINS
 !> \param qs_env ...
 !> \param kTS ...
 !> \param matrix_w ...
-!> \param error ...
 !> \par History
 !>      12.2014 created [Patrick Seewald]
 !> \author Patrick Seewald

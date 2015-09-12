@@ -65,8 +65,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the input section for FIST.. Come on.. Let's get woohooo
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_mm_section(section)
@@ -109,8 +107,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print mm section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_print_mm_section(section)
@@ -213,8 +209,6 @@ CONTAINS
 !> \brief Create the forcefield section. This section is useful to set up the
 !>      proper force_field for FIST calculations
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_forcefield_section(section)
@@ -378,8 +372,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the parameters for the splines
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_SPLINE_section(section)
@@ -461,8 +453,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the torsion of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_TORSION_section(section)
@@ -531,8 +521,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the improper torsion of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author louis vanduyfhuys
 ! *****************************************************************************
   SUBROUTINE create_IMPROPER_section(section)
@@ -594,8 +582,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the out of plane bend of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author louis vanduyfhuys
 ! *****************************************************************************
   SUBROUTINE create_OPBEND_section(section)
@@ -659,8 +645,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the bend of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_BEND_section(section)
@@ -780,8 +764,6 @@ CONTAINS
 !> \brief This section specifies the bond of the MM atoms
 !> \param section the section to create
 !> \param label ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_BOND_section(section,label)
@@ -876,8 +858,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the charge of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_charges_section(section)
@@ -910,8 +890,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the charge of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_charge_section(section)
@@ -951,8 +929,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the isotropic polarizability of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Marcel Baer
 ! *****************************************************************************
   SUBROUTINE create_quadrupole_section(section)
@@ -993,8 +969,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the isotropic polarizability of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Marcel Baer
 ! *****************************************************************************
   SUBROUTINE create_dipole_section(section)
@@ -1039,8 +1013,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the idamping parameters for polarizable atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Rodolphe Vuilleumier
 ! *****************************************************************************
   SUBROUTINE create_damping_section(section)
@@ -1102,8 +1074,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the charge of the MM atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_shell_section(section)
@@ -1204,8 +1174,6 @@ CONTAINS
 !> \brief This section specifies the input parameters for 1-4 NON-BONDED
 !>      Interactions
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_NONBONDED14_section(section)
@@ -1248,8 +1216,6 @@ CONTAINS
 !> \brief This section specifies the input parameters for 1-4 NON-BONDED
 !>      Interactions
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_NONBONDED_section(section)
@@ -1328,8 +1294,6 @@ CONTAINS
 !> \brief This section specifies the input parameters for generation of
 !>      neighbor lists
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo [07.2007] - Zurich University
 ! *****************************************************************************
   SUBROUTINE create_neighbor_lists_section(section)
@@ -1382,8 +1346,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for a generic potential form
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_GENPOT_section(section)
@@ -1479,8 +1441,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for EAM  potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_EAM_section(section)
@@ -1529,8 +1489,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for QUIP  potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_QUIP_section(section)
@@ -1593,8 +1551,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for Lennard-Jones potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_LJ_section(section)
@@ -1664,8 +1620,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for Williams potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_Williams_section(section)
@@ -1742,8 +1696,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for Goodwin potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_Goodwin_section(section)
@@ -1833,8 +1785,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for IPBV potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_ipbv_section(section)
@@ -1890,8 +1840,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for BMHFT potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_BMHFT_section(section)
@@ -1983,8 +1931,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for BMHFTD potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mathieu Salanne 05.2010
 ! *****************************************************************************
   SUBROUTINE create_BMHFTD_section(section)
@@ -2092,8 +2038,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for Buckingham 4 ranges potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author MI
 ! *****************************************************************************
   SUBROUTINE create_Buck4r_section(section)
@@ -2212,8 +2156,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief This section specifies the input parameters for Buckingham + Morse potential type
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author MI
 ! *****************************************************************************
   SUBROUTINE create_Buckmorse_section(section)
@@ -2334,7 +2276,6 @@ CONTAINS
 !> \brief This section specifies the input parameters for Tersoff potential type
 !>      (Tersoff, J. PRB 39(8), 5566, 1989)
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_Tersoff_section(section)
     TYPE(section_type), POINTER              :: section
@@ -2490,7 +2431,6 @@ CONTAINS
 !>        potential type
 !>      (Siepmann and Sprik, J. Chem. Phys. 102(1) 511, 1995)  
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
  SUBROUTINE create_Siepmann_section(section)
     TYPE(section_type), POINTER              :: section
@@ -2588,8 +2528,6 @@ CONTAINS
 !> \param print_key ...
 !> \param label ...
 !> \param print_level ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_dipoles_section(print_key,label,print_level)

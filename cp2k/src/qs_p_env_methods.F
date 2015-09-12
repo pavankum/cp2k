@@ -112,8 +112,6 @@ CONTAINS
 !> \param psi0d ...
 !> \param orthogonal_orbitals if the orbitals are orthogonal
 !> \param linres_control ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -316,8 +314,6 @@ CONTAINS
 !> \brief checks that the intenal storage is allocated, and allocs it if needed
 !> \param p_env the environment to check
 !> \param qs_env the qs environment this p_env lives in
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -376,8 +372,6 @@ CONTAINS
 !> \param p_env the p_env to inform of the changes
 !> \param s_struct_changed true if the structure of the s matrix has changed
 !> \param grid_changed true if the grids have changed and have to be rebuilt
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -425,8 +419,6 @@ END SUBROUTINE p_env_did_change
 !> \param psi0 the value of psi0, if not given defaults to the qs_env mos
 !> \param Hrho_psi0d is given, then the partial result Hrho_psi0d is stored in
 !>        that vector
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -657,7 +649,6 @@ END SUBROUTINE p_env_did_change
 !> \param qs_env the qs_env that is perturbed by this p_env
 !> \param v the matrix to operate on
 !> \param res the result
-!> \param error error handling object (optional)
 !> \par History
 !>      10.2002, TCH, extracted single spin calculation
 !> \author Thomas Chassaing
@@ -704,7 +695,6 @@ END SUBROUTINE p_env_did_change
 !> \param spin the spin to calculate (1 or 2 normally)
 !> \param v the matrix to operate on
 !> \param res the result
-!> \param error error handling object (optional)
 !> \par History
 !>      10.2002, TCH, created
 !> \author Thomas Chassaing
@@ -782,8 +772,6 @@ END SUBROUTINE p_env_did_change
 !> \param res place where to store the result
 !> \param alpha scale factor of the result (defaults to 1.0)
 !> \param beta scale factor of the old values (defaults to 0.0)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.09.2002 adapted for new qs_p_env_type (TC)
 !>      03.2003 extended for p1 not taken from v (TC)
@@ -871,8 +859,6 @@ END SUBROUTINE p_env_did_change
 !> \param qs_env the qs_env that is perturbed by this p_env
 !> \param v matrix to orthogonalize
 !> \param n_cols the number of columns of C to multiply (defaults to size(v,2))
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.09.2002 adapted for new qs_p_env_type (TC)
 !> \author Fawzi Mohamed
@@ -978,8 +964,6 @@ END SUBROUTINE p_env_did_change
 !> \param qs_env the qs_env that is perturbed by this p_env
 !> \param v matrix to orthogonalize
 !> \param n_cols the number of columns of C to multiply (defaults to size(v,2))
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed

@@ -40,8 +40,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the input section for EIP
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 created
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -91,8 +89,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the print section for the eip subsection
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 created
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)

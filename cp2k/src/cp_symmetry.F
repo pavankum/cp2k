@@ -53,7 +53,6 @@ CONTAINS
 !> \param particle_set  Atom coordinates and types
 !> \param cell          Cell information
 !> \param input_section Input
-!> \param error   CP2K error handling
 !> \par History
 !> \author jgh
 ! *****************************************************************************

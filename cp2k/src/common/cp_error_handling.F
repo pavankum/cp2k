@@ -29,10 +29,13 @@
 !>      @version 1.2002
 ! *****************************************************************************
 MODULE cp_error_handling
-  USE cp_log_handling,                 ONLY: &
-       CP_FAILURE_LEVEL, CP_FATAL_LEVEL, CP_NOTE_LEVEL, CP_WARNING_LEVEL, &
-       cp_get_default_logger, cp_log, cp_logger_get_default_unit_nr, &
-       cp_logger_type, cp_to_string
+  USE cp_log_handling,                 ONLY: CP_FAILURE_LEVEL,&
+                                             CP_WARNING_LEVEL,&
+                                             cp_get_default_logger,&
+                                             cp_log,&
+                                             cp_logger_get_default_unit_nr,&
+                                             cp_logger_type,&
+                                             cp_to_string
   USE message_passing,                 ONLY: mp_abort
   USE termination,                     ONLY: print_message
   USE timings,                         ONLY: print_stack
@@ -92,7 +95,6 @@ CONTAINS
 !>      of an optional dummy argument.
 !>      If the error is not present or its logger is not associated
 !>      returns the default logger.
-!> \param error the error you take the info from (optional)
 !> \retval res ...
 !> \par History
 !>      none
@@ -141,7 +143,6 @@ CONTAINS
 !> \param fromWhere a string that contains the module name and routine name
 !>            where this test happened
 !> \param message the error message
-!> \param error the error type that controls error reporting (optional)
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -168,7 +169,6 @@ CONTAINS
 !> \param fromWhere a string that contains the module name and routine name
 !>            where this test happened
 !> \param message the error message
-!> \param error the error type that controls error reporting (optional)
 !> \param failure is set to true if the condition is false otherwise
 !>            it is not changed (optional)
 !> \param only_ionode ...
@@ -220,8 +220,6 @@ CONTAINS
 !> \brief comodity call to signat that something is not implemented
 !> \param fromWhere routine where the error happened
 !> \param message the message to write out (UNIMPLEMENTED is added to it)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param error_level the error level of this error, defaults to
 !>        cp_failure_level
 !> \par History
@@ -256,8 +254,6 @@ CONTAINS
 !> \param level ...
 !> \param fromWhere ...
 !> \param lineNr ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param failure ...
 !> \par History
 !>      12.2002 created [fawzi]

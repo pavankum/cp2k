@@ -46,7 +46,6 @@ CONTAINS
 !> \param mc_env the mc_environment you want to create
 !>
 !>    Suitable for parallel use.
-!> \param error ...
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE mc_env_create ( mc_env)
@@ -121,10 +120,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given mc env
 !> \param mc_env the force environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>
-!>    Suitable for parallel.
 !> \author MJM
 !> \note
 !>      see doc/ReferenceCounting.html
@@ -147,10 +142,6 @@ END SUBROUTINE mc_env_retain
 ! *****************************************************************************
 !> \brief releases the given mc env
 !> \param mc_env the mc environment to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>
-!>    Suitable for parallel.
 !> \author MJM
 !> \note
 !>      see doc/ReferenceCounting.html

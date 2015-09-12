@@ -70,7 +70,6 @@ CONTAINS
 !> \brief Allocate semi-empirical mpole type
 !> \param mpole ...
 !> \param ndim ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 08.2008 Zurich University
 ! *****************************************************************************
   SUBROUTINE semi_empirical_mpole_p_create(mpole, ndim)
@@ -99,7 +98,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate the semi-empirical mpole type
 !> \param mpole ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 08.2008 Zurich University
 ! *****************************************************************************
   SUBROUTINE semi_empirical_mpole_p_release(mpole)
@@ -127,7 +125,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Allocate semi-empirical mpole type
 !> \param mpole ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 08.2008 Zurich University
 ! *****************************************************************************
   SUBROUTINE semi_empirical_mpole_create(mpole)
@@ -158,7 +155,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate the semi-empirical mpole type
 !> \param mpole ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 08.2008 Zurich University
 ! *****************************************************************************
   SUBROUTINE semi_empirical_mpole_release(mpole)
@@ -181,7 +177,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Allocate NDDO multipole type
 !> \param nddo_mpole ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 08.2008 Zurich University
 ! *****************************************************************************
   SUBROUTINE nddo_mpole_create(nddo_mpole)
@@ -208,7 +203,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate NDDO multipole type
 !> \param nddo_mpole ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 08.2008 Zurich University
 ! *****************************************************************************
   SUBROUTINE nddo_mpole_release(nddo_mpole)

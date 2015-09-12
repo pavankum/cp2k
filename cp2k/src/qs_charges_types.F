@@ -54,8 +54,6 @@ CONTAINS
 !> \param nspins ...
 !> \param total_rho_core_rspace ...
 !> \param total_rho_gspace ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -99,8 +97,6 @@ END SUBROUTINE qs_charges_create
 ! *****************************************************************************
 !> \brief retains the given qs_charges (see cp2k/doc/ReferenceCounting.html)
 !> \param qs_charges the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -123,8 +119,6 @@ END SUBROUTINE qs_charges_retain
 ! *****************************************************************************
 !> \brief releases the charges object (see cp2k/doc/ReferenceCounting.html)
 !> \param qs_charges the object to be released
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed

@@ -55,8 +55,6 @@ CONTAINS
 !> \param al ...
 !> \param simpar ...
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Noam Bernstein [noamb] 02.2012
 ! *****************************************************************************
   SUBROUTINE al_init(al, simpar, section)
@@ -83,8 +81,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Initialize NVT type for AD_LANGEVIN thermostat
 !> \param al ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Noam Bernstein [noamb]  02.2012
 ! *****************************************************************************
   SUBROUTINE al_thermo_create(al)
@@ -116,8 +112,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate type for AD_LANGEVIN thermostat
 !> \param al ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Noam Bernstein [noamb] 02.2012
 ! *****************************************************************************
   SUBROUTINE al_dealloc ( al)
@@ -142,8 +136,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate NVT type for AD_LANGEVIN thermostat
 !> \param nvt ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Noam Bernstein [noamb] 02.2012
 ! *****************************************************************************
   SUBROUTINE al_thermo_dealloc ( nvt)

@@ -61,8 +61,6 @@ CONTAINS
 !> \param description the description of the derivative you want to have
 !> \param allocate_deriv if the derivative should be allocated when not present
 !>                        Defaults to false.
-!> \param error variable to control error logging, stopping,...
-!>                        see module cp_error_handling
 !> \retval res ...
 ! *****************************************************************************
   FUNCTION xc_dset_get_derivative(derivative_set, description, allocate_deriv) &
@@ -116,8 +114,6 @@ CONTAINS
 !> \param pw_pool pool where to get the cr3d arrays needed to store the
 !>        derivatives
 !> \param local_bounds ...
-!> \param error variable to control error logging, stopping,...
-!>                  see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_dset_create(derivative_set, pw_pool, local_bounds)
 
@@ -166,8 +162,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases a derivative set
 !> \param derivative_set the set to release
-!> \param error variable to control error logging, stopping,...
-!>                  see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_dset_release(derivative_set)
 
@@ -206,8 +200,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given derivative set
 !> \param deriv_set the derivative set to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -230,7 +222,6 @@ END SUBROUTINE xc_dset_retain
 ! *****************************************************************************
 !> \brief ...
 !> \param deriv_set ...
-!> \param error ...
 ! *****************************************************************************
 SUBROUTINE xc_dset_zero_all(deriv_set)
 

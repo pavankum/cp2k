@@ -102,7 +102,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the transport_env
 !> \param[inout] transport_env the transport_env to be released
-!> \param[inout] error         CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE transport_env_release(transport_env)
@@ -137,7 +136,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief nullifies (and zeroizes) a C-interoperable CSR matrix
 !> \param[inout] csr_interop_mat the matrix to be nullified
-!> \param[inout] error           CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE csr_interop_nullify(csr_interop_mat)
@@ -182,7 +180,6 @@ CONTAINS
 !> \param[out] colind_local    column index (local - Fortran indexing)
 !> \param[out] nzerow_local    number of nunzeros per row (index-i, local - Fortran indexing)
 !> \param[out] nzvals_local    nonzero elements (local)
-!> \param[inout] error           CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE csr_interop_matrix_get_info(csr_interop_mat, &

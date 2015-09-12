@@ -106,8 +106,6 @@ CONTAINS
 !> \param array the array to write
 !> \param unit_nr the unit to write to (defaults to the standard out)
 !> \param el_format the format of a single element
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      4.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -163,8 +161,6 @@ END SUBROUTINE cp_1d_logical_write
 !> \param array the array to write
 !> \param unit_nr the unit to write to (defaults to the standard out)
 !> \param el_format the format of a single element
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      4.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -212,8 +208,6 @@ END SUBROUTINE cp_2d_logical_write
 !>      the realloc in the module memory_utilities)
 !> \param array the array to reallocate if necessary
 !> \param n the wanted size
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      12.2001 first version [fawzi]
 !>      3.2002 templatized [fawzi]
@@ -260,8 +254,6 @@ END SUBROUTINE cp_2d_logical_write
 !> \param array the array to reallocate if necessary
 !> \param n_rows the wanted number of rows
 !> \param n_cols the wanted number of cols
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      5.2001 first version [fawzi]
 !> \author Fawzi Mohamed
@@ -308,8 +300,6 @@ END SUBROUTINE cp_2d_logical_write
 !> \param el the element to look for
 !> \param l_index the lower index for binary search (defaults to 1)
 !> \param u_index the upper index for binary search (defaults to size(array))
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      06.2003 created [fawzi]

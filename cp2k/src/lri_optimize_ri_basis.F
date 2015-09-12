@@ -85,8 +85,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief optimizes the lri basis set
 !> \param qs_env qs environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE optimize_lri_basis(qs_env)
 
@@ -188,8 +186,6 @@ CONTAINS
 !> \param zet_init initial values of the exponents
 !> \param nkind number of atom kinds
 !> \param iunit output unit
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE init_optimization(lri_env,lri_opt,lri_optbas_section,opt_state,&
                                x,zet_init,nkind,iunit)
@@ -307,8 +303,6 @@ CONTAINS
 !> \param lri_opt optimization environmnet
 !> \param lri_optbas_section ...
 !> \param opt_state state of the optimizer
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE get_optimization_parameter(lri_opt,lri_optbas_section,&
                                        opt_state)
@@ -380,8 +374,6 @@ CONTAINS
 !> \param x optimization parameters
 !> \param zet_init initial values of the exponents
 !> \param nkind number of atomic kinds
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE update_exponents(lri_env,lri_opt,x,zet_init,nkind)
 
@@ -468,8 +460,6 @@ CONTAINS
 !> \param zet_init intial value of the eponents
 !> \param zet_trans transferred exponents
 !> \param nvar number of optimized exponents 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE transfer_exp(lri_opt,zet,zet_init,zet_trans,nvar)
 
@@ -542,8 +532,6 @@ CONTAINS
 !> \param pmatrix density matrix
 !> \param para_env ...
 !> \param nkind number of atomic kinds
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE calc_lri_integrals_get_objective(lri_env,lri_density,qs_env,&
                                               lri_opt,opt_state,pmatrix,para_env,&
@@ -599,8 +587,6 @@ CONTAINS
 !> \param pmatrix density matrix
 !> \param para_env ...
 !> \param fobj objective function
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE calculate_objective(lri_env,lri_density,lri_opt,pmatrix,para_env,&
                                  fobj)
@@ -770,8 +756,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief get condition number of overlap matrix
 !> \param lri_env lri environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE get_condition_number_of_overlap(lri_env)
 
@@ -900,8 +884,6 @@ CONTAINS
 !> \param nkind ...
 !> \param lri_opt ...
 !> \param atomic_kind_set ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE write_optimized_lri_basis(lri_env,dft_section,nkind,lri_opt,&
                                        atomic_kind_set)

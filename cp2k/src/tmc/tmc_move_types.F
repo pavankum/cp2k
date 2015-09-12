@@ -77,8 +77,6 @@ CONTAINS
 !> \brief allocating the module variables
 !> \param move_types pointer to the structure which should be deallocated
 !> \param nr_temp ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 !> \note deallocating the module variables
 ! *****************************************************************************
@@ -112,8 +110,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocating the module variables
 !> \param move_types pointer to the structure which should be deallocated
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 !> \note deallocating the module variables
 ! *****************************************************************************

@@ -45,8 +45,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the motion%print section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_motion_print_section(section)
@@ -246,8 +244,6 @@ CONTAINS
 !> \param section will contain the pint section
 !> \param pos ...
 !> \param description ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino 10.2008 [tlaino]
 ! *****************************************************************************
   SUBROUTINE add_format_keyword(keyword, section, pos, description)

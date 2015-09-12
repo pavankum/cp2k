@@ -55,8 +55,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for a BAND run
 !> \param section will contain the pint section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino 09.2006 [tlaino]
 ! *****************************************************************************
   SUBROUTINE create_band_section(section)
@@ -316,8 +314,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the optimization section for a BAND run
 !> \param section will contain the pint section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino 02.2007 [tlaino]
 ! *****************************************************************************
   SUBROUTINE create_opt_band_section(section)

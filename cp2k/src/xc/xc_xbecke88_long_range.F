@@ -47,8 +47,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2008 created [mguidon]
 !> \author Manuel Guidon
@@ -83,8 +81,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2008 created [mguidon]
 !> \author Manuel Guidon
@@ -122,8 +118,6 @@ CONTAINS
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param xb88_lr_params input parameters (scaling)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2008 created [mguidon]
 !> \author Manuel Guidon
@@ -274,8 +268,6 @@ CONTAINS
 !> \param epsilon_rho ...
 !> \param sx scaling-parameter for exchange
 !> \param omega parameter for erfc
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2008 created [mguidon]
 !> \author Manuel Guidon
@@ -874,8 +866,6 @@ CONTAINS
 !> \param deriv_set ...
 !> \param grad_deriv ...
 !> \param xb88_lr_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2008 created [mguidon]
 !> \author Manuel Guidon
@@ -1079,8 +1069,6 @@ CONTAINS
 !> \param epsilon_rho ...
 !> \param sx scaling-parameter for exchange
 !> \param omega ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2008 created [mguidon]
 !> \author Manuel Guidon

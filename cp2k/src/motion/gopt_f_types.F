@@ -84,8 +84,6 @@ CONTAINS
 !> \param globenv ...
 !> \param geo_opt_section ...
 !> \param eval_opt_geo ...
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 ! *****************************************************************************
@@ -183,8 +181,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param gopt_env the geometry optimization environment to retain
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 ! *****************************************************************************
@@ -206,8 +202,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param gopt_env the geometry optimization environment to release
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 ! *****************************************************************************

@@ -54,7 +54,6 @@ CONTAINS
 !> \param Waux_mat matrix storing angular-dependent part
 !> \param dWaux_mat ...
 !> \param calculate_forces ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE precalc_angular_shg_part(oba,obb,fba,fbb,rab,Waux_mat,dWaux_mat,&
                                       calculate_forces)
@@ -171,7 +170,6 @@ CONTAINS
 !> \param Waux_mat angular-depedent part
 !> \param dWaux_mat derivative of Waux_mat 
 !> \param calculate_forces ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE lri_int_aba_shg(lri_env,abaint,dabdaint,rab,oba,obb,fba,scona_shg,&
                              sconb_shg,sconca_shg,Waux_mat,dWaux_mat,&
@@ -420,7 +418,6 @@ CONTAINS
 !> \param Waux_mat angular-dependent part
 !> \param dWaux_mat derivative of Waux_mat
 !> \param calculate_forces ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE lri_int_abb_shg(lri_env,abbint,dabbint,rab,oba,obb,fbb,scona_shg,&
                              sconb_shg,sconcb_shg,Waux_mat,dWaux_mat,&
@@ -665,7 +662,6 @@ CONTAINS
 !> \param Waux_mat angular-dependent part
 !> \param dWaux_mat derivative of Waux_mat
 !> \param calculate_forces ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE lri_int_ab_shg(sab,dsab,rab,fba,fbb,scona_shg,sconb_shg,Waux_mat,&
                             dWaux_mat,calculate_forces)

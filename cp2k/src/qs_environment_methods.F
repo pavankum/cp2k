@@ -102,8 +102,6 @@ CONTAINS
 !>      Initializes pools, charges and pw_env.
 !> \param qs_env the qs_env to set up
 !> \param unit_nr ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -230,8 +228,6 @@ END SUBROUTINE qs_env_setup
 !>      Should be called after the atoms have moved and the new overlap
 !>      has been calculated.
 !> \param qs_env the environment to update
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -331,7 +327,6 @@ END SUBROUTINE qs_env_update_s_mstruct
 ! *****************************************************************************
 !> \brief ...
 !> \param qs_env ...
-!> \param error ...
 ! *****************************************************************************
 SUBROUTINE qs_create_task_list(qs_env)
     TYPE(qs_environment_type), POINTER       :: qs_env
@@ -431,8 +426,6 @@ END SUBROUTINE qs_create_task_list
 ! *****************************************************************************
 !> \brief rebuilds the pw_env in the given qs_env, allocating it if necessary
 !> \param qs_env the qs_env whose pw_env has to be rebuilt
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -671,7 +664,6 @@ END SUBROUTINE qs_env_rebuild_pw_env
 !> \brief finds if a given qs run needs to use nlcc
 !> \param nlcc ...
 !> \param qs_env ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE has_nlcc(nlcc,qs_env)
 
@@ -706,8 +698,6 @@ END SUBROUTINE qs_env_rebuild_pw_env
 !> \param rebuild_ao if it is necessary to rebuild rho_ao. Defaults to true.
 !> \param rebuild_grids if it in necessary to rebuild rho_r and rho_g.
 !>        Defaults to false.
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed

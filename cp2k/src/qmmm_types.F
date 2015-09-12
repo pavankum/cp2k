@@ -231,8 +231,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param qmmm_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE qmmm_env_mm_create(qmmm_env)
@@ -268,8 +266,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param qmmm_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE qmmm_env_mm_retain(qmmm_env)
@@ -290,8 +286,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given qmmm_env (see doc/ReferenceCounting.html)
 !> \param qmmm_env the object to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 !>      Teodoro Laino
 ! *****************************************************************************
@@ -345,8 +339,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param qmmm_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 SUBROUTINE qmmm_env_qm_create(qmmm_env)
@@ -397,8 +389,6 @@ END SUBROUTINE qmmm_env_qm_create
 ! *****************************************************************************
 !> \brief retains the qmmm_env
 !> \param qmmm_env the qmmm_env to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 SUBROUTINE qmmm_env_qm_retain(qmmm_env)
@@ -419,8 +409,6 @@ END SUBROUTINE qmmm_env_qm_retain
 ! *****************************************************************************
 !> \brief releases the given qmmm_env (see doc/ReferenceCounting.html)
 !> \param qmmm_env the object to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 !>      Teodoro Laino
 ! *****************************************************************************
@@ -509,8 +497,6 @@ END SUBROUTINE qmmm_env_qm_release
 ! *****************************************************************************
 !> \brief deallocates the pgfs type
 !> \param pgfs ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
 SUBROUTINE pgfs_release(pgfs)
@@ -547,8 +533,6 @@ END SUBROUTINE pgfs_release
 ! *****************************************************************************
 !> \brief deallocates the qmmm_links structure
 !> \param qmmm_links ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
 SUBROUTINE qmmm_links_dealloc(qmmm_links)
@@ -582,8 +566,6 @@ END SUBROUTINE qmmm_links_dealloc
 ! ****************************************************************************
 !> \brief deallocates the image_charge_pot structure
 !> \param image_charge_pot ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze
 ! *****************************************************************************
 SUBROUTINE qmmm_image_charge_dealloc(image_charge_pot)
@@ -615,8 +597,6 @@ END SUBROUTINE qmmm_image_charge_dealloc
 ! *****************************************************************************
 !> \brief deallocates the qmmm_pot_type structure
 !> \param Potentials ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
 SUBROUTINE qmmm_pot_type_dealloc(Potentials)
@@ -649,8 +629,6 @@ END SUBROUTINE qmmm_pot_type_dealloc
 !> \brief deallocates the qmmm_per_pot_type structure
 !>      for QM/MM periodic boundary conditions
 !> \param Per_Potentials ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
 SUBROUTINE qmmm_per_pot_type_dealloc(Per_Potentials)
@@ -705,8 +683,6 @@ END SUBROUTINE qmmm_per_pot_type_dealloc
 ! *****************************************************************************
 !> \brief deallocates the add_set_release
 !> \param added_charges ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
 SUBROUTINE add_set_release(added_charges)
@@ -765,8 +741,6 @@ END SUBROUTINE add_set_release
 !> \brief creates the add_set_type structure
 !> \param added_charges ...
 !> \param ndim ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
 SUBROUTINE create_add_set_type(added_charges, ndim)
@@ -816,8 +790,6 @@ END SUBROUTINE create_add_set_type
 ! *****************************************************************************
 !> \brief creates the image_charge_type structure
 !> \param image_charge_pot ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze
 ! *****************************************************************************
 SUBROUTINE create_image_charge_type(image_charge_pot)

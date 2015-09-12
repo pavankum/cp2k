@@ -128,8 +128,6 @@ CONTAINS
 !> \param blacs_repeatable ...
 !> \param row_major ...
 !> \param grid_2d ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -263,8 +261,6 @@ END SUBROUTINE cp_blacs_env_create
 ! *****************************************************************************
 !> \brief retains the given blacs env
 !> \param blacs_env the blacs env to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -286,8 +282,6 @@ END SUBROUTINE cp_blacs_env_retain
 ! *****************************************************************************
 !> \brief releases the given blacs_env
 !> \param blacs_env the blacs env to relase
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -325,8 +319,6 @@ END SUBROUTINE cp_blacs_env_release
 !> \param blacs_env the blacs environment to write
 !> \param unit_nr the unit number where to write the description of the
 !>        blacs environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed

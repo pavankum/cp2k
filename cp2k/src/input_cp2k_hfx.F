@@ -46,8 +46,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the hf part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Manuel Guidon
 ! *****************************************************************************
   SUBROUTINE create_hfx_section(section)
@@ -136,8 +134,6 @@ CONTAINS
 !>
 !>      creates the input section for the hf potential part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Manuel Guidon
 ! *****************************************************************************
   SUBROUTINE create_hf_load_balance_section(section)
@@ -216,8 +212,6 @@ CONTAINS
 !>
 !>      creates the input section for the hf potential part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Manuel Guidon
 ! *****************************************************************************
   SUBROUTINE create_hf_potential_section(section)
@@ -319,8 +313,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the hf screening part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Manuel Guidon
 ! *****************************************************************************
   SUBROUTINE create_hf_screening_section(section)
@@ -400,8 +392,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the hf-pbc part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Manuel Guidon
 ! *****************************************************************************
   SUBROUTINE create_hf_pbc_section(section)
@@ -439,8 +429,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the hf-memory part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Manuel Guidon
 ! *****************************************************************************
   SUBROUTINE create_hf_memory_section(section)

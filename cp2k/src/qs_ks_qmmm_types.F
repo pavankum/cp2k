@@ -70,8 +70,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the ks_qmmm_env (see doc/ReferenceCounting.html)
 !> \param ks_qmmm_env the ks_qmmm_env to be released
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2004 created [tlaino]
 !> \author Teodoro Laino
@@ -116,8 +114,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given ks_environment
 !> \param ks_qmmm_env the KohnSham QM/MM environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2004 created [tlaino]
 !> \author Teodoro Laino

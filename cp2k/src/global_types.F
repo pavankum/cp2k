@@ -90,8 +90,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates a globenv
 !> \param globenv the globenv to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE globenv_create(globenv)
@@ -126,8 +124,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the global environment
 !> \param globenv the global environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE globenv_retain(globenv)
@@ -148,8 +144,6 @@ END SUBROUTINE globenv_retain
 ! *****************************************************************************
 !> \brief releases the global environment
 !> \param globenv the global environment to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE globenv_release(globenv)

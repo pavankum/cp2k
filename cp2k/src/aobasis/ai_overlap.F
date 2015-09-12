@@ -670,7 +670,6 @@ CONTAINS
 !> \param sab        Final overlap integrals
 !> \param dab        First derivative overlap integrals
 !> \param ddab       Second derivative overlap integrals
-!> \param error      CP2K error reporting
 !> \date    01.07.2014
 !> \author  JGH
 ! *****************************************************************************
@@ -964,7 +963,6 @@ CONTAINS
 !> \param rab        Distance vector A-B
 !> \param saab       Final overlap integrals
 !> \param daab       First derivative overlap integrals
-!> \param error      CP2K error reporting
 !> \date    01.07.2014
 !> \author  JGH
 ! *****************************************************************************
@@ -1151,7 +1149,6 @@ CONTAINS
 !> \param rab        Distance vector A-B
 !> \param sabb       Final overlap integrals
 !> \param dabb       First derivative overlap integrals
-!> \param error      CP2K error reporting
 !> \date    01.07.2014
 !> \author  JGH
 ! *****************************************************************************
@@ -1343,7 +1340,6 @@ CONTAINS
 !> \param rab        Distance vector A-B
 !> \param saaab      Final overlap integrals
 !> \param daaab      First derivative overlap integrals
-!> \param error      CP2K error reporting
 !> \date    01.07.2014
 !> \author  JGH
 ! *****************************************************************************
@@ -1557,7 +1553,6 @@ CONTAINS
 !> \param rab        Distance vector A-B
 !> \param saabb      Final overlap integrals
 !> \param daabb      First derivative overlap integrals
-!> \param error      CP2K error reporting
 !> \date    01.07.2014
 !> \author  JGH
 ! *****************************************************************************
@@ -1776,7 +1771,6 @@ CONTAINS
 !> \param rab        Distance vector A-B
 !> \param sabbb      Final overlap integrals
 !> \param dabbb      First derivative overlap integrals
-!> \param error      CP2K error reporting
 !> \date    01.07.2014
 !> \author  JGH
 ! *****************************************************************************

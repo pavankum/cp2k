@@ -54,8 +54,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the input section for the atom code
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE create_atom_section(section)
@@ -194,8 +192,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print atom section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE create_atom_print_section(section)
@@ -332,8 +328,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the all-electron basis section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE create_atom_aebasis_section(section)
@@ -358,8 +352,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the pseudopotential basis section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE create_atom_ppbasis_section(section)
@@ -384,8 +376,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Keywords in the atom basis section
 !> \param section the section to fill
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE atom_basis_section(section)
@@ -549,8 +539,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the method section for Atom calculations
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE create_atom_method_section(section)
@@ -640,7 +628,6 @@ CONTAINS
 !> \brief Create the ZMP subsection for Atom calculations
 !>  
 !> \param section ...
-!> \param error ...
 !> \author D. Varsano [daniele.varsano@nano.cnr.it] 
 ! *****************************************************************************
   SUBROUTINE create_zmp_section(section)
@@ -696,7 +683,6 @@ CONTAINS
 !> \brief Create the ZMP restart subsection for Atom calculations
 !>  
 !> \param section ...
-!> \param error ...
 !> \author D. Varsano [daniele.varsano@nano.cnr.it] 
 ! *****************************************************************************
   SUBROUTINE create_zmp_restart_section(section)
@@ -730,7 +716,6 @@ CONTAINS
 !> \brief Subroutine to create the external v_xc potential 
 !>  
 !> \param section ...
-!> \param error ...
 !> \author D. Varsano [daniele.varsano@nano.cnr.it] 
 ! *****************************************************************************
   SUBROUTINE create_external_vxc(section)
@@ -769,8 +754,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the optimization section for Atom calculations
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE create_optimization_section(section)
@@ -825,8 +808,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the potential section for Atom calculations
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE create_potential_section(section)
@@ -891,8 +872,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &GTH_POTENTIAL section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_gthpotential_section(section)
@@ -920,8 +899,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &BASIS section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_basis_section(section)
@@ -949,8 +926,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the &POWELL section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_powell_section(section)

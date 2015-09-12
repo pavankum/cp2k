@@ -59,8 +59,6 @@ CONTAINS
 !> \param desc the derivative description
 !> \param cr3d_ptr the data array (the ownership of it passes to the
 !>                      derivative type), the array is not zeroed
-!> \param error variable to control error logging, stopping,...
-!>                      see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_derivative_create(derivative, desc, cr3d_ptr)
 
@@ -95,8 +93,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given derivative (see doc/ReferenceCounting.html)
 !> \param deriv the object you want to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -121,8 +117,6 @@ END SUBROUTINE xc_derivative_retain
 !> \param derivative the object to create
 !> \param pw_pool if given gives back the cr3d array %deriv_data back to it
 !>                      instead of deallocating it
-!> \param error variable to control error logging, stopping,...
-!>                      see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_derivative_release(derivative, pw_pool)
 
@@ -174,8 +168,6 @@ END SUBROUTINE xc_derivative_retain
 !> \param order the order of the derivative
 !> \param deriv_data the 3d real array with the derivative
 !> \param accept_null_data if deriv_data can be unassociated (defaults to no)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
 SUBROUTINE xc_derivative_get(deriv,desc,split_desc,&
      order,deriv_data,accept_null_data)

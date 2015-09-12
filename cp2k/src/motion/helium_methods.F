@@ -85,7 +85,6 @@ MODULE helium_methods
 !> \param helium ...
 !> \param input ...
 !> \param solute ...
-!> \param error ...
 !> \author hforbert
 ! *****************************************************************************
   SUBROUTINE helium_create( helium, input, solute)
@@ -647,7 +646,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Releases helium_solvent_type
 !> \param helium ...
-!> \param error ...
 !> \author hforbert
 ! *****************************************************************************
   SUBROUTINE helium_release(helium)
@@ -802,7 +800,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Retains helium_solvent_type
 !> \param helium ...
-!> \param error ...
 !> \author hforbert
 ! *****************************************************************************
   SUBROUTINE helium_retain(helium)
@@ -824,7 +821,6 @@ MODULE helium_methods
 !> \brief  Initialize helium data structures.
 !> \param helium ...
 !> \param pint_env ...
-!> \param error ...
 !> \par    History
 !>         removed refereces to pint_env_type data structure [lwalewski]
 !>         2009-11-10 init/restore coords, perm, RNG and forces [lwalewski]
@@ -972,7 +968,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Initialize helium coordinates with random positions.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-11-09
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -1010,7 +1005,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Restore coordinates from the input structure.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-11-09
 !> \par    History
 !>         2010-07-22 accomodate additional cpus in the runtime wrt the
@@ -1100,7 +1094,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Initialize forces exerted on the solute.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-11-10
 !> \author Lukasz Walewski
 !> \note  The forces are calculated based on both the helium and the solute
@@ -1132,7 +1125,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Restore forces from the input structure to the runtime environment.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-11-10
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -1202,7 +1194,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Initialize the permutation state.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-11-05
 !> \author Lukasz Walewski
 !> \note  Assign the identity permutation at each processor. Inverse
@@ -1231,7 +1222,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Restore permutation state from the input structre.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-11-05
 !> \par    History
 !>         2010-07-22 accomodate additional cpus in the runtime wrt the
@@ -1331,7 +1321,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Create RNG streams and initialize their state.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-11-04
 !> \author Lukasz Walewski
 !> \note   This function shouldn't create (allocate) objects! Only
@@ -1421,7 +1410,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Restore RNG state from the input structure.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-11-04
 !> \par    History
 !>         2010-07-22 Create new rng streams if more cpus available in the
@@ -1633,7 +1621,6 @@ MODULE helium_methods
 ! ***************************************************************************
 !> \brief  Restore the densities from the input structure.
 !> \param helium ...
-!> \param error ...
 !> \date   2011-06-22
 !> \author Lukasz Walewski
 ! *****************************************************************************

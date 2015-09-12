@@ -72,8 +72,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains a subsys (see doc/ReferenceCounting.html)
 !> \param subsys the subsys to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE qs_subsys_retain(subsys)
@@ -94,8 +92,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases a subsys (see doc/ReferenceCounting.html)
 !> \param subsys the subsys to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE qs_subsys_release(subsys)
@@ -157,7 +153,6 @@ CONTAINS
 !> \param cp_subsys ...
 !> \param nelectron_total ...
 !> \param nelectron_spin ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE qs_subsys_get(subsys, atomic_kinds, atomic_kind_set, particles,particle_set,&
                            local_particles, molecules_new, molecule_set,&
@@ -269,7 +264,6 @@ CONTAINS
 !> \param qs_kind_set ...
 !> \param nelectron_total ...
 !> \param nelectron_spin ...
-!> \param error ...
 ! *****************************************************************************
 SUBROUTINE qs_subsys_set(subsys,cp_subsys,&
                          local_particles,local_molecules_new,cell,&

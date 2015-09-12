@@ -38,8 +38,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv implemented derivative of the xc functional 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost
 ! *****************************************************************************
   SUBROUTINE optx_lda_info(reference,shortform, needs, max_deriv)
@@ -71,8 +69,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv implemented derivative of the xc functional
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost
 ! *****************************************************************************
   SUBROUTINE optx_lsd_info(reference,shortform, needs, max_deriv)
@@ -106,8 +102,6 @@ CONTAINS
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param optx_params input parameter (scaling)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2007 added scaling [Manuel Guidon]
 !> \author Joost
@@ -174,8 +168,6 @@ CONTAINS
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param optx_params input parameter (scaling)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2007 added scaling [Manuel Guidon]
 !> \author Joost
@@ -260,8 +252,6 @@ CONTAINS
 !> \param epsilon_drho ...
 !> \param npoints ...
 !> \param sx scaling-parameter for exchange
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2007 added scaling [Manuel Guidon]
 !> \author Joost VandeVondele
@@ -322,8 +312,6 @@ CONTAINS
 !> \param epsilon_drho ...
 !> \param npoints ...
 !> \param sx scaling parameter for exchange
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2007 added scaling [Manuel Guidon]
 !> \author Joost VandeVondele

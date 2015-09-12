@@ -118,7 +118,6 @@ CONTAINS
 !> \param s uncontracted [s|r^n|s] integrals
 !> \param calculate_forces ...
 !> \param calc_aba flag if [aba] or [abb] is calculated
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE s_overlap_abx(la_max,npgfa,zeta,lb_max,npgfb,zetb,lx_max,npgfx,zetx,&
                            rab,s,calculate_forces,calc_aba)
@@ -575,7 +574,6 @@ CONTAINS
 !> \param dWaux_mat stores the derivatives of the angular-dependent part of 
 !>        the SHG integrals 
 !>        last dimension is (1:4): cc(1), cs(2), sc(3), ss(4)
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE get_dW_matrix(lamax,lbmax,Waux_mat,dWaux_mat)
 

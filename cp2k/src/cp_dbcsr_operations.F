@@ -105,7 +105,6 @@ CONTAINS
 !> \param target_start ...
 !> \param para_env ...
 !> \param blacs_env ...
-!> \param error ...
 !> \author vw
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_copy_columns_hack(matrix_b, matrix_a,&
@@ -157,7 +156,6 @@ CONTAINS
 !> \param[in] dist2d          distribution_2d
 !> \param[out] dist           DBCSR distribution
 !> \param unit_nr ...
-!> \param[in,out] error       cp2k error
 !> \param mp_obj ...
 !> \par History
 !>    move form dbcsr_operation 01.2010
@@ -211,7 +209,6 @@ CONTAINS
 !> \param[in]  ncol         nbr of columns
 !> \param[in]  alpha        alpha
 !>
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_multiply_local_d(matrix_a, vec_b, vec_c, ncol, alpha)
     TYPE(cp_dbcsr_type), INTENT(IN)          :: matrix_a
@@ -301,7 +298,6 @@ CONTAINS
 !> \param vec_c ...
 !> \param ncol ...
 !> \param alpha ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_multiply_local_s(matrix_a, vec_b, vec_c, ncol, alpha)
     TYPE(cp_dbcsr_type), INTENT(IN)          :: matrix_a
@@ -378,7 +374,6 @@ CONTAINS
 !> \param[in]  alpha          alpha
 !> \param[in]  beta           beta
 !>
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_sm_fm_multiply(matrix, fm_in, fm_out, ncol, alpha, beta)
     TYPE(cp_dbcsr_type), INTENT(IN)          :: matrix
@@ -512,7 +507,6 @@ CONTAINS
 !> \param alpha ...
 !> \param keep_sparsity Determines if the sparsity of sparse_matrix is retained
 !>        by default it is TRUE
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_plus_fm_fm_t_native(sparse_matrix,matrix_v,matrix_g,ncol,&
        alpha,keep_sparsity)
@@ -675,7 +669,6 @@ CONTAINS
 !> \param[in] beta            (optional) scaling of existing SM
 !> \param[in] keep_sparsity   (optional) retains the sparsity of the input
 !>                            matrix
-!> \param error ...
 !> \date    2009-10-13
 !> \par History
 !>          2009-10-13 rewritten based on copy_dbcsr_to_fm
@@ -861,7 +854,6 @@ CONTAINS
 !> \param fm ...
 !> \param bc_mat ...
 !> \param beta ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE copy_fm_to_dbcsr_bc(fm,bc_mat,beta)
     TYPE(cp_fm_type), POINTER                :: fm
@@ -1056,7 +1048,6 @@ CONTAINS
 !> \param[out] matrix         DBCSR matrix
 !> \param[in] keep_sparsity   (optional) retains the sparsity of the input
 !>                            matrix
-!> \param error ...
 !> \date    2010
 !> \par History
 !>          2010  copied from copy_dbcsr_to_fm
@@ -1210,7 +1201,6 @@ CONTAINS
 !> \brief   Copy a DBCSR matrix to a BLACS matrix
 !> \param[in] matrix          DBCSR matrix
 !> \param[out] fm             full matrix
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE copy_dbcsr_to_fm(matrix, fm)
     TYPE(cp_dbcsr_type), INTENT(IN)          :: matrix
@@ -1355,7 +1345,6 @@ CONTAINS
 !> \brief   Copy a DBCSR matrix to a BLACS matrix
 !> \param[in] matrix          DBCSR matrix
 !> \param[out] fm             full matrix
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE copy_dbcsr_to_cfm(matrix, fm)
     TYPE(cp_dbcsr_type), INTENT(IN)          :: matrix
@@ -1489,7 +1478,6 @@ CONTAINS
 !> \brief   Copy a DBCSR_BLACS matrix to a BLACS matrix 
 !> \param bc_mat DBCSR matrix
 !> \param[out] fm             full matrix
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE copy_dbcsr_to_fm_bc(bc_mat, fm)
     TYPE(cp_dbcsr_type), INTENT(IN)          :: bc_mat
@@ -1628,7 +1616,6 @@ CONTAINS
 !> \param matrix ...
 !> \param fm_in ...
 !> \param template ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_fm_to_dbcsr_row_template(matrix, fm_in, template)
     TYPE(cp_dbcsr_type), INTENT(INOUT)       :: matrix
@@ -1668,7 +1655,6 @@ CONTAINS
 !> \param n global col size of output matrix
 !> \param sym ...
 !> \param data_type ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_m_by_n_from_template(matrix,template,m,n,sym,data_type)
     TYPE(cp_dbcsr_type), INTENT(INOUT)       :: matrix, template
@@ -1723,7 +1709,6 @@ CONTAINS
 !> \param n global col size of output matrix
 !> \param sym ...
 !> \param data_type ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE cp_dbcsr_m_by_n_from_row_template(matrix,template,n,sym,data_type)
     TYPE(cp_dbcsr_type), INTENT(INOUT)       :: matrix, template

@@ -33,8 +33,6 @@ CONTAINS
 !> \param mdctrl data which is passed on to the wrapped client-routine
 !> \param md_env contains the current state of the md_run
 !> \param should_stop can be used to abort the md_run
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE mdctrl_callback(mdctrl, md_env, should_stop)
     TYPE(mdctrl_type), POINTER               :: mdctrl

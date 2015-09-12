@@ -121,7 +121,6 @@ CONTAINS
 !> \param subsys ...
 !> \param input ...
 !> \param results ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE get_mixed_env( mixed_env, atomic_kind_set, particle_set,  &
                            local_particles, local_molecules, molecule_kind_set, &
@@ -190,7 +189,6 @@ CONTAINS
 !> \brief Initialise the MIXED environment.
 !> \param mixed_env the pointer to the mixed_env
 !> \param para_env ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE init_mixed_env ( mixed_env, para_env)
 
@@ -230,7 +228,6 @@ CONTAINS
 !> \param subsys ...
 !> \param input ...
 !> \param sub_para_env ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE set_mixed_env( mixed_env, atomic_kind_set, particle_set, &
                            local_particles, local_molecules, molecule_kind_set, &
@@ -330,8 +327,6 @@ CONTAINS
 !> \brief allocates and intitializes a mixed_env
 !> \param mixed_env the object to create
 !> \param para_env the parallel environement for the qs_env
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff 11.06
 ! *****************************************************************************
   SUBROUTINE mixed_env_create(mixed_env,para_env)
@@ -354,8 +349,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given mixed_env (see doc/ReferenceCounting.html)
 !> \param mixed_env the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff 11.06
 ! *****************************************************************************
   SUBROUTINE mixed_env_retain(mixed_env)
@@ -376,8 +369,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given mixed_env (see doc/ReferenceCounting.html)
 !> \param mixed_env the object to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff 11.06
 ! *****************************************************************************
   SUBROUTINE mixed_env_release(mixed_env)

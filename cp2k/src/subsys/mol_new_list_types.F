@@ -92,8 +92,6 @@ CONTAINS
 !>        will deallocate it (defaults to true)
 !> \param n_els number of elements in the list (at least one els_ptr or
 !>        n_els should be given)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -143,8 +141,6 @@ END SUBROUTINE mol_new_list_create
 ! *****************************************************************************
 !> \brief retains a list (see doc/ReferenceCounting.html)
 !> \param list the list to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -167,8 +163,6 @@ END SUBROUTINE mol_new_list_retain
 ! *****************************************************************************
 !> \brief releases a  list (see doc/ReferenceCounting.html)
 !> \param list the list to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2003 created [fawzi]
 !> \author Fawzi Mohamed

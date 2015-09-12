@@ -139,7 +139,6 @@ CONTAINS
 !> \brief Retains an fb_atomic_halo object
 !> \param atomic_halo the fb_atomic_halo object, its content must
 !>                     not be NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_retain(atomic_halo)
@@ -164,7 +163,6 @@ CONTAINS
 !> \param atomic_halo the fb_atomic_halo object, its content must
 !>                     not be UNDEFINED, and the subroutine does nothing
 !>                     if the content points to NULL
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_release(atomic_halo)
@@ -257,7 +255,6 @@ CONTAINS
 !> \brief Creates and initialises an empty fb_atomic_halo object
 !> \param atomic_halo the fb_atomic_halo object, its content must
 !>                     be NULL and cannot be UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_create(atomic_halo)
@@ -290,7 +287,6 @@ CONTAINS
 !> \brief Initialises an fb_atomic_halo object, and makes it empty
 !> \param atomic_halo the fb_atomic_halo object, its content must
 !>                     not be NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_init(atomic_halo)
@@ -333,7 +329,6 @@ CONTAINS
 !>                               atomic_halo%obj%halo_atoms
 !> \param sorted [OPTIONAL]: if present, outputs atomic_halo%obj%sorted
 !> \param cost [OPTIONAL]: if present, outputs atomic_halo%obj%cost
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_get(atomic_halo, &
@@ -384,7 +379,6 @@ CONTAINS
 !>                               contents of halo_atoms to atomic_halo%obj%halo_atoms
 !> \param sorted [OPTIONAL]: if present, sets atomic_halo%obj%sorted = sorted
 !> \param cost [OPTIONAL]: if present, sets atomic_halo%obj%cost = cost
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_set(atomic_halo, &
@@ -431,7 +425,6 @@ CONTAINS
 !> \brief Sort the list of atomic indices in the halo in accending order.
 !>        The atomic_halo must not be empty
 !> \param atomic_halo  the atomic_halo object
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_sort(atomic_halo)
@@ -464,7 +457,6 @@ CONTAINS
 !> \param iatom_halo  the atomic index inside the halo
 !> \param found  returns true if given atom is in the halo, otherwise
 !>                false
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_atom_global2halo(atomic_halo, &
@@ -549,7 +541,6 @@ CONTAINS
 !> \param qs_kind_set  : cp2k qs_kind objects, provides information on the
 !>                       number of contracted gaussian functions each kind
 !>                       has
-!> \param error ...
 !> \retval cost        : computation cost w.r.t. the filter matrix
 !>                       calculation for this atomic halo
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
@@ -596,7 +587,6 @@ CONTAINS
 !>                       array of halo atoms corresponding to the owner atom
 !> \param nhalo_atoms  : outputs number of halo atoms
 !> \param owner_id_in_halo : the index of the owner atom in the halo_atoms list
-!> \param error        : CP2K error handler container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_build_halo_atoms(owner_atom, &
@@ -670,7 +660,6 @@ CONTAINS
 !> \brief Retains an fb_atomic_halo_list object
 !> \param atomic_halos the fb_atomic_halo object, its content must
 !>                      not be NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_list_retain(atomic_halos)
@@ -693,7 +682,6 @@ CONTAINS
 !> \brief Releases an fb_atomic_halo_list object
 !> \param atomic_halos the fb_atomic_halo object, its content must
 !>                      not be UNDEFINED, and does nothing if it is NULL
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_list_release(atomic_halos)
@@ -791,7 +779,6 @@ CONTAINS
 !> \brief Creates and initialises an empty fb_atomic_halo_list object
 !> \param atomic_halos the fb_atomic_halo object, its content must
 !>                      not be NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_list_create(atomic_halos)
@@ -821,7 +808,6 @@ CONTAINS
 !> \brief Initialises an fb_atomic_halo_list object and make it empty
 !> \param atomic_halos the fb_atomic_halo object, its content must
 !>                      not be NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_list_init(atomic_halos)
@@ -859,7 +845,6 @@ CONTAINS
 !> \param nhalos [OPTIONAL]: if present, gives nhalos = atomic_halos%obj%nhalos
 !> \param max_nhalos [OPTIONAL]: if present, gives max_nhalos = atomic_halos%obj%max_nhalos
 !> \param halos [OPTIONAL]: if present, gives halos => atomic_halos%obj%halos
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_list_get(atomic_halos, nhalos, max_nhalos, halos)
@@ -892,7 +877,6 @@ CONTAINS
 !> \param max_nhalos [OPTIONAL]: if present, sets atomic_halos%obj%max_nhalos = max_nhalos
 !> \param halos [OPTIONAL]: if present, reallocates atomic_halos%obj%halos
 !>                          to the size of halos
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_list_set(atomic_halos, nhalos, max_nhalos, halos)
@@ -931,7 +915,6 @@ CONTAINS
 !> \param atomic_halos the fb_atomic_halo object
 !> \param para_env pointer to a para_env_type object containing MPI info
 !> \param fb_section pointer to the input section to filtered basis method
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_list_write(atomic_halos, para_env, fb_section)
@@ -1010,7 +993,6 @@ CONTAINS
 !> \param atomic_halos : the fb_atomic_halo object
 !> \param para_env     : pointer to a para_env_type object containing MPI info
 !> \param scf_section  : pointer to the scf input section
-!> \param error        : CP2K data container for error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atomic_halo_list_write_info(atomic_halos, para_env, scf_section)

@@ -180,7 +180,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Allocate semi-empirical type
 !> \param sep ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE semi_empirical_create(sep)
     TYPE(semi_empirical_type), POINTER       :: sep
@@ -212,7 +211,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate the semi-empirical type
 !> \param sep ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE semi_empirical_release(sep)
 
@@ -260,7 +258,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Zero the whole semi-empirical type
 !> \param sep ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE zero_se_param(sep)
     TYPE(semi_empirical_type), POINTER       :: sep
@@ -557,7 +554,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates rotmat type
 !> \param rotmat ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE rotmat_create(rotmat)
     TYPE(rotmat_type), POINTER               :: rotmat
@@ -578,7 +574,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Releases rotmat type
 !> \param rotmat ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE rotmat_release(rotmat)
     TYPE(rotmat_type), POINTER               :: rotmat
@@ -651,7 +646,6 @@ CONTAINS
 !> \param range_scr ...
 !> \param taper_lrc ...
 !> \param range_lrc ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 03.2009
 ! *****************************************************************************
   SUBROUTINE se_taper_create(se_taper, integral_screening, do_ewald, &
@@ -694,7 +688,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Releases the taper type used in SE calculations
 !> \param se_taper ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 03.2009
 ! *****************************************************************************
   SUBROUTINE se_taper_release(se_taper)
@@ -722,7 +715,6 @@ CONTAINS
 !> \brief Writes the semi-empirical type
 !> \param sep ...
 !> \param subsys_section ...
-!> \param error ...
 !> \par History
 !>        04.2008 Teodoro Laino [tlaino] - University of Zurich: rewriting with
 !>                support for the whole set of parameters

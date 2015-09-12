@@ -71,7 +71,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   symmetrize the virial components
 !> \param virial ...
-!> \param error ...
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE sym_virial (virial)
@@ -225,7 +224,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param virial ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE virial_create ( virial)
 
@@ -248,8 +246,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given virial_type
 !> \param virial the virial_type to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -274,8 +270,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given virial_type
 !> \param virial the virial_type to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi

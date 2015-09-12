@@ -78,8 +78,6 @@ CONTAINS
 !> \param pool the pool to create
 !> \param el_struct the structure of the elements that are stored in
 !>        this pool
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -110,8 +108,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the pool (see cp2k/doc/ReferenceCounting.html)
 !> \param pool the pool to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -135,8 +131,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates all the cached elements
 !> \param pool the pool to flush
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -166,8 +160,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given pool (see cp2k/doc/ReferenceCounting.html)
 !> \param pool the pool to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -205,8 +197,6 @@ CONTAINS
 !> \param element will contain the new element
 !>\param name the name for the new matrix (optional)
 !> \param name ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -252,8 +242,6 @@ CONTAINS
 !> \brief returns the element to the pool
 !> \param pool the pool where to cache the element
 !> \param element the element to give back
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -296,8 +284,6 @@ CPSourceFileRef,&
 ! *****************************************************************************
 !> \brief returns the structure of the elements in this pool
 !> \param pool the pool you are interested in
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      05.2002 created [fawzi]
@@ -325,8 +311,6 @@ END FUNCTION fm_pool_get_el_struct
 !> \brief shallow copy of an array of pools (retains each pool)
 !> \param source_pools the pools to copy
 !> \param target_pools will contains the new pools
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -355,8 +339,6 @@ END SUBROUTINE fm_pools_copy
 ! *****************************************************************************
 !> \brief deallocate an array of pools (releasing each pool)
 !> \param pools the pools to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -387,8 +369,6 @@ END SUBROUTINE fm_pools_dealloc
 !> \param pools the pools to create the elements from
 !> \param elements will contain the vector of elements
 !> \param name the name for the new matrixes (optional)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -433,8 +413,6 @@ END SUBROUTINE fm_pools_create_fm_vect
 !>      (like cp_fm_vect_dealloc)
 !> \param pools the pool where to give back the vector
 !> \param elements the vector of elements to give back
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi]
 !> \author Fawzi Mohamed

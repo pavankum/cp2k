@@ -340,7 +340,6 @@ MODULE helium_common
 ! *****************************************************************************
 !> \brief  Calculate helium radial distribution function wrt <r0>.
 !> \param helium ...
-!> \param error ...
 !> \date   2009-07-22
 !> \author Lukasz Walewski
 !> \note   Actually calculate the histogram only, the normalization is
@@ -401,7 +400,6 @@ MODULE helium_common
 ! *****************************************************************************
 !> \brief  Calculate helium density distribution function wrt <r0>.
 !> \param helium ...
-!> \param error ...
 !> \date   2011-06-14
 !> \author Lukasz Walewski
 !> \note   The calculated density is stored in the helium%rho_inst array. 
@@ -466,7 +464,6 @@ MODULE helium_common
 ! ***************************************************************************
 !> \brief  Calculate probability distribution of the permutation lengths
 !> \param helium ...
-!> \param error ...
 !> \date   2010-06-07
 !> \author Lukasz Walewski
 !> \note  Valid permutation path length is an integer (1, NATOMS), number
@@ -503,7 +500,6 @@ MODULE helium_common
 !> \brief  Rotate helium particles in imaginary time by nslices
 !> \param helium ...
 !> \param nslices ...
-!> \param error ...
 !> \author hforbert
 !> \note  Positions of helium beads in helium%pos array are reorganized such
 !>         that the indices are cyclically translated in a permutation-aware
@@ -624,7 +620,6 @@ MODULE helium_common
 ! *****************************************************************************
 !> \brief ...
 !> \param helium ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE helium_update_transition_matrix(helium)
 
@@ -1510,7 +1505,6 @@ END SUBROUTINE helium_update_transition_matrix
 ! ***************************************************************************
 !> \brief  Given the permutation state assign cycle lengths to all He atoms.
 !> \param helium ...
-!> \param error ...
 !> \date   2011-07-06
 !> \author Lukasz Walewski
 !> \note   The helium%atom_plength array is filled with cycle lengths,

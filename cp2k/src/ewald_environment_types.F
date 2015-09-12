@@ -120,7 +120,6 @@ CONTAINS
 !> \param max_ipol_iter ...
 !> \param interaction_cutoffs ...
 !> \param cell_hmat ...
-!> \param error ...
 !> \par History
 !>      11/03
 !> \author CJM
@@ -193,7 +192,6 @@ CONTAINS
 !> \param poisson_section ...
 !> \param interaction_cutoffs ...
 !> \param cell_hmat ...
-!> \param error ...
 !> \par History
 !>      11/03
 !> \author CJM
@@ -249,8 +247,6 @@ CONTAINS
 !> \brief allocates and intitializes a ewald_env
 !> \param ewald_env the object to create
 !> \param para_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -281,8 +277,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given ewald_env (see doc/ReferenceCounting.html)
 !> \param ewald_env the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -305,8 +299,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given ewald_env (see doc/ReferenceCounting.html)
 !> \param ewald_env the object to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -343,7 +335,6 @@ CONTAINS
 !> \brief Purpose: read the EWALD section
 !> \param ewald_env the pointer to the ewald_env
 !> \param ewald_section ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] -University of Zurich - 2005
 ! *****************************************************************************
   SUBROUTINE read_ewald_section ( ewald_env, ewald_section)
@@ -479,13 +470,11 @@ CONTAINS
 !> \brief triggers (by bisection) the optimal value for EWALD parameter x
 !>      EXP(-x^2)/x^2 = EWALD_ACCURACY
 !> \param precs ...
-!> \param error ...
 !> \retval value ...
 !> \author Teodoro Laino [tlaino] - University of Zurich - 12.2007
 ! *****************************************************************************
   FUNCTION find_ewald_optimal_value(precs) RESULT(value)
-    REAL(KIND=dp)                            :: precs
-    REAL(KIND=dp)                            :: value
+    REAL(KIND=dp)                            :: precs, value
 
     CHARACTER(len=*), PARAMETER :: routineN = 'find_ewald_optimal_value', &
       routineP = moduleN//':'//routineN

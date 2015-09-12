@@ -96,7 +96,6 @@ MODULE admm_dm_types
 ! *****************************************************************************
 !> \brief Release a admm_dm type
 !> \param admm_dm ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE admm_dm_release(admm_dm)

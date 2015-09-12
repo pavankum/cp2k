@@ -74,8 +74,6 @@ CONTAINS
 !> \param rebuild_grids if it in necessary to rebuild rho_r and rho_g.
 !>        Defaults to false.
 !> \param admm (use aux_fit basis)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2002 created replacing qs_rho_create and qs_env_rebuild_rho[fawzi]
 !> \author Fawzi Mohamed
@@ -330,8 +328,6 @@ END SUBROUTINE qs_rho_rebuild
 !>        the integrated charge in r space
 !> \param local_rho_set ...
 !> \param task_list_external ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -542,8 +538,6 @@ END SUBROUTINE qs_rho_update_rho
 !> \param rho_output The duplicate rho structure
 !> \param qs_env The QS environment from which the auxiliary PW basis-set
 !>                pool is taken
-!> \param error variable to control error logging, stopping,...
-!>               see module cp_error_handling
 !> \par History
 !>      07.2005 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)

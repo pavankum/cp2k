@@ -75,8 +75,6 @@ CONTAINS
 !> \brief   Deallocates ps_implicit
 !> \param implicit_env the implicit_env to be deallocated
 !> \param pw_pool pool of plane-wave grid  
-!> \param error cp2k error
-!>
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian

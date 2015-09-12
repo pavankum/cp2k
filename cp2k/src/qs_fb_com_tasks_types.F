@@ -161,7 +161,6 @@ CONTAINS
 !> \brief Retains an fb_com_tasks object
 !> \param com_tasks the fb_com_tasks object, its content must not be
 !>                   NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_tasks_retain(com_tasks)
@@ -183,7 +182,6 @@ CONTAINS
 !> \brief Retains an fb_com_atom_pairs object
 !> \param atom_pairs the fb_com_atom_pairs object, its content must not be
 !>                   NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_atom_pairs_retain(atom_pairs)
@@ -206,7 +204,6 @@ CONTAINS
 !> \param com_tasks the fb_com_tasks object, its content must not be
 !>                   UNDEFINED, and the subroutine does nothing if the
 !>                   content points to NULL
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_tasks_release(com_tasks)
@@ -243,7 +240,6 @@ CONTAINS
 !> \param atom_pairs the fb_com_atom_pairs object, its content must not
 !>                    be UNDEFINED, and the subroutine does nothing if
 !>                    the content points to NULL
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_atom_pairs_release(atom_pairs)
@@ -387,7 +383,6 @@ CONTAINS
 !> \brief Creates and initialises an empty fb_com_tasks object
 !> \param com_tasks the fb_com_tasks object, its content must be NULL
 !>                   and cannot be UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_tasks_create(com_tasks)
@@ -417,7 +412,6 @@ CONTAINS
 !> \brief Creates and initialises an empty fb_com_atom_pairs object
 !> \param atom_pairs the fb_com_atom_pairs object, its content must be
 !>                    NULL and cannot be UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_atom_pairs_create(atom_pairs)
@@ -447,7 +441,6 @@ CONTAINS
 !> \brief Initialises an fb_com_tasks object, and makes it empty
 !> \param com_tasks the fb_com_tasks object, its content must not be
 !>                   NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_tasks_init(com_tasks)
@@ -476,7 +469,6 @@ CONTAINS
 !> \brief Initialises an fb_com_atom_pairs object, and makes it empty
 !> \param atom_pairs the fb_com_atom_pairs object, its content must not
 !>                    be NULL or UNDEFINED
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_atom_pairs_init(atom_pairs)
@@ -511,7 +503,6 @@ CONTAINS
 !> \param ntasks [OPTIONAL]: if present, outputs com_tasks%obj%ntasks
 !> \param nencode [OPTIONAL]: if present, outputs com_tasks%obj%nencode
 !> \param tasks [OPTIONAL]: if present, outputs pointer com_tasks%obj%tasks
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_tasks_get(com_tasks, &
@@ -547,7 +538,6 @@ CONTAINS
 !> \param npairs [OPTIONAL]: if present, outputs atom_pairs%obj%npairs
 !> \param natoms_encode [OPTIONAL]: if present, outputs atom_pairs%obj%natoms_encode
 !> \param pairs [OPTIONAL]: if present, outputs pointer atom_pairs%obj%pairs
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_atom_pairs_get(atom_pairs, &
@@ -582,7 +572,6 @@ CONTAINS
 !> \param ntasks [OPTIONAL]: if present, sets com_tasks%obj%ntasks
 !> \param nencode [OPTIONAL]: if present, sets com_tasks%obj%nencode
 !> \param tasks [OPTIONAL]: if present, associates pointer com_tasks%obj%tasks
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_tasks_set(com_tasks, &
@@ -625,7 +614,6 @@ CONTAINS
 !> \param npairs [OPTIONAL]: if present, sets atom_pairs%obj%npairs
 !> \param natoms_encode [OPTIONAL]: if present, sets atom_pairs%obj%natoms_encode
 !> \param pairs [OPTIONAL]: if present, associates pointer atom_pairs%obj%pairs
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_atom_pairs_set(atom_pairs, &
@@ -672,7 +660,6 @@ CONTAINS
 !>                          having the src process id equal to my_id
 !> \param para_env CP2K parallel environment object that stores MPI related
 !>                  information of the current run
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_tasks_transpose_dest_src(tasks_dest_is_me, &
@@ -869,7 +856,6 @@ CONTAINS
 !>                      process
 !> \param symmetric whether the matrix the blocks are to be taken from
 !>                   is symmetric
-!> \param error CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_tasks_build_atom_pairs(com_tasks, &
@@ -1130,7 +1116,6 @@ CONTAINS
 !>                               location in atom_pairs array for
 !>                               all the pairs to be sent to or recv
 !>                               from process ipe
-!> \param error : cp2k error container
 !> \param row_map : optional blk row map for the DBCSR blocks
 !> \param col_map : optional blk col map for the DBCSR blocks
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
@@ -1223,7 +1208,6 @@ CONTAINS
 !> \param para_env        : CP2K parallel environment
 !> \param matrix_storage  : the fb_matrix_data object to store the
 !>                          received DBCSR matrix blocks
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_atom_pairs_gather_blks(dbcsr_mat, &
@@ -1443,7 +1427,6 @@ CONTAINS
 !> \param para_env        : CP2K parallel environment
 !> \param dbcsr_mat : the DBCSR matrix where the matrix blocks will be
 !>                    distributed to
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_com_atom_pairs_distribute_blks(matrix_storage, &

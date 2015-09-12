@@ -621,7 +621,8 @@ sub processSubroutineDefinition {
                 # Must protect against updating an existing comment
                 # Get rid of \n so UNMATCHED* text can be appended on.
                 chomp($params{$paramName});
-                print $OUTPUT $params{$paramName} . " UNMATCHED_PROCEDURE_ARGUMENT: please check \n";
+                # temporary change to remove error_type
+                #print $OUTPUT $params{$paramName} . " UNMATCHED_PROCEDURE_ARGUMENT: please check \n";
             } else {
                 print $OUTPUT $params{$paramName};
             }

@@ -56,8 +56,6 @@ MODULE xc_xlda_hole_t_c_lr
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv controls the number of derivatives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>        12.2008 created [mguidon]
 !> \author mguidon
@@ -88,8 +86,6 @@ MODULE xc_xlda_hole_t_c_lr
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv controls the number of derivatives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>        12.2008 created [mguidon]
 !> \author mguidon
@@ -122,8 +118,6 @@ MODULE xc_xlda_hole_t_c_lr
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param params input parameters (scaling, cutoff_radius)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2008 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -223,7 +217,6 @@ MODULE xc_xlda_hole_t_c_lr
 !> \param epsilon_rho ...
 !> \param sx ...
 !> \param R ...
-!> \param error ...
 !> \par History
 !>      12.2008 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -267,7 +260,6 @@ MODULE xc_xlda_hole_t_c_lr
 !> \param e_rho ...
 !> \param sx ...
 !> \param R ...
-!> \param error ...
 !> \par History
 !>      12.2008 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -343,8 +335,6 @@ MODULE xc_xlda_hole_t_c_lr
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param params input parameters (scaling, cutoff_radius)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2008 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -459,7 +449,6 @@ MODULE xc_xlda_hole_t_c_lr
 !> \param epsilon_rho ...
 !> \param sx ...
 !> \param R ...
-!> \param error ...
 !> \par History
 !>      12.2008 created [Manuel Guidon]
 !> \author Manuel Guidon

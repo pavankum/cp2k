@@ -131,9 +131,6 @@ CONTAINS
 !> \param move_type dictates what kind of conformational change we do
 !> \param lreject set to .true. if there is an overlap
 !> \param rng_stream the random number stream that we draw from
-!> \param error the cp_error type
-!>
-!>      This subroutine is designed to run in parallel.
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE mc_conformation_change ( mc_par,force_env,bias_env, moves,&
@@ -444,9 +441,6 @@ END SUBROUTINE mc_conformation_change
 !> \param molecule_type the type of molecule we're moving
 !> \param lreject set to .true. if there is an overlap
 !> \param rng_stream the random number stream that we draw from
-!> \param error the cp_error type
-!>
-!>      This subroutine designed to be parallel.
 !> \author MJM
 ! *****************************************************************************
  SUBROUTINE mc_molecule_translation(  mc_par,force_env, bias_env,moves,&
@@ -679,9 +673,6 @@ END SUBROUTINE mc_conformation_change
 !> \param bias_energy the biased energy of the system before the move
 !> \param lreject set to .true. if there is an overlap
 !> \param rng_stream the random number stream that we draw from
-!> \param error the cp_error type
-!>
-!>      This subroutine has been designed for parallel use.
 !> \author MJM
 ! *****************************************************************************
  SUBROUTINE mc_molecule_rotation ( mc_par,force_env, bias_env,moves,&
@@ -993,8 +984,6 @@ END SUBROUTINE mc_conformation_change
 !> \param discrete_array tells use which volumes we can do for the discrete
 !>            case
 !> \param rng_stream the random number stream that we draw from
-!> \param error the cp error type
-!>
 !> \author MJM
 !> \note     Designed for parallel use.
 ! *****************************************************************************
@@ -1358,7 +1347,6 @@ END SUBROUTINE mc_conformation_change
 !> \param rng_stream the random number stream that we draw from
 !>
 !>    This subroutine is written to be parallel.
-!> \param error ...
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE change_bond_length ( r_old,r_new,mc_par,molecule_type,molecule_kind,&
@@ -1551,7 +1539,6 @@ END SUBROUTINE mc_conformation_change
 !> \param particles the particle_list_type for all particles in the force_env...
 !>             used to grab the mass of each atom
 !> \param rng_stream the random number stream that we draw from
-!> \param error ...
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE change_bond_angle ( r_old,r_new,mc_par,molecule_type,molecule_kind,&
@@ -1837,7 +1824,6 @@ END SUBROUTINE mc_conformation_change
 !> \param particles the particle_list_type for all particles in the force_env..
 !>             used to grab the mass of each atom
 !> \param rng_stream the random number stream that we draw from
-!> \param error ...
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE change_dihedral ( r_old,r_new,mc_par,molecule_type,molecule_kind,&
@@ -2076,8 +2062,6 @@ END SUBROUTINE mc_conformation_change
 !> \param last_bias_energy the last biased energy of the system
 !> \param move_type dictates if we're moving to an "in" or "out" region
 !> \param rng_stream the random number stream that we draw from
-!> \param error the cp_error type
-!>
 !> \author MJM
 !> \note     Designed for parallel.
 ! *****************************************************************************
@@ -2488,8 +2472,6 @@ END SUBROUTINE mc_conformation_change
 !> \param r_old the coordinates of the last accepted move involving an
 !>               unbiased calculation
 !> \param rng_stream the random number stream that we draw from
-!> \param error the cp error type
-!>
 !> \author MJM
 !> \note     Designed for parallel use.
 ! *****************************************************************************

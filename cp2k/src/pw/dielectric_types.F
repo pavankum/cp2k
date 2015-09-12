@@ -77,8 +77,6 @@ CONTAINS
 !> \brief   deallocates dielectric data type
 !> \param dielectric the dielectric data type to be released
 !> \param pw_pool pool of the plane wave grid  
-!> \param error cp2k error
-!>
 !> \par History
 !>       06.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -125,8 +123,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   deallocates dielectric_parameters type
 !> \param dielec_params dielectric parameters
-!> \param error cp2k error
-!>
 !> \par History
 !>       07.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian

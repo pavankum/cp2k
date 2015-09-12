@@ -49,8 +49,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the coeff section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_barostat_section(section)
@@ -131,7 +129,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates print section for barostat section
 !> \param section ...
-!> \param error ...
 !> \author teo [tlaino] - University of Zurich - 02.2008
 ! *****************************************************************************
   SUBROUTINE create_print_section(section)

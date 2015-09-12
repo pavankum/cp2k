@@ -32,7 +32,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Release exclusion type
 !> \param exclusions ...
-!> \param error ...
 !> \par History
 !>      12.2010 created [Teodoro Laino] - teodoro.laino@gmail.com
 !> \author teo

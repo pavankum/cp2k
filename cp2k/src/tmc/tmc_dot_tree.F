@@ -49,8 +49,6 @@ CONTAINS
 !> \brief returns extended filename for global and sub trees
 !> \param tmc_params param environment for creating the file name
 !> \param ind index of the subtree (0 = global tree)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval filename ...
 !> \author Mandes 12.2012
 ! *****************************************************************************
@@ -84,8 +82,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief initializes the dot files (open and write headers)
 !> \param tmc_params param environment for creating the file name
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE init_draw_trees(tmc_params)
@@ -122,8 +118,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief close the dot files (write tails)
 !> \param tmc_params param environment for creating the file name
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE finalize_draw_tree(tmc_params)
@@ -156,8 +150,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief writes the legend in the file
 !> \param file_ptr file pointer 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE write_legend(file_ptr)
@@ -211,8 +203,6 @@ CONTAINS
 !> \param node_nr the index of the tree node
 !> \param stat tree element status
 !> \param filename the filename for the grapgviz dot files
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE write_color(node_nr, stat, filename)
@@ -280,8 +270,6 @@ CONTAINS
 !> \param acc flag for accepted or not accepted branch (left,right)
 !> \param tmc_params param environment for creating the file name
 !> \param tree index of the tree (0=global tree)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_dot_branch(parent_nr,child_nr,acc,tmc_params,tree)
@@ -315,8 +303,6 @@ CONTAINS
 !> \param new_element the actual subtree element
 !> \param conf the subtree index and hence the index for filename
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_dot(new_element, conf, tmc_params)
@@ -345,8 +331,6 @@ CONTAINS
 !>        additional handling of nodes with swaped elements
 !> \param new_element the actual global element
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_global_tree_dot(new_element, tmc_params)
@@ -429,8 +413,6 @@ CONTAINS
 !>        on the basis of the element status
 !> \param tree_element the actual global element
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_dot_color(tree_element, tmc_params)
@@ -477,8 +459,6 @@ CONTAINS
 !>        on the basis of the element status
 !> \param gt_tree_element the actual global element
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_global_tree_dot_color(gt_tree_element, tmc_params)

@@ -55,8 +55,6 @@ CONTAINS
 !> \brief creates the colvar section
 !> \param section the section to be created
 !> \param skip_recursive_colvar ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   RECURSIVE SUBROUTINE create_colvar_section(section,skip_recursive_colvar)
@@ -104,8 +102,6 @@ CONTAINS
 !>      This section will be only used for restraint restarts.
 !>      Constraints are handled automatically
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino 08.2006
 ! *****************************************************************************
   SUBROUTINE create_clv_info_section(section)
@@ -141,8 +137,6 @@ CONTAINS
 !> \param subsection ...
 !> \param section the section to be created
 !> \param skip_recursive_colvar ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   RECURSIVE SUBROUTINE create_colvar_var_section(subsection, section, skip_recursive_colvar)
@@ -257,8 +251,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying coordination
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_coord_section(section)
@@ -395,7 +387,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_colvar_cond_dist_section(section)
     TYPE(section_type), POINTER              :: section
@@ -504,8 +495,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying population of a specie based on coordination
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \date  01.2009
 !> \author Fabio Sterpone
 ! *****************************************************************************
@@ -611,7 +600,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_colvar_gyr_section(section)
     TYPE(section_type), POINTER              :: section
@@ -658,8 +646,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying torsion
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_dfunct_section(section)
@@ -717,8 +703,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying torsion
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_torsion_section(section)
@@ -760,8 +744,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying torsion
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_rot_section(section)
@@ -827,8 +809,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying angles
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_angle_section(section)
@@ -868,8 +848,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the colvar section regarded to the collective variables dist
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_dist_section(section)
@@ -917,8 +895,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the colvar section regarded to the collective variables dist
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_xyz_d_section(section)
@@ -986,8 +962,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the colvar section regarded to the collective variables dist
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_xyz_od_section(section)
@@ -1057,8 +1031,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief energy as collective variable
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Sebastiano Caravati
 ! *****************************************************************************
   SUBROUTINE create_colvar_u_section(section)
@@ -1144,8 +1116,6 @@ CONTAINS
 !> \brief creates the colvar section regarded to the collective variables distance
 !>      of a point from a plane
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_d_pl_section(section)
@@ -1203,8 +1173,6 @@ CONTAINS
 !> \brief creates the colvar section regarded to the collective variables
 !>      angles betweem two planes
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_a_pl_section(section)
@@ -1270,8 +1238,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief create a geometrical point as a function of several atom coordinates
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_point_section(section)
@@ -1332,8 +1298,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying torsion
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_colvar_qparm_section(section)
@@ -1402,8 +1366,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying hydronium solvation
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Marcel Baer
 ! *****************************************************************************
   SUBROUTINE create_colvar_hydronium_section(section)
@@ -1536,7 +1498,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_colvar_rmsd_section(section)
     TYPE(section_type), POINTER              :: section
@@ -1614,8 +1575,6 @@ CONTAINS
 !> \brief collective variables specifying the space orthogonal to the reaction path
 !>        in the space spanned by the involved collective coordinates
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff
 ! *****************************************************************************
   SUBROUTINE create_colvar_rpath_section(section)
@@ -1643,8 +1602,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Distance from reaction path
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author 01.2010
 ! *****************************************************************************
   SUBROUTINE create_colvar_dpath_section(section)
@@ -1672,8 +1629,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Section describinf keywords for both reaction path and distance from reaction path
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author 01.2010
 ! *****************************************************************************
   SUBROUTINE keywords_colvar_path(section)
@@ -1818,8 +1773,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Colvar allowing a combination of COLVARS
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - 12.2008
 ! *****************************************************************************
   SUBROUTINE create_colvar_comb_section(section)
@@ -1903,8 +1856,6 @@ CONTAINS
 !> \brief Creates the coord section
 !> \param section the section to create
 !> \param name ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_coord_section_cv(section,name)
@@ -1936,8 +1887,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collective variables specifying h bonds
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author alin m elena
 ! *****************************************************************************
   SUBROUTINE create_colvar_wc_section(section)
@@ -1986,8 +1935,6 @@ CONTAINS
    ! *****************************************************************************
 !> \brief collective variables specifying h bonds= wire
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author alin m elena
 ! *****************************************************************************
   SUBROUTINE create_colvar_hbp_section(section)
@@ -2050,8 +1997,6 @@ CONTAINS
 !> \brief collective variables specifying ring puckering     
 !> \brief D. Cremer and J.A. Pople, JACS 97 1354 (1975)
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Marcel Baer
 ! *****************************************************************************
   SUBROUTINE create_colvar_ring_puckering_section(section)

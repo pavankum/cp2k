@@ -46,7 +46,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief allocate thermal_regions
 !> \param thermal_regions ...
-!> \param error ...
 !> \author
 ! *****************************************************************************
   SUBROUTINE allocate_thermal_regions(thermal_regions)
@@ -73,7 +72,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains  thermal_regions
 !> \param thermal_regions ...
-!> \param error ...
 !> \author
 ! *****************************************************************************
   SUBROUTINE retain_thermal_regions(thermal_regions)
@@ -96,7 +94,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief release thermal_regions
 !> \param thermal_regions ...
-!> \param error ...
 !> \author
 ! *****************************************************************************
   SUBROUTINE release_thermal_regions(thermal_regions)

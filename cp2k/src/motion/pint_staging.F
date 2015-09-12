@@ -39,8 +39,6 @@ CONTAINS
 !> \param staging_section ...
 !> \param p ...
 !> \param kT ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE staging_env_create(staging_env,staging_section,p,kT)
@@ -81,8 +79,6 @@ CONTAINS
 ! ***************************************************************************
 !> \brief releases the staging environment
 !> \param staging_env the staging_env to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
   SUBROUTINE staging_release(staging_env)
@@ -111,8 +107,6 @@ CONTAINS
 ! ***************************************************************************
 !> \brief retains a staging_env
 !> \param staging_env the staging_env to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
   SUBROUTINE staging_retain(staging_env)
@@ -139,8 +133,6 @@ CONTAINS
 !> \param mass_beads masses of the beads
 !> \param mass_fict the fictitious masses
 !> \param Q masses of the nose thermostats
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling 
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -208,8 +200,6 @@ CONTAINS
 !> \param staging_env the environment for the staging transformation
 !> \param ux will contain the u variable
 !> \param x the positions to transform
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE staging_x2u(staging_env,ux,x)
@@ -247,8 +237,6 @@ CONTAINS
 !> \param staging_env the environment for the staging transformation
 !> \param ux the u variable (positions to be backtransformed)
 !> \param x will contain the positions
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE staging_u2x(staging_env,ux,x)
@@ -303,8 +291,6 @@ CONTAINS
 !> \param staging_env the environment for the staging transformation
 !> \param uf will contain the forces after for the transformed variable
 !> \param f the forces to transform
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE staging_f2uf(staging_env,uf,f)
@@ -366,8 +352,6 @@ CONTAINS
 !> \param ux the positions of the beads in the staging basis
 !> \param uf_h the harmonic forces (not accelerations)
 !> \param e_h ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE staging_calc_uf_h(staging_env,mass_beads,ux,uf_h,e_h)

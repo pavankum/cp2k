@@ -38,7 +38,6 @@ CONTAINS
 !> \param ilevel ...
 !> \param higher_grid_layout the layout of a higher level grid. layouts with
 !>       negative or zero values are ignored
-!> \param error ...
 !> \par History
 !>      01.2008 created [Joost VandeVondele]
 !> \note

@@ -71,8 +71,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates lri_opt
 !> \param lri_opt optimization environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
  SUBROUTINE create_lri_opt(lri_opt)
 
@@ -106,8 +104,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates lri_opt
 !> \param lri_opt optimization environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
  SUBROUTINE deallocate_lri_opt(lri_opt)
 
@@ -158,8 +154,6 @@ CONTAINS
 !> \param gcc_orig original contraction coefficient
 !> \param gto_basis_set gaussian type basis set
 !> \param lri_opt optimization environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE get_original_gcc(gcc_orig,gto_basis_set,lri_opt)
  
@@ -233,8 +227,6 @@ CONTAINS
 !> \param gcc contraction coefficient
 !> \param gto_basis_set gaussian type basis set
 !> \param lri_opt optimization environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE orthonormalize_gcc(gcc,gto_basis_set,lri_opt)
  

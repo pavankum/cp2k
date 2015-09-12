@@ -62,7 +62,6 @@ CONTAINS
 !> \param md_section ...
 !> \param simpar ...
 !> \param force_env ...
-!> \param error ...
 !> \par History
 !>   - Added support for Langevin regions (2014/01/08, LT)
 !> \author
@@ -191,7 +190,6 @@ CONTAINS
 !> \param time            : simulation time of the time step
 !> \param pos             : file position
 !> \param act             : file action
-!> \param error           : wrapper for errors
 !> \par History
 !>   - added doxygen header and changed subroutine name from
 !>     print_thermal_regions to print_thermal_regions_temperature
@@ -258,7 +256,6 @@ CONTAINS
 !> \param simpar          : wrapper for simulation parameters
 !> \param pos             : file position
 !> \param act             : file action
-!> \param error           : wrapper for errors
 !> \par History
 !>   - created (2014/02/02, LT)
 !> \author Lianheng Tong [LT] (tonglianheng@gmail.com)

@@ -82,7 +82,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the transport environment
 !> \param[inout] qs_env the qs_env containing the transport_env
-!> \param[inout] error  CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE transport_env_create(qs_env)
@@ -121,7 +120,6 @@ CONTAINS
 !>        the corresponding input section 
 !> \param[inout] input         the input file 
 !> \param[inout] transport_env the transport_env to be initialized
-!> \param[inout] error         CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE transport_init_read_input(input,transport_env)
@@ -171,7 +169,6 @@ CONTAINS
 !> \param ks_env ...
 !> \param[inout] transport_env the transport env to be initialized 
 !> \param[in]    template_matrix   template matrix to keep the sparsity of matrices fixed
-!> \param[inout] error             CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE transport_initialize(ks_env, transport_env, template_matrix)
@@ -250,7 +247,6 @@ CONTAINS
 !> \param[inout] matrix_p       DBCSR density matrix
 !> \param[in]    nelectron_spin number of electrons 
 !> \param[in]    natoms         number of atoms 
-!> \param[inout] error          CP2K error
 !> \par History
 !>       12.2012 created [Hossein Bani-Hashemian]
 !>       12.2014 revised [Hossein Bani-Hashemian]
@@ -311,7 +307,6 @@ CONTAINS
 !> \param[in]    dbcsr_mat  DBCSR matrix to be converted
 !> \param[inout] csr_mat    auxiliary CSR matrix
 !> \param[inout] csr_interop_mat C-interoperable CSR matrix
-!> \param[inout] error      CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE convert_dbcsr_to_csr_interop(dbcsr_mat, csr_mat, csr_interop_mat)
@@ -420,7 +415,6 @@ CONTAINS
 !> \param[in] csr_interop_mat C-interoperable CSR matrix
 !> \param[inout] csr_mat         auxiliary CSR matrix
 !> \param[inout] dbcsr_mat       DBCSR matrix
-!> \param[inout] error           CP2K error
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE convert_csr_interop_to_dbcsr(csr_interop_mat, csr_mat, dbcsr_mat)

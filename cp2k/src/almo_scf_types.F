@@ -362,7 +362,6 @@ MODULE almo_scf_types
 !> \brief Prints out the options of an optimizer
 !> \param optimizer - options to print
 !> \param unit_nr - output stream
-!> \param error - error
 !> \par History
 !>       2014.10 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin

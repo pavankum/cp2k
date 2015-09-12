@@ -34,7 +34,6 @@ CONTAINS
 ! ****************************************************************************
 !> \brief creates the integer listing type
 !> \param ilist ...
-!> \param error ...
 !> \date  08.2008
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
@@ -62,7 +61,6 @@ CONTAINS
 ! ****************************************************************************
 !> \brief creates the integer listing type
 !> \param ilist ...
-!> \param error ...
 !> \date  08.2008
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************

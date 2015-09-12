@@ -78,7 +78,6 @@ CONTAINS
 !> \brief  Initializes a dct_type
 !> \param pw_grid the original plane wave grid
 !> \param dct_env dct_type to be initialized
-!> \param error cp2k error
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -116,7 +115,6 @@ CONTAINS
 !> \param dct_pw_grid DCT plane-wave grid
 !> \param dct_aux_pw_grid auxiliary DCT plane-wave grid (i.e an expanded pw grid
 !>                        whose local bounds are decided internally by cp2k)
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -186,7 +184,6 @@ CONTAINS
 !> \param flipg_stat flipping status for the received data chunks (pw_expand)
 !> \param dests_shrink list of the destination processes (pw_shrink)
 !> \param srcs_shrink list of the source proceses (pw_shrink)
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -359,7 +356,6 @@ CONTAINS
 !> \param bounds_shftd bounds of the original grid shifted to have g0 in the middle of the cell
 !> \param pw_in the original plane wave data
 !> \param pw_expanded the pw data after expansion
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -518,7 +514,6 @@ CONTAINS
 !> \param bounds_local_shftd local bounds of the original grid after shifting
 !> \param pw_in the original plane wave data
 !> \param pw_shrinked the shrinked plane wave data
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -634,8 +629,6 @@ CONTAINS
 !> \param cr3d_in input array
 !> \param cr3d_out output array
 !> \param bounds the bounds of the output array
-!> \param error cp2k error
-!> 
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -691,8 +684,6 @@ CONTAINS
 !> \param cr3d_in input array
 !> \param cr3d_out output array
 !> \param bounds the bounds of the output array
-!> \param error cp2k error
-!> 
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -747,8 +738,6 @@ CONTAINS
 !> \param cr3d_in input array
 !> \param cr3d_out output array
 !> \param bounds the bounds of the output array
-!> \param error cp2k error
-!> 
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -803,8 +792,6 @@ CONTAINS
 !> \param cr3d_in input array
 !> \param cr3d_out output array
 !> \param bounds the bounds of the output array
-!> \param error cp2k error
-!> 
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -865,7 +852,6 @@ CONTAINS
 !> \param recv_msgs_bnds bounds of the messages to be received (pw_expand) 
 !> \param bounds_new new global lower and upper bounds
 !> \param bounds_local_new new local lower and upper bounds
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1140,7 +1126,6 @@ CONTAINS
 !> \brief   Copies pw_old to pw_new that has different local bounds. 
 !> \param pw_old input pw data
 !> \param pw_new output pw data
-!> \param error cp2k error
 !> \par History
 !>       12.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1303,7 +1288,6 @@ CONTAINS
 !> \param e_rmsg received message from the east neighbor
 !> \param w_rmsg received message from the west neighbor
 !> \param sweep_stat sweeping status
-!> \param error cp2k error
 !> \par History
 !>       12.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1448,7 +1432,6 @@ CONTAINS
 !> \param n_rmsg received message from the north neighbor
 !> \param s_rmsg received message from the south neighbor
 !> \param sweep_stat data sweeping status
-!> \param error cp2k error
 !> \par History
 !>       12.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian

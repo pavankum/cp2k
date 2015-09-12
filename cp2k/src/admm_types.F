@@ -144,7 +144,6 @@ MODULE admm_types
 !> \param mos_aux_fit the MO's of the auxiliary fitting basis set
 !> \param para_env The parallel env
 !> \param natoms ...
-!> \param error ...
 !> \par History
 !>      05.2008 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -333,8 +332,6 @@ MODULE admm_types
 !> \brief releases the ADMM environment, cleans up all types
 !>
 !> \param admm_env The ADMM env
-!> \param error ...
-!>
 !> \par History
 !>      05.2008 created [Manuel Guidon]
 !> \author Manuel Guidon

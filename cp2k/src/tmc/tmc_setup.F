@@ -94,8 +94,6 @@ CONTAINS
 !> \param root_section ...
 !> \param para_env ...
 !> \param globenv the global environment for the simulation
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE do_tmc (input_declaration, root_section, para_env, globenv)
@@ -344,8 +342,6 @@ CONTAINS
 !> \param input_declaration ...
 !> \param root_section ...
 !> \param para_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \author Mandes 03.2013
 ! *****************************************************************************
@@ -478,8 +474,6 @@ CONTAINS
 !> \param ana_list ...
 !> \param elem ...
 !> \param tmc_env TMC analysis environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 03.2013
 ! *****************************************************************************
   SUBROUTINE tmc_read_ana_files_input(input_declaration, input, ana_list, elem, tmc_env)
@@ -587,8 +581,6 @@ CONTAINS
 !> \brief read the variables for distributing cores
 !> \param input ...
 !> \param tmc_env structure for storing all the tmc parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_preread_input(input,tmc_env)
@@ -716,8 +708,6 @@ CONTAINS
 !> \brief read the tmc subsection from the input file
 !> \param input points to the tmc subsection in the input file
 !> \param tmc_env structure for storing all the tmc parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_read_input(input,tmc_env)
@@ -855,8 +845,6 @@ CONTAINS
 !> \param para_env the old parallel environment
 !> \param ana_on_the_fly ...
 !> \param success ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_redistributing_cores(tmc_comp_set,para_env, ana_on_the_fly, &
@@ -1066,8 +1054,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief prints the most important parameters used for TMC
 !> \param tmc_env tructure with parameters for TMC
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_print_params(tmc_env)

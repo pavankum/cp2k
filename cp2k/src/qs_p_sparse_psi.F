@@ -68,8 +68,6 @@ CONTAINS
 !> \param particle_set the particle set from where to extract the indexes
 !>        of the ao
 !> \param qs_kind_set ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -126,8 +124,6 @@ END SUBROUTINE p_proj_create
 !> \brief augments the retain count by one, to be called to hold a shared copy
 !>      of this object
 !> \param p_proj the projection to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -151,8 +147,6 @@ END SUBROUTINE p_proj_retain
 !> \brief decreases the retain count by one, deleting the objecs when it hits 0.
 !>      To be called when you no longer need a shared copy you retained
 !> \param p_proj the projection to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -196,8 +190,6 @@ END SUBROUTINE p_proj_release
 !> \param start_col_min ...
 !> \param ncol number of columns to set (defaults to all the columns of
 !>        min_m
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -274,8 +266,6 @@ END SUBROUTINE p_proj_transfer_blacs_to_f
 !> \param full_m the matrix in the full basis to be restrained
 !> \param start_col the first column to restrain (defaults to 1)
 !> \param ncol number of columns to restrain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2003 created [fawzi]
 !> \author fawzi

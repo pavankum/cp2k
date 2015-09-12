@@ -90,7 +90,6 @@ CONTAINS
 !>                      filter function
 !> \param name        : name given to the filter matrix
 !> \param filter_mat  : DBCSR format filter matrix
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_fltrmat_build(H_mat, &
@@ -261,7 +260,6 @@ CONTAINS
 !>                      filter function
 !> \param name        : name given to the filter matrix
 !> \param filter_mat  : DBCSR format filter matrix
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_fltrmat_build_2(H_mat, &
@@ -477,7 +475,6 @@ CONTAINS
 !> \param filter_temp : the filter temperature used for defining the
 !>                      filter function
 !> \param filter_mat  : DBCSR format filter matrix
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_fltrmat_add_blkcol(H_mat, &
@@ -831,7 +828,6 @@ CONTAINS
 !>                      filter function
 !> \param filter_mat_data : local storage for the the computed filter matrix
 !>                          blocks
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_fltrmat_add_blkcol_2(H_mat, &
@@ -1039,7 +1035,6 @@ CONTAINS
 !> \param para_env : cp2k parallel environment
 !> \param atom_pairs_send : list of blocks to be sent
 !> \param atom_pairs_recv : list of blocks to be received
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_fltrmat_generate_com_pairs(filter_mat, &
@@ -1193,7 +1188,6 @@ CONTAINS
 !> \param para_env : cp2k parallel environment
 !> \param atom_pairs_send : list of blocks to be sent
 !> \param atom_pairs_recv : list of blocks to be received
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_fltrmat_generate_com_pairs_2(filter_mat, &
@@ -1352,7 +1346,6 @@ CONTAINS
 !> \param filter_temp : temperature used to construct the Fermi-Dirac
 !>                      filter function
 !> \param atomic_filter_mat : the atomic filter matrix
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_fltrmat_build_atomic_fltrmat(atomic_H, &

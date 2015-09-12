@@ -187,7 +187,6 @@ CONTAINS
 !> \param pw_pool ...
 !> \param mt_super_ref_pw_grid ...
 !> \param dct_pw_grid ...
-!> \param error ...
 !> \author Fawzi, based on previous functions by JGH and Teo
 ! *****************************************************************************
   SUBROUTINE pw_green_create ( green, poisson_params, cell_hmat, pw_pool, &
@@ -462,7 +461,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the type
 !> \param gftype ...
-!> \param error ...
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE pw_green_retain(gftype)
@@ -484,7 +482,6 @@ CONTAINS
 !> \brief destroys the type (deallocates data)
 !> \param gftype ...
 !> \param pw_pool ...
-!> \param error ...
 !> \par History
 !>      none
 !> \author Joost VandeVondele
@@ -537,7 +534,6 @@ CONTAINS
 !> \brief Calculates the influence_factor for the
 !>      SPME Green's function in reciprocal space'''
 !> \param gftype ...
-!> \param error ...
 !> \par History
 !>      none
 !> \author DH (29-Mar-2001)
@@ -647,7 +643,6 @@ END SUBROUTINE calc_p3m_charge
 !>      pw_poisson_solver
 !>      Call pw_poisson_release when you have finished
 !> \param poisson_env ...
-!> \param error ...
 !> \par History
 !>      none
 !> \author JGH (12-Mar-2001)
@@ -688,8 +683,6 @@ END SUBROUTINE calc_p3m_charge
 ! *****************************************************************************
 !> \brief retains the pw_poisson_env
 !> \param poisson_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pw_poisson_retain(poisson_env)
@@ -710,7 +703,6 @@ END SUBROUTINE calc_p3m_charge
 ! *****************************************************************************
 !> \brief releases the poisson solver
 !> \param poisson_env ...
-!> \param error ...
 !> \par History
 !>      none
 !> \author fawzi (11.2002)

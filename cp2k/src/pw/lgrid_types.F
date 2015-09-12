@@ -43,8 +43,6 @@ CONTAINS
 !>        The grid is not allocated
 !> \param lgrid the lgrid that gets created
 !> \param rs_descs the rs grid descriptors used to set the lgrid size
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2011 created [IAB]
 !> \author Iain Bethune
@@ -78,8 +76,6 @@ END SUBROUTINE lgrid_create
 ! *****************************************************************************
 !> \brief retains the lgrid (see doc/ReferenceCounting.html)
 !> \param lgrid the lgrid_type to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2011 created [IAB]
 !> \author Iain Bethune
@@ -102,8 +98,6 @@ END SUBROUTINE lgrid_retain
 ! *****************************************************************************
 !> \brief releases the given lgrid (see doc/ReferenceCounting.html)
 !> \param lgrid the lgrid_type to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2011 created [IAB]
 !> \author Iain Bethune
@@ -137,8 +131,6 @@ END SUBROUTINE
 !> \brief allocates the lgrid for a given number of threads
 !> \param lgrid the lgrid_type for which the grid will be allocated
 !> \param nthreads how many threads to allocate for
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2011 created [IAB]
 !> \author Iain Bethune

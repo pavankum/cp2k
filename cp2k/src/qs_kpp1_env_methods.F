@@ -103,8 +103,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief allocates and initializes a kpp1_env
 !> \param kpp1_env the environement to initialize
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -144,8 +142,6 @@ CONTAINS
 !> \param rho1 the density that represent the first direction along which
 !>        you should evaluate the derivatives
 !> \param rho1_xc ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE kpp1_calc_k_p_p1(kpp1_env, p_env, qs_env, k_p_p1, rho, rho1, rho1_xc)
 
@@ -515,8 +511,6 @@ CONTAINS
 !> \param rho1 the density that represent the first direction along which
 !>        you should evaluate the derivatives
 !> \param diff the amount of the finite difference step
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -613,8 +607,6 @@ CONTAINS
 !> \brief checks that the intenal storage is allocated, and allocs it if needed
 !> \param kpp1_env the environment to check
 !> \param qs_env the qs environment this kpp1_env lives in
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 !> \note
 !>      private routine
@@ -734,8 +726,6 @@ CONTAINS
 !> \param s_struct_changed true if the structure of the s matrix has changed
 !> \param grid_changed true if the grids have changed and have to be rebuilt
 !> \param psi0_changed true if the value of psi0 (qs_env%rho) has changed
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -808,7 +798,6 @@ CONTAINS
 !> \param rho1 ...
 !> \param rho1_tot_gspace ...
 !> \param output_unit ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE print_densities(rho1, rho1_tot_gspace, output_unit)
 

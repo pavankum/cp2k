@@ -66,8 +66,6 @@ CONTAINS
 !> \param move_rejected return flag if during configurational change 
 !>        configuration should still be accepted (not if e.g. atom/molecule 
 !>        leave the sub box
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE change_pos(tmc_params, move_types, rng_stream, elem, mv_conf, &
@@ -377,8 +375,6 @@ CONTAINS
 !> \param mol the selected molecule number
 !> \param start_ind start index of the first atom in molecule
 !> \param end_ind index of the last atom in molecule
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 10.2013
 ! *****************************************************************************
   SUBROUTINE get_mol_indeces(tmc_params, mol_arr, mol, start_ind, end_ind)
@@ -431,8 +427,6 @@ CONTAINS
 !> \param subbox_center actual center of sub box
 !> \param box_scale scaling factors for the cell
 !> \param tmc_params TMC parameters with sub box size and cell
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval inside ...
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -488,8 +482,6 @@ CONTAINS
 !> \param rng_stream ...
 !> \param elem ...
 !> \param nr_of_sub_box_elements ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \param 
 !> \author Mandes 11.2012
@@ -573,8 +565,6 @@ CONTAINS
 !> \param move_types ...
 !> \param rng_stream ramdon stream
 !> \param dim_per_elem dimension per atom
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE do_mol_rot(pos, ind_start, ind_end, max_angle, move_types, &
@@ -643,8 +633,6 @@ CONTAINS
 !> \param temp temperature for gaussian distributed velocity
 !> \param rnd_sign_change if sign of old velocity should change randomly
 !> \param rng_stream random number stream
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE vel_change(vel, atom_kind, phi, temp, rnd_sign_change, rng_stream)
@@ -704,8 +692,6 @@ CONTAINS
 !> \param rng_stream random number stream
 !> \param tmc_params TMC parameters with numbers of dimensions per element
 !>        number of atoms per molecule
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE search_and_do_proton_displace_loop(elem, short_loop, rng_stream, &
@@ -813,8 +799,6 @@ CONTAINS
 !> \param tmc_params TMC parameters with numbers of dimensions per element
 !>        number of atoms per molecule
 !> \param rng_stream random number stream
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE find_nearest_proton_acceptor_donator(elem, mol, donor_acceptor, &
@@ -958,8 +942,6 @@ CONTAINS
 !> \param i_orig ...
 !> \param i_neighbor ...
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval donor_acceptor ...
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -1022,8 +1004,6 @@ CONTAINS
 !>        changed by rotating
 !> \param mol_arr_in array of indeces of molecules, should be rotated
 !> \param donor_acceptor gives the direction of rotation
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE rotate_molecules_in_chain(tmc_params, elem, mol_arr_in, &
@@ -1180,8 +1160,6 @@ CONTAINS
 !> \param rng_stream random number generator stream
 !> \param tmc_params TMC parameters with e.g. dimensions of atoms and molecules
 !> \param mv_cen_of_mass ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE change_volume(conf, T_ind, move_types, rng_stream, tmc_params, &
@@ -1318,8 +1296,6 @@ CONTAINS
 !> \param move_types ...
 !> \param rng_stream random number generator stream
 !> \param tmc_params TMC parameters with e.g. dimensions of atoms and molecules
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE swap_atoms(conf, move_types, rng_stream, tmc_params)

@@ -51,8 +51,6 @@ CONTAINS
 !> \brief compute the surface dipole and the correction to the hartree potential
 !> \param qs_env the qs environment
 !> \param energy ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2014 created [MI]
 !> \author MI

@@ -90,7 +90,6 @@ CONTAINS
 !> \param[in]     qs_env Quickstep environment
 !> \param[in,out] matrix_h Hamiltonian matrices for each spin
 !> \param[in,out] matrix_w Energy weighted density matrices for each spin
-!> \param[in]     error environment
 !> \date          14.01.2008
 !> \author        Matthias Krack (MK)
 !> \version       1.0
@@ -187,7 +186,6 @@ CONTAINS
 !> \param should_output ...
 !> \param output_unit ...
 !> \param print_level ...
-!> \param[in]     error environment
 !> \date          02.07.2008
 !> \par
 !>  \f{eqnarray*}{
@@ -880,7 +878,6 @@ CONTAINS
 !> \param should_output ...
 !> \param output_unit ...
 !> \param print_level ...
-!> \param[in]     error environment
 !> \date          03.07.2008
 !> \par
 !>  \f{eqnarray*}{
@@ -1564,7 +1561,6 @@ CONTAINS
 !> \param should_output ...
 !> \param output_unit ...
 !> \param print_level ...
-!> \param[in]     error environment
 !> \date          11.01.2008
 !> \par
 !>  \f{eqnarray*}{

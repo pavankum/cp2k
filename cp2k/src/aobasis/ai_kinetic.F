@@ -51,7 +51,6 @@ CONTAINS
 !> \param rab    Distance vector between centers A and B
 !> \param kab    Kinetic energy integrals, optional
 !> \param dab    First derivatives of Kinetic energy integrals, optional
-!> \param error  CP2K error reporting
 !> \date    07.07.2014
 !> \author  JGH
 ! *****************************************************************************

@@ -64,8 +64,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the motion section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_motion_section(section)
@@ -145,8 +143,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the Monte Carlo section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_mc_section(section)
@@ -367,8 +363,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the AVBMC parameters for MC
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_avbmc_section(section)
@@ -426,8 +420,6 @@ CONTAINS
 !> \brief ...
 !> \param section will contain the probabilities for attempting each move
 !>        type in Monte Carlo
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_move_prob_section(section)
@@ -506,8 +498,6 @@ CONTAINS
 !> \brief ...
 !> \param section will contain the probabilities for attempting various moves
 !>        on the various molecule types present in the system
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_mol_prob_section(section)
@@ -571,8 +561,6 @@ CONTAINS
 !> \brief ...
 !> \param section will contain the probabilities for attempting various moves
 !>        on the box where the variable is present
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_box_prob_section(section)
@@ -616,8 +604,6 @@ CONTAINS
 !> \brief ...
 !> \param section will contain the frequency for updating maximum
 !>        displacements for various moves
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_update_section(section)
@@ -660,8 +646,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the maximum displacements for various moves
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_max_disp_section(section)
@@ -697,8 +681,6 @@ CONTAINS
 !> \brief ...
 !> \param section will contain the maximum displacements for all moves which
 !>        require a value for each molecule type
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_mol_disp_section(section)
@@ -762,8 +744,6 @@ CONTAINS
 !> \brief ...
 !> \param section will contain the maximum displacements for any move that
 !>        is done on each simulation box
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author matt
 ! *****************************************************************************
   SUBROUTINE create_box_disp_section(section)
@@ -802,8 +782,6 @@ CONTAINS
 !> \param label ...
 !> \param description ...
 !> \param just_optimizers ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   RECURSIVE SUBROUTINE create_geoopt_section(section,label,description,just_optimizers)
@@ -935,8 +913,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for the shell-core optimization
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Caino
 ! *****************************************************************************
   SUBROUTINE create_shellcore_opt_section(section)
@@ -976,8 +952,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for the cell optimization
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 03.2008
 ! *****************************************************************************
   SUBROUTINE create_cell_opt_section(section)
@@ -1069,8 +1043,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for tuning transition states search
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 01.2008
 ! *****************************************************************************
   SUBROUTINE create_ts_section(section)
@@ -1183,8 +1155,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the BFGS section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 01.2008
 ! *****************************************************************************
   SUBROUTINE create_bfgs_section(section)
@@ -1254,8 +1224,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the CG section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 01.2008
 ! *****************************************************************************
   SUBROUTINE create_cg_section(section)
@@ -1390,8 +1358,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the LBFGS section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich - 01.2008
 ! *****************************************************************************
   SUBROUTINE create_lbfgs_section(section)
@@ -1460,8 +1426,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the flexible_partitioning section
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost VandeVondele [04.2006]
 ! *****************************************************************************
   SUBROUTINE create_fp_section(section)
@@ -1564,8 +1528,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the driver section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author mceriotti
 ! *****************************************************************************
   SUBROUTINE create_driver_section(section)
@@ -1613,8 +1575,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for a path integral run
 !> \param section will contain the pint section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_pint_section(section)
@@ -1899,7 +1859,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_helium_section(section)
     TYPE(section_type), POINTER              :: section

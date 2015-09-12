@@ -98,7 +98,6 @@ CONTAINS
 !> \param   calculate_forces (optional)
 !> \param   matrix_p density matrix for force calculation (optional)
 !> \param   matrixkp_p density matrix for force calculation with k_points (optional)
-!> \param   error CP2K error reporting 
 !> \date    11.03.2002
 !> \par     History
 !>          Enlarged functionality of this routine. Now overlap matrices based
@@ -464,7 +463,6 @@ CONTAINS
 !> \param   basis_type_b basis set to be used for ket in <a|b>
 !> \param   sab_nl pair list (must be consistent with basis sets!)
 !> \param   matrix_p density matrix for force calculation 
-!> \param   error for error handling
 !> \date    11.03.2002
 !> \par     History
 !>          Enlarged functionality of this routine. Now overlap matrices based
@@ -675,7 +673,6 @@ CONTAINS
 !> \param basis_set_list_b Basis set used for |b>
 !> \param sab_nl         Overlap neighbor list
 !> \param symmetric      Is symmetry used in the neighbor list?
-!> \param error          CP2K error reporting
 ! *****************************************************************************
   SUBROUTINE create_sab_matrix_1d(ks_env, matrix_s, matrix_name,&
      basis_set_list_a, basis_set_list_b, sab_nl, symmetric)
@@ -781,7 +778,6 @@ CONTAINS
 !> \param basis_set_list_b Basis set used for |b>
 !> \param sab_nl         Overlap neighbor list
 !> \param symmetric      Is symmetry used in the neighbor list?
-!> \param error          CP2K error reporting
 ! *****************************************************************************
   SUBROUTINE create_sab_matrix_2d(ks_env, matrix_s, matrix_name,&
      basis_set_list_a, basis_set_list_b, sab_nl, symmetric)

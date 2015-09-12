@@ -108,9 +108,6 @@ CONTAINS
 !> \param vdw_pw_pool ...
 !> \param poisson_env ...
 !> \param interp_section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>      For the other see the attributes of pw_env_type
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -175,8 +172,6 @@ END SUBROUTINE pw_env_get
 ! *****************************************************************************
 !> \brief retains the pw_env (see doc/ReferenceCounting.html)
 !> \param pw_env the pw_env to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -200,8 +195,6 @@ END SUBROUTINE pw_env_retain
 !> \brief releases the given pw_env (see doc/ReferenceCounting.html)
 !> \param pw_env the pw_env to release
 !> \param kg ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -274,8 +267,6 @@ END SUBROUTINE pw_env_release
 ! *****************************************************************************
 !> \brief flushes the cached pws
 !> \param pw_env the pw_env to be flushed
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2002 created [fawzi]
 !> \author Fawzi Mohamed

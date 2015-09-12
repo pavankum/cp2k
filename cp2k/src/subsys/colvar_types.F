@@ -373,8 +373,6 @@ CONTAINS
 !> \brief initializes a colvar_param type
 !> \param colvar the colvat to initialize
 !> \param colvar_id ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author alessandro laio and fawzi mohamed
 ! *****************************************************************************
   SUBROUTINE colvar_create(colvar,colvar_id)
@@ -506,8 +504,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Finalize the setup of the collective variable
 !> \param colvar the colvar to initialize
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino, [teo] 09.03.2006
 ! *****************************************************************************
   SUBROUTINE colvar_setup(colvar)
@@ -1061,8 +1057,6 @@ CPSourceFileRef)
 ! *****************************************************************************
 !> \brief releases the memory that might have been allocated by the colvar
 !> \param colvar the colvar to deallocate
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author alessandro laio and fawzi mohamed
 ! *****************************************************************************
   RECURSIVE SUBROUTINE colvar_release(colvar)
@@ -1294,8 +1288,6 @@ CPSourceFileRef)
 !> \param colvar_out ...
 !> \param colvar_in the colvar to deallocate
 !> \param i_atom_offset ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 04.2006
 ! *****************************************************************************
   RECURSIVE SUBROUTINE colvar_clone(colvar_out, colvar_in, i_atom_offset)
@@ -1675,8 +1667,6 @@ CPSourceFileRef)
 !> \param colvar_out ...
 !> \param colvar_in the colvar to deallocate
 !> \param offset ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 03.2007
 ! *****************************************************************************
   SUBROUTINE colvar_clone_points(colvar_out, colvar_in, offset)
@@ -1727,8 +1717,6 @@ CPSourceFileRef)
 !> \param colvar_set ...
 !> \param lb1_new ...
 !> \param ub1_new ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] 04.2006
 ! *****************************************************************************
   SUBROUTINE colvar_p_reallocate(colvar_set,lb1_new,ub1_new)
@@ -1791,7 +1779,6 @@ CPSourceFileRef)
 ! *****************************************************************************
 !> \brief Deallocate a set of colvar_p_type
 !> \param colvar_p ...
-!> \param error ...
 !> \par History
 !>      07.2003 created [fawzi]
 !>      01.2014 moved from cp_subsys_release() into separate routine.

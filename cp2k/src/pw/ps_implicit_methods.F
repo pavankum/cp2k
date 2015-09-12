@@ -105,7 +105,6 @@ CONTAINS
 !> \param dct_aux_pw_grid ...
 !> \param green green function for FFT based inverse Laplacian
 !> \param ps_implicit_env implicit env to be created
-!> \param error cp2k error
 !> \par History
 !>       06.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -176,8 +175,6 @@ CONTAINS
 !> \param density electron density 
 !> \param v_new electrostatic potential
 !> \param ehartree Hartree energy
-!> \param error cp2k error
-!>
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -317,8 +314,6 @@ CONTAINS
 !> \param density electron density
 !> \param v_new electrostatic potential
 !> \param ehartree Hartree energy
-!> \param error cp2k error
-!>
 !> \par History
 !>       02.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -470,8 +465,6 @@ CONTAINS
 !> \param density electron density 
 !> \param v_new electrostatic potential
 !> \param ehartree Hartree energy
-!> \param error cp2k error
-!>
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -739,8 +732,6 @@ CONTAINS
 !> \param density electron density 
 !> \param v_new electrostatic potential
 !> \param ehartree Hartree energy
-!> \param error cp2k error
-!>
 !> \par History
 !>       10.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1019,7 +1010,6 @@ CONTAINS
 !> \brief  allocates and zeroises initial guess for implicit (iterative) Poisson solver
 !> \param ps_implicit_env the implicit env contaning the initial guess
 !> \param pw_pool pool of pw grid
-!> \param error cp2k error
 !> \par History
 !>       06.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1057,7 +1047,6 @@ CONTAINS
 !> \param green green functions for FFT based inverse Laplacian
 !> \param poisson_params paramaters of the poisson_env
 !> \param ps_implicit_env the implicit_env that stores the blocks
-!> \param error cp2k error
 !> \par History
 !>       10.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1410,7 +1399,6 @@ CONTAINS
 !> \param dielectric dielectric_type contaning eps
 !> \param v input matrix
 !> \param Pxv action of the operator P on v
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1456,7 +1444,6 @@ CONTAINS
 !> \param green green functions for FFT based inverse Laplacian
 !> \param pw_in pw_in (density)
 !> \param pw_out pw_out (potential)
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1518,7 +1505,6 @@ CONTAINS
 !> \param adjust_local_bounds whether or not to adjust local bounds
 !> \param pw_in input data
 !> \param pw_out output data
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1624,7 +1610,6 @@ CONTAINS
 !> \param green green functions for FFT based inverse Laplacian
 !> \param pw_in pw_in (potential)
 !> \param pw_out pw_out (density)
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1692,7 +1677,6 @@ CONTAINS
 !> \param adjust_local_bounds whether or not to adjust local bounds 
 !> \param pw_in input data
 !> \param pw_out output data
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1812,7 +1796,6 @@ CONTAINS
 !> \param dielectric dielectric environment
 !> \param v potential
 !> \param density density
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1860,7 +1843,6 @@ CONTAINS
 !> \param adjust_local_bounds whether or not to adjust local bounds
 !> \param v potential
 !> \param density density
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1916,7 +1898,6 @@ CONTAINS
 !> \param dielectric dielectric environment
 !> \param v Hartree potential
 !> \param v_eps v_eps
-!> \param error cp2k error
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1970,7 +1951,6 @@ CONTAINS
 !> \param density electronic density
 !> \param v Hartree potential
 !> \param ehartree Hartree energy
-!> \param error cp2k error
 !> \par History
 !>       06.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2002,7 +1982,6 @@ CONTAINS
 !>                  and B^t is the transpose of the boundary operator
 !> \param v Hartree potential
 !> \param ehartree Hartree energy
-!> \param error cp2k error
 !> \par History
 !>       06.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2059,7 +2038,6 @@ CONTAINS
 !> \param QAinvxres_new \Delta^-1(res_new)
 !> \param pres_error preconditioned residual norm error
 !> \param nabs_error normalized absolute error
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2116,7 +2094,6 @@ CONTAINS
 !> \param adjust_local_bounds whether or not to adjust local bounds
 !> \param pres_error preconditioned residual norm error
 !> \param nabs_error normalized absolute error
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2174,7 +2151,6 @@ CONTAINS
 !> \param pres_error preconditioned residual norm error
 !> \param nabs_error normalized absolute error
 !> \param outp_unit output unit
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2224,7 +2200,6 @@ CONTAINS
 !> \param ps_implicit_env the implicit poisson solver environment
 !> \param outp_unit output unit
 !> \param ehartree Hartree energy
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2252,7 +2227,6 @@ CONTAINS
 !> \param f  input funcition
 !> \param df derivative of f
 !> \param pw_pool pool of plane-wave grid
-!> \param error cp2k error
 ! *****************************************************************************
   SUBROUTINE derive_fft(f, df, pw_pool)
 
@@ -2298,7 +2272,6 @@ CONTAINS
 !> \param idx_1dto3d mapping of indices
 !> \param arr1d input 1D array
 !> \param arr3d input 3D array
-!> \param error cp2k error
 ! *****************************************************************************
   SUBROUTINE convert_1dto3d(idx_1dto3d, arr1d, arr3d)
 

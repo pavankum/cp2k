@@ -110,8 +110,6 @@ CONTAINS
 !> \param pool the pool to create
 !> \param pw_grid the grid that is used to create the pw
 !> \param max_cache ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -153,8 +151,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the pool (see cp2k/doc/ReferenceCounting.html)
 !> \param pool the pool to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -186,8 +182,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates all the cached grids
 !> \param pool the pool to flush
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -269,8 +263,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given pool (see cp2k/doc/ReferenceCounting.html)
 !> \param pool the pool to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -314,7 +306,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief tries to pop an element from the given list (no error on failure)
 !> \param list the list to pop
-!> \param error ...
 !> \retval res ...
 !> \par History
 !>      08.2002 created [fawzi]
@@ -341,8 +332,6 @@ CONTAINS
 !> \param use_data which data it uses: REALDATA1D, COMPLEXDATA1D,
 !>        REALDATA3D, COMPLEXDATA3D
 !> \param in_space in which space it is: REALSPACE, RECIPROCALSPACE
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -437,8 +426,6 @@ CONTAINS
 !> \param accept_non_compatible if non compatible pw should be accepted
 !>        (they will be destroied). Defaults to false (and thus stops with
 !>        an error)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -590,8 +577,6 @@ CPSourceFileRef)
 !>      REALDATA3D, allocating it if none is present in the pool
 !> \param pw_pool the pool that caches the cr3d
 !> \param cr3d the pointer that will contain the array
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -654,8 +639,6 @@ END SUBROUTINE pw_pool_create_cr3d
 !> \param cr3d the pointer that will contain the array
 !> \param accept_non_compatible if true deallocates the non compatible
 !>        arrays passed in, if false (the default) stops with an error
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -731,8 +714,6 @@ END SUBROUTINE pw_pool_give_back_cr3d
 !> \param use_data which data it uses: REALDATA1D, COMPLEXDATA1D,
 !>        REALDATA3D, COMPLEXDATA3D
 !> \param in_space ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2004 created [fawzi]
 !> \author Fawzi Mohamed
@@ -766,8 +747,6 @@ END SUBROUTINE pw_pools_create_pws
 !> \brief returns the pw part of the coefficents into the pools
 !> \param pools the pools that will cache the pws %pw
 !> \param pws the coefficents to give back
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -799,8 +778,6 @@ END SUBROUTINE pw_pools_give_back_pws
 !> \brief copies a multigrid pool, the underlying pools are shared
 !> \param source_pools the pools to copy
 !> \param target_pools will hold the copy of the pools
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -830,8 +807,6 @@ END SUBROUTINE pw_pools_copy
 !> \brief deallocates the given pools (releasing each of the underlying
 !>      pools)
 !> \param pools the pols to deallocate
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -861,8 +836,6 @@ END SUBROUTINE pw_pools_dealloc
 ! *****************************************************************************
 !> \brief deallocates all the cached grids
 !> \param pools the pools to flush
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -889,8 +862,6 @@ END SUBROUTINE pw_pools_flush_cache
 !> \brief writes the actual contents of the pw_pool
 !> \param pw_pool ...
 !> \param unit_nr ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi

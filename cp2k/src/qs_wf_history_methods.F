@@ -107,8 +107,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief allocates and initialize a wavefunction snapshot
 !> \param snapshot the snapshot to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !>      02.2005 added wf_mol [MI]
@@ -142,8 +140,6 @@ END SUBROUTINE wfs_create
 !> \param wf_history the history
 !> \param qs_env the qs_env that should be snapshotted
 !> \param dt the time of the snapshot (wrt. to the previous snapshot)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !>      02.2005 added kg_fm_mol_set for KG_GPW [MI]
@@ -325,8 +321,6 @@ END SUBROUTINE wfs_update
 !>        (see qs_wf_history_types:wfi_*_method_nr)
 !> \param extrapolation_order ...
 !> \param has_unit_metric ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -421,8 +415,6 @@ END SUBROUTINE wfi_create
 ! *****************************************************************************
 !> \brief ...
 !> \param wf_history ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2015 created [jhu]
 !> \author fawzi
@@ -463,8 +455,6 @@ END SUBROUTINE wfi_create_for_kp
 ! *****************************************************************************
 !> \brief returns a string describing the interpolation method
 !> \param method_nr ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      02.2003 created [fawzi]
@@ -522,8 +512,6 @@ END FUNCTION wfi_get_method_label
 !> \param dt the time at which to extrapolate (wrt. to the last snapshot)
 !> \param extrapolation_method_nr returns the extrapolation method used
 !> \param orthogonal_wf ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !>      11.2003 Joost VandeVondele : Implemented Nth order PS extrapolation
@@ -1003,8 +991,6 @@ CPSourceFileRef,&
 !>      to using a WF extrapolation.
 !> \param qs_env The QS environment
 !> \param nvec ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2006 created [TdK]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -1048,8 +1034,6 @@ CPSourceFileRef,&
 !> \param wf_history the history buffer to update
 !> \param qs_env the qs_env we get the info from
 !> \param dt ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -1086,8 +1070,6 @@ END SUBROUTINE wfi_update
 !> \param qs_env the qs_env in which to orthogonalize
 !> \param v_matrix the vectors to orthogonalize
 !> \param n_col number of column of v to orthogonalize
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author Fawzi Mohamed

@@ -32,8 +32,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the ATOMIC section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author JHU
 ! *****************************************************************************
   SUBROUTINE create_atprop_section(section)

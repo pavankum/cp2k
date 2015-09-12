@@ -205,7 +205,6 @@ CONTAINS
 !> \brief private compare function
 !> \param el1 ...
 !> \param el2 ...
-!> \param error ...
 !> \retval res ...
 ! *****************************************************************************
 FUNCTION cp_sll_deriv_less_q(el1,el2) RESULT(res)
@@ -230,8 +229,6 @@ END FUNCTION
 !> \param sll the single linked list to initialize
 !> \param first_el the first element of this list
 !> \param rest the following elements (if not given: empty)
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -267,8 +264,6 @@ END FUNCTION
 !> \brief deallocates the singly linked list starting at sll.
 !>      Does not work if loops are present!
 !> \param sll the list to be deallocated
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -290,8 +285,6 @@ END FUNCTION
 ! *****************************************************************************
 !> \brief deallocates a node of a singly linked list (low level)
 !> \param sll the node to be deallocated
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -320,8 +313,6 @@ END FUNCTION
 !> \param sll the single linked list to change
 !> \param first_el the element to replace the first element of this list
 !> \param rest the rest of the list (can be unassociated)
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -359,8 +350,6 @@ END FUNCTION
 !> \param rest the rest of the list (can be unassociated)
 !> \param empty ...
 !> \param length the length of the list
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -398,8 +387,6 @@ END FUNCTION
 ! *****************************************************************************
 !> \brief returns the first element stored in the list
 !> \param sll the single linked list to get the element from
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      none
@@ -428,8 +415,6 @@ END FUNCTION
 !> \param sll the single linked list to get the rest from
 !> \param iter how many times the call to rest should be iterated,
 !>            defaults to 1; -1 means till end of the list.
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      none
@@ -480,8 +465,6 @@ END FUNCTION
 ! *****************************************************************************
 !> \brief ...
 !> \param sll the single linked list to get the rest from
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      none
@@ -500,8 +483,6 @@ END FUNCTION
 ! *****************************************************************************
 !> \brief returns the length of the list
 !> \param sll the list you want to know the length of
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      none
@@ -534,8 +515,6 @@ END FUNCTION
 !> \brief returns the element at the given index
 !> \param sll the list you get the element from
 !> \param index the position of the element (stating at 1)
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      none
@@ -575,8 +554,6 @@ END FUNCTION
 !> \param index the position of the element (stating at 1)
 !>             -1 means at the end
 !> \param value the new element
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -613,8 +590,6 @@ END FUNCTION
 !>      moves the iterator to the next element
 !> \param iterator iterator that moves along the list
 !> \param el_att the actual element (valid only if the function returns true)
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      none
@@ -645,8 +620,6 @@ END FUNCTION
 !> \param sll the single linked list point at the beginning of which
 !>           you want to add the element
 !> \param el the element to add
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -672,8 +645,6 @@ END FUNCTION
 ! *****************************************************************************
 !> \brief remove the first element of the linked list
 !> \param sll the list whose first element has to be removed
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -709,8 +680,6 @@ END FUNCTION
 !> \param el the new element
 !> \param index the position of the element (stating at 1).
 !>             If it is -1, it means at end
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -747,8 +716,6 @@ END FUNCTION
 !> \brief removes the element at the given index
 !> \param sll the list you get the element from
 !> \param index the position of the element (stating at 1)
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -786,8 +753,6 @@ END FUNCTION
 ! *****************************************************************************
 !> \brief removes all the elements from the list
 !> \param sll the list that should be removed
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 !> \author Fawzi Mohamed
@@ -816,8 +781,6 @@ END FUNCTION
 !> \brief returns a newly allocated array with the same contents as
 !>      the linked list
 !> \param sll the list to trasform in array
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      07.2002 created [fawzi]
@@ -852,8 +815,6 @@ END FUNCTION cp_sll_xc_deriv_to_array
 ! *****************************************************************************
 !> \brief returns a linked list with the same contents as the given array
 !> \param array the array you want to copy
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \par History
 !>      07.2002 created [fawzi]
@@ -892,8 +853,6 @@ END FUNCTION cp_sll_xc_deriv_from_array
 !> \param did_insert true if it did insert the element
 !> \param pos node where the element has been inserted (or of the same
 !>        element that was already in the list)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -966,8 +925,6 @@ END SUBROUTINE cp_sll_xc_deriv_insert_ordered
 !>        (defaults to false)
 !> \param did_insert ...
 !> \param pos ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed

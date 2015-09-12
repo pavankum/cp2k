@@ -359,8 +359,6 @@ CONTAINS
 !> \param para_env ...
 !> \param input_file_name ...
 !> \param globenv_new the global environment parameters
-!> \param error the CP error structure
-!>
 !> \author MJM
 !> \note   Suitable for parallel.
 ! *****************************************************************************
@@ -416,8 +414,6 @@ CONTAINS
 !> \param input_declaration ...
 !> \param mc_input_file ...
 !> \param ionode ...
-!> \param error the CP error structure
-!>
 !> \author MJM
 !> \note   Suitable for parallel.
 ! *****************************************************************************

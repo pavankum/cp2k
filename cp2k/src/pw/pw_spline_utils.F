@@ -127,8 +127,6 @@ CONTAINS
 !>      interpolates the given values
 !> \param spline_g on entry the FFT of the values to interpolate as cc,
 !>        will contain the FFT of the coefficents of the spline
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -207,8 +205,6 @@ CONTAINS
 !>      interpolates the given values
 !> \param spline_g on entry the FFT of the values to interpolate as cc,
 !>        will contain the FFT of the coefficents of the spline
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -297,8 +293,6 @@ CONTAINS
 !>      pw_spline_interpolate_values_g)
 !> \param spline_g on entry the FFT of the coefficents of the spline as cr3d,
 !>        will contain the FFT of the values of the spline
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -379,8 +373,6 @@ CONTAINS
 !>        element, coeffs(2) the coeff of the 6 element with distance 1,
 !>        coeff(3) the coeff of the 12 elements at distance sqrt(2),
 !>        coeff(4) the coeff of the 8 elements at distance sqrt(3).
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -469,8 +461,6 @@ CONTAINS
 !>      pw_spline_interpolate_values_g)
 !> \param spline_g on entry the FFT of the values to interpolate as cc3d,
 !>        will contain the FFT of the coefficents of the spline
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -555,8 +545,6 @@ CONTAINS
 !> \param transpose if true applies the transpose of the map (defaults to
 !>        false)
 !> \param scale a scaling factor (defaults to 1.0)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -650,8 +638,6 @@ CONTAINS
 !> \param spline_g on entry the FFT of the coefficents of the spline
 !>        will contain the FFT of the derivative
 !> \param idir direction of the derivative
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -795,8 +781,6 @@ CONTAINS
 !> \param spline_g on entry the FFT of the coefficents of the spline
 !>        will contain the FFT of the derivative
 !> \param idir direction of the derivative
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -1167,8 +1151,6 @@ END SUBROUTINE pw_compose_stripe2
 !> \param pw_in pw to be able to get the needed meta data about in_val and
 !>        out_val
 !> \param bo boundaries of in_val and out_val
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE pw_nn_compose_r_work(weights,in_val,out_val,pw_in,bo)
@@ -1262,8 +1244,6 @@ END SUBROUTINE pw_nn_compose_r_work
 !> \param weights a 3x3x3 array with the linear operator
 !> \param pw_in the argument for the linear operator
 !> \param pw_out place where the value of the linear oprator should be added
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      has specialized versions for derivative operator (with central values==0)
@@ -1305,8 +1285,6 @@ END SUBROUTINE pw_nn_compose_r
 !>        element, coeffs(2) the coeff of the 6 element with distance 1,
 !>        coeff(3) the coeff of the 12 elements at distance sqrt(2),
 !>        coeff(4) the coeff of the 8 elements at distance sqrt(3).
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 !> \note
 !>      does not normalize the smear to 1.
@@ -1353,8 +1331,6 @@ END SUBROUTINE pw_nn_compose_r
 !>        element, coeffs(2) the coeff of the 4 element with distance 1,
 !>        coeff(3) the coeff of the 4 elements at distance sqrt(2)
 !> \param idir ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 !> \note
 !>      with coeff=(/ 2.0_dp/9.0_dp,  1.0_dp/18.0_dp, 1.0_dp/72.0_dp /)
@@ -1437,8 +1413,6 @@ END SUBROUTINE pw_nn_compose_r
 !>        (used if pbc is false)
 !> \param pbc if periodic boundary conditions should be applied
 !> \param safe_computation ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      coarse looping is continuos, I did not check if keeping the fine looping
@@ -2263,8 +2237,6 @@ CPSourceFileRef,&
 !>        (w_border1(1) is the weight of the coefficent at the border)
 !> \param pbc ...
 !> \param safe_computation ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      see coarse2fine for some relevant notes
@@ -3008,8 +2980,6 @@ CPSourceFileRef,&
 !>        precondition
 !> \param pbc if periodic boundary conditions should be applied
 !> \param transpose ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pw_spline_precond_create(preconditioner,precond_kind,&
@@ -3046,8 +3016,6 @@ CPSourceFileRef,&
 !> \param precond_kind the new kind of preconditioner to use
 !> \param pbc ...
 !> \param transpose ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pw_spline_precond_set_kind(preconditioner,precond_kind,pbc,&
@@ -3139,8 +3107,6 @@ CPSourceFileRef,&
 ! *****************************************************************************
 !> \brief retains the preconditioner
 !> \param preconditioner the preconditioner to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pw_spline_precond_retain(preconditioner)
@@ -3161,8 +3127,6 @@ CPSourceFileRef,&
 ! *****************************************************************************
 !> \brief releases the preconditioner
 !> \param preconditioner the preconditioner to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pw_spline_precond_release(preconditioner)
@@ -3193,8 +3157,6 @@ CPSourceFileRef,&
 !> \param preconditioner the preconditioner to apply
 !> \param in_v the grid on which the preconditioner should be applied
 !> \param out_v place to store the preconditioner applied on v_out
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pw_spline_do_precond(preconditioner,in_v,out_v)
@@ -3254,8 +3216,6 @@ CPSourceFileRef,&
 !> \param eps_r the requested precision on the residual
 !> \param eps_x the requested precision on the solution
 !> \param max_iter maximum number of iteration allowed
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
@@ -3367,8 +3327,6 @@ CPSourceFileRef,&
 !> \param normalize ...
 !> \param transpose ...
 !> \param smooth_boundary ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pw_nn_compose_r_no_pbc(weights_1d,pw_in,pw_out,&
@@ -3718,7 +3676,6 @@ CPSourceFileRef,&
 !> \brief ...
 !> \param pw_in ...
 !> \param pw_out ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE spl3_nopbc(pw_in,pw_out)
     TYPE(pw_type), POINTER                   :: pw_in, pw_out
@@ -3732,7 +3689,6 @@ CPSourceFileRef,&
 !> \brief ...
 !> \param pw_in ...
 !> \param pw_out ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE spl3_nopbct(pw_in,pw_out)
     TYPE(pw_type), POINTER                   :: pw_in, pw_out
@@ -3746,7 +3702,6 @@ CPSourceFileRef,&
 !> \brief ...
 !> \param pw_in ...
 !> \param pw_out ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE spl3_pbc(pw_in,pw_out)
     TYPE(pw_type), POINTER                   :: pw_in, pw_out
@@ -3760,8 +3715,6 @@ CPSourceFileRef,&
 !>      input vector (vec)
 !> \param vec ...
 !> \param pw ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval val ...
 !> \par History
 !>      12.2007 Adapted for use with distributed grids [rdeclerck]
@@ -3917,8 +3870,6 @@ CPSourceFileRef,&
 !>      function on the generic input vector (vec)
 !> \param vec ...
 !> \param pw ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval val ...
 !> \par History
 !>      12.2007 Adapted for use with distributed grids [rdeclerck]

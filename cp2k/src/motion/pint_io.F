@@ -65,7 +65,6 @@ MODULE pint_io
 ! ***************************************************************************
 !> \brief  Writes out a line of text to the default output unit.
 !> \param line ...
-!> \param error ...
 !> \date   2009-07-10
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -96,7 +95,6 @@ MODULE pint_io
 ! ***************************************************************************
 !> \brief Write out the trajectory of the centroid (positions and velocities)
 !> \param pint_env ...
-!> \param error ...
 !> \par History
 !>      various bug fixes - hforbert
 !>      2010-11-25 rewritten, added support for velocity printing,
@@ -263,7 +261,6 @@ MODULE pint_io
 ! ***************************************************************************
 !> \brief  Write out the trajectory of the beads (positions and velocities)
 !> \param pint_env ...
-!> \param error ...
 !> \par    History
 !>         2010-11-25 added support for velocity printing [lwalewski]
 !> \author hforbert
@@ -425,7 +422,6 @@ MODULE pint_io
 ! ***************************************************************************
 !> \brief  Write center of mass (COM) position according to PINT%PRINT%COM
 !> \param pint_env ...
-!> \param error ...
 !> \date   2010-02-17
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -498,8 +494,6 @@ MODULE pint_io
 ! ***************************************************************************
 !> \brief  Writes out the energies according to PINT%PRINT%ENERGY
 !> \param  pint_env path integral environment
-!> \param  error variable to control error logging, stopping,...
-!>         see module cp_error_handling
 !> \par    History
 !>           various bug fixes [hforbert]
 !>           2009-11-16 energy components calc moved out of here [lwalewski]
@@ -589,7 +583,6 @@ MODULE pint_io
 ! ***************************************************************************
 !> \brief  Write step info to the output file.
 !> \param pint_env ...
-!> \param error ...
 !> \date   2009-11-16
 !> \par History
 !>      2010-01-27 getting default unit nr now only on ionode [lwalewski]
@@ -654,7 +647,6 @@ MODULE pint_io
 ! ***************************************************************************
 !> \brief  Write radii of gyration according to PINT%PRINT%CENTROID_GYR
 !> \param pint_env ...
-!> \param error ...
 !> \date   2011-01-07
 !> \author Lukasz Walewski
 ! *****************************************************************************

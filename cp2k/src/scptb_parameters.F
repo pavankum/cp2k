@@ -41,7 +41,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Default parameter sets for SCPTB method
 !> \param param ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE scptb_default_parameter ( param)
     TYPE(scptb_parameter_type), &

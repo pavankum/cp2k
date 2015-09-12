@@ -115,7 +115,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Release the matrix set, using the right pointer
 !> \param this ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE kpoint_transitional_release(this)

@@ -135,7 +135,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief  Initialize all arrays used for the evaluation of the integrals
 !>
-!> \param error ...
 !> \date   04.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
@@ -154,7 +153,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Fills in array for the diagonal storage of the ij and kl multipoles term
 !>
-!> \param error ...
 !> \date   03.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
@@ -202,7 +200,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Fills in array for the rotation of the integrals
 !>
-!> \param error ...
 !> \date   04.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
@@ -272,7 +269,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Fills in Clm coefficients (see Table [2] of TCA)
 !>
-!> \param error ...
 !> \date   03.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************
@@ -486,7 +482,6 @@ CONTAINS
 !> \brief Fills in the index number for the <ij|kl> integral as well as the
 !>        symmetry index
 !>
-!> \param error ...
 !> \date   03.2008 [tlaino]
 !> \author Teodoro Laino [tlaino] - University of Zurich
 ! *****************************************************************************

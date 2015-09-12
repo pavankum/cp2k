@@ -277,8 +277,6 @@ CONTAINS
 !> \brief   releases the defined Dirichlet boundary region 
 !> \param gates the DBC region to be released  
 !> \param pw_pool pool of the plane wave grid
-!> \param error cp2k error
-!>
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -365,8 +363,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   deallocates dirichlet_bc_parameters type
 !> \param dbc_params dbc parameters
-!> \param error cp2k error 
-!>
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -422,7 +418,6 @@ CONTAINS
 !> \param segment the segment to be created
 !> \param A coordinates of the end point A
 !> \param B coordinates of the end point B
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -453,7 +448,6 @@ CONTAINS
 !> \param A coordinates of the vertex A
 !> \param B coordinates of the vertex B
 !> \param tag unique tag to be assigned to the edge
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -485,7 +479,6 @@ CONTAINS
 !> \param A coordinates of the vertex A
 !> \param B coordinates of the vertex B
 !> \param C coordinates of the vertex C
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -551,7 +544,6 @@ CONTAINS
 !> \param plane the plane to be created
 !> \param A coordinates of a point on the plane
 !> \param n the unit normal vector to the plane
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -617,7 +609,6 @@ CONTAINS
 !> \param A coordinates of the vertex A
 !> \param B coordinates of the vertex B
 !> \param C coordinates of the vertex C
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -668,7 +659,6 @@ CONTAINS
 !> \param B coordinates of the vertex B
 !> \param C coordinates of the vertex C
 !> \param D coordinates of the vertex D
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -722,7 +712,6 @@ CONTAINS
 !> \param A coordinates of the vertex A
 !> \param B coordinates of the vertex B
 !> \param C coordinates of the vertex C
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -775,7 +764,6 @@ CONTAINS
 !> \brief   generates a polygon given the coordinates of its vertices
 !> \param polygon the polygon to be created
 !> \param vertices coordinates of the vertices of the polygon
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -858,7 +846,6 @@ CONTAINS
 !> \param B coordinates of the vertex B
 !> \param C coordinates of the vertex C
 !> \param tag unique tag to be assigned to the face
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -889,7 +876,6 @@ CONTAINS
 !>         coordinates of its vertices
 !> \param box the box to be generated
 !> \param vertices vertices of the box
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -950,7 +936,6 @@ CONTAINS
 !> \param intersection the intersection object to be created
 !> \param intxn_type intersection type
 !> \param n_intersections the number of vertices of the intersection object
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1004,7 +989,6 @@ CONTAINS
 !> \param grid_segment_index the indices of the coordinates of the vertex labeled 'A'
 !> \param dr the grid spacing
 !> \param alignment the alignment of the segment
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1066,7 +1050,6 @@ CONTAINS
 !> \param grid_tile_index the indices of the coordinates of the vertex labeled 'A'
 !> \param dr the grid spacing
 !> \param alignment alignment of the tile
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1133,7 +1116,6 @@ CONTAINS
 !> \param origin the coordinates of the vertex labeled '1'
 !> \param voxel_index the indices of the coordinates of the vertex labeled '1'
 !> \param dr the grid spacing
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1184,7 +1166,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_segment data object
 !> \param segment the segment to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1203,7 +1184,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_edge data object
 !> \param edge the edge to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1225,7 +1205,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_plane data object
 !> \param plane the plane to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1247,7 +1226,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_triangle data object
 !> \param triangle the triangle to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1274,7 +1252,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_rectangle data object
 !> \param rectangle the rectangle to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1301,7 +1278,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_polygon data type
 !> \param polygon the polygon to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1330,7 +1306,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_face data object
 !> \param face the face to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1352,7 +1327,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_box data object
 !> \param box the box to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1381,7 +1355,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_intersection data object
 !> \param intersection the intersection object to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1416,7 +1389,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_grid_segment data object
 !> \param grid_seg the grid_segment to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1438,7 +1410,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_grid_tile data object
 !> \param grid_tile the grid_tile to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1460,7 +1431,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   releases a cs_voxel data object
 !> \param voxel the voxel to be released
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1492,7 +1462,6 @@ CONTAINS
 !> \param vertices the vertices to be sorted
 !> \param O reference vertex
 !> \param unit_normal the unit normal to the polygon's plane
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1589,7 +1558,6 @@ CONTAINS
 !> \brief   casts a triangle to a polygon
 !> \param triangle the triangle to be casted
 !> \param polygon the output polygon
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1618,7 +1586,6 @@ CONTAINS
 !> \brief   casts a rectangle to a polygon
 !> \param rectangle the rectangle to be casted
 !> \param polygon the output polygon
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian

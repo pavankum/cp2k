@@ -73,8 +73,6 @@ CONTAINS
 !> \brief collects possible post - scf calculations and prints info / computes properties.
 !>        specific for Semi-empirical calculations
 !> \param qs_env the qs_env in which the qs_env lives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2008 created [tlaino] - Splitted from qs_scf_post (general)
 !> \author tlaino
@@ -223,8 +221,6 @@ CONTAINS
 !> \param input ...
 !> \param logger ...
 !> \param qs_env the qs_env in which the qs_env lives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE qs_scf_post_moments(input, logger, qs_env)
     TYPE(section_vals_type), POINTER         :: input
@@ -419,8 +415,6 @@ CONTAINS
 !> \brief Computes the dipole integrals for an atom (a|x|b), a,b on atom A
 !> \param mom ...
 !> \param basis_set ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE atomic_moments(mom,basis_set)
     REAL(KIND=dp), DIMENSION(:, :, :)        :: mom
@@ -491,8 +485,6 @@ CONTAINS
 !> \param qs_env the qs_env in which the qs_env lives
 !> \param rho ...
 !> \param para_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE qs_scf_post_charges(input, logger, qs_env, rho, &
                                  para_env)
@@ -639,8 +631,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Write QS results always available (if switched on through the print_keys)
 !> \param qs_env the qs_env in which the qs_env lives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE write_available_results(qs_env)
     TYPE(qs_environment_type), POINTER       :: qs_env

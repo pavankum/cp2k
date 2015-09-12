@@ -49,7 +49,6 @@ CONTAINS
 !> \brief Reads the POISSON input-section and into pw_poisson_parameter_type.
 !> \param poisson_section ...
 !> \param params ...
-!> \param error ...
 !> \par History
 !>      01.2014 Code moved into separate module from pw_poisson_types,
 !>              pw_poisson_methods and ps_wavelet_types.
@@ -114,7 +113,6 @@ CONTAINS
 !> \brief Helper routien for pw_poisson_read_parameters
 !> \param periodic ...
 !> \param params ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE decode_periodic_green(periodic, params)
@@ -159,7 +157,6 @@ CONTAINS
 !> \brief Helper routien for pw_poisson_read_parameters
 !> \param periodic ...
 !> \param params ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE decode_periodic_wavelet(periodic, params)
@@ -202,7 +199,6 @@ CONTAINS
 !>        pw_poisson_parameter_type
 !> \param poisson_section poisson section to be read from input
 !> \param params poisson_env parameters 
-!> \param error  cp2k error 
 !> \par History
 !>      08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -249,7 +245,6 @@ CONTAINS
 !>        pw_poisson_parameter_type
 !> \param dielectric_section dielectric section to be read from input
 !> \param params poisson_env parameters 
-!> \param error  cp2k error 
 !> \par History
 !>      07.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -353,7 +348,6 @@ CONTAINS
 !>        pw_poisson_parameter_type
 !> \param dbc_section dirichlet_bc section to be read from input
 !> \param params poisson_env parameters 
-!> \param error  cp2k error 
 !> \par History
 !>      08.2014 created [Hossein Bani-Hashemian]
 !>      07.2015 refactored [Hossein Bani-Hashemian]

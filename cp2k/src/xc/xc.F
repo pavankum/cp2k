@@ -106,8 +106,6 @@ CONTAINS
 !> \param xc_section parameters selecting the xc and the method used to
 !>        calculate it
 !> \param pw_pool the pool for the grids
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param compute_virial should the virial be computed... if so virial_xc must be present
 !> \param virial_xc for calculating the GGA part of the stress
 !> \author fawzi
@@ -173,8 +171,6 @@ CONTAINS
 !> \param exc the xc energy
 !> \param xc_section which functional to calculate, and how
 !> \param pw_pool the pool for the grids
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 !> \note
 !>      for debugging only: leaks, and non parallel
@@ -522,8 +518,6 @@ END SUBROUTINE xc_vxc_pw_create_test_lsd
 !> \param exc the xc energy
 !> \param xc_section which functional should be used, and how to do it
 !> \param pw_pool the pool for the grids
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 !> \note
 !>      for debugging only.
@@ -818,8 +812,6 @@ END SUBROUTINE xc_vxc_pw_create_debug
 !> \param needs_basic_components if the basic components of the arguments
 !>        should be kept in rho set (a basic component is for example drho
 !>        when with lda a functional needs norm_drho)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      if any of the functionals is gradient corrected the full gradient is
@@ -896,8 +888,6 @@ END SUBROUTINE xc_rho_set_and_dset_create
 !> \param e_0 value of e_0, if given it is assumed that pot is the derivative
 !>        wrt. to rho, and needs the dsmooth*e_0 contribution
 !> \param e_0_scale_factor ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
   SUBROUTINE smooth_cutoff(pot,rho,rhoa,rhob,rho_cutoff,&
@@ -1077,8 +1067,6 @@ END SUBROUTINE smooth_cutoff
 !>        used only with meta functionals)
 !> \param xc_section which functional to calculate, and how to do it
 !> \param pw_pool the pool for the grids
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param compute_virial ...
 !> \param virial_xc ...
 !> \par History
@@ -1867,8 +1855,6 @@ END SUBROUTINE xc_vxc_pw_create
 !> \param tau ...
 !> \param xc_section ...
 !> \param pw_pool ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval exc ...
 !> \par History
 !>      11.2003 created [fawzi]
@@ -1949,8 +1935,6 @@ END FUNCTION xc_exc_calc
 !> \param vxg ...
 !> \param tddfpt_fac factor that multiplies the crossterms (tddfpt triplets
 !>        on a closed shell sistem it should be -1, defaults to 1)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \note
 !>      The old version of this routine was smarter: it handled split_desc(1)
 !>      and split_desc(2) separatly, thus the code automatically handled all
@@ -2988,8 +2972,6 @@ END SUBROUTINE xc_calc_2nd_deriv
 !> \param rho_r the place where you evaluate the derivative
 !> \param pw_pool the pool for the grids
 !> \param xc_section which functional should be used and how to calculate it
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_prep_2nd_deriv(deriv_set, &
        rho_set, rho_r, pw_pool, xc_section)
@@ -3043,7 +3025,6 @@ END SUBROUTINE xc_calc_2nd_deriv
 !> \param deriv_set ...
 !> \param rho_set ...
 !> \param lsd ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE divide_by_norm_drho(deriv_set, rho_set, lsd)
 

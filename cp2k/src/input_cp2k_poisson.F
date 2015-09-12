@@ -87,8 +87,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the Poisson section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_poisson_section(section)
@@ -159,8 +157,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Section to set-up parameters for decoupling using the Bloechl scheme
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_multipole_section(section)
@@ -232,8 +228,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the Martyna-Tuckerman section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_mt_section(section)
@@ -279,8 +273,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the ewald section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE create_ewald_section(section)
@@ -464,8 +456,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief creates the interpolation section for the periodic QM/MM
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author tlaino
 ! *****************************************************************************
   SUBROUTINE create_gspace_interp_section(section)
@@ -545,8 +535,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the wavelet section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff
 !> \note
 !>      this approach is based on the development of T. Deutsch and S. Goedecker
@@ -588,8 +576,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the section for the implicit (generalized) poisson solver
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_implicit_ps_section(section)
@@ -661,8 +647,6 @@ END SUBROUTINE create_ewald_section
 !>  The dielectric constant is defined as a function of electronic density.
 !>  [see O. Andreussi, I. Dabo, and N. Marzari, J. Chem. Phys., 136, 064102(2012)]
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_dielectric_section(section)
@@ -752,8 +736,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the section for creating axis-aligned cuboidal dielectric region.
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_dielec_aa_cuboidal_section(section)
@@ -813,8 +795,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the section for creating x-axis-aligned annular dielectric region.
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_dielec_xaa_annular_section(section)
@@ -874,8 +854,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the section for Dirichlet boundary conditions
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_dbc_section(section)
@@ -928,8 +906,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the section for creating axis-aligned planar Dirichlet BC.
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_aa_planar_section(section)
@@ -1018,8 +994,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the section for creating axis-aligned planar Dirichlet BC.
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_planar_section(section)
@@ -1092,8 +1066,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the section for creating x-axis-aligned cylindrical Dirichlet BC.
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_xaa_cylindrical_section(section)
@@ -1180,8 +1152,6 @@ END SUBROUTINE create_ewald_section
 ! *****************************************************************************
 !> \brief Creates the section for creating axis-aligned cuboidal Dirichlet region.
 !> \param section the section to be created
-!> \param error cp2k error
-!>
 !> \author Mohammad Hossein Bani-Hashemian
 ! *****************************************************************************
   SUBROUTINE create_aa_cuboidal_section(section)

@@ -87,8 +87,6 @@ CONTAINS
 !> \brief Initialize type for Nose-Hoover thermostat
 !> \param lnhc ...
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE lnhc_init(lnhc, section)
     TYPE(lnhc_parameters_type), POINTER      :: lnhc
@@ -116,8 +114,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief create the map_info type
 !> \param map_info ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE create_map_info_type(map_info)
     TYPE(map_info_type), POINTER             :: map_info
@@ -143,8 +139,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief release the map_info type
 !> \param map_info ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE release_map_info_type(map_info)
     TYPE(map_info_type), POINTER             :: map_info
@@ -192,8 +186,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate type for Nose-Hoover thermostat
 !> \param lnhc ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE lnhc_dealloc ( lnhc)
     TYPE(lnhc_parameters_type), POINTER      :: lnhc

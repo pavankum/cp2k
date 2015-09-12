@@ -100,8 +100,6 @@ CONTAINS
 !> \brief allocates an elements of the global element structure 
 !> \param next_el ...
 !> \param nr_temp ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE allocate_new_global_tree_node(next_el, nr_temp)
@@ -140,8 +138,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates an elements of the global element structure 
 !> \param gt_elem ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE deallocate_global_tree_node(gt_elem)
@@ -173,8 +169,6 @@ CONTAINS
 !> \param tmc_params structure for storing all (global) parameters
 !> \param next_el ...
 !> \param nr_dim ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE allocate_new_sub_tree_node(tmc_params, next_el, nr_dim)
@@ -238,8 +232,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates an elements of the subtree element structure 
 !> \param tree_elem ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE deallocate_sub_tree_node(tree_elem)
@@ -287,8 +279,6 @@ CONTAINS
 !> \param tmc_env structure for storing all (global) parameters
 !> \param job_counts ...
 !> \param worker_timings ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE init_tree_mod(start_elem, tmc_env, job_counts, worker_timings)
@@ -450,8 +440,6 @@ CONTAINS
 !> \param gt_tree_ptr global tree head (initial configuration)
 !> \param tmc_env master environment for restart 
 !>        (if restart the subtree heads are not equal), result counts and lists
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE finalize_init(gt_tree_ptr, tmc_env)
@@ -519,8 +507,6 @@ CONTAINS
 !> \param stat return status value
 !> \param new_elem return gt element
 !> \param reactivation_cc_count counting the reactivation of subtree elements
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_new_gt_tree_node(tmc_env, stat, new_elem, &
@@ -879,8 +865,6 @@ CONTAINS
 !> \brief create new subtree element using pointer of global tree
 !> \param act_gt_el global tree element 
 !> \param tmc_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE create_new_subtree_node(act_gt_el, tmc_env)
@@ -1042,8 +1026,6 @@ CONTAINS
 !> \param gt_ptr the global tree element 
 !> \param draw if present, changes the coleor in the dot file
 !> \param tmc_env tmc environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE remove_gt_elem(gt_ptr, draw, tmc_env)
@@ -1108,8 +1090,6 @@ CONTAINS
 !> \param ptr the sub tree element 
 !> \param draw if present, changes the coleor in the dot file
 !> \param tmc_env tmc environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE remove_st_elem(ptr, draw, tmc_env)
@@ -1196,8 +1176,6 @@ CONTAINS
 !> \param end_ptr end of the tree region to be cleaned
 !> \param removed retun value if brance is clean
 !> \param tmc_env tmc environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   RECURSIVE SUBROUTINE remove_unused_g_tree(begin_ptr, end_ptr, removed, tmc_env)
@@ -1275,8 +1253,6 @@ CONTAINS
 !> \param working_elem_list ...
 !> \param removed retun value if brance is clean
 !> \param tmc_env tmc environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   RECURSIVE SUBROUTINE remove_unused_s_tree(begin_ptr, end_ptr,working_elem_list,&
@@ -1398,8 +1374,6 @@ CONTAINS
 !> \param end_of_clean_tree ...
 !> \param actual_ptr ...
 !> \param tmc_env TMC environment for deallocation
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   RECURSIVE SUBROUTINE remove_result_g_tree(end_of_clean_tree, actual_ptr, &
@@ -1445,8 +1419,6 @@ CONTAINS
 !> \param end_of_clean_tree ...
 !> \param actual_ptr ...
 !> \param tmc_env TMC environment for deallocation
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   RECURSIVE SUBROUTINE remove_result_s_tree(end_of_clean_tree, actual_ptr,&
@@ -1499,8 +1471,6 @@ CONTAINS
 !>        in global and subtrees
 !> \param working_elem_list list of actual calculating elements for canceling
 !> \param tmc_env TMC environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE remove_all_trees(working_elem_list, tmc_env)
@@ -1595,8 +1565,6 @@ CONTAINS
 !> \param begin_ptr pointer to global tree head
 !> \param removed flag, if the this element is removed
 !> \param tmc_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   RECURSIVE SUBROUTINE dealloc_whole_g_tree(begin_ptr, removed, tmc_env)
@@ -1643,8 +1611,6 @@ CONTAINS
 !> \param begin_ptr pointer to sub tree head
 !> \param removed flag, if the this element is removed
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   RECURSIVE SUBROUTINE dealloc_whole_subtree(begin_ptr, removed, tmc_params)
@@ -1690,8 +1656,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocating every tree node of every trees (clean up)
 !> \param tmc_env TMC environment structure
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   SUBROUTINE finalize_trees(tmc_env)

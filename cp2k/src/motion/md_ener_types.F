@@ -58,8 +58,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given md_ener structure
 !> \param md_ener :
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2007 created [MI]
 !> \author MI
@@ -94,8 +92,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given md_ener structure
 !> \param md_ener :
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2007 created [MI]
 !> \author MI
@@ -118,8 +114,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given md_ener structure
 !> \param md_ener :
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2007 created [MI]
 !> \author MI
@@ -175,8 +169,6 @@ CONTAINS
 !> \param md_ener :
 !> \param tkind ...
 !> \param tshell ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10.2007 created [MI]
 !> \author MI

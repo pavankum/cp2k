@@ -94,8 +94,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the simulation parameters type
 !> \param simpar ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE create_simpar_type(simpar)
@@ -116,8 +114,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Releases the simulation parameters type
 !> \param simpar ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino
 ! *****************************************************************************
   SUBROUTINE release_simpar_type(simpar)

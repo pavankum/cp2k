@@ -876,7 +876,6 @@ CONTAINS
 !> \param scal factor of renormalization of the FFT in order to acheve unitarity
 !>                   and the correct dimension
 !> \param mpi_group ...
-!> \param error ...
 !> \date October 2006
 !> \author S. Goedecker, L. Genovese
 !> \note   As transform lengths most products of the prime factors 2,3,5 are allowed.
@@ -1682,7 +1681,6 @@ CONTAINS
 !> \param scal factor of renormalization of the FFT in order to acheve unitarity
 !>                   and the correct dimension 
 !> \param mpi_group ...
-!> \param error ...
 !> \date February 2006
 !> \author S. Goedecker, L. Genovese
 !> \note As transform lengths

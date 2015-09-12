@@ -112,7 +112,6 @@ CONTAINS
 !> \param fb_env : the filter matrix environment
 !> \param qs_env : quickstep environment
 !> \param scf_section : SCF input section
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_build(fb_env, qs_env, scf_section)
@@ -399,7 +398,6 @@ CONTAINS
 !> \brief Write out information on the load distribution on processors
 !> \param dist_set    : set of distributions for the processors
 !> \param scf_section : SCF input section
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_write_info(dist_set, scf_section)
@@ -477,7 +475,6 @@ CONTAINS
 !>                         col will have the same preferred list. This list
 !>                         maps each atom to their corresponding group
 !> \param n_common_sets  : number of unique preferred lists (groups)
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_build_preferred_procs(dbcsr_mat, &
@@ -539,7 +536,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Release a preferred_procs_list
 !> \param preferred_procs_list  : the preferred procs list in question
-!> \param error                 : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_preferred_procs_list_release(preferred_procs_list)
@@ -569,7 +565,6 @@ CONTAINS
 !> \param local_atoms_starts : starting position in local_atoms array for
 !>                             each processor
 !> \param local_atoms_sizes  : number of atoms local to each processor
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_to_local_atoms(dist_set, &
@@ -617,7 +612,6 @@ CONTAINS
 !> \brief Initialise a distribution
 !> \param dist        : the distribution in question
 !> \param nmax        : [OPTIONAL] size of the list array to be allocated
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_init(dist, nmax)
@@ -655,7 +649,6 @@ CONTAINS
 !> \brief Resize the list array in a distribution
 !> \param dist        : The distribution in question
 !> \param nmax        : new size of the list array
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_resize(dist, nmax)
@@ -697,7 +690,6 @@ CONTAINS
 !> \brief Add an atom (element) to a distribution
 !> \param dist        : the distribution in question
 !> \param element     : the element to be added
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_add(dist, element)
@@ -778,7 +770,6 @@ CONTAINS
 !> \brief Remove the pos-th element from a distribution
 !> \param dist        : the distribution in question
 !> \param pos         : index of the element in the list array
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_remove_ind(dist, pos)
@@ -814,7 +805,6 @@ CONTAINS
 !> \brief Remove a given element from a distribution
 !> \param dist        : the distribution in question
 !> \param element     : the element in question
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_remove_el(dist, element)
@@ -843,7 +833,6 @@ CONTAINS
 !> \param dist_from   : the source distribution
 !> \param pos         : index of the element in the source distribution
 !> \param dist_to     : the destination distribution
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_move_ind(dist_from, pos, dist_to)
@@ -874,7 +863,6 @@ CONTAINS
 !> \param dist_from   : the source distribution
 !> \param element     : the element in question
 !> \param dist_to     : the destination distribution
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_move_el(dist_from, element, dist_to)
@@ -900,7 +888,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Release a distribution
 !> \param dist  : the distribution in question
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_distribution_release(dist)

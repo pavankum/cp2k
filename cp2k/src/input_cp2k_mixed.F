@@ -48,8 +48,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the input section for MIXED.
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff
 ! *****************************************************************************
   SUBROUTINE create_mix_section(section)
@@ -301,8 +299,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the print section for mixed
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_print_mix_section(section)

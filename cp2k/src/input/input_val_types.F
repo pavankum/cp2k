@@ -94,8 +94,6 @@ CONTAINS
 !> \param lc_vals ...
 !> \param lc_vals_ptr ...
 !> \param enum the enumaration type this value is using
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      using an enumeration only i_val/i_vals/i_vals_ptr are accepted
@@ -294,8 +292,6 @@ END SUBROUTINE val_create
 ! *****************************************************************************
 !> \brief releases the given val
 !> \param val the val to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE val_release(val)
@@ -341,8 +337,6 @@ END SUBROUTINE val_release
 ! *****************************************************************************
 !> \brief retains the given val
 !> \param val the val to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE val_retain(val)
@@ -380,8 +374,6 @@ END SUBROUTINE val_retain
 !>        it might be longet than default_string_length)
 !> \param type_of_var ...
 !> \param enum ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      using an enumeration only i_val/i_vals/i_vals_ptr are accepted
@@ -534,8 +526,6 @@ END SUBROUTINE val_get
 !>        (overrides unit_str)
 !> \param unit_str the unit of mesure in wich the output should be written
 !> \param fmt ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 !> \note
 !>      unit of mesure used only for reals
@@ -699,7 +689,6 @@ END SUBROUTINE val_write
 !> \param val ...
 !> \param string ...
 !> \param unit ...
-!> \param error ...
 !> \date    10.03.2005
 !> \par History
 !>          17.01.2006, MK, Optional argument unit for the conversion to the external unit added
@@ -800,8 +789,6 @@ END SUBROUTINE val_write
 !> \brief creates a copy of the given value
 !> \param val_in the value to copy
 !> \param val_out the value tha will be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
 SUBROUTINE val_duplicate(val_in,val_out)

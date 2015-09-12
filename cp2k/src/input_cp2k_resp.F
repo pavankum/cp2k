@@ -51,8 +51,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the RESP section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost VandeVondele
 ! *****************************************************************************
   SUBROUTINE create_resp_section(section)
@@ -145,8 +143,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief specifies constraints to be satisfied in a resp fit
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost VandeVondele
 ! *****************************************************************************
   SUBROUTINE create_constraint_section(section)
@@ -207,8 +203,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief specifies restraints to be added to a resp fit
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost VandeVondele
 ! *****************************************************************************
   SUBROUTINE create_restraint_section(section)
@@ -268,8 +262,6 @@ CONTAINS
 !> \brief specifies the parameter for sampling the resp fitting points for 
 !>        molecular structures; sampling in spheres around the atoms 
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze
 ! *****************************************************************************
   SUBROUTINE create_sphere_sampling_section(section)
@@ -372,8 +364,6 @@ CONTAINS
 !> \brief specifies the parameter for sampling the resp fitting points for 
 !>        slab-like periodic systems, i.e. systems that involve surfaces 
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze
 ! *****************************************************************************
   SUBROUTINE create_slab_sampling_section(section)
@@ -450,8 +440,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief create the resp print section 
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Dorothea Golze
 ! *****************************************************************************
   SUBROUTINE create_print_resp_section(section)

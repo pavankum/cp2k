@@ -216,7 +216,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief 1. Just NULLIFY and zero all the stuff
 !> \param ff_type ...
-!> \param error ...
 !> \author ikuo
 ! *****************************************************************************
   SUBROUTINE init_ff_type (ff_type)
@@ -443,7 +442,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief 1. Just DEALLOCATE all the stuff
 !> \param ff_type ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE deallocate_ff_type (ff_type)
     TYPE(force_field_type), INTENT(INOUT)    :: ff_type
@@ -501,7 +499,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Specific function to deallocate the gro_info
 !> \param gro_info ...
-!> \param error ...
 !> \author ikuo
 ! *****************************************************************************
   SUBROUTINE deallocate_gromos_info(gro_info)
@@ -588,7 +585,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Specific function to deallocate the chm_info
 !> \param chm_info ...
-!> \param error ...
 !> \par History
 !>      none
 !> \author teo
@@ -741,7 +737,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Specific function to deallocate the chm_info
 !> \param amb_info ...
-!> \param error ...
 !> \par History
 !>      none
 !> \author Teodoro Laino [tlaino] - University of Zurich 10.2008
@@ -838,7 +833,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Specific function to deallocate the inp_info
 !> \param inp_info ...
-!> \param error ...
 !> \par History
 !>      none
 !> \author teo

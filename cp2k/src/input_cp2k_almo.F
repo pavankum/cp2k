@@ -47,7 +47,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief create the almo scf section
 !> \param section ...
-!> \param error ...
 !> \par History
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -542,7 +541,6 @@ SUBROUTINE create_almo_scf_section(section)
 ! *****************************************************************************
 !> \brief The ALMO EDA section controls decomposition analysis based on ALMOs
 !> \param section ...
-!> \param error ...
 !> \par History
 !>       2014.10 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -593,7 +591,6 @@ SUBROUTINE create_almo_eda_section(section)
 !>        to all optimization methods (e.g. target error, number of iterations)
 !> \param section ...
 !> \param optimizer_id - allows to adapt the standard section for specific needs 
-!> \param error ...
 !> \par History
 !>       2012.03 created [Rustam Z Khaliullin]
 !>       2014.10 fully integrated [Rustam Z Khaliullin]

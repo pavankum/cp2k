@@ -45,7 +45,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Allocate semi-empirical 1/R^3 expansion type
 !> \param expns3 ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 12.2008
 ! *****************************************************************************
   SUBROUTINE semi_empirical_expns3_create(expns3)
@@ -71,7 +70,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocate the semi-empirical type
 !> \param expns3 ...
-!> \param error ...
 !> \author Teodoro Laino [tlaino] - 12.2008
 ! *****************************************************************************
   SUBROUTINE semi_empirical_expns3_release(expns3)

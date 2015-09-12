@@ -72,8 +72,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates a new gopt_param object
 !> \param gopt_param the object to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -102,8 +100,6 @@ CONTAINS
 !> \param gopt_param ...
 !> \param gopt_section ...
 !> \param type_id ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      08.2003 created [fawzi]
 !> \author Fawzi Mohamed
@@ -180,8 +176,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param gopt_param the geometry optimization environment to retain
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 ! *****************************************************************************
@@ -203,8 +197,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param gopt_param the geometry optimization environment to release
-!> \param error variable to control error logging, stopping,...
-!>             see module cp_error_handling
 !> \par History
 !>      none
 ! *****************************************************************************

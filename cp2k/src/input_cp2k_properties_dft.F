@@ -62,8 +62,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the PROPERTIES section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_properties_section(section)
@@ -125,8 +123,6 @@ CONTAINS
 !>      a linear response calculation
 !>      Available properties : none
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author MI
 ! *****************************************************************************
   SUBROUTINE create_linres_section(section)
@@ -269,8 +265,6 @@ CONTAINS
 !>      calculation of induced current  DFPT
 !>      Available properties : none
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author  MI/VW
 ! *****************************************************************************
   SUBROUTINE create_current_section(section)
@@ -465,8 +459,6 @@ CONTAINS
 !>         the induced current obtained from DFPT
 !>      Available properties : none
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author  MI/VW
 ! *****************************************************************************
   SUBROUTINE create_nmr_section(section)
@@ -619,8 +611,6 @@ CONTAINS
 !>      calculation of NMR spin-spin coupling (implementation not operating)
 !>      Available properties : none
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author  VW
 ! *****************************************************************************
   SUBROUTINE create_spin_spin_section(section)
@@ -727,8 +717,6 @@ CONTAINS
 !>         the induced current obtained from DFPT
 !>      Available properties : none
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author  VW
 ! *****************************************************************************
   SUBROUTINE create_epr_section(section)
@@ -866,8 +854,6 @@ CONTAINS
 !>      calculation of polarizability tensor DFPT
 !>      Available properties : none
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author SL
 ! *****************************************************************************
   SUBROUTINE create_polarizability_section(section)
@@ -934,8 +920,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for electron transfer coupling
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fschiff
 ! *****************************************************************************
   SUBROUTINE create_et_coupling_section(section)
@@ -998,7 +982,6 @@ CONTAINS
 !> \brief ...
 !> \param section ...
 !> \param section_name ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_restraint_A(section,section_name)
     TYPE(section_type), POINTER              :: section

@@ -148,7 +148,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create a kpoint environment
 !> \param kpoint  All the kpoint information
-!> \param error   CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE kpoint_create(kpoint)
@@ -202,7 +201,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief  Release a kpoint environment, deallocate all data
 !> \param kpoint  The kpoint environment
-!> \param error   CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE kpoint_release(kpoint)
@@ -293,7 +291,6 @@ CONTAINS
 !> \param kp_dist       kpoints distribution on groups
 !> \param cell_to_index given a cell triple, returns the real space index
 !> \param sab_nl        neighbourlist that defines real space matrices
-!> \param error         CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE get_kpoint_info(kpoint, kp_scheme, nkp_grid, kp_shift, symmetry, verbose,&
@@ -415,7 +412,6 @@ CONTAINS
 !> \param kp_dist       kpoints distribution on groups
 !> \param cell_to_index given a cell triple, returns the real space index
 !> \param sab_nl        neighbourlist that defines real space matrices
-!> \param error         CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE set_kpoint_info(kpoint, kp_scheme, nkp_grid, kp_shift, symmetry, verbose,&
@@ -511,7 +507,6 @@ CONTAINS
 !> \brief Read the kpoint input section
 !> \param kpoint  The kpoint environment
 !> \param kpoint_section The input section
-!> \param error   CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE read_kpoint_section(kpoint,kpoint_section)
@@ -601,7 +596,6 @@ CONTAINS
 !> \brief Write information on the kpoints to output
 !> \param kpoint  The kpoint environment
 !> \param dft_section  DFT section information
-!> \param error   CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE write_kpoint_info(kpoint,dft_section)
@@ -681,7 +675,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create a single kpoint environment
 !> \param kp_env  Single kpoint environment
-!> \param error   CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE kpoint_env_create(kp_env)
@@ -714,7 +707,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Release a single kpoint environment
 !> \param kp_env  Single kpoint environment
-!> \param error   CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE kpoint_env_release(kp_env)
@@ -776,7 +768,6 @@ CONTAINS
 !> \param xkp        Coordinates of kpoint
 !> \param is_local   Is this kpoint local (single cpu group)
 !> \param mos        MOs of this kpoint
-!> \param error      CP2K error handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE get_kpoint_env(kpoint_env, nkpoint, wkp, xkp, is_local, mos)

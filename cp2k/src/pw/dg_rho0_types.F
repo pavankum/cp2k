@@ -122,7 +122,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   create the dg_rho0 structure
 !> \param dg_rho0 ...
-!> \param error ...
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE dg_rho0_create ( dg_rho0)
@@ -151,8 +150,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given dg_rho0_type
 !> \param dg_rho0 the dg_rho0_type to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -177,8 +174,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given dg_rho0_type
 !> \param dg_rho0 the dg_rho0_type to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -222,7 +217,6 @@ CONTAINS
 !> \brief ...
 !> \param dg_rho0 ...
 !> \param pw_grid ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE dg_rho0_init ( dg_rho0, pw_grid)
     TYPE(dg_rho0_type), POINTER              :: dg_rho0
@@ -249,7 +243,6 @@ CONTAINS
 !> \brief ...
 !> \param dg_rho0 ...
 !> \param alpha ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE dg_rho0_pme_gauss ( dg_rho0, alpha)
 

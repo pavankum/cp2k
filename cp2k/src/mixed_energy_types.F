@@ -42,7 +42,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   Allocate and/or initialise a mixed energy data structure.
 !> \param mixed_energy ...
-!> \param error ...
 !> \date    11.06
 !> \author  fschiff
 !> \version 1.0
@@ -67,7 +66,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   Deallocate a mixed energy data structure.
 !> \param mixed_energy ...
-!> \param error ...
 !> \date    11.06
 !> \author  fschiff
 !> \version 1.0

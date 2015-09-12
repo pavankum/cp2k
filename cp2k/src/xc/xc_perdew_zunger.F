@@ -61,7 +61,6 @@ CONTAINS
 !> \param shortform CHARACTER(*), INTENT(OUT), OPTIONAL - short reference
 !> \param needs ...
 !> \param max_deriv ...
-!> \param error ...
 !> \par History
 !>      18-MAR-2002, TCH, working version
 ! *****************************************************************************
@@ -135,7 +134,6 @@ CONTAINS
 !>        that order will be calculated, otherwise all derivatives up to
 !>        that order will be calculated.
 !> \param pz_params input paramter (scaling)
-!> \param error ...
 !> \par History
 !>     01.2007 added scaling [Manuel Guidon]
 ! *****************************************************************************
@@ -293,7 +291,6 @@ SUBROUTINE pz_lda_calc(rho,e_0,e_rho, e_rho_rho, e_rho_rho_rho, npoints, order, 
 !>        that order will be calculated, otherwise all derivatives up to
 !>        that order will be calculated.
 !> \param pz_params input paramter (scaling)
-!> \param error ...
 !> \par History
 !>      01.2007 added scaling [Manuel Guidon]
 ! *****************************************************************************

@@ -58,8 +58,6 @@ CONTAINS
 !> \brief sets all the flags to the given value
 !> \param cflags the flags to set
 !> \param value the value to set
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_rho_cflags_setall(cflags, value)
     TYPE(xc_rho_cflags_type), INTENT(out)    :: cflags
@@ -90,8 +88,6 @@ CONTAINS
 !> \brief performs an OR on all the flags (cflags1=cflag1.or.cflags2)
 !> \param cflags1 the flags to change
 !> \param cflags2 the flags to OR with
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_rho_cflags_or(cflags1, cflags2)
     TYPE(xc_rho_cflags_type), INTENT(inout)  :: cflags1
@@ -125,8 +121,6 @@ CONTAINS
 !> \brief performs an AND on all the flags (cflags1=cflag1.and.cflags2)
 !> \param cflags1 the flags to change
 !> \param cflags2 the flags to and with
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_rho_cflags_and(cflags1, cflags2)
     TYPE(xc_rho_cflags_type), INTENT(inout)  :: cflags1
@@ -159,8 +153,6 @@ CONTAINS
 !> \brief return true if the two cflags are equal
 !> \param cflags1 the flags to compare
 !> \param cflags2 the flags to compare
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval equal ...
 ! *****************************************************************************
   FUNCTION xc_rho_cflags_equal(cflags1, cflags2) RESULT(equal)
@@ -195,8 +187,6 @@ CONTAINS
 !> \brief return true if all the true flags in cflags2 are also true in cflags1
 !> \param cflags1 the flags to compare
 !> \param cflags2 the flags to compare
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval contain ...
 !> \note
 !>      defines a partial ordering on the cflags (cflags1>cflags2)
@@ -233,8 +223,6 @@ CONTAINS
 !> \brief writes out the values of the cflags
 !> \param cflags the flags to be written out
 !> \param unit_nr the unit to write to
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi

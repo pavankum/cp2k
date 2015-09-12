@@ -56,8 +56,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Interface routine of Goedecker's Bazant EDIP to CP2K
 !> \param eip_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par Literature
 !>      http://www-math.mit.edu/~bazant/EDIP
 !>      M.Z. Bazant & E. Kaxiras: Modeling of Covalent Bonding in Solids by
@@ -238,8 +236,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Interface routine of Goedecker's Lenosky force field to CP2K
 !> \param eip_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par Literature
 !>      T. Lenosky, et. al.: Highly optimized empirical potential model of silicon;
 !>                           Modelling Simul. Sci. Eng., 8 (2000)
@@ -416,8 +412,6 @@ CONTAINS
 !> \brief Print routine for the EIP energies
 !> \param eip_env The eip environment of matter
 !> \param output_unit The output unit
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -447,8 +441,6 @@ CONTAINS
 !> \brief Print routine for the variance of the energy/atom
 !> \param eip_env The eip environment of matter
 !> \param output_unit The output unit
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -481,8 +473,6 @@ CONTAINS
 !> \brief Print routine for the forces
 !> \param eip_env The eip environment of matter
 !> \param output_unit The output unit
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -526,8 +516,6 @@ CONTAINS
 !> \brief Print routine for the average coordination number
 !> \param eip_env The eip environment of matter
 !> \param output_unit The output unit
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -560,8 +548,6 @@ CONTAINS
 !> \brief Print routine for the variance of the coordination number
 !> \param eip_env The eip environment of matter
 !> \param output_unit The output unit
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)
@@ -594,8 +580,6 @@ CONTAINS
 !> \brief Print routine for the function call counter
 !> \param eip_env The eip environment of matter
 !> \param output_unit The output unit
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      03.2006 initial create [tdk]
 !> \author Thomas D. Kuehne (tkuehne@phys.chem.ethz.ch)

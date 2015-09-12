@@ -357,8 +357,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocates a f_env
 !> \param f_env the f_env to deallocate
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   RECURSIVE SUBROUTINE f_env_dealloc(f_env)
@@ -392,7 +390,6 @@ CONTAINS
 !> \param id_nr ...
 !> \param logger ...
 !> \param old_dir ...
-!> \param error ...
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE f_env_create(f_env,force_env, timer_env,mp_perf_env,id_nr,logger,old_dir)
@@ -432,7 +429,6 @@ CONTAINS
 !> \brief ...
 !> \param f_env_id ...
 !> \param f_env ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE f_env_get_from_id(f_env_id,f_env)
     INTEGER, INTENT(in)                      :: f_env_id
@@ -463,7 +459,6 @@ CONTAINS
 !>      something went wrong
 !> \param f_env_id the f_env from where to take the defaults
 !> \param f_env will contain the f_env corresponding to f_env_id
-!> \param new_error an error that can be used for the given f_env
 !> \param failure will be set to true if something went wrong
 !> \param handle ...
 !> \author fawzi
@@ -516,7 +511,6 @@ CONTAINS
 !>      defaults, and sets ierr accordingly to the failuers stored in error
 !>      It also releases the error
 !> \param f_env the f_env from where to take the defaults
-!> \param error the error to be checked (will be released)
 !> \param ierr variable that will be set to a number different from 0 if
 !>        error contains an error (otherwise it will be set to 0)
 !> \param handle ...

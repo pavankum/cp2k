@@ -123,8 +123,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief performs resp fit and generates RESP charges
 !> \param qs_env the qs environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE resp_fit(qs_env)
     TYPE(qs_environment_type), POINTER       :: qs_env
@@ -246,8 +244,6 @@ CONTAINS
 !> \brief creates the resp_type structure
 !> \param resp_env the resp environment
 !> \param rep_sys structure for repeating input sections defining fit points
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE create_resp_type(resp_env, rep_sys)
     TYPE(resp_type), POINTER                 :: resp_env
@@ -292,8 +288,6 @@ CONTAINS
 !> \brief deallocates the resp_type structure 
 !> \param resp_env the resp environment
 !> \param rep_sys structure for repeating input sections defining fit points
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE resp_dealloc(resp_env,rep_sys)
     TYPE(resp_type), POINTER                 :: resp_env
@@ -351,8 +345,6 @@ CONTAINS
 !> \param resp_section resp section
 !> \param cons_section constraints section, part of resp section
 !> \param rest_section restraints section, part of resp section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE init_resp(resp_env,rep_sys,subsys,&
              atomic_kind_set,cell,resp_section,cons_section,rest_section)
@@ -476,8 +468,6 @@ CPSourceFileRef,&
 !>        fitting in spheres around the atom
 !> \param cell parameters related to the simulation cell
 !> \param atomic_kind_set ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE get_parameter_molecular_sys(resp_env,sphere_section,cell,&
              atomic_kind_set)
@@ -577,8 +567,6 @@ CPSourceFileRef,&
 !>        sampling for slab-like systems
 !> \param rep input section can be repeated, this param defines for which 
 !>        repetition of the input section the atom_list is built
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE build_atom_list(section,subsys,atom_list,rep)
 
@@ -652,8 +640,6 @@ CPSourceFileRef,&
 !> \param matrix coefficient matrix of the linear system of equations
 !> \param rhs vector of the linear system of equations
 !> \param natom number of atoms
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE calc_resp_matrix_nonper(qs_env,resp_env,atomic_kind_set,particles,&
                                      cell,matrix,rhs,natom)
@@ -831,8 +817,6 @@ CPSourceFileRef,&
 !> \param particles ...
 !> \param cell parameters related to the simulation cell
 !> \param natom number of atoms
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE calc_resp_matrix_periodic(qs_env,resp_env,rep_sys,particles,cell,&
                                        natom)
@@ -947,8 +931,6 @@ CPSourceFileRef,&
 !> \param rep_sys structure for repeating input sections defining fit points
 !> \param particles ...
 !> \param cell parameters related to the simulation cell
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE get_fitting_points(qs_env,resp_env,rep_sys,particles,cell)
  
@@ -1125,8 +1107,6 @@ CPSourceFileRef,&
 !> \param resp_env the resp environment
 !> \param rhs vector 
 !> \param vpot single gaussian potential
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE calculate_rhs(qs_env,resp_env,rhs,vpot)
  
@@ -1176,8 +1156,6 @@ CPSourceFileRef,&
 !> \param dh incremental cell matrix
 !> \param output_unit ...
 !> \param gbo lower and upper bounds for the grid points
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE print_fitting_points(qs_env,resp_env,dh,output_unit,gbo)
   
@@ -1316,8 +1294,6 @@ CPSourceFileRef,&
 !> \param natom number of atoms
 !> \param cons_section input section for constraints
 !> \param particle_set ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE add_restraints_and_constraints(qs_env,resp_env,rest_section,&
                              subsys,natom,cons_section,particle_set)
@@ -1439,8 +1415,6 @@ CPSourceFileRef,&
 !> \param resp_env the resp environment
 !> \param rep_sys structure for repeating input sections defining fit points 
 !> \param my_per ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE print_resp_parameter_info(qs_env,resp_env,rep_sys,my_per)
    
@@ -1534,8 +1508,6 @@ CPSourceFileRef,&
 !> \param resp_env the resp environment
 !> \param output_runinfo ...
 !> \param natom number of atoms
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE print_resp_charges(qs_env,resp_env,output_runinfo,natom)
 
@@ -1605,8 +1577,6 @@ CPSourceFileRef,&
 !> \param particles ...
 !> \param natom number of atoms
 !> \param output_runinfo ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE print_pot_from_resp_charges(qs_env,resp_env,particles,natom,output_runinfo)
  

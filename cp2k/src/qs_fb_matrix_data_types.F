@@ -88,7 +88,6 @@ CONTAINS
 !> \param row         : block row index of the matrix block
 !> \param col         : block col index of the matrix block
 !> \param blk         : the matrix block to add
-!> \param error       : CP2K error handler container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_matrix_data_add(matrix_data, row, col, blk)
@@ -159,7 +158,6 @@ CONTAINS
 !>                      and cannot be UNDEFINED
 !> \param nmax        : max number of matrix blks can be stored
 !> \param nencode ...
-!> \param error       : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_matrix_data_create(matrix_data, nmax, nencode)
@@ -199,7 +197,6 @@ CONTAINS
 !> \param blk_p       : pointer to the block in the fb_matrix_data object
 !> \param found       : if the requested block exists in the fb_matrix_data
 !>                      object
-!> \param error       : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_matrix_data_get(matrix_data, row, col, blk_p, found)
@@ -248,7 +245,6 @@ CONTAINS
 !>                      to use the existing number of blocks in matrix_data
 !> \param nencode     : integer used to incode (row, col) to a single combined
 !>                      index
-!> \param error       : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_matrix_data_init(matrix_data, nmax, nencode)
@@ -306,7 +302,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases given object
 !> \param matrix_data : the fb_matrix_data object in question
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_matrix_data_release(matrix_data)
@@ -350,7 +345,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains given object
 !> \param matrix_data : the fb_matrix_data object in question
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_matrix_data_retain(matrix_data)
@@ -373,7 +367,6 @@ CONTAINS
 !> \brief Resize a fb_matrix_data object
 !> \param matrix_data : the fb_matrix_data object
 !> \param nmax        : new maximun size of matrix_data%obj%blks
-!> \param error       : CP2K error handler container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_matrix_data_resize(matrix_data, nmax)
@@ -434,7 +427,6 @@ CONTAINS
 !> \param nencode     : outputs fb_matrix_data%obj%nencode
 !> \param blk_sizes   : blk_sizes(ii,jj) gives size of jj-th dim of the 
 !>                      ii-th block stored 
-!> \param error       : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_matrix_data_status(matrix_data, nmax, nblks, nencode, blk_sizes)

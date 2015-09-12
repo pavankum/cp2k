@@ -100,8 +100,6 @@ MODULE xc_xwpbe
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -134,8 +132,6 @@ MODULE xc_xwpbe
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param xwpbe_params input parameters (scaling,omega)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -273,8 +269,6 @@ MODULE xc_xwpbe
 !> \param sx , sx0: scaling factor for omega!=0 and omega=0
 !> \param sx0 ...
 !> \param omega screening parameter
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -5310,8 +5304,6 @@ MODULE xc_xwpbe
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -5344,8 +5336,6 @@ MODULE xc_xwpbe
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param xwpbe_params input parameters (scaling,omega)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2007 created [Manuel Guidon]
 !> \author Manuel Guidon
@@ -5512,8 +5502,6 @@ MODULE xc_xwpbe
 !> \param sx , sx0: scaling factor for omega!=0 and omega=0
 !> \param sx0 ...
 !> \param omega screening parameter
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2007 created [Manuel Guidon]
 !> \author Manuel Guidon

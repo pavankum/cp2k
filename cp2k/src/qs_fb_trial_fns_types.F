@@ -63,7 +63,6 @@ CONTAINS
 !> \brief retains given object
 !> \brief ...
 !> \param trial_fns : the fb_trial_fns object in question
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_trial_fns_retain(trial_fns)
@@ -87,7 +86,6 @@ CONTAINS
 !> \brief releases given object
 !> \brief ...
 !> \param trial_fns : the fb_trial_fns object in question
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_trial_fns_release(trial_fns)
@@ -176,7 +174,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates an fb_trial_fns object and initialises it
 !> \param trial_fns : the fb_trial_fns object in question
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_trial_fns_create(trial_fns)
@@ -203,7 +200,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief initialises an fb_trial_fns object
 !> \param trial_fns : the fb_trial_fns object in question
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_trial_fns_init(trial_fns)
@@ -236,7 +232,6 @@ CONTAINS
 !> \param trial_fns  : the fb_trial_fns object in question
 !> \param nfunctions : outputs pointer to trial_fns%obj%nfunctions
 !> \param functions  : outputs pointer to trial_fns%obj%functions
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_trial_fns_get(trial_fns, &
@@ -264,7 +259,6 @@ CONTAINS
 !> \param trial_fns  : the fb_trial_fns object in question
 !> \param nfunctions : associates trial_fns%obj%nfunctions to this pointer
 !> \param functions  : associates trial_fns%obj%nfunctions to this pointer
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_trial_fns_set(trial_fns, &

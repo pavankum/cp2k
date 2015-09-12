@@ -311,7 +311,6 @@ CONTAINS
 !> \brief Removes duplicate vertices from an array of vertices
 !> \param vertices_in array containing the coordinates of a set of vertices 
 !> \param vertices_out array containing unique vertices in vertices_in
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -365,7 +364,6 @@ CONTAINS
 !> \param z_locl z grid vetor of the simulation box local to this process
 !> \param aabb_extents global extents
 !> \param aabb_extents_local local extents
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -477,7 +475,6 @@ CONTAINS
 !> \param phi the rotation angle
 !> \param rot_axis the rotation axis
 !> \param project whether or not to project
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -558,7 +555,6 @@ CONTAINS
 !> \param rot_axis the rotation axis 
 !> \param direction forward or backward rotation
 !> \param rectangle_rot the rotated rectangle  
-!> \param error cp2k error
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -608,7 +604,6 @@ CONTAINS
 !> \param rot_axis1 the first rotation axis  
 !> \param phi2 the second rotation angle 
 !> \param rot_axis2 the second rotation axis 
-!> \param error cp2k error
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -701,7 +696,6 @@ CONTAINS
 !> \param rectangle the rectangle to be projected
 !> \param plane the given plane
 !> \param rectangle_proj the projected rectangle
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -751,7 +745,6 @@ CONTAINS
 !> \param n_prtn vetor of size 3 specifying the number of times that the x, y and
 !>               z interval (defining the region) should be partitioned into
 !> \param tiles the obtained tiles    
-!> \param error cp2k error
 !> \par History
 !>       08.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -934,7 +927,6 @@ CONTAINS
 !> \param n_prtn vetor of size 3 specifying the number of times that the x, y and
 !>               z interval (defining the region) should be partitioned into
 !> \param tiles the obtained tiles    
-!> \param error cp2k error
 !> \par History
 !>       12.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1053,7 +1045,6 @@ CONTAINS
 !> \param segment2  segment 2
 !> \param plane the plane that includes both segment 1 and segment 2
 !> \param intersection the intersection of the two segments
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1139,7 +1130,6 @@ CONTAINS
 !> \param segment input segment
 !> \param plane input plane
 !> \param intersection the intersection of the plane and the segment
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1196,7 +1186,6 @@ CONTAINS
 !> \param segment input segment
 !> \param rectangle input rectangle
 !> \param intersection the intersection of the segment and the rectangle
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1348,7 +1337,6 @@ CONTAINS
 !> \param plane input plane
 !> \param box input box
 !> \param intersection the intersection of the plane and the box
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1466,7 +1454,6 @@ CONTAINS
 !> \param polygon input polygon
 !> \param rectangle input rectangle
 !> \param intersection the intersection of the polygon and the rectangle
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1621,7 +1608,6 @@ CONTAINS
 !> \param rectangle1 rectangle 1
 !> \param rectangle2 rectangle 2
 !> \param intersection the intersection between rectangle 1 and rectangle 2
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1749,7 +1735,6 @@ CONTAINS
 !> \param rectangle input rectangle
 !> \param box input box
 !> \param intersection the intersection of the rectangle and the box
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1810,7 +1795,6 @@ CONTAINS
 !> \brief  toggles a grid_segment on if a given rectangle intersects with it
 !> \param grid_seg grid segment whose end points to be weighted
 !> \param rectangle the given rectangle
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1849,7 +1833,6 @@ CONTAINS
 !> \brief  toggles a grid_tile on if a given rectangle intersects with it
 !> \param grid_tile grid tile whose vertices to be weighted
 !> \param rectangle input rectangle
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1889,7 +1872,6 @@ CONTAINS
 !> \brief  toggles a voxel on if a given rectangle intersects with it
 !> \param voxel voxel whose vertices to be weighted
 !> \param rectangle the given rectangle
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -1979,7 +1961,6 @@ CONTAINS
 !> \brief  maps the weights of vertices of a grid segment on a pw data type
 !> \param grid_seg input grid segment
 !> \param pw the output plane wave data type
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2028,7 +2009,6 @@ CONTAINS
 !> \brief  maps the weights of vertices of a grid tile on a pw data type
 !> \param grid_tile input grid tile
 !> \param pw the output plane wave data type
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2082,7 +2062,6 @@ CONTAINS
 !> \brief  maps the weights of vertices of a voxel on a pw data type
 !> \param voxel input voxel
 !> \param pw the output plane wave data type
-!> \param error cp2k error
 !> \par History
 !>       07.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2133,7 +2112,6 @@ CONTAINS
 !> \param y_locl y grid vetor of the simulation box local to this process
 !> \param z_locl z grid vetor of the simulation box local to this process
 !> \param pw pw grid data to be created
-!> \param error cp2k error
 !> \par History
 !>       09.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -2296,7 +2274,6 @@ CONTAINS
 !> \param y_locl y grid vetor of the simulation box local to this process
 !> \param z_locl z grid vetor of the simulation box local to this process
 !> \param pw pw grid data to be created
-!> \param error cp2k error
 !> \par History
 !>       09.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian

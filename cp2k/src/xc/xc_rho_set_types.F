@@ -119,8 +119,6 @@ CONTAINS
 !> \param rho_cutoff ...
 !> \param drho_cutoff ...
 !> \param tau_cutoff ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_rho_set_create(rho_set,local_bounds,rho_cutoff,drho_cutoff,&
        tau_cutoff)
@@ -170,8 +168,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given rho_set
 !> \param rho_set the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_rho_set_retain(rho_set)
     TYPE(xc_rho_set_type), POINTER           :: rho_set
@@ -191,8 +187,6 @@ CONTAINS
 !> \brief releases the given rho_set
 !> \param rho_set the structure to release
 !> \param pw_pool the plae where to give back the arrays
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_rho_set_release(rho_set, pw_pool)
     TYPE(xc_rho_set_type), POINTER           :: rho_set
@@ -354,10 +348,6 @@ CONTAINS
 !> \param tau_a ...
 !> \param tau_b ...
 !> \param local_bounds ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
-!>
-!>      for the other components see the attributes of xc_rho_set
 ! *****************************************************************************
   SUBROUTINE xc_rho_set_get(rho_set, can_return_null, rho, drho, norm_drho,&
        rhoa, rhob, norm_drhoa, norm_drhob, drhoa_drhob,rho_1_3,rhoa_1_3,&
@@ -492,8 +482,6 @@ CONTAINS
 !>      what it can to the pw_pool
 !> \param rho_set the rho_set to be cleaned
 !> \param pw_pool place to give back 3d arrays,...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
   SUBROUTINE xc_rho_set_clean(rho_set,pw_pool)
@@ -629,8 +617,6 @@ CONTAINS
 !> \param xc_deriv_method_id ...
 !> \param xc_rho_smooth_id ...
 !> \param pw_pool pool for the allocation of pw and cr3d
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 ! *****************************************************************************
   SUBROUTINE xc_rho_set_update(rho_set, rho_r, rho_g, tau, needs,&
        xc_deriv_method_id,xc_rho_smooth_id,pw_pool)

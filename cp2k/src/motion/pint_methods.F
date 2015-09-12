@@ -116,7 +116,6 @@ CONTAINS
 !> \param input ...
 !> \param input_declaration ...
 !> \param para_env ...
-!> \param error ...
 !> \par    History
 !>           Fixed some bugs [hforbert]
 !>           Added normal mode transformation [hforbert]
@@ -416,8 +415,6 @@ CONTAINS
 ! ***************************************************************************
 !> \brief Retain a path integral environment
 !> \param pint_env the pint_env to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Fawzi Mohamed
 ! *****************************************************************************
   SUBROUTINE pint_retain(pint_env)
@@ -439,8 +436,6 @@ CONTAINS
 ! ***************************************************************************
 !> \brief Release a path integral environment
 !> \param pint_env the pint_env to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      Added normal mode transformation [hforbert]
 !> \author Fawzi Mohamed
@@ -540,8 +535,6 @@ CONTAINS
 !> \param para_env parallel environment
 !> \param input the input to test
 !> \param input_declaration ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pint_test(para_env,input,input_declaration)
@@ -613,8 +606,6 @@ CONTAINS
 !> \param  input the input to test
 !> \param input_declaration ...
 !> \param globenv ...
-!> \param  error variable to control error logging, stopping,...
-!>         see module cp_error_handling
 !> \par    History
 !>         2003-11 created [fawzi]
 !>         2009-12-14 globenv parameter added to handle soft exit
@@ -727,7 +718,6 @@ CONTAINS
 ! ***************************************************************************
 !> \brief  Reads the restart, initializes the beads, etc.
 !> \param pint_env ...
-!> \param error ...
 !> \par    History
 !>           11.2003 created [fawzi]
 !>           actually ASSIGN input pointer [hforbert]
@@ -762,7 +752,6 @@ CONTAINS
 ! ***************************************************************************
 !> \brief  Assign initial postions to the beads.
 !> \param pint_env ...
-!> \param error ...
 !> \date   2010-12-15
 !> \author Lukasz Walewski
 !> \note  Initialization is done in the following way:
@@ -948,8 +937,6 @@ CONTAINS
 !> \brief  Initialize velocities
 !> \param  pint_env the pint env in which you should initialize the
 !>         velocity
-!> \param  error variable to control error logging, stopping,...
-!>         see module cp_error_handling
 !> \par    History
 !>         2010-12-16 gathered all velocity-init code here [lwalewski]
 !>         2011-04-05 added centroid velocity initialization [lwalewski]
@@ -1213,7 +1200,6 @@ CPSourceFileRef,&
 !> \brief  Assign initial postions and velocities to the thermostats.
 !> \param pint_env ...
 !> \param kT ...
-!> \param error ...
 !> \date   2010-12-15
 !> \author Lukasz Walewski
 !> \note   Extracted from pint_init
@@ -1328,7 +1314,6 @@ CPSourceFileRef,&
 !> \brief  Prepares the forces, etc. to perform an MD step
 !> \param pint_env ...
 !> \param helium_solvent ...
-!> \param error ...
 !> \par    History
 !>           Added nh_energy calculation [hforbert]
 !>           Bug fixes for no thermostats [hforbert]
@@ -1408,7 +1393,6 @@ CPSourceFileRef,&
 !> \param pint_env ...
 !> \param globenv ...
 !> \param helium ...
-!> \param error ...
 !> \par    History
 !>         2003-11 created [fawzi]
 !>         renamed from pint_run to pint_do_run because of conflicting name
@@ -1495,7 +1479,6 @@ CPSourceFileRef,&
 !> \brief  Does an MD step (and nrespa harmonic evaluations)
 !> \param pint_env ...
 !> \param helium_solvent ...
-!> \param error ...
 !> \par    History
 !>           various bug fixes [hforbert]
 !> \author fawzi
@@ -1671,7 +1654,6 @@ CPSourceFileRef,&
 ! ***************************************************************************
 !> \brief  Calculate the energy components (private wrapper function)
 !> \param pint_env ...
-!> \param error ...
 !> \date   2011-01-07
 !> \author Lukasz Walewski
 ! *****************************************************************************
@@ -1713,8 +1695,6 @@ CPSourceFileRef,&
 !> \param  pint_env the path integral environment in which the harmonic
 !>         forces should be calculated
 !> \param e_h ...
-!> \param  error variable to control error logging, stopping,...
-!>         see module cp_error_handling
 !> \par    History
 !>           Added normal mode transformation [hforbert]
 !> \author fawzi
@@ -1756,8 +1736,6 @@ CPSourceFileRef,&
 !> \param x positions at which you want to evaluate the forces
 !> \param f the forces
 !> \param e potential energy on each bead
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par    History
 !>           2009-06-15 moved helium calls out from here [lwalewski]
 !> \author fawzi
@@ -1811,8 +1789,6 @@ CPSourceFileRef,&
 !> \param pint_env ...
 !> \param uv ...
 !> \param e_k ...
-!> \param  error variable to control error logging, stopping,...
-!>         see module cp_error_handling
 !> \par    History
 !>         Bug fix to give my_uv a default location if not given in call [hforbert]
 !> \author fawzi
@@ -1854,7 +1830,6 @@ CPSourceFileRef,&
 !> \brief  Calculate the virial estimator of the real (quantum) kinetic energy
 !> \param pint_env ...
 !> \param e_vir ...
-!> \param error ...
 !> \author hforbert
 !> \note   This subroutine modifies pint_env%energy(e_kin_virial_id) global
 !>         variable [lwalewski]
@@ -1897,8 +1872,6 @@ CPSourceFileRef,&
 !> \brief calculates the energy (potential and kinetic) of the Nose-Hoover
 !>      chain thermostats
 !> \param pint_env the path integral environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE pint_calc_nh_energy(pint_env)

@@ -49,8 +49,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief collects possible post - scf calculations and prints info / computes properties.
 !> \param qs_env the qs_env in which the qs_env lives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>        09.2013  Adapted from qs_scf_post_gpw.F
 !> \author  Ralph Koitz
@@ -75,8 +73,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Write QS results always available in SCPTB calculation
 !> \param qs_env the qs_env in which the qs_env lives
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History 09.2013 adapted from qs_scf_post_gpw.F. [RK] 
 ! *****************************************************************************
   SUBROUTINE write_scptb_mo_free_results(qs_env)

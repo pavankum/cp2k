@@ -40,8 +40,6 @@ MODULE xc_adiabatic_methods
 !> \param scale_dDFA scaling coefficient for xc-potentials to be calculated
 !> \param scale_dEx2 scaling coefficient for xc-potentials to be calculated
 !> \param total_energy_xc will contain the full xc energy
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2007 created [Manuel Guidon]
 !> \author Manuel Guidon

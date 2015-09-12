@@ -136,8 +136,6 @@ CONTAINS
 !> \param enum_desc ...
 !> \param unit_str ...
 !> \param citations ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE keyword_create(keyword, name, description, usage, type_of_var,&
@@ -420,8 +418,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given keyword (see doc/ReferenceCounting.html)
 !> \param keyword the keyword to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE keyword_retain(keyword)
@@ -441,8 +437,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given keyword (see doc/ReferenceCounting.html)
 !> \param keyword the keyword to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE keyword_release(keyword)
@@ -490,8 +484,6 @@ CONTAINS
 !> \param repeats ...
 !> \param enum ...
 !> \param citations ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE keyword_get(keyword,names,usage,description,type_of_var,n_var,&
@@ -536,8 +528,6 @@ CONTAINS
 !> \param level the description level (0 no description, 1 name
 !>        2: +usage, 3: +variants+description+default_value+repeats
 !>        4: +type_of_var)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE keyword_describe(keyword, unit_nr, level)
@@ -677,8 +667,6 @@ CONTAINS
 !> \brief writes out a description of the keyword
 !> \param keyword the keyword to describe
 !> \param unit_nr the unit to write to
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost VandeVondele [10.2004], based on keyword_describe
 ! *****************************************************************************
   SUBROUTINE keyword_describe_html(keyword, unit_nr)
@@ -833,8 +821,6 @@ CONTAINS
 !> \param keyword The keyword to describe
 !> \param level ...
 !> \param unit_number Number of the output unit
-!> \param error Variable to control error logging, stopping ...
-!>        see module cp_error_handling
 !> \author Matthias Krack
 ! *****************************************************************************
   SUBROUTINE write_keyword_xml(keyword,level,unit_number)
@@ -1017,7 +1003,6 @@ CONTAINS
 !> \param location_string ...
 !> \param matching_rank ...
 !> \param matching_string ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE keyword_typo_match(keyword,unknown_string,location_string,matching_rank,matching_string)
 

@@ -173,8 +173,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates a new structure environment for TMC
 !> \param tmc_env structure with parameters for TMC
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_env_create(tmc_env)
@@ -248,8 +246,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure environment for TMC
 !> \param tmc_env structure with parameters for TMC
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_env_release(tmc_env)
@@ -300,8 +296,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates a new structure environment for TMC master
 !> \param tmc_env structure with parameters for TMC
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_master_env_create(tmc_env)
@@ -365,8 +359,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure environment for TMC master
 !> \param tmc_env structure with parameters for TMC
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_master_env_release(tmc_env)
@@ -404,8 +396,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates a new structure environment for TMC master
 !> \param tmc_env structure with parameters for TMC
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_worker_env_create(tmc_env)
@@ -438,8 +428,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure environment for TMC master
 !> \param tmc_env structure with parameters for TMC
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE tmc_worker_env_release(tmc_env)
@@ -468,8 +456,6 @@ CONTAINS
 !> \brief creates a structure for storing the atom informations
 !> \param atoms pointer to a list of tmc_atoms_type
 !> \param nr_atoms the amount of atoms
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   SUBROUTINE allocate_tmc_atom_type(atoms, nr_atoms)
@@ -496,8 +482,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the structure for storing the atom informations
 !> \param atoms pointer to a list of tmc_atoms_type
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   SUBROUTINE deallocate_tmc_atom_type(atoms)

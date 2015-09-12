@@ -77,8 +77,6 @@ CONTAINS
 !> \brief Allocates an SCF DIIS buffer
 !> \param diis_buffer the buffer to create
 !> \param nbuffer ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -123,8 +121,6 @@ CONTAINS
 !> \param matrix_struct the structure for the matrix of the buffer
 !> \param nspin ...
 !> \param scf_section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      - Creation (07.05.2001, Matthias Krack)
 !>      - Changed to BLACS matrix usage (08.06.2001,MK)
@@ -234,8 +230,6 @@ CONTAINS
 !> \param s_matrix ...
 !> \param scf_section ...
 !> \param roks ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      - Creation (07.05.2001, Matthias Krack)
 !>      - Changed to BLACS matrix usage (08.06.2001, MK)
@@ -548,8 +542,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief clears the buffer
 !> \param diis_buffer the buffer to clear
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi
@@ -592,8 +584,6 @@ CONTAINS
 !> \param nmixing ...
 !> \param s_matrix ...
 !> \param threshold ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      - Adapted for LS-SCF (10-11-14) from qs_diis_b_step
 !> \author Fredy W. Aquino
@@ -829,8 +819,6 @@ CONTAINS
 !> \param diis_buffer the buffer to initialize
 !> \param ls_scf_env ...
 !> \param nspin ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      - Adapted from qs_diis_b_check_i_alloc for sparse matrices and
 !>        used in LS-SCF module (ls_scf_main) (10-11-14)
@@ -918,8 +906,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief clears the DIIS buffer in LS-SCF calculation
 !> \param diis_buffer the buffer to clear
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10-11-14 created [FA] modified from qs_diis_b_clear
 !> \author Fredy W. Aquino
@@ -955,8 +941,6 @@ CONTAINS
 !> \brief Allocates an SCF DIIS buffer for LS-SCF calculation
 !> \param diis_buffer the buffer to create
 !> \param nbuffer ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      10-11-14 created [FA] modified from qs_diis_b_create
 !> \author Fredy W. Aquino

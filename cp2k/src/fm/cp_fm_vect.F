@@ -28,8 +28,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocate an array of pointers to blacs matrixes
 !> \param matrixes the array of matrixes to deallocate
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      07.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -60,8 +58,6 @@ CONTAINS
 !>      the matrices)
 !> \param matrixes the matrixes to copy
 !> \param copy ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi]
 !> \author Fawzi Mohamed

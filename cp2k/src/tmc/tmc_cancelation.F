@@ -50,8 +50,6 @@ CONTAINS
 !> \brief add a certain element to the cancelation list
 !> \param elem the sub tree element, to be added
 !> \param tmc_env tmc environment 
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE add_to_canceling_list(elem, tmc_env)
@@ -120,8 +118,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief for correct finalizing deallocate the cancelation list
 !> \param cancel_list ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param
 !> \author Mandes 12.2012
 ! *****************************************************************************

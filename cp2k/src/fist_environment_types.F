@@ -143,7 +143,6 @@ CONTAINS
 !> \param multipoles ...
 !> \param results ...
 !> \param exclusions ...
-!> \param error ...
 !> \par History
 !>      11/03
 !> \author CJM
@@ -242,7 +241,6 @@ CONTAINS
 !> \brief Initialise the FIST environment.
 !> \param fist_env the pointer to the fist_env
 !> \param para_env ...
-!> \param error ...
 !> \par History
 !>      11/03
 !> \author CJM
@@ -295,7 +293,6 @@ CONTAINS
 !> \param shell_model ...
 !> \param shell_model_ad ...
 !> \param exclusions ...
-!> \param error ...
 !> \par History
 !>      11/03
 !> \author CJM
@@ -433,8 +430,6 @@ CONTAINS
 !> \brief allocates and intitializes a fist_env
 !> \param fist_env the object to create
 !> \param para_env the parallel environement for the qs_env
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -459,8 +454,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given fist_env (see doc/ReferenceCounting.html)
 !> \param fist_env the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -482,8 +475,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given fist_env (see doc/ReferenceCounting.html)
 !> \param fist_env the object to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      12.2002 created [fawzi]
 !> \author Fawzi Mohamed

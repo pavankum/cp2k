@@ -134,8 +134,6 @@ CONTAINS
 !> \param dt ...
 !> \param para_env ...
 !> \param metadyn_section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2004 created
 !>      02.2006 Reorganized the structure of the restart for Metadynamics (teo)
@@ -251,8 +249,6 @@ CONTAINS
 !> \brief sets the meta_env
 !> \param meta_env ...
 !> \param time ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author alessandro laio and fawzi mohamed
 ! *****************************************************************************
   SUBROUTINE set_meta_env(meta_env, time)
@@ -276,8 +272,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the meta_env
 !> \param meta_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author alessandro laio and fawzi mohamed
 ! *****************************************************************************
   SUBROUTINE meta_env_retain(meta_env)
@@ -298,8 +292,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the meta_env
 !> \param meta_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author alessandro laio and fawzi mohamed
 ! *****************************************************************************
   SUBROUTINE meta_env_release(meta_env)
@@ -365,8 +357,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the hills_env
 !> \param hills_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino [tlaino] - University of Zurich 10.2008
 ! *****************************************************************************
   SUBROUTINE hills_env_release(hills_env)

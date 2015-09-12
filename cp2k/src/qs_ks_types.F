@@ -233,7 +233,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Allocates a new instance of ks_env.
 !> \param ks_env ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
 SUBROUTINE qs_ks_env_create(ks_env)
@@ -344,7 +343,6 @@ END SUBROUTINE qs_ks_env_create
 !> \param nelectron_total ...
 !> \param nelectron_spin ...
 !> \param admm_dm ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE get_ks_env(ks_env,v_hartree_rspace,&
                         s_mstruct_changed,rho_changed,&
@@ -606,7 +604,6 @@ END SUBROUTINE qs_ks_env_create
 !> \param para_env ...
 !> \param blacs_env ...
 !> \param admm_dm ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE set_ks_env(ks_env,v_hartree_rspace,&
                         s_mstruct_changed,rho_changed,&
@@ -773,8 +770,6 @@ END SUBROUTINE qs_ks_env_create
 ! *****************************************************************************
 !> \brief releases the ks_env (see doc/ReferenceCounting.html)
 !> \param ks_env the ks_env to be released
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -923,8 +918,6 @@ END SUBROUTINE qs_ks_env_create
 ! *****************************************************************************
 !> \brief retains the given ks_environment
 !> \param ks_env the KohnSham environment to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -955,8 +948,6 @@ END SUBROUTINE qs_ks_retain
 !> \param rho_changed if true it means that the density has changed
 !> \param potential_changed ...
 !> \param full_reset if true everything has changed
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      4.2002 created [fawzi]
 !>     12.2014 moved from qs_ks_methods, added deallocation of KS-matrices [Ole Schuett]

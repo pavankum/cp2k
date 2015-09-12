@@ -52,7 +52,6 @@ CONTAINS
 !> \param C_re m x n matrix, real part
 !> \param C_im m x n matrix, imaginary part
 !> \param filter_eps ...
-!> \param error ...
 !> \author Samuel Andermatt
 !> \note
 !>      C should have no overlap with A, B
@@ -170,7 +169,6 @@ END SUBROUTINE
 !> \param nsquare ...
 !> \param ntaylor ...
 !> \param filter_eps ...
-!> \param error ...
 !> \author Samuel Andermatt (02.2014)
 ! *****************************************************************************
 
@@ -281,7 +279,6 @@ END SUBROUTINE
 !> \param nsquare ...
 !> \param ntaylor ...
 !> \param filter_eps ...
-!> \param error ...
 !> \author Samuel Andermatt (02.2014)
 ! *****************************************************************************
   SUBROUTINE taylor_full_complex_dbcsr(exp_H,re_part,im_part,nsquare,ntaylor,filter_eps)
@@ -385,7 +382,6 @@ END SUBROUTINE
 !> \param filter_eps The filtering threshold for all matrices
 !> \param filter_eps_small ...
 !> \param eps_exp The accuracy of the exponential
-!> \param error The cp2k error type
 !> \author Samuel Andermatt (02.2014)
 ! *****************************************************************************
 
@@ -492,7 +488,6 @@ END SUBROUTINE
 !> \param filter_eps The filtering threshold for all matrices
 !> \param filter_eps_small ...
 !> \param eps_exp The accuracy of the exponential
-!> \param error The cp2k error type
 !> \author Samuel Andermatt (02.2014)
 ! *****************************************************************************
 

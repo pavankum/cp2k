@@ -61,8 +61,6 @@ CONTAINS
 !> \brief Specifies parameter for thermostat for constant temperature ensembles
 !> \param section will contain the coeff section
 !> \param coupled_thermostat ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo [tlaino] - University of Zurich - 09.2007
 ! *****************************************************************************
   SUBROUTINE create_thermo_slow_section(section, coupled_thermostat)
@@ -141,8 +139,6 @@ CONTAINS
 !> \brief Specifies parameter for thermostat for constant temperature ensembles
 !> \param section will contain the coeff section
 !> \param coupled_thermostat ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo [tlaino] - University of Zurich - 09.2007
 ! *****************************************************************************
   SUBROUTINE create_thermo_fast_section(section, coupled_thermostat)
@@ -222,8 +218,6 @@ CONTAINS
 !> \brief Specifies parameter for thermostat for constant temperature ensembles
 !> \param section will contain the coeff section
 !> \param coupled_thermostat ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo [tlaino] - University of Zurich - 09.2007
 ! *****************************************************************************
   SUBROUTINE create_thermostat_section(section, coupled_thermostat)
@@ -319,7 +313,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates print section for thermostat section
 !> \param section ...
-!> \param error ...
 !> \author teo [tlaino] - University of Zurich - 02.2008
 ! *****************************************************************************
   SUBROUTINE create_print_section(section)
@@ -366,8 +359,6 @@ CONTAINS
 !> \brief Creates a section to arbitrary define a region to thermostat
 !> \param section will contain the coeff section
 !> \param label ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_region_section(section, label)
@@ -435,8 +426,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the ewald section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author gloria
 ! *****************************************************************************
   SUBROUTINE create_nose_section(section)
@@ -509,7 +498,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section ...
-!> \param error ...
 !> \param
 !> \author
 ! *****************************************************************************
@@ -586,8 +574,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the gles section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_gles_section(section)
@@ -618,8 +604,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the ewald section
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo [tlaino] - University of Zurich - 09.2007
 ! *****************************************************************************
   SUBROUTINE create_csvr_section(section)
@@ -665,8 +649,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param section will contain the adaptive langevin section 
-!> \param error variable to control error logging, stopping,... 
-!>        see module cp_error_handling 
 !> \author Noam [bernstei] 
 ! *****************************************************************************
   SUBROUTINE create_al_section(section)
@@ -729,8 +711,6 @@ CONTAINS
 !> \brief Creates the thermostat chi restarting section
 !> \param section the section to create
 !> \param sec_name ...
-!> \param error variable to control error logging, stopping,... 
-!>        see module cp_error_handling 
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_thermo_chi_mass_section(section,sec_name)
@@ -764,8 +744,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Creates the thermostat energy restarting section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_thermo_energy_section(section)
@@ -797,8 +775,6 @@ CONTAINS
 !> \brief Creates the mass section
 !> \param section the section to create
 !> \param name ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_force_section(section,name)
@@ -831,8 +807,6 @@ CONTAINS
 !> \brief Creates the mass section
 !> \param section the section to create
 !> \param name ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_mass_section(section,name)
@@ -865,8 +839,6 @@ CONTAINS
 !> \brief Creates the velocity section
 !> \param section the section to create
 !> \param name ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_velocity_section(section,name)
@@ -899,8 +871,6 @@ CONTAINS
 !> \brief Creates the coord section
 !> \param section the section to create
 !> \param name ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_coord_section(section,name)

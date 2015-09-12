@@ -63,8 +63,6 @@ CONTAINS
 !> \param exact_approx_pot flag if result should be stores in exact or approx 
 !>        energy variable
 !> \param tmc_env TMC environment parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   SUBROUTINE calc_potential_energy(conf, env_id, exact_approx_pot, &
@@ -155,8 +153,6 @@ CONTAINS
 !> \param vol returns the cell volume
 !> \param abc ...
 !> \param vec a vector, which will be folded (pbc) in the cell
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE get_scaled_cell(cell, box_scale, scaled_hmat, scaled_cell, vol, &
@@ -211,8 +207,6 @@ CONTAINS
 !> \param cell .. original cell
 !> \param scaled_hmat returns the scaled h matrix (matrix of cell vectors)
 !> \param box_scale scaling factors for each direction
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE get_cell_scaling(cell, scaled_hmat, box_scale)
@@ -249,8 +243,6 @@ CONTAINS
 !> \param x2 ...
 !> \param cell ...
 !> \param box_scale ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval res ...
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -293,8 +285,6 @@ CONTAINS
 !>        array size should be multiple of dim_per_elem
 !> \param pos list of atoms 
 !> \param center return value, the geometrical center
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE geometrical_center(pos, center)
@@ -329,8 +319,6 @@ CONTAINS
 !> \param pos ...
 !> \param atoms ...
 !> \param center ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \param 
 !> \param 
 !> \author Mandes 11.2012
@@ -386,8 +374,6 @@ CONTAINS
 !> \param temerature ...
 !> \param rng_stream ...
 !> \param rnd_seed ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE init_vel(vel, atoms, temerature, rng_stream, rnd_seed)
@@ -430,8 +416,6 @@ CONTAINS
 !>        and atom mass, both in atomic units
 !> \param vel ...
 !> \param atoms ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval ekin ...
 !> \author Mandes 11.2012
 ! *****************************************************************************
@@ -465,8 +449,6 @@ CONTAINS
 !> \param v3 function values
 !> \param extrapolate extrapolated final value (result)
 !> \param res_err error of the result
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE three_point_extrapolate(v1,v2,v3, extrapolate, res_err)
@@ -548,8 +530,6 @@ CONTAINS
 !>         energies
 !> \param p the random number, the criteria has to be smaller than this
 !> \param beta ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval prob return probability of acceptance
 !> \author Mandes 12.2012
 ! *****************************************************************************
@@ -557,8 +537,8 @@ CONTAINS
                         prior_mu,prior_sigma,p,beta) RESULT(prob)
     REAL(KIND=dp)                            :: E_n_mu, E_n_sigma, E_o_mu, &
                                                 E_o_sigma, E_classical_diff, &
-                                                prior_mu, prior_sigma, p, beta
-    REAL(KIND=dp)                            :: prob
+                                                prior_mu, prior_sigma, p, &
+                                                beta, prob
 
 !    INTEGER       :: io,in
 !    REAL(KIND=dp) :: diff,E_n,E_o,surface,lower_bound,upper_bound,delta
@@ -582,8 +562,6 @@ CONTAINS
 !> \param rnd_nr random number acceptance check will be done with
 !> \param beta 1/(kB*T) can differ for different acceptance checks
 !> \param tmc_params TMC environment parameters
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval prob estimated acceptance probability
 !> \author Mandes 12.2012
 ! *****************************************************************************
@@ -670,8 +648,6 @@ CONTAINS
 !>        for every temperature
 !> \param tmc_env TMC environment variables
 !> \param eff result efficiency
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 01.2013
 ! *****************************************************************************
   SUBROUTINE get_subtree_efficiency(tmc_env, eff)

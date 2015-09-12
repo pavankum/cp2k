@@ -67,8 +67,6 @@ CONTAINS
 !> \brief initialization of the different moves, with sizes and probabilities
 !> \param tmc_params ...
 !> \param tmc_section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 10.2013
 ! *****************************************************************************
   SUBROUTINE read_init_move_types(tmc_params, tmc_section)
@@ -349,8 +347,6 @@ CONTAINS
 !> \param tmc_params ...
 !> \param move_types ...
 !> \param mol_array ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 10.2013
 ! *****************************************************************************
   SUBROUTINE check_moves(tmc_params, move_types, mol_array)
@@ -430,8 +426,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief deallocating the module variables
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 !> \note deallocating the module variables
 ! *****************************************************************************
@@ -459,8 +453,6 @@ CONTAINS
 !> \param init ...
 !> \param file_io ...
 !> \param tmc_params ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 11.2012
 ! *****************************************************************************
   SUBROUTINE print_move_types(init, file_io, tmc_params)
@@ -748,8 +740,6 @@ cp_warning_level,cp_assertion_failed,routineP,&
 !> \param acc input if the element is accepted
 !> \param subbox logical if move was with respect to the sub box
 !> \param prob_opt if the average probability should be adapted
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE prob_update(move_types, pt_el, elem, acc, subbox, prob_opt)
@@ -865,8 +855,6 @@ cp_warning_level,cp_assertion_failed,routineP,&
 !> \param acc_counter counters of acceptance for these moves
 !> \param subbox_counter same for sub box moves
 !> \param subbox_acc_counter same for sub box moves
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE add_mv_prob(move_types, prob_opt, mv_counter, acc_counter, &
@@ -907,8 +895,6 @@ cp_warning_level,cp_assertion_failed,routineP,&
 !> \brief clear the statistics of accepting/rejection moves
 !>        because worker statistics will be add seperatelly on masters counters
 !> \param move_types counters for acceptance/rejection
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 02.2013
 ! *****************************************************************************
   SUBROUTINE clear_move_probs(move_types)
@@ -932,8 +918,6 @@ cp_warning_level,cp_assertion_failed,routineP,&
 !> \brief selects a move type related to the weighings and the entered rnd nr
 !> \param move_types structure for storing sizes and probabilities of moves
 !> \param rnd random number
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \retval mv_type (result) move type
 !> \author Mandes 12.2012
 !> \note function returns a possible move type without the PT swap moves 

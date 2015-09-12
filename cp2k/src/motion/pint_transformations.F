@@ -33,8 +33,6 @@ CONTAINS
 !> \param pint_env the path integral environment
 !> \param ux will contain the u variable (defaults to pint_env%ux)
 !> \param x the positions to transform (defaults to pint_env%x)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      Added normal mode transformation [hforbert]
 !> \author fawzi
@@ -76,8 +74,6 @@ CONTAINS
 !> \param pint_env path integral environment
 !> \param ux the u variable (positions to be backtransformed)
 !> \param x will contain the positions
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      Added normal mode transformation by hforbert
 !> \author fawzi
@@ -120,8 +116,6 @@ CONTAINS
 !> \param uf will contain the accelerations for the transformed variables
 !>        afterwards
 !> \param f the forces to transform
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      Added normal mode transformation [hforbert]
 !>      Divide forces by the number of beads, since the replication

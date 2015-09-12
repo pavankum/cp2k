@@ -98,7 +98,6 @@ CONTAINS
 !> \param input_declaration ...
 !> \param input_file_name the name of the input file that force_env_1 was
 !>        created from
-!> \param error the error type
 !> \author MJM
 !> \note
 !>      Designed for parallel.

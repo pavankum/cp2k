@@ -44,7 +44,6 @@ CONTAINS
 !> \brief Return the maximum memory usage in integral calculations
 !> \param qs_kind_set The info for all atomic kinds
 !> \param basis_type_a  Type of basis
-!> \param error ...
 !> \retval ldmem          Result
 ! *****************************************************************************
   FUNCTION get_memory_usage_a(qs_kind_set,basis_type_a) RESULT(ldmem)
@@ -73,7 +72,6 @@ CONTAINS
 !> \param qs_kind_set The info for all atomic kinds
 !> \param basis_type_a  Type of basis
 !> \param basis_type_b  Type of basis
-!> \param error ...
 !> \retval ldmem          Result
 ! *****************************************************************************
   FUNCTION get_memory_usage_ab(qs_kind_set,basis_type_a,basis_type_b) RESULT(ldmem)
@@ -100,7 +98,6 @@ CONTAINS
 !> \param basis_type_a  Type of basis
 !> \param basis_type_b  Type of basis
 !> \param basis_type_c  Type of basis
-!> \param error ...
 !> \retval ldmem          Result
 ! *****************************************************************************
   FUNCTION get_memory_usage_abc(qs_kind_set,basis_type_a,&
@@ -131,7 +128,6 @@ CONTAINS
 !> \param basis_type_b  Type of basis
 !> \param basis_type_c  Type of basis
 !> \param basis_type_d  Type of basis
-!> \param error ...
 !> \retval ldmem          Result
 ! *****************************************************************************
   FUNCTION get_memory_usage_abcd(qs_kind_set,basis_type_a,&
@@ -163,7 +159,6 @@ CONTAINS
 !> \param basis_set_list    The basis set list
 !> \param basis_type ...
 !> \param qs_kind_set   Kind information, the basis is used
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE basis_set_list_setup(basis_set_list,basis_type,qs_kind_set)
 

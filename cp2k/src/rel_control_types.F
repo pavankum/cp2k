@@ -67,8 +67,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief allocates and initializes an rel control object with the default values
 !> \param rel_control the object to initialize
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi] for scf_control_type
 !>      10.2008 copied to rel_control_type [JT]
@@ -106,8 +104,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given rel_control (see cp2k/doc/ReferenceCounting.html)
 !> \param rel_control the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi] for scf_control_type
 !>      10.2008 copied to rel_control_type [JT]
@@ -134,8 +130,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given rel_control (see cp2k/doc/ReferenceCounting.html)
 !> \param rel_control the object to free
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi] for scf_control_type
 !>      10.2008 copied to rel_control_type [JT]
@@ -172,7 +166,6 @@ CONTAINS
 !> \brief reads the parameters of the relativistic section into the given rel_control
 !> \param rel_control the object that wil contain the values read
 !> \param dft_section ...
-!> \param error controls log and error handling
 !> \par History
 !>      05.2001 created [Matthias] for scf_control_type
 !>      09.2002 created separated scf_control type [fawzi]

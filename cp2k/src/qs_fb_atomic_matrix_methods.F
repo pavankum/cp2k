@@ -69,7 +69,6 @@ CONTAINS
 !>                        atomic matrix
 !> \param blk_col_start : first col in each atomic blk col in the
 !>                        atomic matrix
-!> \param error : the data container for CP2K error logs
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atmatrix_calc_size(dbcsr_mat, &
@@ -138,7 +137,6 @@ CONTAINS
 !>                        atomic matrix
 !> \param blk_col_start : first col in each atomic blk col in the
 !>                        atomic matrix
-!> \param error : the data container for CP2K error logs
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atmatrix_construct(dbcsr_mat, &
@@ -375,7 +373,6 @@ CONTAINS
 !>                        atomic matrix
 !> \param blk_col_start : first col in each atomic blk col in the
 !>                        atomic matrix
-!> \param error : the data container for CP2K error logs
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atmatrix_construct_2(matrix_storage, &
@@ -461,7 +458,6 @@ CONTAINS
 !>                          data to be sent
 !> \param atom_pairs_recv : list of atom blocks from remote DBCSR matrix
 !>                          data to be recveived
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atmatrix_generate_com_pairs(dbcsr_mat, &
@@ -663,7 +659,6 @@ CONTAINS
 !>                          data to be sent
 !> \param atom_pairs_recv : list of atom blocks from remote DBCSR matrix
 !>                          data to be recveived
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_atmatrix_generate_com_pairs_2(dbcsr_mat, &

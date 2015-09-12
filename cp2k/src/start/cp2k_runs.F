@@ -441,7 +441,6 @@ CONTAINS
 !> \param input_declaration ...
 !> \param root_section ...
 !> \param para_env ...
-!> \param error ...
 !> \author Joost VandeVondele
 !> \note
 !>      needs to be part of this module as the cp2k_run -> farming_run -> cp2k_run
@@ -856,8 +855,6 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief writes a small html description of the cp2k input
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author joost [fawzi]
 ! *****************************************************************************
   SUBROUTINE write_cp2k_html_manual()
@@ -1007,7 +1004,6 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE write_xml_file()
 

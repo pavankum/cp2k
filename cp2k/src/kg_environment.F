@@ -76,8 +76,6 @@ CONTAINS
 !> \brief Allocates and intitializes kg_env
 !> \param kg_env the object to create
 !> \param input ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>       2012.07 created [Martin Haeufel]
 !> \author Martin Haeufel
@@ -104,7 +102,6 @@ CONTAINS
 !> \brief Initializes kg_env
 !> \param kg_env ...
 !> \param input ...
-!> \param error ...
 !> \par History
 !>       2012.07 created [Martin Haeufel]
 !> \author Martin Haeufel
@@ -242,7 +239,6 @@ CONTAINS
 !> \param molecular if false, the full neighborlist is build
 !> \param subset_of_mol the molecular subsets
 !> \param current_subset the subset of which the neighborlist is to be build
-!> \param error ...
 !> \par History
 !>       2012.07 created [Martin Haeufel]
 !> \author Martin Haeufel
@@ -452,7 +448,6 @@ CONTAINS
 !>        for an edge (w,v) the fields W and V specify its endpoints
 !> \param pairs ...
 !> \param nnodes the total number of nodes
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE write_to_file(pairs, nnodes)
     INTEGER(KIND=int_4), ALLOCATABLE, &
@@ -520,7 +515,6 @@ CONTAINS
 !> \brief ...
 !> \param kg_env ...
 !> \param para_env ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE kg_build_subsets(kg_env, para_env)
     TYPE(kg_environment_type), POINTER       :: kg_env

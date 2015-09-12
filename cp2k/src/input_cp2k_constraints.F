@@ -53,8 +53,6 @@ CONTAINS
 !> \brief Create the constraint section. This section is useful to impose
 !>      constraints
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_constraint_section(section)
@@ -158,8 +156,6 @@ CONTAINS
 !>      This section will be only used for restraint restarts.
 !>      Constraints are handled automatically
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino 08.2006
 ! *****************************************************************************
   SUBROUTINE create_clv_rest_section(section)
@@ -194,8 +190,6 @@ CONTAINS
 !>      This section will be only used for restraint restarts.
 !>      Constraints are handled automatically
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino 08.2006
 ! *****************************************************************************
   SUBROUTINE create_f_a_rest_section(section)
@@ -228,8 +222,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the restraint info section in the constraint section
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Teodoro Laino 08.2006
 ! *****************************************************************************
   SUBROUTINE restraint_info_section(section)
@@ -266,8 +258,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the constraint section for collective constraints
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Joost VandeVondele [01.2006]
 ! *****************************************************************************
   SUBROUTINE create_collective_section(section)
@@ -361,8 +351,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the constraint section that fixes atoms
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_fixed_atom_section(section)
@@ -467,8 +455,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the constraint section specialized on g3x3 constraints
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_g3x3_section(section)
@@ -546,8 +532,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the constraint section specialized on H BONDS constraints
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_hbonds_section(section)
@@ -621,8 +605,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the constraint section specialized on g4x6 constraints
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author teo
 ! *****************************************************************************
   SUBROUTINE create_g4x6_section(section)
@@ -700,8 +682,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Create the constraint section specialized on vsite constraints
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author marcel baer
 ! *****************************************************************************
   SUBROUTINE create_vsite_section(section)

@@ -90,8 +90,6 @@ CONTAINS
 !>        (defaults to false)
 !> \param n_el number of elements in each list (defaults to 0)
 !> \param n_lists number of lists to create (defaults to 1, or size(n_el))
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -157,8 +155,6 @@ END SUBROUTINE distribution_1d_create
 ! *****************************************************************************
 !> \brief retains a distribution_1d
 !> \param distribution_1d  the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -181,8 +177,6 @@ END SUBROUTINE distribution_1d_retain
 ! *****************************************************************************
 !> \brief releases the given distribution_1d
 !> \param distribution_1d the object to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      05.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -254,8 +248,6 @@ END SUBROUTINE distribution_1d_release
 !> \brief writes a description of the local distribution to the given unit
 !> \param distribution_1d the list to describe 
 !> \param unit_nr the unit to write to
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      06.2003 created [fawzi]
 !> \author Fawzi Mohamed

@@ -66,7 +66,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief   create the dg structure
 !> \param dg ...
-!> \param error ...
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE dg_create ( dg)
@@ -92,8 +91,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given dg_type
 !> \param dg the dg_type to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -118,8 +115,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given dg_type
 !> \param dg the dg_type to release
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      04.2003 created [fawzi]
 !> \author fawzi
@@ -154,7 +149,6 @@ CONTAINS
 !> \param dg ...
 !> \param dg_rho0 ...
 !> \param grid_index ...
-!> \param error ...
 !> \version 1.0
 ! *****************************************************************************
   SUBROUTINE dg_set ( dg, dg_rho0, grid_index)

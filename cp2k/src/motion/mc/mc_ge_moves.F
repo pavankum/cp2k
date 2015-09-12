@@ -99,9 +99,6 @@ CONTAINS
 !> \param particles the pointers for the particle sets
 !> \param rng_stream the stream we pull random numbers from
 !> \param unit_conv ...
-!> \param error the cp_error_type in case something goes wrong
-!>
-!>      Designed for parallel use.
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE mc_Quickstep_move(mc_par,force_env,bias_env,moves,&
@@ -444,9 +441,6 @@ CONTAINS
 !>        potential
 !> \param last_bias_energy the energy for the biased simulations
 !> \param rng_stream the stream we pull random numbers from
-!> \param error the cp_error_type in case something goes wrong
-!>
-!>      Suitable for parallel.
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE mc_ge_swap_move(mc_par,force_env,bias_env,moves,&
@@ -1237,9 +1231,6 @@ CONTAINS
 !> \param r_old the coordinates of the last accepted move involving a
 !>               Quickstep calculation
 !> \param rng_stream the stream we pull random numbers from
-!> \param error the cp_error_type in case of problems
-!>
-!>      Designed for parallel.
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE mc_ge_volume_move ( mc_par,force_env, moves,move_updates,&

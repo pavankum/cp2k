@@ -39,8 +39,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the TreeMonteCarlo subsection
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes
 ! *****************************************************************************
   SUBROUTINE create_TMC_section(section)
@@ -370,8 +368,6 @@ CONTAINS
 !> \brief creates the TMC section to select the move types performed within the
 !>        NMC (on approximate potential)
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes
 ! *****************************************************************************
   SUBROUTINE create_TMC_NMC_move_type_section(section)
@@ -439,8 +435,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the TMC section to select the move types
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes
 ! *****************************************************************************
   SUBROUTINE create_TMC_move_type_section(section)
@@ -519,8 +513,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the TreeMonteCarlo subsection
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes
 ! *****************************************************************************
   SUBROUTINE create_TMC_ana_section(section)
@@ -545,8 +537,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the TreeMonteCarlo subsection
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes
 ! *****************************************************************************
   SUBROUTINE create_TMC_ana_files(section)
@@ -649,8 +639,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the TreeMonteCarlo subsection
 !> \param section the section to be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes
 ! *****************************************************************************
   SUBROUTINE create_TMC_ana_kinds(section)

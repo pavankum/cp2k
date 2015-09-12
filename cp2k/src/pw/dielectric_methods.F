@@ -56,7 +56,6 @@ CONTAINS
 !> \param dielectric  the dielectric data type to be allocated
 !> \param pw_pool pool of pw grid
 !> \param dielectric_params dielectric parameters read from input file
-!> \param error cp2k error
 !> \par History
 !>       06.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -105,7 +104,6 @@ CONTAINS
 !> \param pw_pool pool of plane wave grid
 !> \param rho electronic density
 !> \param rho_core core density
-!> \param error cp2k error 
 !> \par History
 !>       06.2014 created [Hossein Bani-Hashemian]
 !>       12.2014 added finite difference derivatives [Hossein Bani-Hashemian]
@@ -286,7 +284,6 @@ CONTAINS
 !> \param eps0 dielectric constant in the bulk of the solvent
 !> \param rho_max upper density threshold
 !> \param rho_min lower density threshold
-!> \param error ...
 !> \par History
 !>       06.2014 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -354,7 +351,6 @@ CONTAINS
 !> \param x_locl x grid vetor of the simulation box local to this process
 !> \param y_locl y grid vetor of the simulation box local to this process
 !> \param z_locl z grid vetor of the simulation box local to this process
-!> \param error cp2k error
 !> \par History
 !>       07.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -456,7 +452,6 @@ CONTAINS
 !> \param x_locl x grid vetor of the simulation box local to this process
 !> \param y_locl y grid vetor of the simulation box local to this process
 !> \param z_locl z grid vetor of the simulation box local to this process
-!> \param error cp2k error
 !> \par History
 !>       07.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -552,7 +547,6 @@ CONTAINS
 !> \param eps dielectric constant function
 !> \param pw_pool pool of planewave grid
 !> \param dielectric_params dielectric parameters read from input file
-!> \param error cp2k error
 !> \par History
 !>       07.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -629,7 +623,6 @@ CONTAINS
 !> \param deps_drho derivative of the dielectric constant wrt the density
 !> \param pw_pool pool of planewave grid
 !> \param dielectric_params dielectric parameters read from input file
-!> \param error cp2k error
 !> \par History
 !>       07.2015 created [Hossein Bani-Hashemian]
 !> \author Mohammad Hossein Bani-Hashemian
@@ -683,7 +676,6 @@ CONTAINS
 !> \param f  input funcition 
 !> \param df derivative of f
 !> \param pw_pool pool of plane-wave grid
-!> \param error cp2k error
 ! *****************************************************************************
   SUBROUTINE derive_fft(f, df, pw_pool)
 

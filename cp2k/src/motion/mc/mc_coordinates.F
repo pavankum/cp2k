@@ -325,7 +325,6 @@ END SUBROUTINE mc_coordinate_fold
 !> \param source the MPI source value, for broadcasts
 !> \param group the MPI group value, for broadcasts
 !> \param rng_stream the random number stream that we draw from
-!> \param error the the cp_error type
 !> \param avbmc_atom ...
 !> \param rmin ...
 !> \param rmax ...
@@ -679,7 +678,6 @@ END SUBROUTINE generate_cbmc_swap_config
 !> \param rng_stream the stream we pull random numbers from
 !>
 !>    Use only in serial.
-!> \param error ...
 !> \author MJM
 ! *****************************************************************************
 SUBROUTINE rotate_molecule(r,mass,natoms,rng_stream)
@@ -772,9 +770,6 @@ END SUBROUTINE rotate_molecule
 !> \param rng_stream the stream we pull random numbers from
 !> \param box if present, tells the routine which box to grab a molecule from
 !> \param molecule_type_old if present, tells the routine which molecule type to select from
-!> \param error the optional cp_error_type
-!>
-!>    Designed only for serial use.
 !> \author MJM
 ! *****************************************************************************
 SUBROUTINE find_mc_test_molecule(mc_molecule_info,start_atom,&
@@ -997,7 +992,6 @@ END SUBROUTINE create_discrete_array
 !> \param rng_stream the random number stream that we draw from
 !>
 !>      Use only in serial.
-!> \param error ...
 !> \author MJM
 ! *****************************************************************************
 SUBROUTINE generate_avbmc_insertion( rmin,rmax,r_target,&

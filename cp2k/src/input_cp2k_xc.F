@@ -68,8 +68,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the structure of the section needed to select the xc functional
 !> \param section the section that will be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_xc_fun_section(section)
@@ -718,7 +716,6 @@ CONTAINS
 !> \param name ...
 !> \param description ...
 !> \param usage ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE create_libxc_section(section,name,description,usage)
     TYPE(section_type), POINTER              :: section
@@ -766,8 +763,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the structure of the section needed to select an xc potential
 !> \param section the section that will be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author thomas chassaing
 ! *****************************************************************************
   SUBROUTINE create_xc_potential_section(section)
@@ -830,8 +825,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the structure of the section needed for vdW potentials
 !> \param section the section that will be created
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author jgh
 ! *****************************************************************************
   SUBROUTINE create_vdw_potential_section(section)
@@ -1050,8 +1043,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the input section for the xc part
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author fawzi
 ! *****************************************************************************
   SUBROUTINE create_xc_section(section)
@@ -1177,8 +1168,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief creates the section for adiabatic hybrid functionals
 !> \param section ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Manuel Guidon
 ! *****************************************************************************
   SUBROUTINE create_adiabatic_section(section)

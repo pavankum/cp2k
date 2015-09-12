@@ -51,8 +51,6 @@ CONTAINS
 !>      PARALLEL_GROUP_SIZE   [-1,0,n]
 !>
 !> \param section the section to create
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author JGH
 ! *****************************************************************************
   SUBROUTINE create_kpoints_section(section)

@@ -125,7 +125,6 @@ CONTAINS
 !> \param matrix_s  : DBCSR system (unfiltered) input overlap matrix
 !> \param scf_section : SCF input section
 !> \param diis_step : whether we are doing a DIIS step
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_do_diag(fb_env, &
@@ -673,7 +672,6 @@ CONTAINS
 !> \param ndep : if the overlap is not positive definite, then ndep > 0,
 !>               and equals to the number of linear dependent basis functions
 !>               in the filtered basis set
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_eigensolver(fm_KS, fm_S, mo_set, fm_ortho, &
@@ -763,7 +761,6 @@ CONTAINS
 !> \brief Read input sections for filter matrix method
 !> \param fb_env : the filter matrix environment
 !> \param scf_section : SCF input section
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_read_input(fb_env, scf_section)
@@ -813,7 +810,6 @@ CONTAINS
 !>        ranges for each kind
 !> \param fb_env : the filter matrix environment
 !> \param qs_env : quickstep environment
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_build_rcut_auto(fb_env, qs_env)
@@ -891,7 +887,6 @@ CONTAINS
 !>                 positions and their kinds as well as which particles
 !>                 are local to this process
 !> \param scf_section : SCF input section, for printing output
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_build_atomic_halos(fb_env, qs_env, scf_section)
@@ -1024,7 +1019,6 @@ CONTAINS
 !> \param fb_env : the filter matrix environment
 !> \param qs_env : quickstep environment
 !> \param maxocc : maximum occupancy for an orbital
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_build_trial_fns_auto(fb_env, qs_env, maxocc)
@@ -1195,7 +1189,6 @@ CONTAINS
 !> \param matrix_out : DBCSR matrix whose blocks are to be allocated
 !> \param matrix_in  : DBCSR matrix with exising sparse structure that
 !>                     is to be copied
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_dbcsr_copy_sparse_struct(matrix_out, matrix_in)
@@ -1255,7 +1248,6 @@ CONTAINS
 !> \param fb_env : the filter matrix environment
 !> \param qs_env : quickstep environment
 !> \param scf_section : SCF input section
-!> \param error : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_env_write_info(fb_env, qs_env, scf_section)

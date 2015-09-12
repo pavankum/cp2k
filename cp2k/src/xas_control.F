@@ -72,7 +72,6 @@ CONTAINS
 !> \param xas_control control variables
 !>       error
 !> \param xas_section ...
-!> \param error ...
 !> \par History
 !>      04.2005 created [MI]
 ! *****************************************************************************
@@ -177,7 +176,6 @@ CONTAINS
 !> \param xas_control control variables
 !>       error
 !> \param dft_section ...
-!> \param error ...
 !> \par History
 !>      12.2005 created [MI]
 ! *****************************************************************************
@@ -245,7 +243,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief create retain release the xas_control_type
 !> \param xas_control ...
-!> \param error ...
 !> \par History
 !>      04.2005 created [MI]
 ! *****************************************************************************
@@ -284,7 +281,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param xas_control ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE xas_control_release(xas_control)
 
@@ -319,7 +315,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param xas_control ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE xas_control_retain(xas_control)
 

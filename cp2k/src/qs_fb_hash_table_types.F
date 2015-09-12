@@ -100,7 +100,6 @@ CONTAINS
 !> \param hash_table : the fb_hash_table object
 !> \param key        : key of the element
 !> \param val        : value of the element
-!> \param error      : CP2K error handler container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   RECURSIVE SUBROUTINE fb_hash_table_add(hash_table, key, val)
@@ -154,7 +153,6 @@ CONTAINS
 !>                     and cannot be UNDEFINED
 !> \param nmax       : total size of the table, optional. If absent default
 !>                     size is 1.
-!> \param error      : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_hash_table_create(hash_table, nmax)
@@ -192,7 +190,6 @@ CONTAINS
 !> \param key        : input key
 !> \param val        : output value, equals to 0 if key not found
 !> \param found      : .TRUE. if key is found, .FALSE. otherwise
-!> \param error      : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_hash_table_get(hash_table, key, val, found)
@@ -240,7 +237,6 @@ CONTAINS
 !>                     and cannot be UNDEFINED
 !> \param nmax       : new size of the table, optional. If absent use the
 !>                     old size
-!> \param error      : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_hash_table_init(hash_table, nmax)
@@ -302,7 +298,6 @@ CONTAINS
 !>        to MAX(nmax, number_of_non_empty_elements).
 !> \param hash_table      : the fb_hash_table object
 !> \param nmax [OPTIONAL] : maximum size of the rehashed table
-!> \param error           : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_hash_table_rehash(hash_table, nmax)
@@ -347,7 +342,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases given object
 !> \param hash_table : the fb_hash_table object in question
-!> \param error      : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_hash_table_release(hash_table)
@@ -383,7 +377,6 @@ CONTAINS
 !> \brief Remove element from a table, automatic resize if necessary
 !> \param hash_table : the fb_hash_table object
 !> \param key        : key of the element to be removed
-!> \param error      : CP2K data container for error logging
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_hash_table_remove(hash_table, key)
@@ -421,7 +414,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains given object
 !> \param hash_table : the fb_hash_table object in question
-!> \param error      : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_hash_table_retain(hash_table)
@@ -446,7 +438,6 @@ CONTAINS
 !> \param nelements  : number of non-empty slots in the table
 !> \param nmax       : maximum number of slots in the table
 !> \param prime      : the prime used in the hash function
-!> \param error      : cp2k error container
 !> \author Lianheng Tong (LT) lianheng.tong@kcl.ac.uk
 ! *****************************************************************************
   SUBROUTINE fb_hash_table_status(hash_table, nelements, nmax, prime)

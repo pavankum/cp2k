@@ -98,7 +98,6 @@ CONTAINS
 !> \param kpoint       The kpoint environment
 !> \param particle_set Particle types and coordinates
 !> \param cell         Computational cell information
-!> \param error        CP2K error handling
 ! *****************************************************************************
   SUBROUTINE kpoint_initialize(kpoint, particle_set, cell)
 
@@ -229,7 +228,6 @@ CPSourceFileRef,&
 ! *****************************************************************************
 !> \brief Initialize the kpoint environment
 !> \param kpoint       Kpoint environment
-!> \param error        CP2K error handling
 ! *****************************************************************************
   SUBROUTINE kpoint_env_initialize(kpoint)
 
@@ -390,7 +388,6 @@ CPSourceFileRef,&
 !> \brief Initialize a set of MOs and density matrix for each kpoint (kpoint group)
 !> \param kpoint  Kpoint environment
 !> \param mos     Reference MOs (global)
-!> \param error   CP2K error handling
 ! *****************************************************************************
   SUBROUTINE kpoint_initialize_mos(kpoint, mos)
 
@@ -516,7 +513,6 @@ CPSourceFileRef,&
 !> \param sab_nl    Defining neighbour list
 !> \param para_env  Parallel environment
 !> \param dft_control ...
-!> \param error     CP2K error handling
 ! *****************************************************************************
   SUBROUTINE kpoint_init_cell_index(kpoint, sab_nl, para_env, dft_control)
 
@@ -639,7 +635,6 @@ CPSourceFileRef,&
 !> \param xkp      Kpoint coordinates
 !> \param cell_to_index   mapping of cell indices to RS index 
 !> \param sab_nl   Defining neighbor list
-!> \param error    CP2K error handling
 ! *****************************************************************************
   SUBROUTINE rskp_transform(rmatrix,cmatrix,rsmat,ispin,&
                             xkp,cell_to_index,sab_nl)
@@ -724,7 +719,6 @@ CPSourceFileRef,&
 !> \brief Given the eigenvalues of all kpoints, calculates the occupation numbers
 !> \param kpoint  Kpoint environment
 !> \param smear   Smearing information
-!> \param error   CP2K error handling
 ! *****************************************************************************
   SUBROUTINE kpoint_set_mo_occupation(kpoint,smear)
 
@@ -809,7 +803,6 @@ CPSourceFileRef,&
 !> \brief Calculate kpoint density matrices (rho(k), owned by kpoint groups)
 !> \param kpoint    kpoint environment
 !> \param energy_weighted  calculate energy weighted density matrix
-!> \param error     CP2K error handling
 ! *****************************************************************************
   SUBROUTINE kpoint_density_matrices(kpoint,energy_weighted)
 
@@ -913,7 +906,6 @@ CPSourceFileRef,&
 !> \param tempmat DBCSR matrix to be used as template
 !> \param sab_nl ...
 !> \param fmwork  FM work matrices (kpoint group)
-!> \param error   CP2K error handling
 ! *****************************************************************************
   SUBROUTINE kpoint_density_transform(kpoint,denmat,wtype,tempmat,sab_nl,fmwork)
 

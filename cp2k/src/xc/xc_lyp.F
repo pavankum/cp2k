@@ -45,8 +45,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -82,8 +80,6 @@ CONTAINS
 !> \param needs the components needed by this functional are set to
 !>        true (does not set the unneeded components to false)
 !> \param max_deriv ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !> \author fawzi
@@ -121,8 +117,6 @@ END SUBROUTINE lyp_lsd_info
 !>        if positive all the derivatives up to the given degree are evaluated,
 !>        if negative only the given degree is calculated
 !> \param lyp_params input parameters (scaling)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !>      01.2007 added scaling [Manuel Guidon]
@@ -274,8 +268,6 @@ END SUBROUTINE lyp_lda_eval
 !> \param npoints ...
 !> \param epsilon_rho ...
 !> \param sc scaling-parameter for correlation
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !>      01.2007 added scaling [Manuel Guidon]
@@ -757,8 +749,6 @@ END SUBROUTINE lyp_lda_calc
 !> \param deriv_set ...
 !> \param grad_deriv ...
 !> \param lyp_params input parameter (scaling)
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      11.2003 created [fawzi]
 !>      01.2007 added scaling [Manuel Guidon]
@@ -947,8 +937,6 @@ END SUBROUTINE lyp_lsd_eval
 !> \param npoints ...
 !> \param epsilon_rho ...
 !> \param sc scaling parameter for correlation
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      01.2004 created [fawzi]
 !> \author fawzi

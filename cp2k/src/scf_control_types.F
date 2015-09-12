@@ -145,8 +145,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief allocates and initializes an scf control object with the default values
 !> \param scf_control the object to initialize
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi]
 !>      - Default ROKS parameters added (05.04.06,MK)
@@ -266,8 +264,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief retains the given scf_control (see cp2k/doc/ReferenceCounting.html)
 !> \param scf_control the object to retain
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -293,8 +289,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief releases the given scf_control (see cp2k/doc/ReferenceCounting.html)
 !> \param scf_control the object to free
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      09.2002 created [fawzi]
 !> \author Fawzi Mohamed
@@ -336,7 +330,6 @@ CONTAINS
 !> \brief reads the parameters of the scf section into the given scf_control
 !> \param scf_control the object that wil contain the values read
 !> \param inp_section ...
-!> \param error controls log and error handling
 !> \par History
 !>      05.2001 created [Matthias]
 !>      09.2002 creaded separated scf_control type [fawzi]
@@ -506,7 +499,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param smear ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE init_smear(smear)
     TYPE(smear_type), POINTER                :: smear
@@ -534,7 +526,6 @@ CONTAINS
 !> \brief ...
 !> \param smear ...
 !> \param smear_section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE read_smear_section(smear,smear_section)
     TYPE(smear_type), POINTER                :: smear
@@ -580,7 +571,6 @@ CONTAINS
 !> \brief writes out the scf parameters
 !> \param scf_control the object you want to print
 !> \param dft_section ...
-!> \param error controls log and error handling
 !> \par History
 !>      05.2001 created [Matthias]
 !>      09.2002 created separated scf_control type [fawzi]
@@ -767,7 +757,6 @@ CONTAINS
 !> \brief ...
 !> \param settings ...
 !> \param scf_section ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE ot_diag_read_input(settings,scf_section)
     TYPE(qs_ot_settings_type)                :: settings

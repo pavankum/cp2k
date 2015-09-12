@@ -149,8 +149,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief perform an scf procedure in the given qs_env
 !> \param qs_env the qs_environment where to perform the scf procedure
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 introduced scf_env, moved real work to scf_env_do_scf [fawzi]
 !> \author fawzi
@@ -233,8 +231,6 @@ CONTAINS
 !> \param qs_env the qs_env, the scf_env lives in
 !> \param converged will be true / false if converged is reached
 !> \param should_stop ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      long history, see cvs and qs_scf module history
 !>      02.2003 introduced scf_env [fawzi]
@@ -507,7 +503,6 @@ CONTAINS
 !> \param scf_env ...
 !> \param qs_env ...
 !> \param scf_section ...
-!> \param error ...
 !> \par History
 !>      03.2006 created [Joost VandeVondele]
 ! *****************************************************************************
@@ -752,8 +747,6 @@ CPSourceFileRef)
 !> \brief perform cleanup operations (like releasing temporary storage)
 !>      at the end of the scf
 !> \param scf_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \par History
 !>      02.2003 created [fawzi]
 !> \author fawzi

@@ -42,8 +42,6 @@ CONTAINS
 ! *****************************************************************************
 !> \brief adds global tree reference to the modified sub tree element(s)
 !> \param gt_elem actual global tree element
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE add_to_references(gt_elem)
@@ -96,8 +94,6 @@ CONTAINS
 !>        from all related sub tree elements
 !> \param gt_ptr actual global tree element
 !> \param tmc_env ...
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE remove_gt_references(gt_ptr, tmc_env)
@@ -133,8 +129,6 @@ CONTAINS
 !> \brief removes the pointers to a certain subtree element from every related
 !>        global tree element
 !> \param ptr sub tree element
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE remove_subtree_element_of_all_references(ptr)
@@ -214,8 +208,6 @@ CONTAINS
 !> \param gt_ptr actual global tree element
 !> \param elem ...
 !> \param tmc_env TMC environment
-!> \param error variable to control error logging, stopping,...
-!>        see module cp_error_handling
 !> \author Mandes 12.2012
 ! *****************************************************************************
   SUBROUTINE search_and_remove_reference_in_list(gt_ptr, elem, tmc_env)

@@ -1013,7 +1013,6 @@ SUBROUTINE set_mc_par ( mc_par, rm,cl,&
 !> \param mc_molecule_info ...
 !> \param empty_coords ...
 !> \param lhmc ...
-!> \param error ...
 !> \author MJM
 ! *****************************************************************************
   SUBROUTINE mc_input_file_create (mc_input_file,input_file_name,&
@@ -1321,7 +1320,6 @@ END SUBROUTINE mc_parse_text
 !> \param input_file_name the name of the input_file
 !> \param input_file the structure that contains all the keywords in the input file
 !> \param force_env_section used to grab the type of force_env
-!> \param error the cp_error_type
 !> \author MJM
 ! *****************************************************************************
 SUBROUTINE read_mc_section ( mc_par, para_env, globenv, input_file_name, input_file, force_env_section)
@@ -1905,7 +1903,6 @@ END SUBROUTINE find_mc_rcut
 !>          for the molecule types
 !>
 !>    Suitable for parallel.
-!> \param error ...
 !> \param box_number ...
 !> \param coordinates_empty ...
 !> \author MJM
