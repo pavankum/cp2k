@@ -347,7 +347,7 @@ CONTAINS
         ENDIF
      ENDIF
 
-     CALL get_qs_env(qmmmx_env%core%qs_env, cp_subsys=subsys_primary, error=error)
+     CALL qmmm_env_get(qmmmx_env%core, subsys=subsys_primary, error=error)
      particles_primary => subsys_primary%particles%els
      DO ip=1,SIZE(particles_qmmm_core)
         particles_primary(ip)%f=particles_qmmm_core(ip)%f
