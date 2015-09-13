@@ -103,22 +103,22 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'apply_qmmmx_translate', &
       routineP = moduleN//':'//routineN
 
-    INTEGER                                  :: ip
-    INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
-    LOGICAL                                  :: failure
-    REAL(dp), POINTER                        :: charges(:)
-    TYPE(cell_type), POINTER                 :: cell_core, cell_extended
-    TYPE(cp_subsys_type), POINTER            :: subsys_core, subsys_extended, &
-                                                subsys_fist, subsys_qs
-    TYPE(particle_type), DIMENSION(:), &
-      POINTER                                :: particles_core, &
-                                                particles_extended, &
-                                                particles_mm, particles_qm
-    TYPE(qs_kind_type), DIMENSION(:), &
-      POINTER                                :: qs_kind_set
-    TYPE(section_vals_type), POINTER         :: subsys_section
-
-    NULLIFY(qs_kind_set)
+    !INTEGER                                  :: ip
+    !INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
+    !LOGICAL                                  :: failure
+    !REAL(dp), POINTER                        :: charges(:)
+    !TYPE(cell_type), POINTER                 :: cell_core, cell_extended
+    !TYPE(cp_subsys_type), POINTER            :: subsys_core, subsys_extended, &
+    !                                            subsys_fist, subsys_qs
+    !TYPE(particle_type), DIMENSION(:), &
+    !  POINTER                                :: particles_core, &
+    !                                            particles_extended, &
+    !                                            particles_mm, particles_qm
+    !TYPE(qs_kind_type), DIMENSION(:), &
+    !  POINTER                                :: qs_kind_set
+    !TYPE(section_vals_type), POINTER         :: subsys_section
+    !
+    !NULLIFY(qs_kind_set)
 
     WRITE (*,*) "TODO: apply_qmmmx_translate not implemented"
 
