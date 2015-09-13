@@ -73,11 +73,14 @@ CONTAINS
     CPPrecondition(ASSOCIATED(qmmmx_env),cp_failure_level,routineP,error,failure)
     CPPrecondition(qmmmx_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    CALL qmmm_env_get(qmmmx_env%core, kinetic_energy=kinetic_energy,subsys=subsys, error=error)
-
     ! get the underlying energies from primary subsys.  This is the only subsys
     ! for conventional QM/MM, and force-mixing knows to put relevant energy there.
-    CALL qmmm_env_get(qmmmx_env%ext, potential_energy=potential_energy, error=error)
+    CALL qmmm_env_get(qmmmx_env%ext,&
+                      kinetic_energy=kinetic_energy,&
+                      potential_energy=potential_energy,&
+                      subsys=subsys,&
+                      error=error)
+
   END SUBROUTINE qmmmx_env_get
 
 

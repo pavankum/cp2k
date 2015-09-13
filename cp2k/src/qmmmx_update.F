@@ -58,13 +58,16 @@ CONTAINS
 
     INTEGER                                  :: iforce_eval, nforce_eval
 
-    CALL qmmm_update_force_mixing_env_low(force_env, root_section, error)
-    IF (ASSOCIATED(force_env%sub_force_env)) THEN
-      nforce_eval = SIZE(force_env%sub_force_env)
-      ! loop over sub force envs, e.g. for mixed force env
-      DO iforce_eval=1, nforce_eval
-         CALL qmmm_update_force_mixing_env_low(force_env%sub_force_env(iforce_eval)%force_env, root_section, error)
-      END DO
+    WRITE (*,*) "TODO: qmmm_update_force_mixing_env not yet ready"
+    IF(.FALSE.)THEN
+       CALL qmmm_update_force_mixing_env_low(force_env, root_section, error)
+       IF (ASSOCIATED(force_env%sub_force_env)) THEN
+         nforce_eval = SIZE(force_env%sub_force_env)
+         ! loop over sub force envs, e.g. for mixed force env
+         DO iforce_eval=1, nforce_eval
+            CALL qmmm_update_force_mixing_env_low(force_env%sub_force_env(iforce_eval)%force_env, root_section, error)
+         END DO
+       ENDIF
     ENDIF
 
   END SUBROUTINE qmmm_update_force_mixing_env

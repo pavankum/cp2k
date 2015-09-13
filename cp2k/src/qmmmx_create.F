@@ -129,8 +129,6 @@ CONTAINS
     NULLIFY(dummy_qmmm_env)
 
     qmmm_section => section_vals_get_subs_vals(force_env_section,"QMMM",error=error)
-    !qmmm_force_mixing => section_vals_get_subs_vals(qmmm_section,"FORCE_MIXING",error=error)
-    !CALL section_vals_get(qmmm_force_mixing,explicit=force_mixing_active,error=error)
 
     CALL qmmm_env_create(dummy_qmmm_env, root_section, para_env, globenv,&
                          force_env_section, qmmm_section, subsys_section, use_motion_section, &
@@ -155,17 +153,6 @@ CONTAINS
     CALL section_vals_release(qmmm_core_section, error=error)
     CALL section_vals_release(qmmm_extended_section, error=error)
     CALL qmmm_env_release(dummy_qmmm_env,error=error)
-
-     !STOP "TODO:   qmmm_create_force_env"
-     !CALL force_env_get(sub_force_env(primary_subsys)%force_env,qmmm_env=qmmm_env_qm,error=error)
-     !CALL force_env_create(force_env, root_section, sub_force_env=sub_force_env,&
-     !     qmmm_env=qmmm_env_qm, &
-     !     para_env=para_env, globenv=globenv, force_env_section= force_env_section,&
-     !     error=error)
-
-     !! set a flag to identify when force mixing is active
-     !CALL force_env_get(force_env,qmmm_env=qmmm_env,error=error)
-     !qmmm_env%do_force_mixing = force_mixing_active
 
   END SUBROUTINE qmmmx_env_create
 

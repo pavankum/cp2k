@@ -205,14 +205,13 @@ CONTAINS
                                                 mom_conserv_n, &
                                                 mom_conserv_region, &
                                                 mom_conserv_type
-    !INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
+    INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
     INTEGER, POINTER                         :: cur_indices(:), cur_labels(:)
     LOGICAL                                  ::  failure
     REAL(dp)                                 :: delta_a(3), delta_f(3), &
                                                 mom_conserv_mass, total_f(3)
-    !REAL(dp), ALLOCATABLE                    :: saved_pos(:,:)
-    !TYPE(cell_type), POINTER                 :: mm_cell
-    !TYPE(cp_subsys_type), POINTER            :: subsys_qm, subsys_mm
+    TYPE(cell_type), POINTER                 :: mm_cell
+    TYPE(cp_subsys_type), POINTER            :: subsys_qm, subsys_mm
     TYPE(cp_subsys_type), POINTER            :: subsys_primary, &
                                                 subsys_qmmm_core, &
                                                 subsys_qmmm_extended
@@ -221,6 +220,7 @@ CONTAINS
                                                 particles_qmmm_core, &
                                                 particles_qmmm_extended
     !TYPE(section_vals_type), POINTER         :: force_env_section
+    REAL(dp), DIMENSION(:,:),ALLOCATABLE      :: saved_pos_core, saved_pos_ext
 
     IF (consistent_energies) THEN
       CALL cp_assert(.FALSE.,cp_failure_level,cp_assertion_failed,&
@@ -229,19 +229,30 @@ CONTAINS
           error,failure)
     ENDIF
 
-    !! Possibly translate the system
+    ! Possibly translate the system
     CALL apply_qmmmx_translate(qmmmx_env, error)
 
 
-    !TODO: can we move wrapping into qmmm_force?
-    ! ! For force mixing only (for now), wrap positions before QM/MM calculation.
-    ! ! Required if diffusion causes atoms outside of periodic box get added to QM
-    ! ! region.
-    ! CALL fist_env_get(qmmmx_env%core%fist_env, cell=mm_cell,subsys=subsys_mm,error=error)
-    ! CALL get_qs_env(qmmmx_env%core%qs_env, cp_subsys=subsys_qm,error=error)
-    ! qm_atom_index   => qmmmx_env%core%qm%qm_atom_index
-    ! CALL apply_qmmm_wrap(subsys_mm, mm_cell, subsys_qm, qm_atom_index, saved_pos, error)
+    ! For force mixing only (for now), wrap positions before QM/MM calculation.
+    ! Required if diffusion causes atoms outside of periodic box get added to QM
+    ! region.
 
+    !TODO: wrap/unwrap and change/revert RESTART_FILENAME could be put into
+    !  a seperate routine together with the CALL qmmm_calc_energy_force
+    IF(.TRUE.)THEN
+       ! wrap qmmmx_env%core
+       CALL fist_env_get(qmmmx_env%core%fist_env, cell=mm_cell,subsys=subsys_mm,error=error)
+       CALL get_qs_env(qmmmx_env%core%qs_env, cp_subsys=subsys_qm,error=error)
+       qm_atom_index => qmmmx_env%core%qm%qm_atom_index
+       CALL apply_qmmm_wrap(subsys_mm, mm_cell, subsys_qm, qm_atom_index, saved_pos_core, error)
+       
+       ! wrap qmmmx_env%ext
+       CALL fist_env_get(qmmmx_env%ext%fist_env, cell=mm_cell,subsys=subsys_mm,error=error)
+       CALL get_qs_env(qmmmx_env%ext%qs_env, cp_subsys=subsys_qm,error=error)
+       qm_atom_index => qmmmx_env%ext%qm%qm_atom_index
+       CALL apply_qmmm_wrap(subsys_mm, mm_cell, subsys_qm, qm_atom_index, saved_pos_ext, error)
+    ENDIF
+    
      ! TODO: this might have to go into qmmm_force as well
      !IF (SIZE(force_env%sub_force_env) > 1) THEN ! rewrite restart file name
      !   CALL force_env_get(force_env, force_env_section=force_env_section,error=error)
@@ -260,9 +271,11 @@ CONTAINS
      !        c_val=TRIM(restart_history_filename)//"-SubForceEnv-"//TRIM(restart_filename_suffix), error=error)
      !ENDIF
 
-     CALL qmmm_calc_energy_force(qmmmx_env%core, calc_force, consistent_energies, linres, error)
-     CALL qmmm_calc_energy_force(qmmmx_env%ext, calc_force, consistent_energies, linres, error)
-
+     WRITE (*,*) "OLE STOP: calc ext system"
+     CALL qmmm_calc_energy_force(qmmmx_env%ext, calc_force, consistent_energies, linres, translate=.FALSE., error=error)
+     WRITE (*,*) "OLE STOP: calc core system"
+     CALL qmmm_calc_energy_force(qmmmx_env%core, calc_force, consistent_energies, linres, translate=.FALSE., error=error)
+     WRITE (*,*) "OLE STOP: calc done"
      ! TODO: this might have to go into qmmm_force as well
      !IF (SIZE(force_env%sub_force_env) > 1) THEN ! undo rewrite of restart file name
      !   CALL section_vals_val_set(force_env_section, "DFT%SCF%PRINT%RESTART%FILENAME", &
@@ -271,10 +284,22 @@ CONTAINS
      !        c_val=TRIM(restart_history_filename), error=error)
      !ENDIF
 
-     !TODO: can we move wrapping into qmmm_force?
-     ! Restore unwrapped positions after calculation if needed
-     !CALL apply_qmmm_unwrap(subsys_mm, subsys_qm, qm_atom_index, saved_pos, error)
 
+     ! Restore unwrapped positions after calculation if needed
+
+     IF(.TRUE.)THEN
+        ! unwrap qmmmx_env%core
+        CALL fist_env_get(qmmmx_env%core%fist_env, cell=mm_cell, subsys=subsys_mm,error=error)
+        CALL get_qs_env(qmmmx_env%core%qs_env, cp_subsys=subsys_qm, error=error)
+        qm_atom_index => qmmmx_env%core%qm%qm_atom_index
+        CALL apply_qmmm_unwrap(subsys_mm, subsys_qm, qm_atom_index, saved_pos_core, error)
+        
+        ! unwrap qmmmx_env%ext
+        CALL fist_env_get(qmmmx_env%ext%fist_env, cell=mm_cell, subsys=subsys_mm,error=error)
+        CALL get_qs_env(qmmmx_env%ext%qs_env, cp_subsys=subsys_qm, error=error)
+        qm_atom_index => qmmmx_env%ext%qm%qm_atom_index
+        CALL apply_qmmm_unwrap(subsys_mm, subsys_qm, qm_atom_index, saved_pos_ext, error)
+     ENDIF
 
      ! force mixing happens here
      ! energy will just inherit from extended sub_force_env in force_env_get()
@@ -347,11 +372,14 @@ CONTAINS
         ENDIF
      ENDIF
 
-     CALL qmmm_env_get(qmmmx_env%core, subsys=subsys_primary, error=error)
-     particles_primary => subsys_primary%particles%els
-     DO ip=1,SIZE(particles_qmmm_core)
-        particles_primary(ip)%f=particles_qmmm_core(ip)%f
-     END DO
+     IF(.TRUE.)THEN 
+     !IF (force_mixing_core_subsys /= primary_subsys) THEN
+        CALL qmmm_env_get(qmmmx_env%ext, subsys=subsys_primary, error=error)
+        particles_primary => subsys_primary%particles%els
+        DO ip=1,SIZE(particles_qmmm_core)
+           particles_primary(ip)%f=particles_qmmm_core(ip)%f
+        END DO
+     ENDIF
 
   END SUBROUTINE qmmmx_calc_energy_force
 
