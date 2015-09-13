@@ -128,6 +128,7 @@ CONTAINS
 
     IF (PRESENT(consistent_energies)) THEN
       IF (consistent_energies) THEN
+        ! Can't call with just_energy=.TRUE. because qs_energies_properties() might need ks_matrix.
         CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., just_energy=.FALSE., error=error)
         ! add MP2 energy if necessary
         IF(ASSOCIATED(qs_env%mp2_env)) THEN
