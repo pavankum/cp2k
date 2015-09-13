@@ -704,7 +704,7 @@ CONTAINS
     NULLIFY (force_env%fist_env, force_env%qs_env, &
          force_env%para_env, force_env%globenv, &
          force_env%meta_env, force_env%sub_force_env, &
-         force_env%qmmm_env, force_env%fp_env, &
+         force_env%qmmm_env, force_env%qmmmx_env, force_env%fp_env, &
          force_env%force_env_section, force_env%eip_env,force_env%mixed_env,&
          force_env%root_section)
     last_force_env_id=last_force_env_id+1

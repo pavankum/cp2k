@@ -836,7 +836,7 @@ CPSourceFileRef,&
           qmmmx_section => section_vals_get_subs_vals(force_env_section,"QMMM%FORCE_MIXING",error=error)
           CALL section_vals_get(qmmmx_section,explicit=do_qmmm_force_mixing,error=error)
           IF(do_qmmm_force_mixing)&
-             method_name_id = do_qmmmx ! We are really doing  if QMMM Force-Mixing is enabled
+             method_name_id = do_qmmmx ! QMMM Force-Mixing has its own (hidden) method_id
        ENDIF
 
        SELECT CASE (method_name_id)

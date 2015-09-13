@@ -128,7 +128,7 @@ CONTAINS
 
     IF (PRESENT(consistent_energies)) THEN
       IF (consistent_energies) THEN
-        CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., just_energy=.TRUE., error=error)
+        CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., just_energy=.FALSE., error=error)
         ! add MP2 energy if necessary
         IF(ASSOCIATED(qs_env%mp2_env)) THEN
           energy%total = energy%total + energy%mp2
