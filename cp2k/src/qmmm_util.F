@@ -66,17 +66,26 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: iwall_type
-    LOGICAL                                  :: explicit, failure
-    TYPE(section_vals_type), POINTER         :: walls_section
+    LOGICAL                                  :: do_qmmm_force_mixing, &
+                                                explicit, failure
+    TYPE(section_vals_type), POINTER         :: qmmmx_section, walls_section
 
     failure         = .FALSE.
     walls_section => section_vals_get_subs_vals(qmmm_env%qs_env%input,"QMMM%WALLS",error=error)
+    qmmmx_section => section_vals_get_subs_vals(qmmm_env%qs_env%input,"QMMM%FORCE_MIXING",error=error)
+    CALL section_vals_get(qmmmx_section,explicit=do_qmmm_force_mixing,error=error)
     CALL section_vals_get(walls_section, explicit=explicit, error=error)
     IF (explicit) THEN
        CALL section_vals_val_get(walls_section,"TYPE",i_val=iwall_type,error=error)
        SELECT CASE(iwall_type)
        CASE(do_qmmm_wall_quadratic)
-          CALL apply_qmmm_walls_quadratic(qmmm_env, walls_section, error)
+          IF(do_qmmm_force_mixing) THEN
+            CALL cp_assert(.FALSE., cp_warning_level,cp_assertion_failed,routineP,&
+            "Quadratic walls for QM/MM are not implemented (or useful), when "//&
+            "force mixing is active.  Skipping!"//CPSourceFileRef)
+          ELSE
+            CALL apply_qmmm_walls_quadratic(qmmm_env, walls_section, error)
+          ENDIF
        CASE(do_qmmm_wall_reflective)
           ! Do nothing.. reflective walls are applied directly in the integrator
        END SELECT
@@ -244,15 +253,6 @@ CONTAINS
     CALL section_vals_val_get(walls_section,"K",r_val=k,error=error)
     CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
     CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
-
-    !TODO
-    !IF (qmmm_env%do_force_mixing) THEN
-    !   CALL cp_assert(.FALSE., &
-    !      cp_warning_level,cp_assertion_failed,routineP,&
-    !      "Quadratic walls for QM/MM are not implemented (or useful), when "//&
-    !      "force mixing is active.  Skipping!"//CPSourceFileRef)
-    !   RETURN
-    !END IF
 
     CALL fist_env_get(qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
     CALL get_qs_env(qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)
@@ -560,9 +560,9 @@ CONTAINS
 
   END SUBROUTINE apply_qmmm_translate
 
-  ! pbc-aware mean QM atom position
+
 ! *****************************************************************************
-!> \brief ...
+!> \brief pbc-aware mean QM atom position
 !> \param particles_mm ...
 !> \param mm_cell ...
 !> \param qm_atom_index ...
@@ -588,9 +588,9 @@ CONTAINS
                                    REAL(LOG(mean_z)/(CMPLX(0.0_dp,1.0_dp,KIND=dp)*2.0_dp*pi), dp))
   END FUNCTION
 
-  ! minimum image lattice coordinates difference vector
+
 ! *****************************************************************************
-!> \brief ...
+!> \brief minimum image lattice coordinates difference vector
 !> \param mm_cell ...
 !> \param p1 ...
 !> \param p2 ...
@@ -609,10 +609,10 @@ CONTAINS
       qmmm_lat_dv = qmmm_lat_dv - FLOOR(qmmm_lat_dv)
   END FUNCTION qmmm_lat_dv
 
-  ! find closest QM particle, in position/negative direction if dir is 1 or -1,
-  ! respectively
+
 ! *****************************************************************************
-!> \brief ...
+!> \brief find closest QM particle, in position/negative direction
+!>        if dir is 1 or -1, respectively
 !> \param particles_mm ...
 !> \param mm_cell ...
 !> \param qm_atom_index ...

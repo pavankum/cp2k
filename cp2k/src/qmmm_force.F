@@ -118,7 +118,7 @@ CONTAINS
     CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
     ! TODO: could this be done via qmmm_env%qm%do_translate or qmmm_env%qm%center_qm_subsys0 ???
-    ! Possibly translate the system, qmmmx do this on its own
+    ! This is needed to prevent douple translation when used with force-mixing
     my_translate = .TRUE.
     IF(PRESENT(translate)) my_translate = translate
     IF(my_translate)&
@@ -138,7 +138,7 @@ CONTAINS
 
     particles_mm => subsys_mm%particles%els
     particles_qm => subsys_qm%particles%els
-    
+
     DO j=1,3
        IF (qm_cell%perd(j)==1) CYCLE
        DO ip=1, SIZE(particles_qm)
@@ -151,8 +151,7 @@ CONTAINS
           CALL cp_assert(check, cp_failure_level, cp_assertion_failed, routinep,&
                   "QM/MM QM atoms must be fully contained in the same image of the QM box "//&
                   "- No wrapping of coordinates is allowed! "//&
-CPSourceFileRef,&
-           error)
+                  CPSourceFileRef,error)
        END DO
     END DO
 

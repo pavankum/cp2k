@@ -4,6 +4,7 @@
 !-----------------------------------------------------------------------------!
 
 ! *****************************************************************************
+!> \brief Basic container type for QM/MM with force mixing.
 !> \author Ole Schuett
 ! *****************************************************************************
 MODULE qmmmx_types
@@ -21,7 +22,6 @@ MODULE qmmmx_types
 
   PUBLIC :: qmmmx_env_type, qmmmx_env_get, qmmmx_env_retain, qmmmx_env_release
 
-  ! *****************************************************************************
   TYPE qmmmx_env_type
      INTEGER                                                 :: ref_count = 1
      TYPE(qmmm_env_type), POINTER                            :: core => Null()
@@ -85,11 +85,10 @@ CONTAINS
     failure=.FALSE.
 
     CPPrecondition(ASSOCIATED(qmmmx_env),cp_failure_level,routineP,error,failure)
-    IF (.NOT. failure) THEN
-       CPPreconditionNoFail(qmmmx_env%ref_count>0,cp_failure_level,routineP,error)
-       qmmmx_env%ref_count = qmmmx_env%ref_count+1
-    END IF
+    CPPreconditionNoFail(qmmmx_env%ref_count>0,cp_failure_level,routineP,error)
+    qmmmx_env%ref_count = qmmmx_env%ref_count+1
   END SUBROUTINE qmmmx_env_retain
+
 
 ! *****************************************************************************
 !> \brief releases the given qmmmx_env (see doc/ReferenceCounting.html)
