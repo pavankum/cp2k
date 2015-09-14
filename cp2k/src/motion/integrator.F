@@ -80,7 +80,7 @@ MODULE integrator
                                              update_particle_set
   USE physcon,                         ONLY: bohr,&
                                              femtoseconds
-  USE qmmmx_update,                    ONLY: qmmm_update_force_mixing_env
+  USE qmmmx_update,                    ONLY: qmmmx_update_force_env
   USE qmmm_util,                       ONLY: apply_qmmm_walls_reflective
   USE qs_environment_types,            ONLY: get_qs_env
   USE reftraj_types,                   ONLY: reftraj_type
@@ -1155,7 +1155,7 @@ CONTAINS
     END IF
 
     ![ADAPT] update input structure with new coordinates, make new labels
-    CALL qmmm_update_force_mixing_env(force_env, force_env%root_section, error=error)
+    CALL qmmmx_update_force_env(force_env, force_env%root_section, error=error)
 
     ![NB] recreate pointers changed by creation of new subsys in qmmm_update_force_mixing_env
     ![NB] ugly hack, which is why adaptivity isn't implemented in most other ensembles
@@ -1723,7 +1723,7 @@ CPSourceFileRef,&
     END IF
 
     ![ADAPT] update input structure with new coordinates, make new labels
-    CALL qmmm_update_force_mixing_env(force_env, force_env%root_section, error=error)
+    CALL qmmmx_update_force_env(force_env, force_env%root_section, error=error)
     ! no pointers into force_env%subsys to update
 
     ! Task to perform on the reference trajectory

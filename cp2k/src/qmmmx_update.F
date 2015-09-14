@@ -33,6 +33,8 @@ MODULE qmmmx_update
                                              qmmm_env_qm_retain
   USE timings,                         ONLY: timeset,&
                                              timestop
+  USE qmmm_types,                      ONLY: qmmm_env_get
+
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -41,7 +43,7 @@ MODULE qmmmx_update
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.TRUE.
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qmmmx_update'
 
-  PUBLIC :: qmmm_update_force_mixing_env
+  PUBLIC :: qmmmx_update_force_env
 
 CONTAINS
 
@@ -51,26 +53,28 @@ CONTAINS
 !> \param root_section ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE qmmm_update_force_mixing_env(force_env, root_section, error)
-    TYPE(force_env_type), POINTER            :: force_env
-    TYPE(section_vals_type), POINTER         :: root_section
-    TYPE(cp_error_type), INTENT(inout)       :: error
-
-    INTEGER                                  :: iforce_eval, nforce_eval
-
-    WRITE (*,*) "TODO: qmmm_update_force_mixing_env not yet ready"
-    IF(.FALSE.)THEN
-       CALL qmmm_update_force_mixing_env_low(force_env, root_section, error)
-       IF (ASSOCIATED(force_env%sub_force_env)) THEN
-         nforce_eval = SIZE(force_env%sub_force_env)
-         ! loop over sub force envs, e.g. for mixed force env
-         DO iforce_eval=1, nforce_eval
-            CALL qmmm_update_force_mixing_env_low(force_env%sub_force_env(iforce_eval)%force_env, root_section, error)
-         END DO
-       ENDIF
-    ENDIF
-
-  END SUBROUTINE qmmm_update_force_mixing_env
+  !SUBROUTINE qmmmx_update_force_env(force_env, root_section, error)
+  !  TYPE(force_env_type), POINTER            :: force_env
+  !  TYPE(section_vals_type), POINTER         :: root_section
+  !  TYPE(cp_error_type), INTENT(inout)       :: error
+  !
+  !  INTEGER                                  :: iforce_eval, nforce_eval
+  !
+  !  WRITE (*,*) "TODO: qmmm_update_force_mixing_env not yet ready"
+  !  
+  !  IF(ASSOCIATED(force_env%qmmmx)) THEN
+  !
+  !  !   CALL qmmm_update_force_mixing_env_low(force_env, root_section, error)
+  !  !   IF (ASSOCIATED(force_env%sub_force_env)) THEN
+  !  !     nforce_eval = SIZE(force_env%sub_force_env)
+  !  !     ! loop over sub force envs, e.g. for mixed force env
+  !  !     DO iforce_eval=1, nforce_eval
+  !          CALL qmmmx_update_force_mixing_env_low(force_env%sub_force_env(iforce_eval)%force_env, root_section, error)
+! !        END DO
+! !      ENDIF
+! !   ENDIF
+  !
+  !END SUBROUTINE qmmm_update_force_mixing_env
 
 
 ! *****************************************************************************
@@ -79,13 +83,13 @@ CONTAINS
 !> \param root_section ...
 !> \param error ...
 ! *****************************************************************************
-  SUBROUTINE qmmm_update_force_mixing_env_low(force_env, root_section, error)
+  SUBROUTINE qmmmx_update_force_env(force_env, root_section, error)
     TYPE(force_env_type), POINTER            :: force_env
     TYPE(section_vals_type), POINTER         :: root_section
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: &
-      routineN = 'qmmm_update_force_mixing_env_low', &
+      routineN = 'qmmmx_update_force_env', &
       routineP = moduleN//':'//routineN
 
     LOGICAL                                  :: force_mixing_active, &
@@ -108,79 +112,62 @@ CONTAINS
     qmmm_force_mixing => section_vals_get_subs_vals(qmmm_section,"FORCE_MIXING",can_return_null=.TRUE.,error=error)
     IF (.NOT. ASSOCIATED(qmmm_force_mixing)) RETURN
     CALL section_vals_get(qmmm_force_mixing,explicit=force_mixing_active,error=error)
+    IF(.NOT.force_mixing_active) RETURN
+    IF(.NOT.ASSOCIATED(force_env%qmmmx_env)) STOP "qmmmx_update_force_env: force_env%qmmmx not associated"
 
-    IF (force_mixing_active) THEN
+    CALL force_env_get(force_env, subsys=subsys, error=error)
+    CALL update_force_mixing_labels(subsys, qmmm_section, labels_changed=labels_changed, error=error)
+    IF (.NOT. labels_changed) RETURN
+    CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,routineP,&
+            "Adaptive force-mixing labels changed, rebuilding QM/MM calculations! "//&
+            CPSourceFileRef,only_ionode=.TRUE.)
 
-       CALL force_env_get(force_env, subsys=subsys, error=error)
-       CALL update_force_mixing_labels(subsys, qmmm_section, labels_changed=labels_changed, error=error)
-       IF (.NOT. labels_changed) THEN
-         RETURN
-       ENDIF
-       CALL cp_assert(.FALSE.,cp_warning_level,cp_assertion_failed,routineP,&
-               "Adaptive force-mixing labels changed, rebuilding QM/MM calculations! "//&
-CPSourceFileRef,&
-               only_ionode=.TRUE.)
+    CALL update_force_eval(force_env, root_section, .FALSE., error)
 
-       CALL update_force_eval(force_env, root_section, .FALSE., error)
+    ALLOCATE(new_qmmmx_env)
 
-       ALLOCATE(new_qmmmx_env)
+    ! using CUR_INDICES and CUR_LABELS, create appropriate QM_KIND sections for two QM/MM calculations
+    CALL setup_force_mixing_qmmm_sections(subsys, qmmm_section, qmmm_core_section, qmmm_extended_section,error=error)
 
-       ! using CUR_INDICES and CUR_LABELS, create appropriate QM_KIND sections for two QM/MM calculations
-       CALL setup_force_mixing_qmmm_sections(subsys, qmmm_section, qmmm_core_section, qmmm_extended_section,error=error)
+    subsys_section => section_vals_get_subs_vals(force_env%force_env_section,"SUBSYS",error=error)
+    ![ADAPT] no sure about use_motion_section
+    CALL qmmm_env_create(new_qmmmx_env%core,&
+      force_env%root_section, force_env%para_env, force_env%globenv,&
+      force_env%force_env_section, qmmm_core_section, subsys_section, use_motion_section=.TRUE., &
+      prev_subsys=subsys, ignore_outside_box=.TRUE., error=error)
+    CALL qmmm_env_create(new_qmmmx_env%ext, &
+      force_env%root_section, force_env%para_env, force_env%globenv,&
+      force_env%force_env_section, qmmm_extended_section, subsys_section, use_motion_section=.TRUE., &
+      prev_subsys=subsys, ignore_outside_box=.TRUE., error=error)
 
-        subsys_section => section_vals_get_subs_vals(force_env%force_env_section,"SUBSYS",error=error)
-        ![ADAPT] no sure about use_motion_section
-        CALL qmmm_env_create(new_qmmmx_env%core,&
-          force_env%root_section, force_env%para_env, force_env%globenv,&
-          force_env%force_env_section, qmmm_core_section, subsys_section, use_motion_section=.TRUE., &
-          prev_subsys=subsys, ignore_outside_box = .TRUE., error=error)
-        CALL qmmm_env_create(new_qmmmx_env%ext, &
-          force_env%root_section, force_env%para_env, force_env%globenv,&
-          force_env%force_env_section, qmmm_extended_section, subsys_section, use_motion_section=.TRUE., &
-          prev_subsys=subsys, ignore_outside_box = .TRUE., error=error)
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! [NB] need to copy wiener process data, since it's not recreated when
+    ! fist subsys is recreated by qmmm_env_create
 
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ! [NB] need to copy wiener process data, since it's not recreated when
-        ! fist subsys is recreated by qmmm_env_create
+    CALL qmmm_env_get(force_env%qmmmx_env%core, subsys=subsys, error=error)
+    CALL cp_subsys_get(subsys, atomic_kinds=atomic_kinds, local_particles=local_particles, error=error)
+    CALL qmmm_env_get(new_qmmmx_env%core, subsys=subsys_new, error=error)
+    CALL cp_subsys_get(subsys_new, atomic_kinds=new_atomic_kinds, local_particles=new_local_particles, error=error)
+    IF (ASSOCIATED(local_particles%local_particle_set)) THEN
+       CALL copy_wiener_process(atomic_kinds, local_particles, new_atomic_kinds, new_local_particles, error=error)
+    ENDIF
 
-        CALL get_qs_env(force_env%qmmmx_env%core%qs_env, cp_subsys=subsys, error=error)
-        CALL cp_subsys_get(subsys, atomic_kinds=atomic_kinds, local_particles=local_particles, error=error)
-        CALL get_qs_env(new_qmmmx_env%core%qs_env, cp_subsys=subsys_new, error=error)
-        CALL cp_subsys_get(subsys_new, atomic_kinds=new_atomic_kinds, local_particles=new_local_particles, error=error)
-        IF (ASSOCIATED(local_particles%local_particle_set)) THEN
-           CALL copy_wiener_process(atomic_kinds, local_particles, new_atomic_kinds, new_local_particles, error=error)
-        ENDIF
+    CALL qmmm_env_get(force_env%qmmmx_env%ext, subsys=subsys, error=error)
+    CALL cp_subsys_get(subsys, atomic_kinds=atomic_kinds, local_particles=local_particles, error=error)
+    CALL qmmm_env_get(new_qmmmx_env%ext, subsys=subsys_new, error=error)
+    CALL cp_subsys_get(subsys_new, atomic_kinds=new_atomic_kinds, local_particles=new_local_particles, error=error)
+    IF (ASSOCIATED(local_particles%local_particle_set)) THEN
+       CALL copy_wiener_process(atomic_kinds, local_particles, new_atomic_kinds, new_local_particles, error=error)
+    ENDIF
 
-        CALL get_qs_env(force_env%qmmmx_env%ext%qs_env, cp_subsys=subsys, error=error)
-        CALL cp_subsys_get(subsys, atomic_kinds=atomic_kinds, local_particles=local_particles, error=error)
-        CALL get_qs_env(new_qmmmx_env%ext%qs_env, cp_subsys=subsys_new, error=error)
-        CALL cp_subsys_get(subsys_new, atomic_kinds=new_atomic_kinds, local_particles=new_local_particles, error=error)
-        IF (ASSOCIATED(local_particles%local_particle_set)) THEN
-           CALL copy_wiener_process(atomic_kinds, local_particles, new_atomic_kinds, new_local_particles, error=error)
-        ENDIF
+    CALL section_vals_release(qmmm_core_section, error=error)
+    CALL section_vals_release(qmmm_extended_section, error=error)
 
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! release old qmmmx_env and point to new one
+    CALL qmmmx_env_release(force_env%qmmmx_env,error=error)
+    force_env%qmmmx_env => new_qmmmx_env
 
-        CALL section_vals_release(qmmm_core_section, error=error)
-        CALL section_vals_release(qmmm_extended_section, error=error)
-
-        ! do something with sub_force_envs
-
-        ! release old qmmmx_env and point to new one
-        CALL qmmmx_env_release(force_env%qmmmx_env,error=error)
-        force_env%qmmmx_env => new_qmmmx_env
-
-        WRITE (*,*) "TODO: this might be mem-leak"
-        !! duplicate releases in force_env_release
-        !CALL qmmm_env_qm_release(force_env%qmmm_env%qm,error=error)
-        !
-        !! duplicate things that are pointed to in force_env_create when doing qmmm
-        !force_env%qmmm_env%qm => sub_force_env(primary_subsys)%force_env%qmmm_env%qm
-        !CALL qmmm_env_qm_retain(force_env%qmmm_env%qm, error=error)
-
-      ENDIF
-
-  END SUBROUTINE qmmm_update_force_mixing_env_low
+  END SUBROUTINE qmmmx_update_force_env
 
 
 ! *****************************************************************************

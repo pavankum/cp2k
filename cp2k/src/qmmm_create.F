@@ -156,7 +156,7 @@ CONTAINS
                                                 print_section, qmmm_periodic
 
     CALL timeset(routineN,handle)
-    WRITE (*,*) "TODO OLE1"
+
     NULLIFY(qm_atom_index, mm_atom_index, qm_atom_type)
     NULLIFY(qmmm_env_qm, subsys_mm,subsys_qm, mm_cell, qm_cell_small)
     NULLIFY(mm_atom_chrg,mm_el_pot_radius, qmmm_env_mm, fist_env)
@@ -164,10 +164,12 @@ CONTAINS
     NULLIFY(mm_link_atoms, mm_link_scale_factor, qmmm_links, added_charges)
     NULLIFY(fist_scale_charge_link, print_section, fist_nonbond_env)
     NULLIFY(print_gen, logger, mm_el_pot_radius_corr, super_cell, pw_env)
-    WRITE (*,*) "TODO OLE2"
+
     logger => cp_error_get_logger(error)
+
     ! citations
     CALL cite_reference(Laino2005)
+
     ! Input section...
     IF (.NOT.ASSOCIATED(subsys_section)) THEN
        subsys_section => section_vals_get_subs_vals(force_env_section,"SUBSYS",&
