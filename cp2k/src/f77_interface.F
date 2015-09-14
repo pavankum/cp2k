@@ -89,9 +89,9 @@ MODULE f77_interface
                                              keyword_type
   USE input_section_types,             ONLY: &
        section_get_keyword, section_release, section_type, &
-       section_vals_duplicate, section_vals_get_subs_vals, &
+       section_vals_duplicate, section_vals_get, section_vals_get_subs_vals, &
        section_vals_release, section_vals_remove_values, section_vals_retain, &
-       section_vals_type, section_vals_val_get, section_vals_write, section_vals_get
+       section_vals_type, section_vals_val_get, section_vals_write
   USE kinds,                           ONLY: default_path_length,&
                                              default_string_length,&
                                              dp
@@ -113,9 +113,11 @@ MODULE f77_interface
   USE pw_cuda,                         ONLY: pw_cuda_finalize,&
                                              pw_cuda_init
   USE qmmm_create,                     ONLY: qmmm_env_create
-  USE qmmm_types,                      ONLY: qmmm_env_type, qmmm_env_release
+  USE qmmm_types,                      ONLY: qmmm_env_release,&
+                                             qmmm_env_type
   USE qmmmx_create,                    ONLY: qmmmx_env_create
-  USE qmmmx_types,                     ONLY: qmmmx_env_type, qmmmx_env_release
+  USE qmmmx_types,                     ONLY: qmmmx_env_release,&
+                                             qmmmx_env_type
   USE qs_environment,                  ONLY: qs_init
   USE qs_environment_types,            ONLY: qs_env_create,&
                                              qs_env_release,&
@@ -640,14 +642,12 @@ CONTAINS
     INTEGER, DIMENSION(:), POINTER           :: group_distribution, &
                                                 i_force_eval, &
                                                 lgroup_distribution
-    LOGICAL :: check, failure, multiple_subsys, my_echo, my_owns_out_unit, &
-      use_motion_section, use_multiple_para_env, do_qmmm_force_mixing
+    LOGICAL :: check, do_qmmm_force_mixing, failure, multiple_subsys, &
+      my_echo, my_owns_out_unit, use_motion_section, use_multiple_para_env
     TYPE(cp_error_type)                      :: error
     TYPE(cp_logger_type), POINTER            :: logger, my_logger
     TYPE(cp_para_env_type), POINTER          :: my_para_env, para_env
     TYPE(eip_environment_type), POINTER      :: eip_env
-    TYPE(qmmm_env_type), POINTER             :: qmmm_env
-    TYPE(qmmmx_env_type), POINTER            :: qmmmx_env
     TYPE(enumeration_type), POINTER          :: enum
     TYPE(f_env_p_type), DIMENSION(:), &
       POINTER                                :: f_envs_old
@@ -658,11 +658,13 @@ CONTAINS
     TYPE(meta_env_type), POINTER             :: meta_env
     TYPE(mixed_environment_type), POINTER    :: mixed_env
     TYPE(mp_perf_env_type), POINTER          :: mp_perf_env
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
+    TYPE(qmmmx_env_type), POINTER            :: qmmmx_env
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(section_type), POINTER              :: section
     TYPE(section_vals_type), POINTER :: fe_section, force_env_section, &
-      force_env_sections, fp_section, input_file, root_section, &
-      subsys_section, wrk_section, qmmmx_section, qmmm_section
+      force_env_sections, fp_section, input_file, qmmm_section, &
+      qmmmx_section, root_section, subsys_section, wrk_section
     TYPE(timer_env_type), POINTER            :: timer_env
 
     failure=.FALSE.

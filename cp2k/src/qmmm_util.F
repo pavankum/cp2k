@@ -9,14 +9,12 @@
 !> \author Teodoro Laino
 ! *****************************************************************************
 MODULE qmmm_util
-  USE cp_subsys_types,                 ONLY: cp_subsys_get
-  USE cell_types,                      ONLY: cell_copy,&
-                                             cell_type
+  USE cell_types,                      ONLY: cell_type
   USE cp_subsys_types,                 ONLY: cp_subsys_type
   USE fist_environment_types,          ONLY: fist_env_get
-  USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_type,&
-                                             use_qmmm, use_qmmmx
+  USE force_env_types,                 ONLY: force_env_type,&
+                                             use_qmmm,&
+                                             use_qmmmx
   USE input_constants,                 ONLY: do_qmmm_wall_none,&
                                              do_qmmm_wall_quadratic,&
                                              do_qmmm_wall_reflective
@@ -89,7 +87,7 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Apply reflective QM walls in order to avoid QM atoms escaping from
 !>      the QM Box
-!> \param qmmm_env ...
+!> \param force_env ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \par History

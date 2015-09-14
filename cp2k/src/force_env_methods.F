@@ -48,8 +48,7 @@ MODULE force_env_methods
   USE eip_silicon,                     ONLY: eip_bazant,&
                                              eip_lenosky
   USE external_potential_methods,      ONLY: add_external_potential
-  USE fist_environment_types,          ONLY: fist_env_get,&
-                                             fist_env_retain,&
+  USE fist_environment_types,          ONLY: fist_env_retain,&
                                              fist_environment_type
   USE fist_force,                      ONLY: fist_calc_energy_force
   USE force_env_types,                 ONLY: &
@@ -69,17 +68,18 @@ MODULE force_env_methods
                                              parsef
   USE global_types,                    ONLY: global_environment_type,&
                                              globenv_retain
-  USE input_constants,                 ONLY: &
-       debug_run, do_fm_mom_conserv_QM, do_fm_mom_conserv_buffer, &
-       do_fm_mom_conserv_core, do_fm_mom_conserv_equal_a, &
-       do_fm_mom_conserv_equal_f, do_fm_mom_conserv_none, mix_coupled, &
-       mix_generic, mix_linear_combination, mix_minimum, mix_restrained, &
-       use_bazant_eip, use_lenosky_eip
+  USE input_constants,                 ONLY: debug_run,&
+                                             mix_coupled,&
+                                             mix_generic,&
+                                             mix_linear_combination,&
+                                             mix_minimum,&
+                                             mix_restrained,&
+                                             use_bazant_eip,&
+                                             use_lenosky_eip
   USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                              section_vals_retain,&
                                              section_vals_type,&
-                                             section_vals_val_get,&
-                                             section_vals_val_set
+                                             section_vals_val_get
   USE kahan_sum,                       ONLY: accurate_sum
   USE kinds,                           ONLY: default_path_length,&
                                              default_string_length,&
@@ -98,25 +98,15 @@ MODULE force_env_methods
                                              mixed_map_forces
   USE particle_list_types,             ONLY: particle_list_p_type,&
                                              particle_list_type
-  USE particle_types,                  ONLY: particle_type
   USE physcon,                         ONLY: debye
   USE qmmm_force,                      ONLY: qmmm_calc_energy_force
-  USE qmmmx_force,                     ONLY: qmmmx_calc_energy_force
   USE qmmm_types,                      ONLY: qmmm_env_retain,&
                                              qmmm_env_type
+  USE qmmmx_force,                     ONLY: qmmmx_calc_energy_force
   USE qmmmx_types,                     ONLY: qmmmx_env_retain,&
                                              qmmmx_env_type
-  USE qmmm_types_low,                  ONLY: force_mixing_label_QM_core,&
-                                             force_mixing_label_QM_dynamics,&
-                                             force_mixing_label_buffer
-  USE qmmm_util,                       ONLY: apply_qmmm_translate,&
-                                             apply_qmmm_unwrap,&
-                                             apply_qmmm_wrap,&
-                                             qmmm_force_mixing_active
-  USE qs_energy,                       ONLY: qs_energies
   USE qs_environment_types,            ONLY: qs_env_retain,&
-                                             qs_environment_type,&
-                                             set_qs_env
+                                             qs_environment_type
   USE qs_force,                        ONLY: qs_calc_energy_force
   USE restraint,                       ONLY: restraint_control
   USE string_utilities,                ONLY: compress
@@ -154,7 +144,6 @@ CONTAINS
 !>          non-selfconsistent case not consistent to each other! [08.2005, TdK]
 !> \param skip_external_control ...
 !> \param eval_energy_forces ...
-!> \param require_consistent_energy_force ...
 !> \param linres ...
 !> \param calc_stress_tensor ...
 !> \param error ...

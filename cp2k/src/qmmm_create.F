@@ -23,37 +23,29 @@ MODULE qmmm_create
                                              cp_print_key_unit_nr
   USE cp_para_types,                   ONLY: cp_para_env_type
   USE cp_subsys_methods,               ONLY: create_small_subsys
-  USE cp_subsys_types,                 ONLY: cp_subsys_type, cp_subsys_release
+  USE cp_subsys_types,                 ONLY: cp_subsys_release,&
+                                             cp_subsys_type
   USE fist_environment,                ONLY: fist_init
   USE fist_environment_types,          ONLY: fist_env_create,&
                                              fist_env_get,&
-                                             fist_env_set,fist_env_release,&
+                                             fist_env_set,&
                                              fist_environment_type
   USE fist_nonbond_env_types,          ONLY: fist_nonbond_env_type
-  USE force_env_methods,               ONLY: force_env_create
-  USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_p_type,&
-                                             force_env_release,&
-                                             force_env_type
   USE global_types,                    ONLY: global_environment_type
   USE header,                          ONLY: qmmm_header
   USE input_constants,                 ONLY: &
-       do_fist, do_multipole_section_off, do_multipole_section_on, &
+       do_fist, do_multipole_section_off, do_multipole_section_on, do_qmmm, &
        do_qmmm_center_every_step, do_qmmm_center_never, &
        do_qmmm_center_pbc_aware, do_qmmm_center_setup_only, do_qmmm_none, &
-       do_qs, do_qmmm
+       do_qs
   USE input_section_types,             ONLY: section_vals_get,&
                                              section_vals_get_subs_vals,&
-                                             section_vals_release,&
                                              section_vals_type,&
                                              section_vals_val_get,&
                                              section_vals_val_set
   USE kinds,                           ONLY: default_string_length,&
                                              dp
   USE pw_env_types,                    ONLY: pw_env_type
-  USE qmmmx_util,               ONLY: setup_force_mixing_qmmm_sections,&
-                                      setup_force_mixing_qmmm_sections,&
-                                             update_force_mixing_labels
   USE qmmm_init,                       ONLY: &
        assign_mm_charges_and_radius, move_or_add_atoms, &
        print_image_charge_info, print_qmmm_charges, print_qmmm_links, &
@@ -62,17 +54,20 @@ MODULE qmmm_create
        setup_qmmm_vars_mm, setup_qmmm_vars_qm
   USE qmmm_links_methods,              ONLY: qmmm_link_Imomm_coord
   USE qmmm_pw_grid,                    ONLY: qmmm_pw_grid_init
-  USE qmmm_types,                      ONLY: qmmm_env_type, qmmm_env_release
-  USE qmmm_types_low,                  ONLY: &
-       add_set_release, add_set_type, &
-       qmmm_env_mm_create, qmmm_env_mm_type, &
-       qmmm_env_qm_create, qmmm_env_qm_type, qmmm_links_type,&
-       qmmm_env_qm_release, qmmm_env_mm_release
+  USE qmmm_types,                      ONLY: qmmm_env_type
+  USE qmmm_types_low,                  ONLY: add_set_release,&
+                                             add_set_type,&
+                                             qmmm_env_mm_create,&
+                                             qmmm_env_mm_release,&
+                                             qmmm_env_mm_type,&
+                                             qmmm_env_qm_create,&
+                                             qmmm_env_qm_type,&
+                                             qmmm_links_type
   USE qs_environment,                  ONLY: qs_init
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_env_create,&
                                              qs_environment_type,&
-                                             set_qs_env,qs_env_release
+                                             set_qs_env
   USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
@@ -90,7 +85,7 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief ...
-!> \param force_env ...
+!> \param qmmm_env ...
 !> \param root_section ...
 !> \param para_env ...
 !> \param globenv ...
@@ -113,8 +108,8 @@ CONTAINS
     TYPE(section_vals_type), POINTER         :: root_section
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(global_environment_type), POINTER   :: globenv
-    TYPE(section_vals_type), POINTER         :: force_env_section, qmmm_section, &
-                                                subsys_section
+    TYPE(section_vals_type), POINTER         :: force_env_section, &
+                                                qmmm_section, subsys_section
     LOGICAL, INTENT(IN)                      :: use_motion_section
     TYPE(cp_subsys_type), OPTIONAL, POINTER  :: prev_subsys
     LOGICAL, INTENT(in), OPTIONAL            :: ignore_outside_box

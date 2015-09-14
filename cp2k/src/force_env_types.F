@@ -45,10 +45,12 @@ MODULE force_env_types
   USE mixed_environment_types,         ONLY: get_mixed_env,&
                                              mixed_env_release,&
                                              mixed_environment_type
-  USE qmmm_types,                      ONLY: qmmm_env_release,&
-                                             qmmm_env_type, qmmm_env_get
-  USE qmmmx_types,                     ONLY: qmmmx_env_release,&
-                                             qmmmx_env_type, qmmmx_env_get
+  USE qmmm_types,                      ONLY: qmmm_env_get,&
+                                             qmmm_env_release,&
+                                             qmmm_env_type
+  USE qmmmx_types,                     ONLY: qmmmx_env_get,&
+                                             qmmmx_env_release,&
+                                             qmmmx_env_type
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_env_release,&
@@ -270,6 +272,7 @@ CONTAINS
 !> \param cell ...
 !> \param sub_force_env ...
 !> \param qmmm_env ...
+!> \param qmmmx_env ...
 !> \param eip_env ...
 !> \param globenv ...
 !> \param input ...

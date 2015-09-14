@@ -32,7 +32,9 @@ MODULE gopt_f_methods
   USE force_env_types,                 ONLY: force_env_get,&
                                              force_env_get_natom,&
                                              force_env_get_nparticle,&
-                                             force_env_type, use_qmmm, use_qmmmx
+                                             force_env_type,&
+                                             use_qmmm,&
+                                             use_qmmmx
   USE gopt_f_types,                    ONLY: gopt_f_type
   USE gopt_param_types,                ONLY: gopt_param_type
   USE input_constants,                 ONLY: default_cell_direct_id,&
@@ -54,7 +56,7 @@ MODULE gopt_f_methods
   USE particle_methods,                ONLY: write_structure_data
   USE particle_types,                  ONLY: particle_type
   USE qmmm_util,                       ONLY: apply_qmmm_translate
-  USE qmmmx_util,                       ONLY: apply_qmmmx_translate
+  USE qmmmx_util,                      ONLY: apply_qmmmx_translate
   USE virial_methods,                  ONLY: virial_evaluate
   USE virial_types,                    ONLY: virial_type
 #include "../common/cp_common_uses.f90"

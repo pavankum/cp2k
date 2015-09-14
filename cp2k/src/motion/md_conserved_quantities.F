@@ -40,8 +40,8 @@ MODULE md_conserved_quantities
   USE particle_types,                  ONLY: particle_type
   USE physcon,                         ONLY: kelvin
   USE qmmm_types,                      ONLY: qmmm_env_type
-  USE qmmmx_types,                      ONLY: qmmmx_env_type
   USE qmmm_types_low,                  ONLY: force_mixing_label_QM_dynamics
+  USE qmmmx_types,                     ONLY: qmmmx_env_type
   USE shell_potential_types,           ONLY: shell_kind_type
   USE simpar_types,                    ONLY: simpar_type
   USE termination,                     ONLY: stop_program

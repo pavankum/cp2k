@@ -39,7 +39,8 @@ MODULE qmmm_force
                                              qmmm_link_Imomm_forces
   USE qmmm_types,                      ONLY: qmmm_env_type
   USE qmmm_types_low,                  ONLY: qmmm_links_type
-  USE qmmm_util,                       ONLY: apply_qmmm_walls, apply_qmmm_translate
+  USE qmmm_util,                       ONLY: apply_qmmm_translate,&
+                                             apply_qmmm_walls
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env
   USE qs_force,                        ONLY: qs_calc_energy_force
@@ -62,6 +63,7 @@ CONTAINS
 !> \param calc_force if also the forces should be calculated
 !> \param consistent_energies ...
 !> \param linres ...
+!> \param translate ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \par History
@@ -81,9 +83,9 @@ CONTAINS
     CHARACTER(LEN=default_string_length)     :: description, iter
     INTEGER                                  :: ip, j, nres, output_unit
     INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
-    LOGICAL                                  :: check, failure, &
+    LOGICAL                                  :: check, failure, my_translate, &
                                                 qmmm_added_chrg, qmmm_link, &
-                                                qmmm_link_imomm, my_translate
+                                                qmmm_link_imomm
     REAL(KIND=dp)                            :: energy_mm, energy_qm
     REAL(KIND=dp), DIMENSION(3)              :: dip_mm, dip_qm, dip_qmmm, &
                                                 max_coord, min_coord

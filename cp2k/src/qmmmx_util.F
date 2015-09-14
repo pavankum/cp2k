@@ -10,46 +10,19 @@
 !> \author Noam Bernstein
 ! *****************************************************************************
 MODULE qmmmx_util 
-  USE qmmm_types,                      ONLY: qmmm_env_get
-  USE qmmm_util,                       ONLY: apply_qmmm_translate
-  USE cp_subsys_types,                 ONLY: cp_subsys_get
-  USE cell_types,                      ONLY: cell_copy,&
-                                             cell_type
-  USE cp_subsys_types,                 ONLY: cp_subsys_type
-  USE fist_environment_types,          ONLY: fist_env_get
-  USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_type,&
-                                             use_qmmm, use_qmmmx
-  USE input_constants,                 ONLY: do_qmmm_wall_none,&
-                                             do_qmmm_wall_quadratic,&
-                                             do_qmmm_wall_reflective
-  USE input_section_types,             ONLY: section_vals_get,&
-                                             section_vals_get_subs_vals,&
-                                             section_vals_type,&
-                                             section_vals_val_get
-  USE kinds,                           ONLY: dp
-  USE mathconstants,                   ONLY: pi
-  USE particle_methods,                ONLY: write_fist_particle_coordinates,&
-                                             write_qs_particle_coordinates
-  USE particle_types,                  ONLY: particle_type
-  USE qmmm_types,                      ONLY: qmmm_env_type
-  USE qmmmx_types,                     ONLY: qmmmx_env_type
-  USE qs_energy_types,                 ONLY: qs_energy_type
-  USE qs_environment_types,            ONLY: get_qs_env
-  USE qs_kind_types,                   ONLY: qs_kind_type
-  USE cp_para_types,                   ONLY: cp_para_env_type
   USE atomic_kind_types,               ONLY: atomic_kind_type,&
                                              get_atomic_kind,&
                                              set_atomic_kind
-  USE cell_types,                      ONLY: cell_type,&
+  USE cell_types,                      ONLY: cell_copy,&
+                                             cell_type,&
                                              pbc
+  USE cp_para_types,                   ONLY: cp_para_env_type
   USE cp_subsys_types,                 ONLY: cp_subsys_get,&
                                              cp_subsys_type
+  USE fist_environment_types,          ONLY: fist_env_get
   USE fist_neighbor_list_types,        ONLY: fist_neighbor_deallocate,&
                                              fist_neighbor_type
   USE fist_neighbor_lists,             ONLY: build_fist_neighbor_lists
-  USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_type
   USE input_section_types,             ONLY: &
        section_vals_add_values, section_vals_duplicate, section_vals_get, &
        section_vals_get_subs_vals, section_vals_get_subs_vals3, &
@@ -64,6 +37,7 @@ MODULE qmmmx_util
   USE particle_list_types,             ONLY: particle_list_type
   USE particle_types,                  ONLY: particle_type
   USE qmmm_ff_fist,                    ONLY: qmmm_ff_precond_only_qm
+  USE qmmm_types,                      ONLY: qmmm_env_get
   USE qmmm_types_low,                  ONLY: force_mixing_label_QM_core,&
                                              force_mixing_label_QM_core_list,&
                                              force_mixing_label_QM_dynamics,&
@@ -72,6 +46,9 @@ MODULE qmmmx_util
                                              force_mixing_label_buffer_list,&
                                              force_mixing_label_none,&
                                              force_mixing_label_termination
+  USE qmmm_util,                       ONLY: apply_qmmm_translate
+  USE qmmmx_types,                     ONLY: qmmmx_env_type
+  USE qs_environment_types,            ONLY: get_qs_env
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -91,7 +68,7 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Apply translation to the full system in order to center the QM
 !>      system into the QM box
-!> \param force_env ...
+!> \param qmmmx_env ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \par History
@@ -108,7 +85,6 @@ CONTAINS
     INTEGER                                  :: ip
     INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
     LOGICAL                                  :: failure
-    REAL(dp), POINTER                        :: charges(:)
     TYPE(cell_type), POINTER                 :: cell_core, cell_extended
     TYPE(cp_subsys_type), POINTER            :: subsys_core, subsys_extended, &
                                                 subsys_fist, subsys_qs
@@ -116,11 +92,10 @@ CONTAINS
       POINTER                                :: particles_core, &
                                                 particles_extended, &
                                                 particles_mm, particles_qm
-    TYPE(qs_kind_type), DIMENSION(:), &
-      POINTER                                :: qs_kind_set
-    !TYPE(section_vals_type), POINTER         :: subsys_section
 
-    NULLIFY(qm_atom_index, charges, cell_core, cell_extended, qs_kind_set)
+!TYPE(section_vals_type), POINTER         :: subsys_section
+
+    NULLIFY(qm_atom_index, cell_core, cell_extended)
     NULLIFY(subsys_core, subsys_extended,subsys_fist, subsys_qs)
     NULLIFY(particles_core, particles_extended, particles_mm, particles_qm)
     !NULLIFY(subsys_section)
@@ -233,7 +208,6 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief ...
-!> \param force_env ...
 !> \param subsys ...
 !> \param qmmm_section ...
 !> \param labels_changed ...
@@ -267,8 +241,8 @@ CONTAINS
     REAL(dp), POINTER                        :: r_buf(:), r_core(:), r_qm(:)
     TYPE(cell_type), POINTER                 :: cell
     TYPE(cp_logger_type), POINTER            :: logger
-    TYPE(fist_neighbor_type), POINTER        :: nlist
     TYPE(cp_para_env_type), POINTER          :: para_env
+    TYPE(fist_neighbor_type), POINTER        :: nlist
     TYPE(mol_new_list_type), POINTER         :: molecules
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set

@@ -80,8 +80,8 @@ MODULE integrator
                                              update_particle_set
   USE physcon,                         ONLY: bohr,&
                                              femtoseconds
-  USE qmmmx_update,                    ONLY: qmmmx_update_force_env
   USE qmmm_util,                       ONLY: apply_qmmm_walls_reflective
+  USE qmmmx_update,                    ONLY: qmmmx_update_force_env
   USE qs_environment_types,            ONLY: get_qs_env
   USE reftraj_types,                   ONLY: reftraj_type
   USE reftraj_util,                    ONLY: compute_msd_reftraj

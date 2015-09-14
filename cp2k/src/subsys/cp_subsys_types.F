@@ -54,7 +54,6 @@ MODULE cp_subsys_types
   USE particle_types,                  ONLY: particle_type
   USE virial_types,                    ONLY: virial_release,&
                                              virial_type
-  USE message_passing, ONLY: mp_abort
 #include "../common/cp_common_uses.f90"
 
   IMPLICIT NONE

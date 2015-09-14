@@ -7,29 +7,18 @@
 !> \author Ole Schuett
 ! *****************************************************************************
 MODULE qmmm_types
-  USE fist_environment_types,          ONLY: fist_env_release,&
-                                             fist_env_retain,&
-                                             fist_environment_type
-  USE qmmm_types_low,                  ONLY: qmmm_env_qm_release,&
-                                             qmmm_env_qm_retain,&
-                                             qmmm_env_qm_type
-  USE qs_environment_types,            ONLY: qs_env_release,&
-                                             qs_env_retain,&
-                                             qs_environment_type
-  USE qs_energy_types,                 ONLY: qs_energy_type
+  USE cp_subsys_types,                 ONLY: cp_subsys_type
   USE fist_energy_types,               ONLY: fist_energy_type
   USE fist_environment_types,          ONLY: fist_env_get,&
                                              fist_env_release,&
                                              fist_environment_type
-  USE cp_subsys_types,                 ONLY: cp_subsys_get,&
-                                             cp_subsys_type,&
-                                             pack_subsys_particles
+  USE kinds,                           ONLY: dp
+  USE qmmm_types_low,                  ONLY: qmmm_env_qm_release,&
+                                             qmmm_env_qm_type
   USE qs_energy_types,                 ONLY: qs_energy_type
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_env_release,&
                                              qs_environment_type
-  USE kinds,                           ONLY: dp
-
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -49,6 +38,12 @@ MODULE qmmm_types
 CONTAINS
 
 ! *****************************************************************************
+!> \brief ...
+!> \param qmmm_env ...
+!> \param subsys ...
+!> \param potential_energy ...
+!> \param kinetic_energy ...
+!> \param error ...
 ! *****************************************************************************
   SUBROUTINE qmmm_env_get(qmmm_env,subsys,potential_energy,kinetic_energy,error)
     TYPE(qmmm_env_type), POINTER             :: qmmm_env
@@ -61,8 +56,9 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     LOGICAL                                  :: failure
-    TYPE(qs_energy_type), POINTER            :: qs_energy
     TYPE(fist_energy_type), POINTER          :: thermo
+    TYPE(qs_energy_type), POINTER            :: qs_energy
+
     failure=.FALSE.
     NULLIFY(qs_energy, thermo)
 

@@ -10,31 +10,25 @@
 !> \author Fawzi Mohamed
 ! *****************************************************************************
 MODULE qmmmx_update
-  USE qs_environment_types,            ONLY: get_qs_env
-  USE qmmmx_types,                     ONLY: qmmmx_env_type, qmmmx_env_release
   USE atomic_kind_list_types,          ONLY: atomic_kind_list_type
   USE cp_subsys_types,                 ONLY: cp_subsys_get,&
                                              cp_subsys_type
   USE distribution_1d_types,           ONLY: distribution_1d_type
   USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_p_type,&
-                                             force_env_release,&
-                                             force_env_type,&
-                                             use_qmmmx
+                                             force_env_type
   USE input_restart_force_eval,        ONLY: update_force_eval
   USE input_section_types,             ONLY: section_vals_get,&
                                              section_vals_get_subs_vals,&
                                              section_vals_release,&
                                              section_vals_type
   USE qmmm_create,                     ONLY: qmmm_env_create
+  USE qmmm_types,                      ONLY: qmmm_env_get
+  USE qmmmx_types,                     ONLY: qmmmx_env_release,&
+                                             qmmmx_env_type
   USE qmmmx_util,                      ONLY: setup_force_mixing_qmmm_sections,&
                                              update_force_mixing_labels
-  USE qmmm_types_low,                  ONLY: qmmm_env_qm_release,&
-                                             qmmm_env_qm_retain
   USE timings,                         ONLY: timeset,&
                                              timestop
-  USE qmmm_types,                      ONLY: qmmm_env_get
-
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -53,43 +47,12 @@ CONTAINS
 !> \param root_section ...
 !> \param error ...
 ! *****************************************************************************
-  !SUBROUTINE qmmmx_update_force_env(force_env, root_section, error)
-  !  TYPE(force_env_type), POINTER            :: force_env
-  !  TYPE(section_vals_type), POINTER         :: root_section
-  !  TYPE(cp_error_type), INTENT(inout)       :: error
-  !
-  !  INTEGER                                  :: iforce_eval, nforce_eval
-  !
-  !  WRITE (*,*) "TODO: qmmm_update_force_mixing_env not yet ready"
-  !  
-  !  IF(ASSOCIATED(force_env%qmmmx)) THEN
-  !
-  !  !   CALL qmmm_update_force_mixing_env_low(force_env, root_section, error)
-  !  !   IF (ASSOCIATED(force_env%sub_force_env)) THEN
-  !  !     nforce_eval = SIZE(force_env%sub_force_env)
-  !  !     ! loop over sub force envs, e.g. for mixed force env
-  !  !     DO iforce_eval=1, nforce_eval
-  !          CALL qmmmx_update_force_mixing_env_low(force_env%sub_force_env(iforce_eval)%force_env, root_section, error)
-! !        END DO
-! !      ENDIF
-! !   ENDIF
-  !
-  !END SUBROUTINE qmmm_update_force_mixing_env
-
-
-! *****************************************************************************
-!> \brief ...
-!> \param force_env ...
-!> \param root_section ...
-!> \param error ...
-! *****************************************************************************
   SUBROUTINE qmmmx_update_force_env(force_env, root_section, error)
     TYPE(force_env_type), POINTER            :: force_env
     TYPE(section_vals_type), POINTER         :: root_section
     TYPE(cp_error_type), INTENT(inout)       :: error
 
-    CHARACTER(len=*), PARAMETER :: &
-      routineN = 'qmmmx_update_force_env', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'qmmmx_update_force_env', &
       routineP = moduleN//':'//routineN
 
     LOGICAL                                  :: force_mixing_active, &
@@ -98,9 +61,9 @@ CONTAINS
     TYPE(cp_subsys_type), POINTER            :: subsys, subsys_new
     TYPE(distribution_1d_type), POINTER      :: local_particles, &
                                                 new_local_particles
+    TYPE(qmmmx_env_type), POINTER            :: new_qmmmx_env
     TYPE(section_vals_type), POINTER :: qmmm_core_section, &
       qmmm_extended_Section, qmmm_force_mixing, qmmm_section, subsys_section
-    TYPE(qmmmx_env_type), POINTER            :: new_qmmmx_env
 
 ! check everything for not null, because sometimes (e.g. metadynamics in parallel) it happens
 
