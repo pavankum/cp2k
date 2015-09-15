@@ -63,18 +63,16 @@ CONTAINS
 !> \param calc_force if also the forces should be calculated
 !> \param consistent_energies ...
 !> \param linres ...
-!> \param translate ...
 !> \param error variable to control error logging, stopping,...
 !>        see module cp_error_handling
 !> \par History
 !>      05.2004 created [fawzi]
 !> \author Fawzi Mohamed
 ! *****************************************************************************
-  SUBROUTINE qmmm_calc_energy_force(qmmm_env,calc_force,consistent_energies,linres,translate,error)
+  SUBROUTINE qmmm_calc_energy_force(qmmm_env,calc_force,consistent_energies,linres,error)
     TYPE(qmmm_env_type), POINTER             :: qmmm_env
     LOGICAL, INTENT(IN)                      :: calc_force, &
                                                 consistent_energies, linres
-    LOGICAL, OPTIONAL                        :: translate
     TYPE(cp_error_type), INTENT(inout)       :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'qmmm_calc_energy_force', &
@@ -83,7 +81,7 @@ CONTAINS
     CHARACTER(LEN=default_string_length)     :: description, iter
     INTEGER                                  :: ip, j, nres, output_unit
     INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
-    LOGICAL                                  :: check, failure, my_translate, &
+    LOGICAL                                  :: check, failure, &
                                                 qmmm_added_chrg, qmmm_link, &
                                                 qmmm_link_imomm
     REAL(KIND=dp)                            :: energy_mm, energy_qm
@@ -117,12 +115,7 @@ CONTAINS
     CPPrecondition(ASSOCIATED(qmmm_env),cp_failure_level,routineP,error,failure)
     CPPrecondition(qmmm_env%ref_count>0,cp_failure_level,routineP,error,failure)
 
-    ! TODO: could this be done via qmmm_env%qm%do_translate or qmmm_env%qm%center_qm_subsys0 ???
-    ! This is needed to prevent douple translation when used with force-mixing
-    my_translate = .TRUE.
-    IF(PRESENT(translate)) my_translate = translate
-    IF(my_translate)&
-      CALL apply_qmmm_translate(qmmm_env,error)
+    CALL apply_qmmm_translate(qmmm_env,error)
 
     CALL fist_env_get(qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm,error=error)
     CALL get_qs_env(qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm,error=error)

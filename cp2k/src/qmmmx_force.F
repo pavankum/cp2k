@@ -173,8 +173,6 @@ CONTAINS
 
   END SUBROUTINE qmmmx_calc_energy_force
 
-  ! *****************************************************************************
-  ! *****************************************************************************
 ! *****************************************************************************
 !> \brief ...
 !> \param qmmm_env ...
@@ -195,6 +193,7 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
+    LOGICAL                                  :: saved_do_translate
     REAL(dp), ALLOCATABLE, DIMENSION(:, :)   :: saved_pos
     TYPE(cell_type), POINTER                 :: mm_cell
     TYPE(cp_subsys_type), POINTER            :: subsys_mm, subsys_qm
@@ -227,8 +226,16 @@ CONTAINS
     qm_atom_index => qmmm_env%qm%qm_atom_index
     CALL apply_qmmm_wrap(subsys_mm, mm_cell, subsys_qm, qm_atom_index, saved_pos, error)
 
+    ! Turn off box translation, it was already performed by apply_qmmmx_translate(),
+    ! the particles coordinates will still be copied from MM to QM.
+    saved_do_translate = qmmm_env%qm%do_translate
+    qmmm_env%qm%do_translate = .FALSE.
+
     ! actual energy force calculation
-    CALL qmmm_calc_energy_force(qmmm_env, calc_force, consistent_energies, linres, translate=.FALSE., error=error)
+    CALL qmmm_calc_energy_force(qmmm_env, calc_force, consistent_energies, linres, error)
+
+    ! restore do_translate
+    qmmm_env%qm%do_translate = saved_do_translate
 
     ! restore unwrapped positions
     CALL apply_qmmm_unwrap(subsys_mm, subsys_qm, qm_atom_index, saved_pos, error)

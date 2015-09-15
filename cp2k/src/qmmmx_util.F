@@ -19,7 +19,6 @@ MODULE qmmmx_util
   USE cp_para_types,                   ONLY: cp_para_env_type
   USE cp_subsys_types,                 ONLY: cp_subsys_get,&
                                              cp_subsys_type
-  USE fist_environment_types,          ONLY: fist_env_get
   USE fist_neighbor_list_types,        ONLY: fist_neighbor_deallocate,&
                                              fist_neighbor_type
   USE fist_neighbor_lists,             ONLY: build_fist_neighbor_lists
@@ -48,8 +47,6 @@ MODULE qmmmx_util
                                              force_mixing_label_termination
   USE qmmm_util,                       ONLY: apply_qmmm_translate
   USE qmmmx_types,                     ONLY: qmmmx_env_type
-  USE qs_environment_types,            ONLY: get_qs_env
-  USE qs_kind_types,                   ONLY: qs_kind_type
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -82,23 +79,15 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: ip
-    INTEGER, DIMENSION(:), POINTER           :: qm_atom_index
-    LOGICAL                                  :: failure
-    REAL(KIND=dp), DIMENSION(:), POINTER     :: charges
     TYPE(cell_type), POINTER                 :: cell_core, cell_extended
-    TYPE(cp_subsys_type), POINTER            :: subsys_core, subsys_extended, &
-                                                subsys_fist, subsys_qs
+    TYPE(cp_subsys_type), POINTER            :: subsys_core, subsys_extended
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particles_core, &
-                                                particles_extended, &
-                                                particles_mm, particles_qm
-    TYPE(qs_kind_type), DIMENSION(:), &
-      POINTER                                :: qs_kind_set
-    TYPE(section_vals_type), POINTER         :: input, subsys_section
+                                                particles_extended
 
-    NULLIFY(qm_atom_index, cell_core, cell_extended)
-    NULLIFY(subsys_core, subsys_extended,subsys_fist, subsys_qs)
-    NULLIFY(particles_core, particles_extended, particles_mm, particles_qm)
+    NULLIFY(cell_core, cell_extended)
+    NULLIFY(subsys_core, subsys_extended)
+    NULLIFY(particles_core, particles_extended)
 
     ! want to center extended, and make core consistent with that
     CALL apply_qmmm_translate(qmmmx_env%ext,error)
@@ -115,36 +104,9 @@ CONTAINS
     END DO
     CALL cell_copy(cell_extended, cell_core, error)
 
-    ! also update core QM particles (like in apply_qmmm_translate)
-    CALL fist_env_get(qmmmx_env%core%fist_env,subsys=subsys_fist,error=error)
-    CALL get_qs_env(qmmmx_env%core%qs_env,cp_subsys=subsys_qs,error=error)
-    qm_atom_index   => qmmmx_env%core%qm%qm_atom_index
-    particles_qm => subsys_qs%particles%els
-    particles_mm => subsys_fist%particles%els
-    CPPrecondition(ASSOCIATED(qm_atom_index),cp_failure_level,routineP,error,failure)
-    DO ip=1,SIZE(qm_atom_index)
-       particles_qm(ip)%r=particles_mm(qm_atom_index(ip))%r
-    END DO
+    ! The core QM particles will be updated the regular call
+    ! to apply_qmmm_translate() from within qmmm_calc_energy_force()
 
-
-    IF (debug_this_module) THEN
-      CALL get_qs_env(qmmmx_env%core%qs_env,&
-                      cp_subsys=subsys_core,&
-                      qs_kind_set=qs_kind_set,&
-                      cell=cell_core,&
-                      input=input,&
-                      error=error)
-      particles_core => subsys_core%particles%els
-      subsys_section => section_vals_get_subs_vals(input, "FORCE_EVAL%SUBSYS",error=error)
-      CALL write_qs_particle_coordinates(particles_core,qs_kind_set,subsys_section,&
-                                         "QM/MM core calc first QM, then MM (0 charges)",error)
-      CALL fist_env_get(qmmmx_env%core%fist_env,subsys=subsys_core,cell=cell_core,error=error)
-      particles_core => subsys_core%particles%els
-      ALLOCATE(charges(SIZE(particles_core)))
-      charges = 0.0_dp
-      CALL write_fist_particle_coordinates(particles_core,subsys_section,charges,error)
-      DEALLOCATE(charges)
-    ENDIF
   END SUBROUTINE apply_qmmmx_translate
 
 ! *****************************************************************************
