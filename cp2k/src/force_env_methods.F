@@ -224,7 +224,7 @@ CONTAINS
           CALL qmmm_calc_energy_force(force_env%qmmm_env,&
                calculate_forces,energy_consistency,linres=linres_run,error=error)
        CASE ( use_qmmmx )
-          CALL qmmmx_calc_energy_force(force_env%qmmmx_env, force_env%force_env_section,&
+          CALL qmmmx_calc_energy_force(force_env%qmmmx_env,&
                calculate_forces,energy_consistency,linres=linres_run,error=error)
        CASE ( use_mixed_force )
           CALL mixed_energy_forces(force_env,calculate_forces,error=error)
