@@ -77,7 +77,13 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
   LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver, error);
 
   static const char *const env = getenv("LIBXSMM_ACC_RECONFIGURE");
-  static const libxsmm_acc_bool_type reconfigure = (env && *env) ? (0 != atoi(env)) : true/*default*/;
+  static const libxsmm_acc_bool_type reconfigure = (env && *env)
+    ? (0 != atoi(env))
+#if defined(LIBXSMM_ACC_OFFLOAD_BUILD)
+    : true;
+#else
+    : false;
+#endif
 
   if (reconfigure) {
 #if 0 < (LIBXSMM_ACC_STACKSIZE)

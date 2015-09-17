@@ -129,8 +129,6 @@ ifneq (0,$(MPI))
   #DFLAGS += -D__SCALAPACK2
   ifneq (1,$(MPI))
     DFLAGS += -D__MPI_VERSION=$(MPI)
-  else
-    DFLAGS += -D__MPI_VERSION=3
   endif
 else
   CXX = icpc
@@ -389,8 +387,6 @@ ifeq (,$(LIBXSMMROOT))
   else ifeq (0,$(ACC))
     RECONFIGURE = 0
   endif
-else ifeq (0,$(ACC))
-  RECONFIGURE = 0
 endif
 ifneq (0,$(RECONFIGURE))
   DFLAGS  += -D__RECONFIGURE
