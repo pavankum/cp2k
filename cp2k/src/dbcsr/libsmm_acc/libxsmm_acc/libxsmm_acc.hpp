@@ -104,10 +104,14 @@
  * =0: process MM using a plan
  * <0: adaptive MM-processing
  */
-#if defined(__MIC__)
-# define LIBXSMM_ACC_NLOCAL 128
+#if defined(LIBXSMM_ACC_OPENMP)
+# if defined(__MIC__)
+#   define LIBXSMM_ACC_NLOCAL 128
+# else
+#   define LIBXSMM_ACC_NLOCAL 16
+# endif
 #else
-# define LIBXSMM_ACC_NLOCAL 16
+# define LIBXSMM_ACC_NLOCAL 128
 #endif
 
 /** OpenMP scheduling policy (and chunk size) */
