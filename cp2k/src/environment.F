@@ -24,10 +24,6 @@ MODULE environment
   USE cp_fm_diag,                      ONLY: diag_init
   USE cp_fm_struct,                    ONLY: cp_fm_struct_config
   USE cp_fm_types,                     ONLY: cp_fm_setup
-  USE cp_ma_interface,                 ONLY: &
-       cp_ma_config, cp_ma_current_thread_run, cp_ma_mempol, cp_ma_mpi_sched, &
-       cp_ma_print_machine, cp_ma_print_strategy, cp_ma_run_on, &
-       cp_ma_thread_run_on, cp_ma_thread_sched
   USE cp_output_handling,              ONLY: cp_print_key_finished_output,&
                                              cp_print_key_unit_nr,&
                                              debug_print_level,&
@@ -70,10 +66,6 @@ MODULE environment
                                              m_flush_internal,&
                                              m_memory_details,&
                                              m_procrun
-  USE machine_architecture_types,      ONLY: group,&
-                                             has_ma,&
-                                             local,&
-                                             threads
   USE message_passing,                 ONLY: add_mp_perf_env,&
                                              describe_mp_perf_env,&
                                              mp_external_timeset,&
@@ -532,8 +524,6 @@ CONTAINS
       DIMENSION(:), POINTER                  :: trace_routines
     INTEGER :: i_diag, i_fft, iforce_eval, method_name_id, n_rep_val, &
       nforce_eval, num_threads, output_unit, print_level, trace_max, unit_nr
-
-!$  INTEGER :: nid
     INTEGER(kind=int_8) :: Buffers, Buffers_avr, Buffers_max, Buffers_min, &
       Cached, Cached_avr, Cached_max, Cached_min, MemFree, MemFree_avr, &
       MemFree_max, MemFree_min, MemLikelyFree, MemLikelyFree_avr, &
@@ -542,8 +532,8 @@ CONTAINS
       SReclaimable, SReclaimable_avr, SReclaimable_max, SReclaimable_min
     INTEGER, DIMENSION(:), POINTER           :: i_force_eval
     LOGICAL                                  :: ata, do_echo_all_hosts, efl, &
-                                                explicit, failure, trace, &
-                                                trace_master, time_mpi
+                                                explicit, failure, time_mpi, &
+                                                trace, trace_master
     TYPE(cp_logger_type), POINTER            :: logger
     TYPE(enumeration_type), POINTER          :: enum1, enum2
     TYPE(keyword_type), POINTER              :: keyword
@@ -718,14 +708,6 @@ CONTAINS
     SReclaimable=SReclaimable/1024
     MemLikelyFree=MemLikelyFree/1024
 
-
-
-   ! Initialize the MA configurations
-    IF (has_ma) THEN
-      CALL cp_ma_config(root_section,error)
-      CALL cp_ma_mempol(error)
-    ENDIF
-
     !   *** Print a list of all started processes ***
     IF (do_echo_all_hosts) THEN
      CALL echo_all_hosts(para_env,output_unit)
@@ -845,35 +827,7 @@ CONTAINS
                                                              MemLikelyFree_avr
        WRITE (UNIT=output_unit,FMT='()')
 
-#if defined __GEMINI || __SEASTAR || __BLUEGENE || __NET || __HWLOC || __LIBNUMA
-    WRITE(UNIT=output_unit,FMT='(T2,A)') "MACHINE HARDWARE TOPOLOGY| Strategies details"
-    CALL cp_ma_print_strategy(unit_nr=output_unit,error=error)
-    WRITE (UNIT=output_unit,FMT='()')
-#endif
-       ! Show machine topology
-       CALL cp_ma_print_machine(unit_nr=output_unit, error=error)
-
     END IF
-
-    IF (has_ma) THEN
-      CALL cp_ma_mpi_sched()
-      CALL cp_ma_run_on(error, output_unit)
-
-
-!$omp parallel default(none) private(nid) shared(error)
-!$omp critical
-!$          nid = omp_get_thread_num()
-!$          CALL cp_ma_thread_sched(nid, error=error )
-!$omp end critical
-!$omp end parallel
-
-       CALL cp_ma_thread_run_on(output_unit, error=error)
-
-!$omp parallel default(none) private(nid) shared(error)
-!$          nid = omp_get_thread_num()
-!$          CALL cp_ma_current_thread_run(nid, error=error)
-!$omp end parallel
-     ENDIF
 
     CALL cp_print_key_finished_output(output_unit,logger,global_section,&
          "PROGRAM_RUN_INFO", error=error)
