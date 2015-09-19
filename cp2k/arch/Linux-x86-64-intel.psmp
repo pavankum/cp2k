@@ -216,13 +216,25 @@ ifneq (,$(LIBXSMMROOT))
       LIBXSMM_MNK := $(MNK)
     endif
   endif
+  ALIGNED_STORES := 0
+  ifneq (0,$(OMP))
+    ifneq (0,$(NESTED))
+      ALIGNED_STORES := 1
+    endif
+  endif
+  ifneq (0,$(ACC))
+    ifneq (0,$(OFFLOAD))
+      ALIGNED_STORES := 1
+    endif
+  endif
   LIBXSMM_BUILD := $(shell $(MAKE) -f $(LIBXSMMROOT)/Makefile \
     INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
     BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
     BINDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/bin \
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib \
     SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
-    ROW_MAJOR=0 ALIGNED_STORES=1 PREFETCH=1 MNK=$(LIBXSMM_MNK) \
+    ALIGNED_STORES=$(ALIGNED_STORES) MNK=$(LIBXSMM_MNK) \
+    PREFETCH=1 ROW_MAJOR=0 \
   >&2)
 
   DFLAGS  += -D__LIBXSMM
