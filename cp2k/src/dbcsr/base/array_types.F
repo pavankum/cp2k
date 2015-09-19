@@ -93,7 +93,6 @@ MODULE array_types
   END TYPE array_i2d_obj
 
   TYPE array_d1d_type
-     !DIR$ ATTRIBUTES FASTMEM :: DATA
      REAL(KIND=dp), DIMENSION(:), POINTER    :: DATA
      INTEGER                                 :: refcount
   END TYPE array_d1d_type
@@ -102,7 +101,6 @@ MODULE array_types
   END TYPE array_d1d_obj
 
   TYPE array_d2d_type
-     !DIR$ ATTRIBUTES FASTMEM :: DATA
      REAL(KIND=dp), DIMENSION(:,:), POINTER  :: DATA
      INTEGER                                 :: refcount
   END TYPE array_d2d_type
@@ -225,6 +223,9 @@ CONTAINS
     INTEGER                                  :: lb, ub
     LOGICAL                                  :: g
 
+    !DIR$ ATTRIBUTES FASTMEM :: array_data
+    REAL(KIND=dp), DIMENSION(:), ALLOCATABLE, TARGET :: array_data
+
     ALLOCATE (array%low)
     array%low%refcount = 1
     g = .FALSE.
@@ -235,7 +236,8 @@ CONTAINS
     ELSE
        lb = LBOUND(DATA, 1)
        ub = UBOUND(DATA, 1)
-       ALLOCATE (array%low%data(lb:ub))
+       ALLOCATE (array_data(lb:ub))
+       array%low%data => array_data
        array%low%data(:) = DATA(:)
     ENDIF
   END SUBROUTINE array_new_d1d
@@ -252,10 +254,14 @@ CONTAINS
 
     INTEGER                                  :: ub
 
+    !DIR$ ATTRIBUTES FASTMEM :: array_data
+    REAL(KIND=dp), DIMENSION(:), ALLOCATABLE, TARGET :: array_data
+
     ALLOCATE (array%low)
     array%low%refcount = 1
     ub = lb + SIZE(DATA) - 1
-    ALLOCATE (array%low%data(lb:ub))
+    ALLOCATE (array_data(lb:ub))
+    array%low%data => array_data
     array%low%data(:) = DATA(:)
   END SUBROUTINE array_new_d1d_lb
 ! *****************************************************************************
@@ -272,6 +278,9 @@ CONTAINS
     INTEGER, DIMENSION(2)                    :: lb, ub
     LOGICAL                                  :: g
 
+    !DIR$ ATTRIBUTES FASTMEM :: array_data
+    REAL(KIND=dp), DIMENSION(:, :), ALLOCATABLE, TARGET :: array_data
+
     ALLOCATE (array%low)
     array%low%refcount = 1
     g = .FALSE.
@@ -282,7 +291,8 @@ CONTAINS
     ELSE
        lb = LBOUND(DATA)
        ub = UBOUND(DATA)
-       ALLOCATE (array%low%data(lb(1):ub(1), lb(2):ub(2)))
+       ALLOCATE (array_data(lb(1):ub(1), lb(2):ub(2)))
+       array%low%data => array_data
        array%low%data(:,:) = DATA(:,:)
     ENDIF
   END SUBROUTINE array_new_d2d
@@ -300,11 +310,15 @@ CONTAINS
 
     INTEGER, DIMENSION(2)                    :: ub
 
+    !DIR$ ATTRIBUTES FASTMEM :: array_data
+    REAL(KIND=dp), DIMENSION(:, :), ALLOCATABLE, TARGET :: array_data
+
     ALLOCATE (array%low)
     array%low%refcount = 1
     ub(1) = lb(1) + SIZE(DATA,1) - 1
     ub(2) = lb(2) + SIZE(DATA,2) - 1
-    ALLOCATE (array%low%data(lb(1):ub(1), lb(2):ub(2)))
+    ALLOCATE (array_data(lb(1):ub(1), lb(2):ub(2)))
+    array%low%data => array_data
     array%low%data(:,:) = DATA(:,:)
   END SUBROUTINE array_new_d2d_lb
 
