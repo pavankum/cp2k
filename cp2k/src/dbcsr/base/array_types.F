@@ -233,6 +233,7 @@ CONTAINS
     ELSE
        lb = LBOUND(DATA, 1)
        ub = UBOUND(DATA, 1)
+       !DIR$ ATTRIBUTES FASTMEM :: array%low%data
        ALLOCATE (array%low%data(lb:ub))
        array%low%data(:) = DATA(:)
     ENDIF
@@ -253,6 +254,7 @@ CONTAINS
     ALLOCATE (array%low)
     array%low%refcount = 1
     ub = lb + SIZE(DATA) - 1
+    !DIR$ ATTRIBUTES FASTMEM :: array%low%data
     ALLOCATE (array%low%data(lb:ub))
     array%low%data(:) = DATA(:)
   END SUBROUTINE array_new_d1d_lb
@@ -280,6 +282,7 @@ CONTAINS
     ELSE
        lb = LBOUND(DATA)
        ub = UBOUND(DATA)
+       !DIR$ ATTRIBUTES FASTMEM :: array%low%data
        ALLOCATE (array%low%data(lb(1):ub(1), lb(2):ub(2)))
        array%low%data(:,:) = DATA(:,:)
     ENDIF
@@ -302,6 +305,7 @@ CONTAINS
     array%low%refcount = 1
     ub(1) = lb(1) + SIZE(DATA,1) - 1
     ub(2) = lb(2) + SIZE(DATA,2) - 1
+    !DIR$ ATTRIBUTES FASTMEM :: array%low%data
     ALLOCATE (array%low%data(lb(1):ub(1), lb(2):ub(2)))
     array%low%data(:,:) = DATA(:,:)
   END SUBROUTINE array_new_d2d_lb
