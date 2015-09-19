@@ -899,7 +899,7 @@ CONTAINS
 !
 !
 !! *****************************************************************************
-!!> \brief Returns whether the data area uses speciall-allocated memory
+!!> \brief Returns whether the data area uses specially-allocated memory
 !!> \param[in] data_area       query this data area
 !!> \param[out] uses_special   whether the data area uses specially allocated
 !!>                            memory
