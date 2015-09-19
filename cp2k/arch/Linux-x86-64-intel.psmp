@@ -66,10 +66,11 @@ MKL_DIRECT ?= 0
 MKL_STATIC ?= 1
 RECONFIGURE ?= 1
 TBBMALLOC ?= 1
+NESTED ?= 0
 
 OFFLOAD ?= $(ACC)
 ifeq ($(OFFLOAD),0)
-	MIC ?= 0
+  MIC ?= 0
 endif
 
 # initial build flags
@@ -141,6 +142,9 @@ ifneq (0,$(OMP))
   FCFLAGS   += -threads
   LDFLAGS   += -threads
   OPTFLAGS  += -openmp
+  ifneq (0,$(NESTED))
+    DFLAGS += -DLIBXSMM_ACC_OPENMP
+  endif
 endif
 
 ifneq (,$(LIBINTROOT))
