@@ -3,5 +3,5 @@
 ROOT := $(dir $(word $(words $(MAKEFILE_LIST)), $(MAKEFILE_LIST)))
 MPI := 0
 
-include $(ROOT)Linux-x86-64-intel.psmp
+include $(ROOT)Linux-x86-64-intel.x
 
