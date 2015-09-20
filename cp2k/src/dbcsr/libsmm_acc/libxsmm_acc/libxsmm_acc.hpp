@@ -94,8 +94,8 @@
 #define LIBXSMM_ACC_NPARAMS 7
 
 /** Nested parallelism. */
-#if !defined(__NESTED_OPENMP) && defined(_OPENMP) && defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-# define __NESTED_OPENMP
+#if !defined(LIBXSMM_ACC_OPENMP) && ((defined(_OPENMP) && defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)) || defined(__NESTED_OPENMP))
+# define LIBXSMM_ACC_OPENMP
 #endif
 
 /**
@@ -104,7 +104,7 @@
  * =0: process MM using a plan
  * <0: adaptive MM-processing
  */
-#if defined(__NESTED_OPENMP)
+#if defined(LIBXSMM_ACC_OPENMP)
 # if defined(__MIC__)
 #   define LIBXSMM_ACC_NLOCAL 128
 # else

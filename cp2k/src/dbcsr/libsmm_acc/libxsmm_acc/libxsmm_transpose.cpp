@@ -15,7 +15,7 @@
 #endif
 #include <cstddef>
 #include <cassert>
-#if defined(__NESTED_OPENMP)
+#if defined(LIBXSMM_ACC_OPENMP)
 # include <omp.h>
 #endif
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
@@ -60,7 +60,7 @@ LIBXSMM_ACC_RETARGETABLE void kernel(const U* stack, const U* pstacksize, const 
 {
   const U stacksize = *pstacksize, m = *pm, n = *pn;
 
-#if defined(__NESTED_OPENMP)
+#if defined(LIBXSMM_ACC_OPENMP)
 # pragma omp parallel for LIBXSMM_ACC_SCHEDULE
 #endif
   for (U s = 0; s < stacksize; ++s) {
