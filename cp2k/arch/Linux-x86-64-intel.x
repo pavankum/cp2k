@@ -143,7 +143,7 @@ ifneq (0,$(OMP))
   LDFLAGS   += -threads
   OPTFLAGS  += -openmp
   ifneq (0,$(NESTED))
-    DFLAGS += -DLIBXSMM_ACC_OPENMP
+    DFLAGS += -D__NESTED_OPENMP
   endif
 endif
 
