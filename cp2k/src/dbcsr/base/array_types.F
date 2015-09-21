@@ -375,7 +375,6 @@ CONTAINS
        IF (array%low%refcount .EQ. 0) THEN
           DEALLOCATE(array%low%data)
           DEALLOCATE(array%low)
-          NULLIFY (array%low)
        ENDIF
     ENDIF
   END SUBROUTINE array_release_i1d
@@ -391,7 +390,6 @@ CONTAINS
        IF (array%low%refcount .EQ. 0 .AND. ASSOCIATED (array%low)) THEN
           DEALLOCATE(array%low%data)
           DEALLOCATE(array%low)
-          NULLIFY (array%low)
        ENDIF
     ENDIF
   END SUBROUTINE array_release_i2d
@@ -407,7 +405,6 @@ CONTAINS
        IF (array%low%refcount .EQ. 0 .AND. ASSOCIATED (array%low)) THEN
           DEALLOCATE(array%low%data)
           DEALLOCATE(array%low)
-          NULLIFY (array%low)
        ENDIF
     ENDIF
   END SUBROUTINE array_release_d1d
@@ -423,7 +420,6 @@ CONTAINS
        IF (array%low%refcount .EQ. 0 .AND. ASSOCIATED (array%low)) THEN
           DEALLOCATE(array%low%data)
           DEALLOCATE(array%low)
-          NULLIFY (array%low)
        ENDIF
     ENDIF
   END SUBROUTINE array_release_d2d

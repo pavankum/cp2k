@@ -2475,7 +2475,6 @@ CONTAINS
          'You should not "deallocate" a referenced matrix. '//&
          'Avoid pointers to DBCSR matrices.')
     DEALLOCATE (matrix)
-    NULLIFY (matrix)
 
   END SUBROUTINE cp_dbcsr_deallocate_matrix
 
