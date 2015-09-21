@@ -192,7 +192,6 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
   const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c)
 {
   const int nstacksize = static_cast<int>(stacksize * N);
-
 #if defined(LIBXSMM_ACC_OPENMP)
 # pragma omp parallel for LIBXSMM_ACC_SCHEDULE
 #endif
@@ -206,9 +205,10 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
 #if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)) && defined(LIBXSMM_ACC_OPENMP) && (1 < (LIBXSMM_ACC_ALIGNED_STORES))
     LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_RESULT_SIZE], LIBXSMM_ACC_ALIGNED_MAX);
 #endif
-    const int end = s + std::min(static_cast<int>((LIBXSMM_ACC_NLOCAL) * N), nstacksize - s);
+    U local[N];
     U i = s, kc = stack[s+5], nextc = kc;
 #if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))
+    const int end = s + std::min(static_cast<int>((LIBXSMM_ACC_NLOCAL) * N), nstacksize - s);
     do
 #endif
     {
@@ -226,23 +226,24 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
       {
         const U k = stack[i+2], next = i + N;
         const T *const ka = pa, *const kb = pb;
-        pa = a + stack[next+3] - 1, pb = b + stack[next+4] - 1;
-        smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
-        i = next;
 
+        if (next < nstacksize) {
+          pa = a + stack[next+3] - 1, pb = b + stack[next+4] - 1;
+          nextc = stack[next+5];
+          i = next;
+          smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
 #if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))
-        if (i < nstacksize) {
-          nextc = stack[i+5];
           if (nextc != kc || end <= i) {
             break;
           }
+#endif
         }
         else {
+          smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))
           break;
-        }
-#else
-        nextc = stack[i+5];
 #endif
+        }
       }
 
 #if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)) && defined(LIBXSMM_ACC_OPENMP) && (1 < (LIBXSMM_ACC_ALIGNED_STORES))
