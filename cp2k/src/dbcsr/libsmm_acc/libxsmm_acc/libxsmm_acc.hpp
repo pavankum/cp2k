@@ -100,9 +100,8 @@
 
 /**
  * Ensures an amortized synchronization overhead.
- * >0: maximum number of locally processed MM
- * =0: process MM using a plan
- * <0: adaptive MM-processing
+ * >=2: maximum number of locally processed MM
+ * >=1: assuming unsorted C indexes
  */
 #if defined(LIBXSMM_ACC_OPENMP)
 # if defined(__MIC__)
@@ -111,7 +110,7 @@
 #   define LIBXSMM_ACC_NLOCAL 16
 # endif
 #else
-# define LIBXSMM_ACC_NLOCAL 128
+# define LIBXSMM_ACC_NLOCAL 1
 #endif
 
 /** OpenMP scheduling policy (and chunk size) */

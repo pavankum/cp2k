@@ -188,7 +188,7 @@ private:
 
 
 template<size_t N, typename T, typename U>
-LIBXSMM_ACC_RETARGETABLE void work_basic(const U *LIBXSMM_ACC_RESTRICT stack, size_t stacksize, const smm_type<T,U>& smm,
+LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t stacksize, const smm_type<T,U>& smm,
   const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c)
 {
   const int nstacksize = static_cast<int>(stacksize * N);
@@ -196,29 +196,41 @@ LIBXSMM_ACC_RETARGETABLE void work_basic(const U *LIBXSMM_ACC_RESTRICT stack, si
 #if defined(LIBXSMM_ACC_OPENMP)
 # pragma omp parallel for LIBXSMM_ACC_SCHEDULE
 #endif
-  for (int s = 0; s < nstacksize; s += ((LIBXSMM_ACC_NLOCAL) * N)) {
-#if defined(LIBXSMM_ACC_OPENMP) && 1 < (LIBXSMM_ACC_ALIGNED_STORES)
+  for (int s = 0; s < nstacksize;
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))
+    s += ((LIBXSMM_ACC_NLOCAL) * N))
+#else
+    s += N)
+#endif
+  {
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)) && defined(LIBXSMM_ACC_OPENMP) && (1 < (LIBXSMM_ACC_ALIGNED_STORES))
     LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_RESULT_SIZE], LIBXSMM_ACC_ALIGNED_MAX);
 #endif
     const int end = s + std::min(static_cast<int>((LIBXSMM_ACC_NLOCAL) * N), nstacksize - s);
     U i = s, kc = stack[s+5], nextc = kc;
- 
-    do {
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))
+    do
+#endif
+    {
       const U m = stack[i+0], n = stack[i+1], ldc = LIBXSMM_ACC_ALIGN_VALUE(m, sizeof(T), LIBXSMM_ACC_ALIGNED_STORES);
       const T *pa = a + stack[i+3] - 1, *pb = b + stack[i+4] - 1;
       T *const pc = c + kc - 1;
-#if defined(LIBXSMM_ACC_OPENMP) && 1 < (LIBXSMM_ACC_ALIGNED_STORES)
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)) && defined(LIBXSMM_ACC_OPENMP) && (1 < (LIBXSMM_ACC_ALIGNED_STORES))
       smm.zero_c(tmp, ldc * n);
 #else
       T *const tmp = pc;
 #endif
-      for (;;) {
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))
+      for (;;)
+#endif
+      {
         const U k = stack[i+2], next = i + N;
         const T *const ka = pa, *const kb = pb;
         pa = a + stack[next+3] - 1, pb = b + stack[next+4] - 1;
         smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
         i = next;
 
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))
         if (i < nstacksize) {
           nextc = stack[i+5];
           if (nextc != kc || end <= i) {
@@ -228,69 +240,19 @@ LIBXSMM_ACC_RETARGETABLE void work_basic(const U *LIBXSMM_ACC_RESTRICT stack, si
         else {
           break;
         }
+#else
+        nextc = stack[i+5];
+#endif
       }
 
-#if defined(LIBXSMM_ACC_OPENMP) && 1 < (LIBXSMM_ACC_ALIGNED_STORES)
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)) && defined(LIBXSMM_ACC_OPENMP) && (1 < (LIBXSMM_ACC_ALIGNED_STORES))
       smm.copy_c(tmp, pc, m, n, ldc);
 #endif
       kc = nextc;
     }
+#if defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))
     while(i < end);
-  }
-}
-
-
-template<size_t N, typename T, typename U>
-LIBXSMM_ACC_RETARGETABLE void work_planned(const U *LIBXSMM_ACC_RESTRICT stack, U stacksize, const smm_type<T,U>& smm,
-  const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c)
-{
-  const U nstacksize = static_cast<U>(N) * stacksize;
-  const U plansize = 32768;
-  U colspan[plansize];
-
-  for (U s = 0; s < nstacksize;) {
-    int size = 0;
-
-    colspan[0] = s;
-    for (; size < (plansize - 1) && s < nstacksize; s += N) {
-      for (U kc0 = stack[s+5], kc1 = (((s + N) < nstacksize) ? stack[s+N+5] : (kc0 + 1)); kc0 == kc1; s += N, kc0 = kc1, kc1 = stack[s+N+5]);
-      colspan[++size] = s + N;
-    }
-
-#if defined(LIBXSMM_ACC_OPENMP)
-#   pragma omp parallel for LIBXSMM_ACC_SCHEDULE
 #endif
-    for (int i = 0; i < size; ++i) {
-      const U j0 = colspan[i], j1 = colspan[i+1];
-      const U kc = stack[j0+5];
-      LIBXSMM_ACC_ASSERT(j1 <= nstacksize);
-#if defined(LIBXSMM_ACC_OPENMP) && 1 < (LIBXSMM_ACC_ALIGNED_STORES)
-      LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_RESULT_SIZE], LIBXSMM_ACC_ALIGNED_MAX);
-#endif
-      const U m = stack[i+0], n = stack[i+1], ldc = LIBXSMM_ACC_ALIGN_VALUE(m, sizeof(T), LIBXSMM_ACC_ALIGNED_STORES);
-      const T *pa = a + stack[i+3] - 1, *pb = b + stack[i+4] - 1;
-      T *const pc = c + kc - 1;
-      U next = j0;
-#if defined(LIBXSMM_ACC_OPENMP) && 1 < (LIBXSMM_ACC_ALIGNED_STORES)
-      smm.zero_c(tmp, ldc * n);
-#else
-      T *const tmp = pc;
-#endif
-
-      for (U j = j0; j < j1; j = next) {
-        LIBXSMM_ACC_ASSERT(j < nstacksize);
-        LIBXSMM_ACC_ASSERT(kc == stack[j+5]);
-        const U k = stack[j+2];
-        const T *const ka = pa, *const kb = pb;
-        next += N;
-        pa = a + stack[next+3] - 1, pb = b + stack[next+4] - 1;
-        smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
-      }
-
-#if defined(LIBXSMM_ACC_OPENMP) && 1 < (LIBXSMM_ACC_ALIGNED_STORES)
-      smm.copy_c(tmp, pc, m, n, ldc);
-#endif
-    }
   }
 }
 
@@ -299,13 +261,7 @@ template<size_t N, typename T, typename U>
 LIBXSMM_ACC_RETARGETABLE void context(const U* stack, const U* stacksize, const U* def_mnk, const U* max_m, const U* max_n, const U* max_k, const T* a, const T* b, T* c)
 {
   const smm_type<T,U> smm(*def_mnk, *max_m, *max_n, *max_k);
-#if defined(LIBXSMM_ACC_NLOCAL) && (0 < (LIBXSMM_ACC_NLOCAL))
-  work_basic<LIBXSMM_ACC_NPARAMS,T,U>(stack, *stacksize, smm, a, b, c);
-#elif defined(LIBXSMM_ACC_NLOCAL) && (0 == (LIBXSMM_ACC_NLOCAL))
-  work_planned<LIBXSMM_ACC_NPARAMS,T,U>(stack, *stacksize, smm, a, b, c);
-#else
-  LIBXSMM_ACC_ASSERT(false/*TODO: not yet implemented.*/);
-#endif
+  work<LIBXSMM_ACC_NPARAMS,T,U>(stack, *stacksize, smm, a, b, c);
 }
 
 
