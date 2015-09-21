@@ -198,8 +198,8 @@ endif
 
 ifneq (0,$(MEMKIND))
   ifneq (,$(MEMKINDROOT))
-    #LIBS += -L$(MEMKINDROOT) -lmemkind
-    LIBS += $(MEMKINDROOT)/libmemkind.a
+    #LIBS += -L$(MEMKINDROOT)/lib -lmemkind
+    LIBS += $(MEMKINDROOT)/lib/libmemkind.a
   endif
 endif
 
