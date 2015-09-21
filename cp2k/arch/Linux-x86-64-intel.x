@@ -66,6 +66,7 @@ MKL_DIRECT ?= 0
 MKL_STATIC ?= 1
 RECONFIGURE ?= 1
 TBBMALLOC ?= 1
+MEMKIND ?= 1
 NESTED ?= 0
 
 OFFLOAD ?= $(ACC)
@@ -193,6 +194,13 @@ ifneq (0,$(TBBMALLOC))
 else ifneq (,$(TCMALLOCROOT))
   # configured using ./configure --enable-minimal --prefix=<TCMALLOCROOT>
   LIBS += $(TCMALLOCROOT)/lib/libtcmalloc_minimal.a
+endif
+
+ifneq (0,$(MEMKIND))
+  ifneq (,$(MEMKINDROOT))
+    #LIBS += -L$(MEMKINDROOT) -lmemkind
+    LIBS += $(MEMKINDROOT)/libmemkind.a
+  endif
 endif
 
 ifneq (,$(LIBXSMMROOT))
