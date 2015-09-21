@@ -107,7 +107,7 @@ CONTAINS
     CHARACTER(LEN=default_string_length)     :: atmname
     INTEGER :: atom_i, atom_j, counter, dim0, dim1, dim2, dim3, first, &
       handle, handle2, i, iatom, ikind, iw, j, k, last, method_name_id, n, &
-      natom, stat
+      natom
     INTEGER, DIMENSION(:), POINTER           :: iatomlist, id_element, &
                                                 id_work, kind_of, list, &
                                                 list2, molecule_list, &
@@ -641,7 +641,6 @@ CPSourceFileRef,&
           ! Keep a list of onfo atoms for proper selection of specialized 1-4
           ! potentials instead of conventional nonbonding potentials.
           ALLOCATE(exclusions(iatom)%list_onfo(SIZE(ex_onfo_list(iatom)%array1)))
-          CPASSERT(stat==0)
           ! copy of data, not copy of pointer
           exclusions(iatom)%list_onfo = ex_onfo_list(iatom)%array1
           IF (iw>0) THEN
