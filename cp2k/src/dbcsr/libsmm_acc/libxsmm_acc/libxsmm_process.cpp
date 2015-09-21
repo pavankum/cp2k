@@ -227,12 +227,13 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
         const T *const ka = pa, *const kb = pb;
 
         if (nexti < nstacksize) {
-          pa = a + stack[nexti+3] - 1, pb = b + stack[nexti+4] - 1;
+          pa = a + stack[nexti+3] - 1;
+          pb = b + stack[nexti+4] - 1;
           nextc = stack[nexti+5];
-          i = nexti;
           smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
-          if (nextc != kc || end <= i) {
+          i = nexti;
+          if (nextc != kc || end <= nexti) {
             break;
           }
 #endif
@@ -240,6 +241,7 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
         else {
           smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
+          i = nexti;
           break;
 #endif
         }
