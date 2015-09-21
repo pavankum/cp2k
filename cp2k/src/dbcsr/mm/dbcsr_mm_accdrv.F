@@ -139,7 +139,7 @@ MODULE dbcsr_mm_accdrv
 ! *****************************************************************************
   SUBROUTINE dbcsr_mm_accdrv_lib_init(error, ntasks)
     TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
-    INTEGER, INTENT(IN), OPTIONAL            :: task, ntasks
+    INTEGER, INTENT(IN), OPTIONAL            :: ntasks
 
     INTEGER                                  :: nthreads
 
