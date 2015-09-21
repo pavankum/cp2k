@@ -99,13 +99,16 @@ MODULE dbcsr_mm_csr
 
 ! *****************************************************************************
 !> \brief Initialize the library
-!> \param error ...
-!> \author Ole Schuett
+!> \param[in,out] error
+!> \param[in] (optional) task id from the interval [0, ntasks)
+!> \param[in] (optional) ntasks; maximum number of tasks
+!> \author Ole Schuett, Hans Pabst
 ! *****************************************************************************
-  SUBROUTINE dbcsr_mm_csr_lib_init(error)
+  SUBROUTINE dbcsr_mm_csr_lib_init(error, task, ntasks)
     TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
+    INTEGER, INTENT(IN), OPTIONAL            :: task, ntasks
 
-     CALL dbcsr_mm_sched_lib_init(error)
+    CALL dbcsr_mm_sched_lib_init(error, task, ntasks)
   END SUBROUTINE
 
 

@@ -14,8 +14,9 @@
 !>  - 2010-02-23 Moved from dbcsr_operations
 !>  - 2011-11    Moved parameter-stack processing routines to
 !>               dbcsr_mm_methods.
-!>  - 2013-01    extensive refactoring (Ole Schuett)
-!>  - 2014-04    generalized into acc-framework (Ole Schuett)
+!>  - 2013-01    Extensive refactoring (Ole Schuett)
+!>  - 2014-04    Generalized into acc-framework (Ole Schuett)
+!>  - 2015-09    Nested OpenMP and dynamic scheduling (Hans Pabst)
 ! *****************************************************************************
 
 
@@ -132,16 +133,22 @@ MODULE dbcsr_mm_accdrv
 
 ! *****************************************************************************
 !> \brief Initialize the library
-!> \param error ...
-!> \author Ole Schuett
+!> \param[in,out] error
+!> \param[in] (optional) ntasks; maximum number of tasks
+!> \author Ole Schuett, Hans Pabst
 ! *****************************************************************************
-  SUBROUTINE dbcsr_mm_accdrv_lib_init(error)
+  SUBROUTINE dbcsr_mm_accdrv_lib_init(error, ntasks)
     TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
+    INTEGER, INTENT(IN), OPTIONAL            :: task, ntasks
 
     INTEGER                                  :: nthreads
 
-    nthreads = 1
-    !$ nthreads = OMP_GET_NUM_THREADS ()
+    IF (PRESENT(ntasks)) THEN
+      nthreads = ntasks
+    ELSE
+      nthreads = 1
+      !$ nthreads = OMP_GET_NUM_THREADS()
+    END IF
 
     !$OMP MASTER
     ALLOCATE(all_thread_privates(0:nthreads-1))

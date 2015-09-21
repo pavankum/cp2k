@@ -14,7 +14,8 @@
 !>  - 2010-02-23 Moved from dbcsr_operations
 !>  - 2011-11    Moved parameter-stack processing routines to
 !>               dbcsr_mm_methods.
-!>  - 2013-01    extensive refactoring (Ole Schuett)
+!>  - 2013-01    Extensive refactoring (Ole Schuett)
+!>  - 2015-09    Nested OpenMP and dynamic scheduling (Hans Pabst)
 ! *****************************************************************************
 
 
@@ -126,16 +127,23 @@ MODULE dbcsr_mm_sched
 
 ! *****************************************************************************
 !> \brief Initialize the library
-!> \param error ...
-!> \author Ole Schuett
+!> \param[in,out] error
+!> \param[in] (optional) task id from the interval [0, ntasks)
+!> \param[in] (optional) ntasks; maximum number of tasks
+!> \author Ole Schuett, Hans Pabst
 ! *****************************************************************************
-  SUBROUTINE dbcsr_mm_sched_lib_init(error)
+  SUBROUTINE dbcsr_mm_sched_lib_init(error, task, ntasks)
     TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
+    INTEGER, INTENT(IN), OPTIONAL            :: task, ntasks
 
     INTEGER                                  :: ithread, nthreads
 
-    nthreads = 1; ithread = 0
-    !$ nthreads = OMP_GET_NUM_THREADS () ; ithread = OMP_GET_THREAD_NUM ()
+    IF (PRESENT(task).AND.PRESENT(ntasks).AND.(0.LE.task).AND.(task.LT.ntasks)) THEN
+      nthreads = ntasks; ithread = task
+    ELSE
+      nthreads = 1; ithread = 0
+      !$ nthreads = OMP_GET_NUM_THREADS() ; ithread = OMP_GET_THREAD_NUM()
+    END IF
 
     !$OMP MASTER
     ALLOCATE(stats_per_thread(0:nthreads-1))
@@ -144,7 +152,7 @@ MODULE dbcsr_mm_sched
     !$OMP BARRIER
 
     CALL stats_init(stats_per_thread(ithread))
-    CALL dbcsr_mm_accdrv_lib_init(error)
+    CALL dbcsr_mm_accdrv_lib_init(error, ntasks)
 
   END SUBROUTINE dbcsr_mm_sched_lib_init
 

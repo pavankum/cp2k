@@ -6,15 +6,16 @@
 ! *****************************************************************************
 !> \brief   First layer of the dbcsr matrix-matrix multiplication.
 !>          It performs the MPI parallelization according to Cannon's algorithm.
-!>	
+!>
 !> \author  Urban Borstnik
 !>
 !> <b>Modification history:</b>
 !>  - 2010-02-23 Moved from dbcsr_operations
 !>  - 2011-11    Moved parameter-stack processing routines to
 !>               dbcsr_mm_methods.
-!>  - 2013-01    reorganized code (Ole Schuett)
+!>  - 2013-01    Reorganized code (Ole Schuett)
 !>  - 2015-01    Introducting RMA (Alfio Lazzaro)
+!>  - 2015-09    Nested OpenMP and dynamic scheduling (Hans Pabst)
 ! *****************************************************************************
 MODULE dbcsr_mm_cannon
   USE acc_event,                       ONLY: acc_event_record,&
@@ -238,18 +239,25 @@ MODULE dbcsr_mm_cannon
 
 ! *****************************************************************************
 !> \brief Initialize the library
-!> \param error ...
-!> \author Ole Schuett
+!> \param[in,out] error
+!> \param[in] (optional) task id from the interval [0, ntasks)
+!> \param[in] (optional) ntasks; maximum number of tasks
+!> \author Ole Schuett, Hans Pabst
 ! *****************************************************************************
-  SUBROUTINE dbcsr_mm_cannon_lib_init(error)
+  SUBROUTINE dbcsr_mm_cannon_lib_init(error, task, ntasks)
     TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
+    INTEGER, INTENT(IN), OPTIONAL            :: task, ntasks
 
     INTEGER                                  :: ithread, nthreads
 
-    nthreads = 1; ithread = 0
-    !$ nthreads = OMP_GET_NUM_THREADS () ; ithread = OMP_GET_THREAD_NUM ()
+    IF (PRESENT(task).AND.PRESENT(ntasks).AND.(0.LE.task).AND.(task.LT.ntasks)) THEN
+      nthreads = ntasks; ithread = task
+    ELSE
+      nthreads = 1; ithread = 0
+      !$ nthreads = OMP_GET_NUM_THREADS() ; ithread = OMP_GET_THREAD_NUM()
+    END IF
 
-    CALL dbcsr_mm_multrec_lib_init(error)
+    CALL dbcsr_mm_multrec_lib_init(error, task, ntasks)
 
     !$OMP MASTER
     dbcsr_mpi_statistics%nimages = -1
@@ -2836,7 +2844,9 @@ MODULE dbcsr_mm_cannon
 !$omp reduction (+: flop_single)
           ithread = 0; nthreads = 1
 !$        ithread = omp_get_thread_num(); nthreads = omp_get_num_threads()
-
+#if defined(__NESTED_OPENMP)
+          
+#endif
           t_error=error
           IF(metronome==nsteps_k .AND. v_ki==min_nimages-1) &
                CALL dbcsr_mm_multrec_phaseout(multrec(ithread)%p, t_error)
