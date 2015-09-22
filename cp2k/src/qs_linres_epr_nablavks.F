@@ -82,7 +82,6 @@ MODULE qs_linres_epr_nablavks
                                              qs_subsys_type
   USE qs_vxc,                          ONLY: qs_vxc_create
   USE qs_vxc_atom,                     ONLY: calculate_vxc_atom
-  USE termination,                     ONLY: stop_memory
   USE util,                            ONLY: get_limit
 #include "./common/cp_common_uses.f90"
 
@@ -114,8 +113,7 @@ CONTAINS
     CHARACTER(LEN=default_string_length)     :: ext, filename
     COMPLEX(KIND=dp)                         :: gtemp
     INTEGER :: bo_atom(2), ia, iat, iatom, idir, iexp, ig, ikind, ir, iso, &
-      ispin, istat, ix, iy, iz, natom, nexp_ppl, nkind, nspins, output_unit, &
-      unit_nr
+      ispin, ix, iy, iz, natom, nexp_ppl, nkind, nspins, output_unit, unit_nr
     INTEGER, DIMENSION(2, 3)                 :: bo
     INTEGER, DIMENSION(:), POINTER           :: atom_list
     LOGICAL                                  :: failure, gapw, gapw_xc, &
@@ -293,18 +291,10 @@ CONTAINS
 !   Add Hartree potential
 !   -------------------------------------
 
-    ALLOCATE(v_hartree_gspace,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_hartree_gspace",0)
-    ALLOCATE(v_hartree_gtemp,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_hartree_gtemp",0)
-    ALLOCATE(v_hartree_rtemp,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_hartree_rtemp",0)
-    ALLOCATE(rho_tot_gspace,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "rho_tot_gspace",0)
+    ALLOCATE(v_hartree_gspace)
+    ALLOCATE(v_hartree_gtemp)
+    ALLOCATE(v_hartree_rtemp)
+    ALLOCATE(rho_tot_gspace)
 
     CALL pw_pool_create_pw(auxbas_pw_pool,v_hartree_gspace%pw, &
                            use_data=COMPLEXDATA1D,in_space=RECIPROCALSPACE)
@@ -356,9 +346,8 @@ CONTAINS
 
           IF (paw_atom) THEN
 
-             ALLOCATE(vh1_rad_h(grid_atom%nr,harmonics%max_iso_not0),STAT=istat)
-             ALLOCATE(vh1_rad_s(grid_atom%nr,harmonics%max_iso_not0),STAT=istat)
-             CPASSERT(istat==0)
+             ALLOCATE(vh1_rad_h(grid_atom%nr,harmonics%max_iso_not0))
+             ALLOCATE(vh1_rad_s(grid_atom%nr,harmonics%max_iso_not0))
 
              ! DO iat = 1, natom ! natom = # atoms for ikind
              !
@@ -455,9 +444,8 @@ CONTAINS
 
              END DO ! iat
 
-             DEALLOCATE(vh1_rad_h,STAT=istat)
-             DEALLOCATE(vh1_rad_s,STAT=istat)
-             CPASSERT(istat==0)
+             DEALLOCATE(vh1_rad_h)
+             DEALLOCATE(vh1_rad_s)
 
           END IF ! paw_atom
 
@@ -485,18 +473,10 @@ CONTAINS
     CALL pw_pool_give_back_pw(auxbas_pw_pool,v_hartree_rtemp%pw)
     CALL pw_pool_give_back_pw(auxbas_pw_pool,rho_tot_gspace%pw)
 
-    DEALLOCATE(v_hartree_gspace,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_hartree_gspace")
-    DEALLOCATE(v_hartree_gtemp,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_hartree_gtemp")
-    DEALLOCATE(v_hartree_rtemp,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_hartree_rtemp")
-    DEALLOCATE(rho_tot_gspace,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "rho_tot_gspace")
+    DEALLOCATE(v_hartree_gspace)
+    DEALLOCATE(v_hartree_gtemp)
+    DEALLOCATE(v_hartree_rtemp)
+    DEALLOCATE(rho_tot_gspace)
 
 !   -------------------------------------
 !   Add Coulomb potential
@@ -541,15 +521,9 @@ CONTAINS
 
           IF (gth_gspace) THEN
 
-             ALLOCATE(v_coulomb_gspace,STAT=istat)
-             IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                              "v_coulomb_gspace",0)
-             ALLOCATE(v_coulomb_gtemp,STAT=istat)
-             IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                              "v_coulomb_gtemp",0)
-             ALLOCATE(v_coulomb_rtemp,STAT=istat)
-             IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                              "v_coulomb_rtemp",0)
+             ALLOCATE(v_coulomb_gspace)
+             ALLOCATE(v_coulomb_gtemp)
+             ALLOCATE(v_coulomb_rtemp)
 
              CALL pw_pool_create_pw(auxbas_pw_pool,v_coulomb_gspace%pw, &
                                     use_data=COMPLEXDATA1D,in_space=RECIPROCALSPACE)
@@ -656,15 +630,9 @@ CONTAINS
              CALL pw_pool_give_back_pw(auxbas_pw_pool,v_coulomb_gtemp%pw)
              CALL pw_pool_give_back_pw(auxbas_pw_pool,v_coulomb_rtemp%pw)
 
-             DEALLOCATE(v_coulomb_gspace,STAT=istat)
-             IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                              "v_coulomb_gspace")
-             DEALLOCATE(v_coulomb_gtemp,STAT=istat)
-             IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                              "v_coulomb_gtemp")
-             DEALLOCATE(v_coulomb_rtemp,STAT=istat)
-             IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                              "v_coulomb_rtemp")
+             DEALLOCATE(v_coulomb_gspace)
+             DEALLOCATE(v_coulomb_gtemp)
+             DEALLOCATE(v_coulomb_rtemp)
           ELSE
 
              ! Attic of the atomic parallellisation
@@ -903,12 +871,8 @@ CONTAINS
 !   Add V_xc potential
 !   -------------------------------------
 
-    ALLOCATE(v_xc_gtemp,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_xc_gtemp",0)
-    ALLOCATE(v_xc_rtemp,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_xc_rtemp",0)
+    ALLOCATE(v_xc_gtemp)
+    ALLOCATE(v_xc_rtemp)
 
     CALL pw_pool_create_pw(auxbas_pw_pool,v_xc_gtemp%pw, &
                            use_data=COMPLEXDATA1D,in_space=RECIPROCALSPACE)
@@ -952,9 +916,7 @@ CONTAINS
 
        END DO
 
-       DEALLOCATE(v_rspace_new,stat=istat)
-       IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                        "v_rspace_new")
+       DEALLOCATE(v_rspace_new)
     END IF
 
     IF (ASSOCIATED(v_tau_rspace)) THEN
@@ -983,20 +945,14 @@ CONTAINS
 
        END DO
 
-       DEALLOCATE(v_tau_rspace,stat=istat)
-       IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                        "v_tau_rspace")
+       DEALLOCATE(v_tau_rspace)
     END IF
 
     CALL pw_pool_give_back_pw(auxbas_pw_pool,v_xc_gtemp%pw)
     CALL pw_pool_give_back_pw(auxbas_pw_pool,v_xc_rtemp%pw)
 
-    DEALLOCATE(v_xc_gtemp,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_xc_gtemp")
-    DEALLOCATE(v_xc_rtemp,STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                     "v_xc_rtemp")
+    DEALLOCATE(v_xc_gtemp)
+    DEALLOCATE(v_xc_rtemp)
 
     IF (gapw .OR. gapw_xc) THEN
        CALL calculate_vxc_atom(qs_env=qs_env,energy_only=.FALSE.,&
@@ -1009,9 +965,7 @@ CONTAINS
 
     IF (BTEST(cp_print_key_should_output(logger%iter_info,lr_section,&
                   "EPR%PRINT%NABLAVKS_CUBES"),cp_p_file)) THEN
-       ALLOCATE(wf_r,STAT=istat)
-       IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                        "wf_r",0)
+       ALLOCATE(wf_r)
        CALL pw_pool_create_pw(auxbas_pw_pool,wf_r%pw,&
                use_data = REALDATA3D,&
                in_space = REALSPACE)
@@ -1032,9 +986,7 @@ CONTAINS
                   "EPR%PRINT%NABLAVKS_CUBES")
        END DO
        CALL pw_pool_give_back_pw(auxbas_pw_pool,wf_r%pw)
-       DEALLOCATE(wf_r,STAT=istat)
-       IF (istat /= 0) CALL stop_memory(routineN,moduleN,__LINE__,&
-                                        "wf_r")
+       DEALLOCATE(wf_r)
     END IF
 
     CALL cp_print_key_finished_output(output_unit,logger,lr_section,&

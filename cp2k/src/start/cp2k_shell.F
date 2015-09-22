@@ -352,12 +352,10 @@ PROGRAM cp2k_shell
         DO i=1,SIZE(pos)
            err=MAX(err,ABS(pos(i)-pos2(i)))
         END DO
-        DEALLOCATE(pos,pos2,stat=stat)
-        CALL my_assert(stat==0,'dealloc error',failure)
+        DEALLOCATE(pos,pos2)
         IF (para_env%mepos==para_env%source) THEN
            WRITE (sout,'(ES22.13)') err*pos_fact
         END IF
-        IF (stat/=0) CALL mp_abort('setpos failed dealloc')
      CASE('SETCELL','SET_CELL')
         env_id=parse_env_id(str=cmdStr,startI=shift2+1,default_val=last_env_id)
         CALL my_assert(env_id>0,cmd//' invalid env_id',failure)
@@ -413,8 +411,7 @@ PROGRAM cp2k_shell
            IF (iostat/=0) CALL mp_abort(cmd//' write coord')
            CALL m_flush(sout)
         END IF
-        DEALLOCATE(pos,stat=stat)
-        IF (stat/=0) CALL mp_abort(cmd//' failed dealloc')
+        DEALLOCATE(pos)
      CASE('GETE','GET_E')
         env_id=parse_env_id(str=cmdStr,startI=shift2+1,default_val=last_env_id)
         CALL my_assert(env_id>0,cmd//' invalid env_id',failure)
@@ -470,8 +467,7 @@ PROGRAM cp2k_shell
            IF (iostat/=0) CALL mp_abort(cmd//' write coord')
            CALL m_flush(sout)
         END IF
-        DEALLOCATE(pos,stat=stat)
-        IF (stat/=0) CALL mp_abort(cmd//' failed dealloc')
+        DEALLOCATE(pos)
      CASE('CALCEF','CALC_EF')
         env_id=parse_env_id(str=cmdStr,startI=shift2+1,default_val=last_env_id)
         CALL my_assert(env_id>0,cmd//' invalid env_id',failure)
@@ -502,8 +498,7 @@ PROGRAM cp2k_shell
            IF (iostat/=0) CALL mp_abort(cmd//' write coord')
            CALL m_flush(sout)
         END IF
-        DEALLOCATE(pos,stat=stat)
-        IF (stat/=0) CALL mp_abort(cmd//' failed dealloc')
+        DEALLOCATE(pos)
      CASE('UNITS_EVA','UNITS_EV_A')
         e_fact=evolt
         pos_fact=angstrom

@@ -194,17 +194,13 @@ CONTAINS
 
     nbins=npe
 
-    CALL heap_new (bin_heap_count, nbins, heap_error)
-    CALL cp_assert (.NOT. heap_error, cp_fatal_level, cp_internal_error, &
-         routineN, "Error creating heap.")
+    CALL heap_new (bin_heap_count, nbins)
     CALL heap_fill (bin_heap_count, &
          (/(bin, bin=1, nbins)/), workload_count , heap_error)
     CALL cp_assert (.NOT. heap_error, cp_fatal_level, cp_internal_error, &
          routineN, "Error initially filling the heap.")
 
-    CALL heap_new (bin_heap_fill, nbins, heap_error)
-    CALL cp_assert (.NOT. heap_error, cp_fatal_level, cp_internal_error, &
-         routineN, "Error creating heap.")
+    CALL heap_new (bin_heap_fill, nbins)
     CALL heap_fill (bin_heap_fill, &
          (/(bin, bin=1, nbins)/), workload_fill , heap_error)
     CALL cp_assert (.NOT. heap_error, cp_fatal_level, cp_internal_error, &
@@ -328,12 +324,8 @@ CONTAINS
     CALL cp_assert (ALL(workload_fill.EQ.workload_count), cp_fatal_level, cp_internal_error, &
               routineN, "Inconsistent heaps encountered")
 
-    CALL heap_release (bin_heap_count, heap_error)
-    CALL cp_assert (.NOT. heap_error, cp_warning_level, cp_internal_error, &
-         routineN, "Error releasing heap.")
-    CALL heap_release (bin_heap_fill, heap_error)
-    CALL cp_assert (.NOT. heap_error, cp_warning_level, cp_internal_error, &
-         routineN, "Error releasing heap.")
+    CALL heap_release (bin_heap_count)
+    CALL heap_release (bin_heap_fill)
 
 !   *** Create the local molecule structure ***
 
@@ -473,42 +465,27 @@ CONTAINS
          CALL m_flush(iw)
          CALL mp_sync(group)
       END DO
-      DEALLOCATE (work, STAT=istat)
-      IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, "work")
+      DEALLOCATE (work)
 
       CALL cp_print_key_finished_output(output_unit, logger, force_env_section, &
            "PRINT%DISTRIBUTION1D")
    END IF
 !   *** Release work storage ***
 
-    DEALLOCATE (workload_count, STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                     "workload")
+    DEALLOCATE (workload_count)
 
-    DEALLOCATE (workload_fill, STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                     "workload_old")
+    DEALLOCATE (workload_fill)
 
-    DEALLOCATE (nmolecule_local, STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                     "nmolecule_local")
+    DEALLOCATE (nmolecule_local)
 
-    DEALLOCATE (nparticle_local, STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                     "nparticle_local")
+    DEALLOCATE (nparticle_local)
 
     DO imolecule_kind=1, nmolecule_kind
       IF (ASSOCIATED(local_molecule(imolecule_kind)%array)) THEN
-        DEALLOCATE (local_molecule(imolecule_kind)%array, STAT=istat)
-        IF (istat /= 0) THEN
-          CALL stop_memory(routineN, moduleN, __LINE__, &
-                           "local_molecule(imolecule_kind)%array")
-        END IF
+        DEALLOCATE (local_molecule(imolecule_kind)%array)
       END IF
     END DO
-    DEALLOCATE (local_molecule, STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                     "local_molecule")
+    DEALLOCATE (local_molecule)
 
     CALL timestop(handle)
 
@@ -799,18 +776,10 @@ CONTAINS
        ENDIF
 
        ! cleanup
-       DEALLOCATE (cluster_list, stat=istat)
-       IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-            "cluster_list", nclusters*int_size)
-       DEALLOCATE (cluster_prices, stat=istat)
-       IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-            "cluster_prices", nclusters*int_size)
-       DEALLOCATE (cluster_row_distribution, stat=istat)
-       IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-            "cluster_prices", nclusters*int_size)
-       DEALLOCATE (cluster_col_distribution, stat=istat)
-       IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-            "cluster_prices", nclusters*int_size)
+       DEALLOCATE (cluster_list)
+       DEALLOCATE (cluster_prices)
+       DEALLOCATE (cluster_row_distribution)
+       DEALLOCATE (cluster_col_distribution)
 
     ELSE
        ! expects nothing else
@@ -903,10 +872,7 @@ CONTAINS
          CALL m_flush(output_unit)
       END IF
 
-      DEALLOCATE (work, STAT=istat)
-      IF (istat /= 0) THEN
-        CALL stop_memory(routineN, moduleN, __LINE__, "work")
-      END IF
+      DEALLOCATE (work)
 
 !     *** Print column distribution ***
 
@@ -932,10 +898,7 @@ CONTAINS
          CALL m_flush(output_unit)
       END IF
 
-      DEALLOCATE (work, STAT=istat)
-      IF (istat /= 0) THEN
-        CALL stop_memory(routineN, moduleN, __LINE__, "work")
-      END IF
+      DEALLOCATE (work)
 
       CALL cp_print_key_finished_output(output_unit, logger, force_env_section, &
            "PRINT%DISTRIBUTION")
@@ -954,13 +917,9 @@ CONTAINS
 
 !   *** Release work storage ***
 
-    DEALLOCATE (nparticle_local_row, STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                     "nparticle_local_row")
+    DEALLOCATE (nparticle_local_row)
 
-    DEALLOCATE (nparticle_local_col, STAT=istat)
-    IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                     "nparticle_local_col")
+    DEALLOCATE (nparticle_local_col)
 
     CALL timestop(handle)
 
@@ -999,9 +958,7 @@ CONTAINS
     nbins = lcm (nprows, npcols)
     pgrid_gcd = gcd (nprows, npcols)
     CALL sort (cluster_prices, SIZE(cluster_list), cluster_list)
-    CALL heap_new (bin_heap, nbins, heap_error)
-    CALL cp_assert (.NOT. heap_error, cp_fatal_level, cp_internal_error, &
-         routineN, "Error creating heap.")
+    CALL heap_new (bin_heap, nbins)
     CALL heap_fill (bin_heap, &
          (/(bin, bin=0, nbins-1)/), (/(0, bin=1, nbins)/), heap_error)
     CALL cp_assert (.NOT. heap_error, cp_fatal_level, cp_internal_error, &
@@ -1035,9 +992,7 @@ CONTAINS
        CALL cp_assert (.NOT. heap_error, cp_warning_level, cp_internal_error, &
             routineN, "Error setting price of top heap element.")
     ENDDO
-    CALL heap_release (bin_heap, heap_error)
-    CALL cp_assert (.NOT. heap_error, cp_warning_level, cp_internal_error, &
-         routineN, "Error releasing heap.")
+    CALL heap_release (bin_heap)
     CALL timestop (timing_handle)
   END SUBROUTINE make_basic_distribution
 
