@@ -912,15 +912,16 @@ MODULE mp2_ri_gpw
       comm_L, dir, group_size, handle, handle2, handle3, i, i_bf, i_counter, &
       i_counter_diff_bf, i_counter_diff_bf_at_any_atom, i_counter_diff_sets, &
       i_global, iatom, igrid_level, igroup, iiB, ikind, info_chol, inode, &
-      ipgf, iproc, iset, istat, itmp(2), j, j_global, j_ref_atom, j_ref_bf, &
+      ipgf, iproc, iset, itmp(2), j, j_global, j_ref_atom, j_ref_bf, &
       j_ref_kind, j_ref_set, jatom, jjB, jkind, jset, lb(3), LLL, &
       location(3), m, my_group_L_q_end, my_group_L_q_size, &
       my_group_L_q_start, my_group_pot_end, my_group_pot_size, &
-      my_group_pot_start, na1, na2, natom, ncoa, ncoa_a, ncoa_b, ncol_local
-    INTEGER :: nkind, nrow_local, nseta, nsetb, nsgf, offset, offsetb, &
-      proc_receive, proc_receive_static, proc_send, proc_send_static, &
-      proc_shift, rec_L_end, rec_L_size, rec_L_start, sgfa, sgfb, stat, &
-      strat_group_size, sub_sub_color, tp(3), ub(3)
+      my_group_pot_start, na1, na2, natom, ncoa, ncoa_a, ncoa_b, ncol_local, &
+      nkind
+    INTEGER :: nrow_local, nseta, nsetb, nsgf, offset, offsetb, proc_receive, &
+      proc_receive_static, proc_send, proc_send_static, proc_shift, &
+      rec_L_end, rec_L_size, rec_L_start, sgfa, sgfb, strat_group_size, &
+      sub_sub_color, tp(3), ub(3)
     INTEGER, ALLOCATABLE, DIMENSION(:) :: diffbf_atom_arbitr_atom, &
       diffbf_noinbas, diffbfatanyatom_noinbas, ends_array_pot, kind_of, &
       proc_map, sizes_array_pot, starts_array_pot, sub_ends_array, &
@@ -1737,15 +1738,12 @@ MODULE mp2_ri_gpw
                sgfb = first_sgfb(1,jset)
   
   
-               ALLOCATE(I_tmp(ncoa_a,nsgfb(jset)),STAT=istat)
-               CPASSERT(stat==0)
-               ALLOCATE(I_tmp2(nsgfa(iset),nsgfb(jset)),STAT=istat)
-               CPASSERT(stat==0)
+               ALLOCATE(I_tmp(ncoa_a,nsgfb(jset)))
+               ALLOCATE(I_tmp2(nsgfa(iset),nsgfb(jset)))
   
                ALLOCATE(f(0:la_max(iset)+lb_max(jset)+2),&
                         v(ncoa_a,ncoa_b,la_max(iset)+lb_max(jset)+1),&
-                        vac(ncoa_a,ncoa_b),STAT=istat)
-               CPASSERT(stat==0)
+                        vac(ncoa_a,ncoa_b))
                f=0.0_dp
                v=0.0_dp
                vac=0.0_dp
@@ -1824,7 +1822,7 @@ MODULE mp2_ri_gpw
                END DO  
   
   
-               DEALLOCATE(f,v,vac,I_tmp,I_tmp2,STAT=istat)
+               DEALLOCATE(f,v,vac,I_tmp,I_tmp2)
             
              END IF !parallelization
   
@@ -2526,8 +2524,8 @@ MODULE mp2_ri_gpw
     INTEGER :: pos_integ_group, proc_receive, proc_send, proc_shift, &
       rec_B_size, rec_B_virtual_end, rec_B_virtual_start, rec_L_size, &
       send_B_size, send_B_virtual_end, send_B_virtual_start, send_block_size, &
-      send_i, send_ij_index, send_j, start_point, stat, sub_P_color, &
-      sub_sub_color, total_ij_pairs, virtual, virtual_beta
+      send_i, send_ij_index, send_j, start_point, sub_P_color, sub_sub_color, &
+      total_ij_pairs, virtual, virtual_beta
     INTEGER, ALLOCATABLE, DIMENSION(:) :: integ_group_pos2color_sub, &
       new_sizes_array, num_ij_pairs, proc_map, proc_map_rep, &
       sizes_array_orig, sub_proc_map
@@ -3095,7 +3093,6 @@ MODULE mp2_ri_gpw
       ! Deallocate additional integrals: alpha_beta case with forces
       IF (ALLOCATED(local_ba)) THEN
          DEALLOCATE(local_ba)
-         CPASSERT(stat==0)
       ENDIF
 
       ! here we check if there are almost degenerate ij
@@ -3194,7 +3191,6 @@ MODULE mp2_ri_gpw
       ! sum Gamma and dereplicate 
       ALLOCATE(BIb_C(homo,my_B_size,my_group_L_size))
       IF (my_alpha_beta_case) ALLOCATE(BIb_C_beta(homo_beta,my_B_size_beta,my_group_L_size))
-      CPASSERT(stat==0)
       DO proc_shift=1, para_env_rep%num_pe-1
         ! invert order
         proc_send=proc_map_rep(para_env_rep%mepos-proc_shift)
