@@ -205,14 +205,15 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))) || (1 < (LIBXSMM_ACC_ALIGNED_STORES))
     LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_RESULT_SIZE], LIBXSMM_ACC_ALIGNED_MAX);
 #endif
-    U kc = stack[s+5], nextc = kc, i = s;
+    U kc = stack[s+LIBXSMM_ACC_PARAM_C], i = s;
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
     const int end = s + std::min(static_cast<int>((LIBXSMM_ACC_NLOCAL) * N), nstacksize - s);
     do
 #endif
     {
-      const U m = stack[i+0], n = stack[i+1], ldc = LIBXSMM_ACC_ALIGN_VALUE(m, sizeof(T), LIBXSMM_ACC_ALIGNED_STORES);
-      const T *pa = a + stack[i+3] - 1, *pb = b + stack[i+4] - 1;
+      const U m = stack[i+LIBXSMM_ACC_PARAM_M], n = stack[i+LIBXSMM_ACC_PARAM_N];
+      const T *pa = a + stack[i+LIBXSMM_ACC_PARAM_A] - 1, *pb = b + stack[i+LIBXSMM_ACC_PARAM_B] - 1;
+      const U ldc = LIBXSMM_ACC_ALIGN_VALUE(m, sizeof(T), LIBXSMM_ACC_ALIGNED_STORES);
       T *const pc = c + kc - 1;
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))) || (1 < (LIBXSMM_ACC_ALIGNED_STORES))
       smm.zero_c(tmp, ldc * n);
@@ -223,25 +224,26 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
       for (;;)
 #endif
       {
-        const U k = stack[i+2], nexti = i + N;
+        const U k = stack[i+LIBXSMM_ACC_PARAM_K];
         const T *const ka = pa, *const kb = pb;
+        i += N; // next
 
-        if (nexti < nstacksize) {
-          pa = a + stack[nexti+3] - 1;
-          pb = b + stack[nexti+4] - 1;
-          nextc = stack[nexti+5];
+        if (i < nstacksize) {
+          pa = a + stack[i+LIBXSMM_ACC_PARAM_A] - 1;
+          pb = b + stack[i+LIBXSMM_ACC_PARAM_B] - 1;
+          const U nextc = stack[i+LIBXSMM_ACC_PARAM_C];
           smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
-          i = nexti;
-          if (nextc != kc || end <= nexti) {
+          if (nextc != kc || end <= i) {
+            kc = nextc;
             break;
           }
 #endif
         }
         else {
+          LIBXSMM_ACC_ASSERT(ka == pa && kb == pb);
           smm(m, n, k, ldc, ka, kb, tmp LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
-          i = nexti;
           break;
 #endif
         }
@@ -250,7 +252,6 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))) || (1 < (LIBXSMM_ACC_ALIGNED_STORES))
       smm.copy_c(tmp, pc, m, n, ldc);
 #endif
-      kc = nextc;
     }
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
     while(i < end);

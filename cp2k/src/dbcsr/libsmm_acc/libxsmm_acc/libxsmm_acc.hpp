@@ -166,6 +166,11 @@ struct libxsmm_acc_stackdesc_type {
   libxsmm_acc_bool_type defined_mnk;
 };
 
+enum libxsmm_acc_param_type {
+  LIBXSMM_ACC_PARAM_M = 0, LIBXSMM_ACC_PARAM_N = 1, LIBXSMM_ACC_PARAM_K = 2,
+  LIBXSMM_ACC_PARAM_A = 3, LIBXSMM_ACC_PARAM_B = 4, LIBXSMM_ACC_PARAM_C = 5
+};
+
 enum libxsmm_acc_elem_type {
   LIBXSMM_ACC_ELEM_UNKNOWN = 0,
   LIBXSMM_ACC_ELEM_F32 = 1, LIBXSMM_ACC_ELEM_F64 = 3,
