@@ -14,6 +14,9 @@
 # include <libxstream_begin.h>
 #endif
 #include <cstdlib>
+#if defined(__MKL) || defined(MKL_DIRECT_CALL_SEQ) || defined(MKL_DIRECT_CALL)
+# include <mkl_service.h>
+#endif
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # include <libxstream_end.h>
 #endif
@@ -83,6 +86,10 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
     : true;
 #else
     : false;
+#endif
+
+#if defined(MKL_ENABLE_AVX512_MIC)
+  mkl_enable_instructions(MKL_ENABLE_AVX512_MIC);
 #endif
 
   if (reconfigure) {
