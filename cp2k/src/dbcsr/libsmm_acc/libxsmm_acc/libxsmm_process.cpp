@@ -205,10 +205,13 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))) || (1 < (LIBXSMM_ACC_ALIGNED_STORES))
     LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_RESULT_SIZE], LIBXSMM_ACC_ALIGNED_MAX);
 #endif
-    U current[LIBXSMM_ACC_PARAM_COUNT], next[LIBXSMM_ACC_PARAM_COUNT], *pcur = current, *pnxt = next, i = s;
-    for (U j = 0; j < LIBXSMM_ACC_PARAM_COUNT; ++j) current[j] = stack[i+j];
+    LIBXSMM_ACC_ALIGNED(T current[LIBXSMM_ACC_PARAM_COUNT], LIBXSMM_ACC_ALIGNED_MAX);
+    LIBXSMM_ACC_ALIGNED(T next[LIBXSMM_ACC_PARAM_COUNT], LIBXSMM_ACC_ALIGNED_MAX);
+    LIBXSMM_ACC_ASSUME_ALIGNED(current, LIBXSMM_ACC_ALIGNED_MAX);
+    for (U j = 0; j < LIBXSMM_ACC_PARAM_COUNT; ++j) current[j] = stack[s+j];
+    U *pcur = current, *pnxt = next, i = s;
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
-    const int end = i + std::min(static_cast<int>((LIBXSMM_ACC_NLOCAL) * N), nstacksize - i);
+    const int end = s + std::min(static_cast<int>((LIBXSMM_ACC_NLOCAL) * N), nstacksize - s);
     do
 #endif
     {
@@ -226,6 +229,7 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
         i += N; // next
 
         if (i < nstacksize) {
+          LIBXSMM_ACC_ASSUME_ALIGNED(pnxt, LIBXSMM_ACC_ALIGNED_MAX);
           for (U j = 0; j < LIBXSMM_ACC_PARAM_COUNT; ++j) pnxt[j] = stack[i+j];
           smm(pcur[LIBXSMM_ACC_PARAM_M], pcur[LIBXSMM_ACC_PARAM_N], pcur[LIBXSMM_ACC_PARAM_K], ldc,
             a + pcur[LIBXSMM_ACC_PARAM_A] - 1, b + pcur[LIBXSMM_ACC_PARAM_B] - 1, tmp
