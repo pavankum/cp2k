@@ -31,14 +31,63 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 
 #include "generator_common.h"
 
 static char libxsmm_global_error_message[512];
 
+int libxsmm_snprintf(char* io_str, const int i_size, const char* i_format, ... ) {
+  int l_return;
+
+  /* add format string checkes? */
+  /* @TODO */  
+
+  /* check for null termination and length and i_format */
+  int l_found_term = 0;
+  int l_i;
+  for ( l_i = 0; l_i < i_size; l_i++ ) {
+    if ( i_format[l_i] == '\0' ) {
+      l_found_term = 1;
+    }
+  }
+  if ( (l_found_term == 0) || (l_i > i_size) ) {
+    fprintf( stderr, "LIBXSMM FATAL ERROR: libxsmm_snprintf format has no null termination or is longer than input size!\n" );
+    exit(-1);
+  }
+
+  va_list args;
+  va_start(args, i_format);
+  l_return = vsprintf( io_str, i_format, args );
+  va_end(args);
+
+  /* this shouldn't happen, but if it does, we stop executing libxsmm */
+  if ( (l_return > i_size) || (l_return < 0) ) {
+    fprintf( stderr, "LIBXSMM FATAL ERROR: libxsmm_snprintf generated a buffer overflow or other error!\n" );
+    exit(-1);
+  }
+
+  return l_return;
+}
+
+void libxsmm_strncpy( char*                  o_dest,
+                      const char*            i_src,
+                      const int              i_dest_length,
+                      const int              i_src_length ) {
+  if ( i_dest_length < i_src_length ) {
+    fprintf( stderr, "LIBXSMM FATAL ERROR: libxsmm_strncpy destination buffer is too small!\n" );
+    exit(-1);
+  }
+
+  /* @TODO check for aliasing? */
+
+  strcpy( o_dest, i_src );
+}
+
 void libxsmm_append_code_as_string( libxsmm_generated_code* io_generated_code, 
-                                    const char*             i_code_to_append ) {
+                                    const char*             i_code_to_append,
+                                    const int               i_append_length ) {
   size_t l_length_1 = 0;
   size_t l_length_2 = 0;
   char* l_new_string = NULL;
@@ -52,13 +101,13 @@ void libxsmm_append_code_as_string( libxsmm_generated_code* io_generated_code,
 
   /* some safety checks */
   if (current_code != NULL) {
-    l_length_1 = strlen(current_code);
+    l_length_1 = io_generated_code->code_size;
   } else {
     /* nothing to do */
     l_length_1 = 0;
   }
   if (i_code_to_append != NULL) {
-    l_length_2 = strlen(i_code_to_append);
+    l_length_2 = i_append_length;
   } else {
     fprintf(stderr, "LIBXSMM WARNING libxsmm_append_code_as_string was called with an empty string for appending code" );
   }
@@ -72,12 +121,14 @@ void libxsmm_append_code_as_string( libxsmm_generated_code* io_generated_code,
 
   /* copy old content */
   if (l_length_1 > 0) {
-    strcpy(l_new_string, current_code);
+    /* @TODO using memcpy instead? */
+    libxsmm_strncpy( l_new_string, current_code, l_length_1+l_length_2, l_length_1 );
   } else {
     l_new_string[0] = '\0';
   }
 
   /* append new string */
+  /* @TODO using memcpy instead? */
   strcat(l_new_string, i_code_to_append);
 
   /* free old memory and overwrite pointer */
@@ -94,8 +145,13 @@ void libxsmm_append_code_as_string( libxsmm_generated_code* io_generated_code,
 void libxsmm_close_function( libxsmm_generated_code* io_generated_code ) {
   if ( io_generated_code->code_type != 0 )
     return;
+  
+  char l_new_code[512];
+  int l_max_code_length = 511;
+  int l_code_length = 0;
 
-  libxsmm_append_code_as_string(io_generated_code, "}\n\n");
+  l_code_length = libxsmm_snprintf( l_new_code, l_max_code_length, "}\n\n" );
+  libxsmm_append_code_as_string(io_generated_code, l_new_code, l_code_length );
 }
 
 unsigned int libxsmm_check_x86_gp_reg_name_callee_save( const unsigned int i_gp_reg_number ) {
@@ -112,55 +168,56 @@ unsigned int libxsmm_check_x86_gp_reg_name_callee_save( const unsigned int i_gp_
 }
 
 void libxsmm_get_x86_gp_reg_name( const unsigned int i_gp_reg_number,
-                                  char*              o_gp_reg_name ) {
+                                  char*              o_gp_reg_name,
+                                  const int          i_gp_reg_name_max_length ) {
   switch (i_gp_reg_number) {
     case LIBXSMM_X86_GP_REG_RAX: 
-      strcpy(o_gp_reg_name, "rax");
+      libxsmm_strncpy(o_gp_reg_name, "rax", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_RCX:
-      strcpy(o_gp_reg_name, "rcx");
+      libxsmm_strncpy(o_gp_reg_name, "rcx", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_RDX:
-      strcpy(o_gp_reg_name, "rdx");
+      libxsmm_strncpy(o_gp_reg_name, "rdx", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_RBX:
-      strcpy(o_gp_reg_name, "rbx");
+      libxsmm_strncpy(o_gp_reg_name, "rbx", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_RSP: 
-      strcpy(o_gp_reg_name, "rsp");
+      libxsmm_strncpy(o_gp_reg_name, "rsp", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_RBP:
-      strcpy(o_gp_reg_name, "rbp");
+      libxsmm_strncpy(o_gp_reg_name, "rbp", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_RSI:
-      strcpy(o_gp_reg_name, "rsi");
+      libxsmm_strncpy(o_gp_reg_name, "rsi", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_RDI:
-      strcpy(o_gp_reg_name, "rdi");
+      libxsmm_strncpy(o_gp_reg_name, "rdi", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_R8: 
-      strcpy(o_gp_reg_name, "r8");
+      libxsmm_strncpy(o_gp_reg_name, "r8", i_gp_reg_name_max_length, 2 );
       break;
     case LIBXSMM_X86_GP_REG_R9:
-      strcpy(o_gp_reg_name, "r9");
+      libxsmm_strncpy(o_gp_reg_name, "r9", i_gp_reg_name_max_length, 2 );
       break;
     case LIBXSMM_X86_GP_REG_R10:
-      strcpy(o_gp_reg_name, "r10");
+      libxsmm_strncpy(o_gp_reg_name, "r10", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_R11:
-      strcpy(o_gp_reg_name, "r11");
+      libxsmm_strncpy(o_gp_reg_name, "r11", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_R12: 
-      strcpy(o_gp_reg_name, "r12");
+      libxsmm_strncpy(o_gp_reg_name, "r12", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_R13:
-      strcpy(o_gp_reg_name, "r13");
+      libxsmm_strncpy(o_gp_reg_name, "r13", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_R14:
-      strcpy(o_gp_reg_name, "r14");
+      libxsmm_strncpy(o_gp_reg_name, "r14", i_gp_reg_name_max_length, 3 );
       break;
     case LIBXSMM_X86_GP_REG_R15:
-      strcpy(o_gp_reg_name, "r15");
+      libxsmm_strncpy(o_gp_reg_name, "r15", i_gp_reg_name_max_length, 3 );
       break;
     default:
       fprintf(stderr, " LIBXSMM ERROR: libxsmm_get_x86_64_gp_req_name i_gp_reg_number is out of range!\n");
@@ -169,205 +226,206 @@ void libxsmm_get_x86_gp_reg_name( const unsigned int i_gp_reg_number,
 }
 
 void libxsmm_get_x86_instr_name( const unsigned int i_instr_number,
-                                 char*              o_instr_name ) {
+                                 char*              o_instr_name,
+                                 const int          i_instr_name_max_length ) {
   switch (i_instr_number) {
     /* AVX vector moves */
     case LIBXSMM_X86_INSTR_VMOVAPD:
-      strcpy(o_instr_name, "vmovapd");
+      libxsmm_strncpy(o_instr_name, "vmovapd", i_instr_name_max_length, 7 );
       break;
     case LIBXSMM_X86_INSTR_VMOVUPD:
-      strcpy(o_instr_name, "vmovupd");
+      libxsmm_strncpy(o_instr_name, "vmovupd", i_instr_name_max_length, 7 );
       break;
     case LIBXSMM_X86_INSTR_VMOVAPS:
-      strcpy(o_instr_name, "vmovaps");
+      libxsmm_strncpy(o_instr_name, "vmovaps", i_instr_name_max_length, 7 );
       break;
     case LIBXSMM_X86_INSTR_VMOVUPS:
-      strcpy(o_instr_name, "vmovups");
+      libxsmm_strncpy(o_instr_name, "vmovups", i_instr_name_max_length, 7 );
       break;
     case LIBXSMM_X86_INSTR_VBROADCASTSD:
-      strcpy(o_instr_name, "vbroadcastsd");
+      libxsmm_strncpy(o_instr_name, "vbroadcastsd", i_instr_name_max_length, 12 );
       break;
     case LIBXSMM_X86_INSTR_VBROADCASTSS:
-      strcpy(o_instr_name, "vbroadcastss");
+      libxsmm_strncpy(o_instr_name, "vbroadcastss", i_instr_name_max_length, 12 );
       break;
     case LIBXSMM_X86_INSTR_VMOVDDUP:
-      strcpy(o_instr_name, "vmovddup");
+      libxsmm_strncpy(o_instr_name, "vmovddup", i_instr_name_max_length, 8 );
       break;
     case LIBXSMM_X86_INSTR_VMOVSD:
-      strcpy(o_instr_name, "vmovsd");
+      libxsmm_strncpy(o_instr_name, "vmovsd", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VMOVSS:
-      strcpy(o_instr_name, "vmovss");
+      libxsmm_strncpy(o_instr_name, "vmovss", i_instr_name_max_length, 6 );
       break;
     /* SSE vector moves */
     case LIBXSMM_X86_INSTR_MOVAPD:
-      strcpy(o_instr_name, "movapd");
+      libxsmm_strncpy(o_instr_name, "movapd", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_MOVUPD:
-      strcpy(o_instr_name, "movupd");
+      libxsmm_strncpy(o_instr_name, "movupd", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_MOVAPS:
-      strcpy(o_instr_name, "movaps");
+      libxsmm_strncpy(o_instr_name, "movaps", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_MOVUPS:
-      strcpy(o_instr_name, "movups");
+      libxsmm_strncpy(o_instr_name, "movups", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_MOVDDUP:
-      strcpy(o_instr_name, "movddup");
+      libxsmm_strncpy(o_instr_name, "movddup", i_instr_name_max_length, 7 );
       break;
     case LIBXSMM_X86_INSTR_MOVSD:
-      strcpy(o_instr_name, "movsd");
+      libxsmm_strncpy(o_instr_name, "movsd", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_MOVSS:
-      strcpy(o_instr_name, "movss");
+      libxsmm_strncpy(o_instr_name, "movss", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_SHUFPS:
-      strcpy(o_instr_name, "shufps");
+      libxsmm_strncpy(o_instr_name, "shufps", i_instr_name_max_length, 6 );
       break;
     /* IMCI special */
     case LIBXSMM_X86_INSTR_VLOADUNPACKLPD:
-      strcpy(o_instr_name, "vloadunpacklpd");
+      libxsmm_strncpy(o_instr_name, "vloadunpacklpd", i_instr_name_max_length, 14 );
       break;
     case LIBXSMM_X86_INSTR_VLOADUNPACKHPD:
-      strcpy(o_instr_name, "vloadunpackhpd");
+      libxsmm_strncpy(o_instr_name, "vloadunpackhpd", i_instr_name_max_length, 14 );
       break;
     case LIBXSMM_X86_INSTR_VLOADUNPACKLPS:
-      strcpy(o_instr_name, "vloadunpacklps");
+      libxsmm_strncpy(o_instr_name, "vloadunpacklps", i_instr_name_max_length, 14 );
       break;
     case LIBXSMM_X86_INSTR_VLOADUNPACKHPS:
-      strcpy(o_instr_name, "vloadunpackhps");
+      libxsmm_strncpy(o_instr_name, "vloadunpackhps", i_instr_name_max_length, 14 );
       break;
     case LIBXSMM_X86_INSTR_VPACKSTORELPD:
-      strcpy(o_instr_name, "vpackstorelpd");
+      libxsmm_strncpy(o_instr_name, "vpackstorelpd", i_instr_name_max_length, 13 );
       break;
     case LIBXSMM_X86_INSTR_VPACKSTOREHPD:
-      strcpy(o_instr_name, "vpackstorehpd");
+      libxsmm_strncpy(o_instr_name, "vpackstorehpd", i_instr_name_max_length, 13 );
       break;
     case LIBXSMM_X86_INSTR_VPACKSTORELPS:
-      strcpy(o_instr_name, "vpackstorelps");
+      libxsmm_strncpy(o_instr_name, "vpackstorelps", i_instr_name_max_length, 13 );
       break;
     case LIBXSMM_X86_INSTR_VPACKSTOREHPS:
-      strcpy(o_instr_name, "vpackstorehps");
+      libxsmm_strncpy(o_instr_name, "vpackstorehps", i_instr_name_max_length, 13 );
       break;
     case LIBXSMM_X86_INSTR_VPREFETCH1:
-      strcpy(o_instr_name, "vprefetch1");
+      libxsmm_strncpy(o_instr_name, "vprefetch1", i_instr_name_max_length, 10 );
       break;
     case LIBXSMM_X86_INSTR_VPREFETCH0:
-      strcpy(o_instr_name, "vprefetch0");
+      libxsmm_strncpy(o_instr_name, "vprefetch0", i_instr_name_max_length, 10 );
       break;
     /* AVX double precision */
     case LIBXSMM_X86_INSTR_VXORPD:
-      strcpy(o_instr_name, "vxorpd");
+      libxsmm_strncpy(o_instr_name, "vxorpd", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VMULPD:
-      strcpy(o_instr_name, "vmulpd");
+      libxsmm_strncpy(o_instr_name, "vmulpd", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VADDPD:
-      strcpy(o_instr_name, "vaddpd");
+      libxsmm_strncpy(o_instr_name, "vaddpd", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VFMADD231PD:
-      strcpy(o_instr_name, "vfmadd231pd");
+      libxsmm_strncpy(o_instr_name, "vfmadd231pd", i_instr_name_max_length, 11 );
       break;
     case LIBXSMM_X86_INSTR_VMULSD:
-      strcpy(o_instr_name, "vmulsd");
+      libxsmm_strncpy(o_instr_name, "vmulsd", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VADDSD:
-      strcpy(o_instr_name, "vaddsd");
+      libxsmm_strncpy(o_instr_name, "vaddsd", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VFMADD231SD:
-      strcpy(o_instr_name, "vfmadd231sd");
+      libxsmm_strncpy(o_instr_name, "vfmadd231sd", i_instr_name_max_length, 11 );
       break;
     /* AVX single precision */
     case LIBXSMM_X86_INSTR_VXORPS:
-      strcpy(o_instr_name, "vxorps");
+      libxsmm_strncpy(o_instr_name, "vxorps", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VMULPS:
-      strcpy(o_instr_name, "vmulps");
+      libxsmm_strncpy(o_instr_name, "vmulps", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VADDPS:
-      strcpy(o_instr_name, "vaddps");
+      libxsmm_strncpy(o_instr_name, "vaddps", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VFMADD231PS:
-      strcpy(o_instr_name, "vfmadd231ps");
+      libxsmm_strncpy(o_instr_name, "vfmadd231ps", i_instr_name_max_length, 11 );
       break;
     case LIBXSMM_X86_INSTR_VMULSS:
-      strcpy(o_instr_name, "vmulss");
+      libxsmm_strncpy(o_instr_name, "vmulss", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VADDSS:
-      strcpy(o_instr_name, "vaddss");
+      libxsmm_strncpy(o_instr_name, "vaddss", i_instr_name_max_length, 6 );
       break;
     case LIBXSMM_X86_INSTR_VFMADD231SS:
-      strcpy(o_instr_name, "vfmadd231ss");
+      libxsmm_strncpy(o_instr_name, "vfmadd231ss", i_instr_name_max_length, 11 );
       break;
     /* SSE double precision */
     case LIBXSMM_X86_INSTR_XORPD:
-      strcpy(o_instr_name, "xorpd");
+      libxsmm_strncpy(o_instr_name, "xorpd", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_MULPD:
-      strcpy(o_instr_name, "mulpd");
+      libxsmm_strncpy(o_instr_name, "mulpd", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_ADDPD:
-      strcpy(o_instr_name, "addpd");
+      libxsmm_strncpy(o_instr_name, "addpd", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_MULSD:
-      strcpy(o_instr_name, "mulsd");
+      libxsmm_strncpy(o_instr_name, "mulsd", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_ADDSD:
-      strcpy(o_instr_name, "addsd");
+      libxsmm_strncpy(o_instr_name, "addsd", i_instr_name_max_length, 5 );
       break;
     /* SSE single precision */
     case LIBXSMM_X86_INSTR_XORPS:
-      strcpy(o_instr_name, "xorps");
+      libxsmm_strncpy(o_instr_name, "xorps", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_MULPS:
-      strcpy(o_instr_name, "mulps");
+      libxsmm_strncpy(o_instr_name, "mulps", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_ADDPS:
-      strcpy(o_instr_name, "addps");
+      libxsmm_strncpy(o_instr_name, "addps", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_MULSS:
-      strcpy(o_instr_name, "mulss");
+      libxsmm_strncpy(o_instr_name, "mulss", i_instr_name_max_length, 5 );
       break;
     case LIBXSMM_X86_INSTR_ADDSS:
-      strcpy(o_instr_name, "addss");
+      libxsmm_strncpy(o_instr_name, "addss", i_instr_name_max_length, 5 );
       break;
     /* XOR AVX512,IMCI */
     case LIBXSMM_X86_INSTR_VPXORD:
-      strcpy(o_instr_name, "vpxord");
+      libxsmm_strncpy(o_instr_name, "vpxord", i_instr_name_max_length, 6 );
       break;
     /* GP instructions */
     case LIBXSMM_X86_INSTR_ADDQ:
-      strcpy(o_instr_name, "addq");
+      libxsmm_strncpy(o_instr_name, "addq", i_instr_name_max_length, 4 );
       break;
     case LIBXSMM_X86_INSTR_SUBQ:
-      strcpy(o_instr_name, "subq");
+      libxsmm_strncpy(o_instr_name, "subq", i_instr_name_max_length, 4 );
       break;
     case LIBXSMM_X86_INSTR_MOVQ:
-      strcpy(o_instr_name, "movq");
+      libxsmm_strncpy(o_instr_name, "movq", i_instr_name_max_length, 4 );
       break;
     case LIBXSMM_X86_INSTR_CMPQ:
-      strcpy(o_instr_name, "cmpq");
+      libxsmm_strncpy(o_instr_name, "cmpq", i_instr_name_max_length, 4 );
       break;
     case LIBXSMM_X86_INSTR_JL:
-      strcpy(o_instr_name, "jl");
+      libxsmm_strncpy(o_instr_name, "jl", i_instr_name_max_length, 2 );
       break;
     case LIBXSMM_X86_INSTR_PREFETCHT0: 
-      strcpy(o_instr_name, "prefetcht0");
+      libxsmm_strncpy(o_instr_name, "prefetcht0", i_instr_name_max_length, 10 );
       break;
     case LIBXSMM_X86_INSTR_PREFETCHT1: 
-      strcpy(o_instr_name, "prefetcht1");
+      libxsmm_strncpy(o_instr_name, "prefetcht1", i_instr_name_max_length, 10 );
       break;
     case LIBXSMM_X86_INSTR_PREFETCHT2: 
-      strcpy(o_instr_name, "prefetcht2");
+      libxsmm_strncpy(o_instr_name, "prefetcht2", i_instr_name_max_length, 10 );
       break;
     case LIBXSMM_X86_INSTR_PREFETCHNTA: 
-      strcpy(o_instr_name, "prefetchnta");
+      libxsmm_strncpy(o_instr_name, "prefetchnta", i_instr_name_max_length, 11 );
       break;
     case LIBXSMM_X86_INSTR_KMOV: 
-      strcpy(o_instr_name, "kmov");
+      libxsmm_strncpy(o_instr_name, "kmov", i_instr_name_max_length, 4 );
       break;
     case LIBXSMM_X86_INSTR_KMOVW: 
-      strcpy(o_instr_name, "kmovw");
+      libxsmm_strncpy(o_instr_name, "kmovw", i_instr_name_max_length, 5 );
       break;
     /* default, we didn't had a match */
     default:
@@ -570,30 +628,32 @@ void libxsmm_reset_loop_label_tracker( libxsmm_loop_label_tracker* io_loop_label
 void libxsmm_function_signature( libxsmm_generated_code*         io_generated_code,
                                   const char*                     i_routine_name,
                                   const libxsmm_xgemm_descriptor* i_xgemm_desc ) {
-  char l_new_code_line[512];
+  char l_new_code[512];
+  int l_max_code_length = 511;
+  int l_code_length = 0;
 
   if ( io_generated_code->code_type > 1 ) {
     return;
   } else if ( io_generated_code->code_type == 1 ) {
-    sprintf(l_new_code_line, ".global %s\n.type %s, @function\n%s:\n", i_routine_name, i_routine_name, i_routine_name);
+    l_code_length = libxsmm_snprintf(l_new_code, l_max_code_length, ".global %s\n.type %s, @function\n%s:\n", i_routine_name, i_routine_name, i_routine_name);
   } else {
     /* selecting the correct signature */
     if (i_xgemm_desc->single_precision == 1) {
       if ( strcmp(i_xgemm_desc->prefetch, "nopf") == 0) {
-        sprintf(l_new_code_line, "void %s(const float* A, const float* B, float* C) {\n", i_routine_name);
+        l_code_length = libxsmm_snprintf(l_new_code, l_max_code_length, "void %s(const float* A, const float* B, float* C) {\n", i_routine_name);
       } else {
-        sprintf(l_new_code_line, "void %s(const float* A, const float* B, float* C, const float* A_prefetch, const float* B_prefetch, const float* C_prefetch) {\n", i_routine_name);
+        l_code_length = libxsmm_snprintf(l_new_code, l_max_code_length, "void %s(const float* A, const float* B, float* C, const float* A_prefetch, const float* B_prefetch, const float* C_prefetch) {\n", i_routine_name);
       }
     } else {
       if ( strcmp(i_xgemm_desc->prefetch, "nopf") == 0) {
-        sprintf(l_new_code_line, "void %s(const double* A, const double* B, double* C) {\n", i_routine_name);
+        l_code_length = libxsmm_snprintf(l_new_code, l_max_code_length, "void %s(const double* A, const double* B, double* C) {\n", i_routine_name);
       } else {
-        sprintf(l_new_code_line, "void %s(const double* A, const double* B, double* C, const double* A_prefetch, const double* B_prefetch, const double* C_prefetch) {\n", i_routine_name);
+        l_code_length = libxsmm_snprintf(l_new_code, l_max_code_length, "void %s(const double* A, const double* B, double* C, const double* A_prefetch, const double* B_prefetch, const double* C_prefetch) {\n", i_routine_name);
       }
     }
   }
 
-  libxsmm_append_code_as_string( io_generated_code, l_new_code_line );
+  libxsmm_append_code_as_string( io_generated_code, l_new_code, l_code_length );
 }
 
 void libxsmm_handle_error( libxsmm_generated_code* io_generated_code,
@@ -605,100 +665,102 @@ void libxsmm_handle_error( libxsmm_generated_code* io_generated_code,
 }
 
 char* libxsmm_strerror( const unsigned int      i_error_code ) {
+  int l_max_error_length = 511;
+
   switch (i_error_code) {
     case LIBXSMM_ERR_GENERAL:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: a general error occured!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: a general error occured!\n" );
       break;
     case LIBXSMM_ERR_ARCH_PREC:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: unknown architecture and precision!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: unknown architecture and precision!\n" );
       break;
     case LIBXSMM_ERR_ARCH:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: unknown architecture!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: unknown architecture!\n" );
       break;
     case LIBXSMM_ERR_LDA:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: lda need to be bigger than m!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: lda need to be bigger than m!\n" );
       break;
     case LIBXSMM_ERR_LDB:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: ldb need to be bigger than k!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: ldb need to be bigger than k!\n" );
       break;
     case LIBXSMM_ERR_LDC:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: ldc need to be bigger than m!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: ldc need to be bigger than m!\n" );
       break;
     case LIBXSMM_ERR_SPARSE_GEN:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: could not determine which sparse code generation variant is requested!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: could not determine which sparse code generation variant is requested!\n" );
       break;
     case LIBXSMM_ERR_CSC_INPUT:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: could not open the specified CSC input file!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: could not open the specified CSC input file!\n" );
       break;   
     case LIBXSMM_ERR_CSC_READ_LEN:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: exceeded predefined line-length when reading line of CSC file!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: exceeded predefined line-length when reading line of CSC file!\n" );
       break;   
     case LIBXSMM_ERR_CSC_READ_DESC:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: error when reading descriptor of CSC file!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: error when reading descriptor of CSC file!\n" );
       break; 
     case LIBXSMM_ERR_CSC_READ_ELEMS:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: error when reading line of CSC file!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: error when reading line of CSC file!\n" );
       break; 
     case LIBXSMM_ERR_CSC_LEN:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: number of elements read differs from number of elements specified in CSC file!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: number of elements read differs from number of elements specified in CSC file!\n" );
       break; 
     case LIBXSMM_ERR_N_BLOCK:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: invalid N blocking in microkernel!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: invalid N blocking in microkernel!\n" );
       break; 
     case LIBXSMM_ERR_M_BLOCK:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: invalid M blocking in microkernel!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: invalid M blocking in microkernel!\n" );
       break; 
     case LIBXSMM_ERR_NO_IMCI:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: IMCI architecture requested but called for a different on!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: IMCI architecture requested but called for a different on!\n" );
       break; 
     case LIBXSMM_ERR_REG_BLOCK:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: invalid MxN register blocking was specified!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: invalid MxN register blocking was specified!\n" );
       break; 
     case LIBXSMM_ERR_VEC_MOVE_IMCI:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: invalid vec move instruction for IMCI instruction replacement!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: invalid vec move instruction for IMCI instruction replacement!\n" );
       break; 
     case LIBXSMM_ERR_APPEND_STR:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: append code as string was called for generation mode which does not support this!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: append code as string was called for generation mode which does not support this!\n" );
       break; 
     case LIBXSMM_ERR_ALLOC:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: memory allocation failed!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: memory allocation failed!\n" );
       break; 
     case LIBXSMM_ERR_NO_IMCI_AVX512_BCAST:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: fused memory broadcast is not supported on other platforms than AVX512/IMCI!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: fused memory broadcast is not supported on other platforms than AVX512/IMCI!\n" );
       break; 
     case LIBXSMM_ERR_CALLEE_SAVE_A:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: reg_a cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: reg_a cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
       break;      
     case LIBXSMM_ERR_CALLEE_SAVE_B:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: reg_b cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: reg_b cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
       break;      
     case LIBXSMM_ERR_CALLEE_SAVE_C:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: reg_c cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: reg_c cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
       break;      
     case LIBXSMM_ERR_CALLEE_SAVE_A_PREF:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: reg_a_prefetch cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: reg_a_prefetch cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
       break;      
     case LIBXSMM_ERR_CALLEE_SAVE_B_PREF:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: reg_b_prefetch cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: reg_b_prefetch cannot be callee save, since input, please use either rdi, rsi, rdx, rcx, r8, r9 for this value!\n" );
       break;
     case LIBXSMM_ERR_NO_INDEX_SCALE_ADDR:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: Index + Scale addressing mode is currently not implemented!\n");
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: Index + Scale addressing mode is currently not implemented!\n");
       break;
     case LIBXSMM_ERR_UNSUPPORTED_JUMP:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: Unsupported jump instruction requested!\n");
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: Unsupported jump instruction requested!\n");
       break;
     case LIBXSMM_ERR_NO_JMPLBL_AVAIL:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: No destination jump label is available!\n");
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: No destination jump label is available!\n");
       break;
     case LIBXSMM_ERR_EXCEED_JMPLBL:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: too many nested loop, exceed loop label tracker!\n");
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: too many nested loop, exceed loop label tracker!\n");
       break;
     case LIBXSMM_ERR_CSC_ALLOC_DATA:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: could not alloc temporay memory for reading CSC file!\n");
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: could not alloc temporay memory for reading CSC file!\n");
       break;
     /* default, we didn't don't know what happend */
     default:
-      sprintf( libxsmm_global_error_message, " LIBXSMM ERROR: an unknown error occured!\n" );
+      libxsmm_snprintf( libxsmm_global_error_message, l_max_error_length, " LIBXSMM ERROR: an unknown error occured!\n" );
       break;
   }
 

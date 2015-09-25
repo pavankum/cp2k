@@ -250,12 +250,14 @@ typedef struct libxsmm_loop_label_tracker_struct {
 void libxsmm_reset_loop_label_tracker( libxsmm_loop_label_tracker* io_loop_label_tracker );
 
 void libxsmm_get_x86_gp_reg_name( const unsigned int i_gp_reg_number,
-                                  char*              o_gp_reg_name ); 
+                                  char*              o_gp_reg_name,
+                                  const int          i_gp_reg_name_max_length ); 
 
 unsigned int libxsmm_check_x86_gp_reg_name_callee_save( const unsigned int i_gp_reg_number );
 
 void libxsmm_get_x86_instr_name( const unsigned int i_instr_number,
-                                 char*              o_instr_name ); 
+                                 char*              o_instr_name,
+                                 const int          i_instr_name_max_length );
 
 void libxsmm_reset_x86_gp_reg_mapping( libxsmm_gp_reg_mapping* io_gp_reg_mapping );
 
@@ -264,7 +266,8 @@ unsigned int libxsmm_is_x86_vec_instr_single_precision( const unsigned int i_ins
 /* some string manipulation helper needed to 
    generated code */
 void libxsmm_append_code_as_string( libxsmm_generated_code* io_generated_code, 
-                                    const char*             i_code_to_append );
+                                    const char*             i_code_to_append,
+                                    const int               i_append_length );
 
 void libxsmm_close_function( libxsmm_generated_code* io_generated_code );
 
@@ -276,5 +279,12 @@ void libxsmm_handle_error( libxsmm_generated_code* io_generated_code,
                            const unsigned int      i_error_code );
 
 char* libxsmm_strerror( const unsigned int      i_error_code );
+
+int libxsmm_snprintf(char* io_str, const int i_size, const char* i_format, ... );
+
+void libxsmm_strncpy( char*                  o_dest,
+                      const char*            i_src,
+                      const int              i_dest_length,
+                      const int              i_src_length );
 
 #endif /* GENERATOR_COMMON_H */
