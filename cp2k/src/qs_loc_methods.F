@@ -97,7 +97,6 @@ MODULE qs_loc_methods
   USE qs_subsys_types,                 ONLY: qs_subsys_get,&
                                              qs_subsys_type
   USE string_utilities,                ONLY: xstring
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "./common/cp_common_uses.f90"
@@ -231,8 +230,7 @@ CONTAINS
             eps_localization=eps_localization, iterations=sweeps)
     CASE( do_loc_l1_norm_sd )
        IF(.NOT. cell%orthorhombic ) THEN
-           CALL stop_program(routineN,moduleN,__LINE__,&
-                             "Non-orthorhombic cell with the selected method NYI")
+           CPABORT("Non-orthorhombic cell with the selected method NYI")
        ELSE
        CALL approx_l1_norm_sd(vectors,max_iter,eps_localization,converged,sweeps)
        ! here we need to set zij for the computation of the centers and spreads
@@ -250,7 +248,7 @@ CONTAINS
           WRITE(output_unit,'(A,I6,A)') " No MOS localization applied "
        ENDIF
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,"Unknown localization method")
+       CPABORT("Unknown localization method")
     END SELECT
     IF (output_unit>0) THEN
        IF(sweeps<=max_iter) WRITE(output_unit,'(T15,A,I3,A,I6,A)') " Localization  for spin ",ispin ,&
@@ -362,21 +360,15 @@ CONTAINS
     CASE ( do_loc_jacobi )
        CALL jacobi_rotation_pipek(zij_fm_set, vectors, sweeps)
     CASE ( do_loc_crazy )
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="Crazy and Pipek not implemented.", &
-            error_level=cp_failure_level)
+       CPABORT("Crazy and Pipek not implemented.")
     CASE( do_loc_l1_norm_sd )
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="L1 norm and Pipek not implemented.", &
-            error_level=cp_failure_level)
+       CPABORT("L1 norm and Pipek not implemented.")
     CASE ( do_loc_direct )
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="Direct and Pipek not implemented.", &
-            error_level=cp_failure_level)
+       CPABORT("Direct and Pipek not implemented.")
     CASE ( do_loc_none )
        IF (output_unit>0) WRITE(output_unit,'(A,I6,A)') " No MOS localization applied "
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,"Unknown localization method")
+       CPABORT("Unknown localization method")
     END SELECT
 
     IF (output_unit>0) WRITE(output_unit,'(A,I3,A,I6,A)') " Localization  for spin ",ispin ,&
@@ -715,9 +707,7 @@ CONTAINS
           END IF
 
        CASE(op_loc_boys)
-          CALL cp_unimplemented_error(fromWhere=routineP, &
-               message="Boys localization not implemented", &
-               error_level=cp_failure_level)
+          CPABORT("Boys localization not implemented")
 
        CASE(op_loc_pipek)
           CALL  optimize_loc_pipek(qs_env, loc_method, qs_loc_env, moloc_coeff(ispin)%matrix,&

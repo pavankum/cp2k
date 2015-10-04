@@ -19,7 +19,6 @@ MODULE xc_perdew_zunger
   USE input_section_types,             ONLY: section_vals_type,&
                                              section_vals_val_get
   USE kinds,                           ONLY: dp
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
   USE xc_derivative_set_types,         ONLY: xc_derivative_set_type,&
@@ -203,9 +202,7 @@ CONTAINS
        CALL xc_derivative_get(deriv,deriv_data=e_rho_rho_rho)
     END IF
     IF (order>3.OR.order<-3) THEN
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="derivatives bigger than 3 not implemented", &
-            error_level=cp_failure_level)
+       CPABORT("derivatives bigger than 3 not implemented")
     END IF
 
     CALL pz_lda_calc(rho,e_0,e_rho, e_rho_rho, e_rho_rho_rho, npoints, order, sc)
@@ -371,9 +368,7 @@ SUBROUTINE pz_lda_calc(rho,e_0,e_rho, e_rho_rho, e_rho_rho_rho, npoints, order, 
        CALL xc_derivative_get(deriv,deriv_data=ebbb)
     END IF
     IF (order>3.OR.order<-3) THEN
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="derivatives bigger than 3 not implemented", &
-            error_level=cp_failure_level)
+       CPABORT("derivatives bigger than 3 not implemented")
     END IF
 
     CALL pz_lsd_calc(a,b,e_0,ea,eaa,eab,ebb,eaaa,eaab,eabb,&
@@ -486,7 +481,7 @@ SUBROUTINE pz_lda_calc(rho,e_0,e_rho, e_rho_rho, e_rho_rho_rho, npoints, order, 
     SELECT CASE (method)
 
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,"Unknown method")
+       CPABORT("Unknown method")
 
     CASE (pz_orig)
        CALL cite_reference(Perdew1981)

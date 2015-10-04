@@ -6,7 +6,6 @@
                                              cp_logger_create,&
                                              cp_logger_release,&
                                              cp_logger_set,&
-                                             cp_log,&
                                              cp_warning_level,&
                                              cp_failure_level,&
                                              cp_fatal_level,&
@@ -27,11 +26,9 @@
                                              cp_assertion_failed,&
                                              cp_internal_error,&
                                              cp_assert,&
-                                             cp_unimplemented_error,&
                                              cp_precondition_failed,&
                                              cp_caller_error,&
                                              cp_wrong_args_error,&
-                                             cp_unimplemented_error_nr,&
                                              cp__a,cp__b,cp__w,cp__l
 
 ! Dangerous: Full path can be arbitrarily long and might overflow Fortran line.

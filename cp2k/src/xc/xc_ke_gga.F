@@ -16,7 +16,6 @@ MODULE xc_ke_gga
   USE cp_array_utils_r,                ONLY: cp_3d_r_p_type
   USE kinds,                           ONLY: dp
   USE mathconstants,                   ONLY: pi
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
   USE xc_derivative_set_types,         ONLY: xc_derivative_set_type,&
@@ -301,9 +300,7 @@ CONTAINS
             e_ndrho_ndrho_ndrho=e_ndrho_ndrho_ndrho,npoints=npoints)
     END IF
     IF ( order>3.OR.order<-3) THEN
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="derivatives bigger than 3 not implemented", &
-            error_level=cp_failure_level)
+       CPABORT("derivatives bigger than 3 not implemented")
     END IF
 
     DEALLOCATE ( s)
@@ -469,9 +466,7 @@ CONTAINS
                e_rho_ndrho_ndrho, e_ndrho_ndrho_ndrho, npoints)
        END IF
        IF ( order>3.OR.order<-3) THEN
-          CALL cp_unimplemented_error(fromWhere=routineP, &
-               message="derivatives bigger than 3 not implemented", &
-               error_level=cp_failure_level)
+          CPABORT("derivatives bigger than 3 not implemented")
        END IF
 
     END DO
@@ -726,7 +721,7 @@ CONTAINS
          fs(ip,2) = 2.0_dp*t1*s(ip) + t2
          fs(ip,3) = 2.0_dp*t1
       CASE DEFAULT
-         CALL stop_program(routineN,moduleN,__LINE__,"Illegal order.")
+         CPABORT("Illegal order.")
       END SELECT
     END DO
 
@@ -779,7 +774,7 @@ CONTAINS
          fs(ip,3) = 2.0_dp*(t1 - t2*t3*y*y*y)
          fs(ip,4) = 6.0_dp*t2*t3*t3*y*y*y*y
       CASE DEFAULT
-         CALL stop_program(routineN,moduleN,__LINE__,"Illegal order.")
+         CPABORT("Illegal order.")
       END SELECT
     END DO
 
@@ -950,7 +945,7 @@ CONTAINS
               3.0_dp*t1*t42*t47*t19+2.0_dp*t1*t45*t19/t46/t8)
 
       CASE DEFAULT
-         CALL stop_program(routineN,moduleN,__LINE__,"Illegal order.")
+         CPABORT("Illegal order.")
       END SELECT
     END DO
 
@@ -1024,7 +1019,7 @@ CONTAINS
           fs(ip,4) = f15*p15/p0*(-14.0_dp*f15*p1*p1/p0+14.0_dp*14.0_dp*f15*p1*p1*p1/p0/p0+&
                      p3-14.0_dp*p2*p1/p0+14.0_dp*p1*p1/p0/p0)
       CASE DEFAULT
-         CALL stop_program(routineN,moduleN,__LINE__,"Illegal order.")
+         CPABORT("Illegal order.")
       END SELECT
     END DO
 
@@ -1118,7 +1113,7 @@ CONTAINS
          fs(ip,4) = t0
 
       CASE DEFAULT
-         CALL stop_program(routineN,moduleN,__LINE__,"Illegal order")
+         CPABORT("Illegal order")
       END SELECT
     END DO
 
@@ -1180,7 +1175,7 @@ CONTAINS
          fs(ip,3) = -2.0_dp*mu*(3.0_dp*mk*x2-1.0_dp)*y*y*y*f0*f0
          fs(ip,4) = 24.0_dp*mu*mk*x*(mk*x2-1.0_dp)*y*y*y*y*f0*f0*f0
       CASE DEFAULT
-         CALL stop_program(routineN,moduleN,__LINE__,"Illegal order.")
+         CPABORT("Illegal order.")
       END SELECT
     END DO
 

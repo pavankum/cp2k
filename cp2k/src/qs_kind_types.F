@@ -85,7 +85,6 @@ MODULE qs_kind_types
                                              se_param_set_default
   USE soft_basis_set,                  ONLY: create_soft_basis
   USE string_utilities,                ONLY: uppercase
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "./common/cp_common_uses.f90"
@@ -276,7 +275,7 @@ CONTAINS
        END DO
        DEALLOCATE (qs_kind_set)
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
+       CALL cp_abort(__LOCATION__,&
             "The pointer qs_kind_set is not associated and "//&
             "cannot be deallocated")
     END IF
@@ -993,8 +992,7 @@ CONTAINS
 
        END DO
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "The pointer qs_kind_set is not associated")
+       CPABORT("The pointer qs_kind_set is not associated")
     END IF
 
   END SUBROUTINE get_qs_kind_set
@@ -1142,8 +1140,7 @@ CONTAINS
           qs_control%gapw_control%nopaw_as_gpw = .FALSE.
        END IF
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "The pointer qs_kind_set is not associated")
+       CPABORT("The pointer qs_kind_set is not associated")
     END IF
 
   END SUBROUTINE init_gapw_basis_set
@@ -1186,8 +1183,7 @@ CONTAINS
       DIMENSION(maxbas)                      :: basis_set_name, basis_set_type
     INTEGER                                  :: handle, i, i_rep, ipos, j, &
                                                 k_rep, l, m, n_rep, nb_rep, &
-                                                nexp, ngauss, norbitals, &
-                                                stat, z
+                                                nexp, ngauss, norbitals, z
     INTEGER, DIMENSION(:), POINTER           :: add_el, elec_conf, orbitals
     LOGICAL :: check, explicit, explicit_basis, explicit_kgpot, &
       explicit_potential, nobasis, section_enabled, subsection_enabled
@@ -1276,11 +1272,11 @@ CONTAINS
        END DO
     END IF
     IF (k_rep<0.AND.(.NOT.no_fail)) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,&
+       CALL cp_abort(__LOCATION__,&
             "No &KIND section was possible to associate to the atomic kind <"//&
             TRIM(akind_name)//">. The KIND section were also scanned for the"//&
             " corresponding element <"//TRIM(qs_kind%element_symbol)//"> "//&
-            " and for the DEFAULT section but no match was found. Check your input file!",para_env)
+            " and for the DEFAULT section but no match was found. Check your input file!")
     END IF
     ! Retrieve information on element
     CALL get_ptable_info(qs_kind%element_symbol, ielement=z)
@@ -1441,7 +1437,7 @@ CONTAINS
               CALL section_vals_val_get(spin_section,&
                    keyword_name="NEL",i_vals=add_el)
               CPASSERT(ASSOCIATED(add_el))
-              ALLOCATE(qs_kind%addel(SIZE(add_el),2),STAT=stat)
+              ALLOCATE(qs_kind%addel(SIZE(add_el),2))
               qs_kind%addel =0
               qs_kind%addel(1:SIZE(add_el),1) = add_el(1:SIZE(add_el))
               NULLIFY(add_el)
@@ -1449,10 +1445,10 @@ CONTAINS
                    keyword_name="L",i_vals=add_el)
               CPASSERT(ASSOCIATED(add_el))
               CPASSERT(SIZE(add_el)==SIZE( qs_kind%addel,1))
-              ALLOCATE(qs_kind%laddel(SIZE(add_el),2),STAT=stat)
+              ALLOCATE(qs_kind%laddel(SIZE(add_el),2))
               qs_kind%laddel =0
               qs_kind%laddel(1:SIZE(add_el),1) = add_el(1:SIZE(add_el))
-              ALLOCATE(qs_kind%naddel(SIZE(add_el),2),STAT=stat)
+              ALLOCATE(qs_kind%naddel(SIZE(add_el),2))
               qs_kind%naddel =0
               NULLIFY(add_el)
               CALL section_vals_val_get(spin_section,&
@@ -1728,9 +1724,9 @@ CONTAINS
           IF(basis_type == "ORB") nobasis = .FALSE.
        END DO
        IF (nobasis) THEN
-          CALL stop_program(routineN,moduleN,__LINE__,&
+          CALL cp_abort(__LOCATION__,&
                "No basis set type was defined for the "//&
-               "atomic kind <"//TRIM(qs_kind%name)//">",para_env)
+               "atomic kind <"//TRIM(qs_kind%name)//">")
        END IF
 
        ! If Ghost atom we don't need to allocate/initialize anything connected to POTENTIAL
@@ -1771,16 +1767,16 @@ CONTAINS
                    CALL set_qs_kind(qs_kind,elec_conf=elec_conf)
                 END IF
              CASE DEFAULT
-                CALL stop_program(routineN,moduleN,__LINE__,&
+                CALL cp_abort(__LOCATION__,&
                      "An invalid potential type <"//&
                      TRIM(potential_name)//"> was specified "//&
                      "for the atomic kind <"//&
-                     TRIM(qs_kind%name),para_env)
+                     TRIM(qs_kind%name))
              END SELECT
           ELSE
-             CALL stop_program(routineN,moduleN,__LINE__,&
+             CALL cp_abort(__LOCATION__,&
                   "No potential type was defined for the "//&
-                  "atomic kind <"//TRIM(qs_kind%name)//">",para_env)
+                  "atomic kind <"//TRIM(qs_kind%name)//">")
           END IF
           ! Allocate and initialise the potential data set structure
           IF ((kgpot_name /= '').OR.explicit_kgpot) THEN
@@ -1801,11 +1797,11 @@ CONTAINS
              CASE ("NONE")
                 NULLIFY(qs_kind%tnadd_potential)
              CASE DEFAULT
-                CALL stop_program(routineN,moduleN,__LINE__,&
+                CALL cp_abort(__LOCATION__,&
                      "An invalid kg_potential type <"//&
                      TRIM(potential_name)//"> was specified "//&
                      "for the atomic kind <"//&
-                     TRIM(qs_kind%name),para_env)
+                     TRIM(qs_kind%name))
              END SELECT
           END IF
        END IF
@@ -1923,15 +1919,13 @@ CONTAINS
 !> \brief ...
 !> \param qs_kind_set ...
 !> \param dft_control ...
-!> \param para_env ...
 !> \param subsys_section ...
 ! *****************************************************************************
-  SUBROUTINE check_qs_kind_set(qs_kind_set,dft_control,para_env,subsys_section)
+  SUBROUTINE check_qs_kind_set(qs_kind_set,dft_control,subsys_section)
 
     TYPE(qs_kind_type), DIMENSION(:), &
       POINTER                                :: qs_kind_set
     TYPE(dft_control_type), INTENT(IN)       :: dft_control
-    TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(section_vals_type), POINTER         :: subsys_section
 
     CHARACTER(len=*), PARAMETER :: routineN = 'check_qs_kind_set', &
@@ -1948,9 +1942,7 @@ CONTAINS
           CALL check_qs_kind(qs_kind,dft_control,subsys_section)
        END DO
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "The pointer qs_kind_set is not associated",&
-            para_env)
+       CPABORT("The pointer qs_kind_set is not associated")
     END IF
     CALL timestop(handle)
   END SUBROUTINE check_qs_kind_set

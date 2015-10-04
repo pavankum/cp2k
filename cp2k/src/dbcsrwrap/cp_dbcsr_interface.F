@@ -1757,9 +1757,8 @@ CONTAINS
 
     TYPE(dbcsr_error_type)                   :: dbcsr_error
 
-!call cp_assert (matrix_b%ref_count .gt. 0,&
-!     cp_warning_level, cp_caller_error, routineN,&
-!     "Matrix not created.")
+!     IF(matrix_b%ref_count .le. 0)&
+!        CPWARN("Matrix not created.")
 
     IF (matrix_b%ref_count .EQ. 0) THEN
        CALL cp_dbcsr_create (matrix_b, template=matrix_a)
@@ -1803,9 +1802,8 @@ CONTAINS
 
     TYPE(dbcsr_error_type)                   :: dbcsr_error
 
-!call cp_assert (matrix_b%ref_count .gt. 0,&
-!     cp_warning_level, cp_caller_error, routineN,&
-!     "Matrix not created.")
+!     IF(matrix_b%ref_count .le. 0)&
+!        CPWARN("Matrix not created.")
 
     IF (matrix_b%ref_count .EQ. 0) THEN
        CALL cp_dbcsr_create (matrix_b, template=matrix_a)
@@ -2471,8 +2469,8 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     CALL cp_dbcsr_release (matrix)
-    CALL cp_assert (.NOT. cp_dbcsr_valid_index(matrix), cp_warning_level,&
-         cp_caller_error, routineN,&
+    IF(cp_dbcsr_valid_index(matrix))&
+       CALL cp_warn(__LOCATION__,&
          'You should not "deallocate" a referenced matrix. '//&
          'Avoid pointers to DBCSR matrices.')
     DEALLOCATE (matrix)
@@ -2785,13 +2783,10 @@ CONTAINS
        CALL cp_dbcsr_work_create (matrix, work_mutable=.TRUE.)
        matrix%matrix%m%valid = .FALSE.
     ENDIF
-!$  CALL cp_assert (SIZE (matrix%matrix%m%wms) .GE. omp_get_num_threads(),&
-!$       cp_fatal_level, cp_wrong_args_error, routineN,&
-!$       "Too few threads.")
-    CALL cp_assert (dbcsr_wm_use_mutable (matrix%matrix%m%wms(ithread+1)),&
-         cp_warning_level,&
-         cp_unimplemented_error_nr, routineN,&
-         "Data loss due to no conversion of appendable to mutable data")
+!$  IF(SIZE (matrix%matrix%m%wms) .LT. omp_get_num_threads())&
+!$       CPABORT("Too few threads.")
+    IF(.NOT.dbcsr_wm_use_mutable(matrix%matrix%m%wms(ithread+1)))&
+       CPWARN("Data loss due to no conversion of appendable to mutable data")
     is_there = ASSOCIATED(block)
     !r = row ; c = col ; tr = .FALSE.
     !CALL dbcsr_get_stored_coordinates (matrix, r, c, tr)
@@ -2803,13 +2798,10 @@ CONTAINS
     IF (dbg) THEN
        r = block_row ; c = block_col ; tr = .FALSE.
        CALL cp_dbcsr_get_stored_coordinates (matrix, r, c, tr, p)
-       CALL cp_assert (p .EQ. dbcsr_mp_mynode (dbcsr_distribution_mp (&
-            cp_dbcsr_distribution(matrix))),&
-            cp_warning_level, cp_internal_error, routineN,&
-            "Adding non-local element")
+       IF(p .NE. dbcsr_mp_mynode(dbcsr_distribution_mp(cp_dbcsr_distribution(matrix))))&
+          CPWARN("Adding non-local element")
     ENDIF
-    CALL cp_assert (.NOT.existed, cp_warning_level, cp_wrong_args_error,&
-         routineN, "You should not add existing blocks according to old API.")
+    IF(existed) CPWARN("You should not add existing blocks according to old API.")
     IF(.NOT.is_there) block(:,:) = 0.0_dp
   END SUBROUTINE cp_dbcsr_add_block_node
 

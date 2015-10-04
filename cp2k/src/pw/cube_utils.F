@@ -20,8 +20,7 @@ MODULE cube_utils
                                              int_size
   USE mathlib,                         ONLY: matvec_3x3
   USE realspace_grid_types,            ONLY: realspace_grid_desc_type
-  USE termination,                     ONLY: stop_memory,&
-                                             stop_program
+  USE termination,                     ONLY: stop_memory
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "../common/cp_common_uses.f90"
@@ -113,7 +112,7 @@ CONTAINS
             ! in the call to init_cube_info
             !
             WRITE(*,*) info%max_rad_ga,radius
-            CALL stop_program(routineN,moduleN,__LINE__,"Called with too large radius.")
+            CPABORT("Called with too large radius.")
     ENDIF
 
     ! get the min max indices that contain at least the cube that contains a sphere around rp of radius radius
@@ -165,7 +164,7 @@ CONTAINS
             ! This error can invariably be fixed by improving the computation of maxradius
             ! in the call to init_cube_info
             !
-            CALL stop_program(routineN,moduleN,__LINE__,"Called with too large radius.")
+            CPABORT("Called with too large radius.")
         ENDIF
         lb_cube(:)       = info%lb_cube(:,imr)
         ub_cube(:)       = info%ub_cube(:,imr)
@@ -328,8 +327,7 @@ CONTAINS
           info%ub_cube(:,i)=1-info%lb_cube(:,i)
         ENDDO
         IF (check_1.NE.check_2) THEN
-            CALL stop_program(routineN,moduleN,__LINE__,&
-                              "Irreproducible fp math caused memory corruption")
+            CPABORT("Irreproducible fp math caused memory corruption")
         END IF
 
     END IF

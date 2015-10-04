@@ -48,7 +48,6 @@ MODULE basis_set_types
   USE string_utilities,                ONLY: integer_to_string,&
                                              remove_word,&
                                              uppercase
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "../common/cp_common_uses.f90"
@@ -611,8 +610,7 @@ CONTAINS
        IF (PRESENT(npgf_sum)) npgf_sum = SUM(gto_basis_set%npgf)
        IF (PRESENT(nshell_sum)) nshell_sum = SUM(gto_basis_set%nshell)
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "The pointer gto_basis_set is not associated")
+       CPABORT("The pointer gto_basis_set is not associated")
     END IF
 
   END SUBROUTINE get_gto_basis_set
@@ -649,8 +647,7 @@ CONTAINS
        ! WARNING this was never tested
        CALL init_norm_cgf_aux(gto_basis_set)
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "Normalization method not specified")
+       CPABORT("Normalization method not specified")
     END SELECT
 
     ! Initialise the transformation matrices "pgf" -> "cgf"
@@ -984,8 +981,7 @@ CONTAINS
        ! functions
        CALL init_norm_cgf_orb(gto_basis_set)
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "Normalization method not specified")
+       CPABORT("Normalization method not specified")
     END SELECT
 
     ! Initialise the transformation matrices "pgf" -> "cgf"
@@ -1349,11 +1345,11 @@ CONTAINS
         DO ibasis = 1,nbasis
           basis_set_file_name = TRIM(basis_set_file_name)//"<"//TRIM(cbasis(ibasis))//"> "
         END DO
-        CALL stop_program(routineN,moduleN,__LINE__,&
+        CALL cp_abort(__LOCATION__,&
              "The requested basis set <"//TRIM(bsname)//&
              "> for element <"//TRIM(symbol)//"> was not "//&
              "found in the basis set files "//&
-             TRIM(basis_set_file_name),para_env)
+             TRIM(basis_set_file_name))
       END IF
     END IF
     DEALLOCATE(cbasis)
@@ -1462,9 +1458,7 @@ CONTAINS
     NULLIFY (gcc,l,lmax,lmin,n,npgf,nshell,zet)
     ! Read the basis set information
     is_ok=cp_sll_val_next(list,val)
-    IF (.NOT.is_ok) CALL stop_program(routineN,moduleN,&
-        __LINE__,&
-        "Error reading the Basis set from input file!!")
+    IF (.NOT.is_ok) CPABORT("Error reading the Basis set from input file!!")
     CALL val_get(val,c_val=line_att)
     READ(line_att,*)nset
 
@@ -1480,9 +1474,7 @@ CONTAINS
 
     DO iset=1,nset
        is_ok=cp_sll_val_next(list,val)
-       IF (.NOT.is_ok) CALL stop_program(routineN,moduleN,&
-          __LINE__,&
-          "Error reading the Basis set from input file!!")
+       IF (.NOT.is_ok) CPABORT("Error reading the Basis set from input file!!")
        CALL val_get(val,c_val=line_att)
        READ(line_att,*)n(1,iset)
        CALL remove_word(line_att)
@@ -1515,14 +1507,11 @@ CONTAINS
              l(nshell(iset)-ishell+i,iset) = lshell
           END DO
        END DO
-       IF (LEN_TRIM(line_att)/=0) CALL stop_program(routineN,moduleN,&
-           __LINE__,&
-           "Error reading the Basis from input file!!")
+       IF (LEN_TRIM(line_att)/=0)&
+          CPABORT("Error reading the Basis from input file!!")
        DO ipgf=1,npgf(iset)
           is_ok=cp_sll_val_next(list,val)
-          IF (.NOT.is_ok) CALL stop_program(routineN,moduleN,&
-             __LINE__,&
-             "Error reading the Basis set from input file!!")
+          IF (.NOT.is_ok) CPABORT("Error reading the Basis set from input file!!")
           CALL val_get(val,c_val=line_att)
           READ(line_att,*)zet(ipgf,iset),(gcc(ipgf,ishell,iset),ishell=1,nshell(iset))
        END DO
@@ -1753,8 +1742,7 @@ CONTAINS
        IF (PRESENT(n)) gto_basis_set%n(:,:) = n(:,:)
        IF (PRESENT(gcc)) gto_basis_set%gcc(:,:,:) = gcc(:,:,:)
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "The pointer gto_basis_set is not associated")
+       CPABORT("The pointer gto_basis_set is not associated")
     END IF
 
   END SUBROUTINE set_gto_basis_set
@@ -1994,8 +1982,7 @@ CONTAINS
           END DO
        END IF
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "The pointer sto_basis_set is not associated")
+       CPABORT("The pointer sto_basis_set is not associated")
     END IF
 
   END SUBROUTINE get_sto_basis_set
@@ -2054,8 +2041,7 @@ CONTAINS
           sto_basis_set%zet = zet(:)
        END IF
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "The pointer sto_basis_set is not associated")
+       CPABORT("The pointer sto_basis_set is not associated")
     END IF
 
   END SUBROUTINE set_sto_basis_set
@@ -2086,8 +2072,7 @@ CONTAINS
 
     ng = 6
     IF (PRESENT(ngauss)) ng=ngauss
-    IF (ng > maxng) CALL stop_program(routineN,moduleN,__LINE__,&
-         "Too many Gaussian primitives requested")
+    IF (ng > maxng) CPABORT("Too many Gaussian primitives requested")
 
     CALL allocate_gto_basis_set(gto_basis_set)
 

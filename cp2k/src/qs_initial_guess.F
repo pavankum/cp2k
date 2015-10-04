@@ -80,7 +80,6 @@ MODULE qs_initial_guess
                                              qs_scf_env_type
   USE qs_wf_history_methods,           ONLY: wfi_update
   USE scf_control_types,               ONLY: scf_control_type
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
   USE util,                            ONLY: sort
@@ -251,8 +250,7 @@ CONTAINS
                (((density_guess == restart_guess).OR.&
                 (density_guess == history_guess)).AND.&
                 (scf_control%level_shift == 0.0_dp))))) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            "OT needs GUESS ATOMIC / RANDOM / SPARSE / RESTART / HISTORY RESTART: other options NYI")
+       CPABORT("OT needs GUESS ATOMIC / RANDOM / SPARSE / RESTART / HISTORY RESTART: other options NYI")
     END IF
 
     ! if a restart was requested, check that the file exists,
@@ -588,10 +586,8 @@ CALL copy_fm_to_dbcsr(mo_array(ispin)%mo_set%mo_coeff,mo_array(ispin)%mo_set%mo_
     END IF
     IF (density_guess == sparse_guess) THEN
 
-       IF (ofgpw) CALL stop_program(routineN,moduleN,__LINE__,&
-                                    "SPARSE_GUESS not implemented for OFGPW")
-       IF(.NOT.scf_control%use_ot) CALL stop_program(routineN,moduleN,__LINE__,&
-                                                     "OT needed!")
+       IF (ofgpw) CPABORT("SPARSE_GUESS not implemented for OFGPW")
+       IF(.NOT.scf_control%use_ot) CPABORT("OT needed!")
 
        eps = 1.0E-5_dp
 
@@ -710,7 +706,7 @@ CALL copy_fm_to_dbcsr(mo_array(ispin)%mo_set%mo_coeff,mo_array(ispin)%mo_set%mo_
                    nmo_tmp = nmo_tmp - n_cols
                    natoms_tmp = natoms_tmp - 1
                    IF (nmo_tmp.LT.0.OR.natoms_tmp.LT.0) THEN
-                      CALL stop_program(routineN,moduleN,__LINE__,"Wrong1!")
+                      CPABORT("Wrong1!")
                    END IF
                    DO j = 1,n_cols
                       CALL dlarnv(1,iseed,n_rows,buff(1,j))
@@ -722,7 +718,7 @@ CALL copy_fm_to_dbcsr(mo_array(ispin)%mo_set%mo_coeff,mo_array(ispin)%mo_set%mo_
              ENDDO
 
              IF (istart_col.LE.nmo) THEN
-                CALL stop_program(routineN,moduleN,__LINE__,"Wrong2!")
+                CPABORT("Wrong2!")
              END IF
 
              DEALLOCATE(buff,nelec_kind,sort_kind)
@@ -773,8 +769,7 @@ CALL copy_fm_to_dbcsr(mo_array(ispin)%mo_set%mo_coeff,mo_array(ispin)%mo_set%mo_
              !
              ! multiply times PS
              IF (has_unit_metric) THEN
-                CALL stop_program(routineN,moduleN,__LINE__,&
-                                  "has_unit_metric will be removed soon")
+                CPABORT("has_unit_metric will be removed soon")
              END IF
              !
              ! S*C
@@ -937,8 +932,7 @@ CALL copy_fm_to_dbcsr(mo_array(ispin)%mo_set%mo_coeff,mo_array(ispin)%mo_set%mo_
     END IF
 
     IF (.NOT. did_guess) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,&
-             "An invalid keyword for the initial density guess was specified")
+       CPABORT("An invalid keyword for the initial density guess was specified")
     END IF
 
     CALL timestop(handle)

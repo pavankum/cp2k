@@ -35,7 +35,6 @@ MODULE gle_system_dynamics
                                              rng_stream_type
   USE particle_types,                  ONLY: particle_type
   USE simpar_types,                    ONLY: simpar_type
-  USE termination,                     ONLY: stop_program
   USE thermostat_mapping,              ONLY: thermostat_mapping_region
   USE thermostat_types,                ONLY: thermostat_info_type
   USE thermostat_utils,                ONLY: ke_region_particles,&
@@ -360,10 +359,10 @@ CONTAINS
     NULLIFY (massive_atom_list, deg_of_freedom)
     SELECT CASE ( simpar % ensemble )
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,"Unknown ensemble!",para_env)
+       CPABORT("Unknown ensemble!")
     CASE ( nve_ensemble, isokin_ensemble, npe_f_ensemble, npe_i_ensemble, nph_uniaxial_ensemble,&
            nph_uniaxial_damped_ensemble, reftraj_ensemble, langevin_ensemble )
-       CALL stop_program(routineN,moduleN,__LINE__,"Never reach this point!",para_env)
+       CPABORT("Never reach this point!")
     CASE ( nvt_ensemble, npt_i_ensemble, npt_f_ensemble)
 
       map_info => gle%map_info
@@ -403,8 +402,7 @@ CONTAINS
        IF ( (sum_of_thermostats == 1).AND.(map_info%dis_type /= do_thermo_no_communication)) THEN
           fac = map_info%s_kin(1)-deg_of_freedom(1)-simpar%nfree_rot_transl
           IF ( fac == 0.0_dp ) THEN
-             CALL stop_program(routineN,moduleN,__LINE__,&
-                               "Zero degrees of freedom. Nothing to thermalize!",para_env)
+             CPABORT("Zero degrees of freedom. Nothing to thermalize!")
           END IF
           gle%nvt(1)%nkt = simpar%temp_ext*fac
           gle%nvt(1)%degrees_of_freedom = FLOOR(fac)
@@ -491,9 +489,9 @@ CONTAINS
                     i_rep_val=ind,r_val=gle%nvt(i)%thermostat_energy)
             END DO
          ELSE
-            CALL stop_program(routineN,moduleN,__LINE__,&
-                              "Number of thermostat energies not equal to the number of "//&
-                              "total thermostats!")
+            CALL cp_abort(__LOCATION__,&
+                 "Number of thermostat energies not equal to the number of "//&
+                 "total thermostats!")
          END IF
        END IF
 
@@ -517,9 +515,9 @@ CONTAINS
                     rng_record=rng_record)
            END DO
          ELSE
-           CALL stop_program(routineN,moduleN,__LINE__,&
-                             "Number pf restartable stream not equal to the number of "//&
-                             "total thermostats!")
+           CALL cp_abort(__LOCATION__,&
+                "Number pf restartable stream not equal to the number of "//&
+                "total thermostats!")
          END IF
        END IF
     END IF

@@ -81,7 +81,6 @@ MODULE mc_ensembles
                                              boltzmann,&
                                              joule,&
                                              n_avogadro
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "../../common/cp_common_uses.f90"
@@ -257,12 +256,10 @@ CONTAINS
 
     ! this is a check we can't do in the input checking
     IF(pmvol_box(nboxes) .LT. 1.0E0_dp) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            'The last value of PMVOL_BOX needs to be 1.0')
+       CPABORT('The last value of PMVOL_BOX needs to be 1.0')
     ENDIF
     IF(pmhmc_box(nboxes) .LT. 1.0E0_dp) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            'The last value of PMHMC_BOX needs to be 1.0')
+       CPABORT('The last value of PMHMC_BOX needs to be 1.0')
     ENDIF
 
     ! allocate the particle positions array for broadcasting
@@ -315,8 +312,7 @@ CONTAINS
           end_mol=start_mol+SUM(nchains(:,ibox))-1
           CALL check_for_overlap(force_env(ibox)%force_env,nchains(:,ibox),&
                nunits,loverlap,mol_type(start_mol:end_mol))
-          IF(loverlap) CALL stop_program(routineN,moduleN,__LINE__,&
-               "overlap in an initial configuration")
+          IF(loverlap) CPABORT("overlap in an initial configuration")
        ENDIF
 
        ! get the subsystems and the cell information
@@ -436,8 +432,7 @@ CONTAINS
     ! that keeps track of which direction we can move in
     IF(ldiscrete) THEN
        IF(nboxes .NE. 1) &
-            CALL stop_program(routineN,moduleN,__LINE__,&
-            'ldiscrete=.true. ONLY for systems with 1 box')
+            CPABORT('ldiscrete=.true. ONLY for systems with 1 box')
        CALL create_discrete_array(abc(:,1),discrete_array(:,:),&
             discrete_step)
     ENDIF
@@ -636,9 +631,8 @@ CONTAINS
                 EXIT
              ENDIF
           ENDDO
-          IF(molecule_type_swap == 0) CALL &
-               stop_program(routineN,moduleN,__LINE__,&
-               'Did not choose a molecule type to swap...check AVBMC input')
+          IF(molecule_type_swap == 0)&
+             CPABORT('Did not choose a molecule type to swap...check AVBMC input')
 
           ! now pick a molecule, automatically rejecting the move if the
           ! box is empty or only has one molecule
@@ -731,8 +725,7 @@ CONTAINS
                       EXIT
                    ENDIF
                 ENDDO
-                IF(molecule_type == 0) CALL &
-                     stop_program(routineN,moduleN,__LINE__,&
+                IF(molecule_type == 0) CALL cp_abort(__LOCATION__,&
                      'Did not choose a molecule type to conf change...PMTRAION_MOL should not be all 0.0')
 
                 ! now pick a molecule, automatically rejecting the move if the
@@ -789,8 +782,7 @@ CONTAINS
                       EXIT
                    ENDIF
                 ENDDO
-                IF(molecule_type == 0) CALL &
-                     stop_program(routineN,moduleN,__LINE__,&
+                IF(molecule_type == 0) CALL cp_abort(__LOCATION__,&
                      'Did not choose a molecule type to translate...PMTRANS_MOL should not be all 0.0')
 
                 ! now pick a molecule of that type
@@ -821,8 +813,7 @@ CONTAINS
                       EXIT
                    ENDIF
                 ENDDO
-                IF(molecule_type == 0) CALL &
-                     stop_program(routineN,moduleN,__LINE__,&
+                IF(molecule_type == 0) CALL cp_abort(__LOCATION__,&
                      'Did not choose a molecule type to rotate...PMROT_MOL should not be all 0.0')
 
                 IF(ionode) &
@@ -977,8 +968,7 @@ CONTAINS
                      mol_type(start_mol:end_mol))
                 IF(loverlap) THEN
                    IF(iw>0) WRITE(iw,*) nnstep
-                   CALL stop_program(routineN,moduleN,__LINE__,&
-                        'coordinate overlap at the end of the above step')
+                   CPABORT('coordinate overlap at the end of the above step')
                 ! now fold the coordinates...don't do this anywhere but here, because
                 ! we can get screwed up with the mc_molecule_info stuff (like in swap move)...
                 ! this is kind of ugly, with allocated and deallocating every time
@@ -1267,15 +1257,13 @@ CONTAINS
 
     ! check and make sure the box is big enough
     IF(abc(1) .NE. abc(2) .OR. abc(2) .NE. abc(3)) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            'The box needs to be cubic for a virial calculation (it is easiest).')
+       CPABORT('The box needs to be cubic for a virial calculation (it is easiest).')
     END IF
     IF(virial_cutoffs(nintegral_divisions) .GT. abc(1)/2.0E0_dp) THEN
        IF (iw>0) &
             WRITE(iw,*) "Box length ",abc(1)*angstrom," virial cutoff ",&
             virial_cutoffs(nintegral_divisions)*angstrom
-       CALL stop_program(routineN,moduleN,__LINE__,&
-            'You need a bigger box to deal with this virial cutoff (see above).')
+       CPABORT('You need a bigger box to deal with this virial cutoff (see above).')
     END IF
 
     ! store the coordinates of the molecules in an array so we can work with it

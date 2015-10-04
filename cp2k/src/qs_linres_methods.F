@@ -111,7 +111,6 @@ MODULE qs_linres_methods
                                              qs_rho_type
   USE qs_vxc_atom,                     ONLY: calculate_xc_2nd_deriv_atom
   USE string_utilities,                ONLY: xstring
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
   USE xc,                              ONLY: xc_calc_2nd_deriv,&
@@ -450,8 +449,7 @@ CONTAINS
        !
        ! trace(r_0 * z_0)
        CALL cp_fm_trace(r(ispin)%matrix,z(ispin)%matrix,tr_rz0(ispin))
-       IF(tr_rz0(ispin).LT.0.0_dp) CALL stop_program(routineN,moduleN,__LINE__,&
-                                                     "tr(r_j*z_j) < 0")
+       IF(tr_rz0(ispin).LT.0.0_dp) CPABORT("tr(r_j*z_j) < 0")
        norm_res = MAX(norm_res,ABS(tr_rz0(ispin))/SQRT(REAL(nao*maxnmo_o,dp)))
     ENDDO
     !
@@ -532,8 +530,7 @@ CONTAINS
              CALL apply_op(qs_env,p_env,psi0_order,p,Ap,chc,buf)
              CALL postortho(Ap,mo_coeff_array,Sc,buf)
              CALL cp_fm_trace(Ap(ispin)%matrix,p(ispin)%matrix,tr_pAp(ispin))
-             CALL stop_program(routineN,moduleN,__LINE__,&
-                               "tr(Ap_j*p_j) < 0")
+             CPABORT("tr(Ap_j*p_j) < 0")
           END IF
           !
           ! alpha = tr(r_j*z_j) / tr(Ap_j*p_j)
@@ -599,8 +596,7 @@ CONTAINS
           !
           ! tr(r_j+1*z_j+1)
           CALL cp_fm_trace(r(ispin)%matrix,z(ispin)%matrix,tr_rz1(ispin))
-          IF(tr_rz1(ispin).LT.0.0_dp) CALL stop_program(routineN,moduleN,__LINE__,&
-                                                        "tr(r_j+1*z_j+1) < 0")
+          IF(tr_rz1(ispin).LT.0.0_dp) CPABORT("tr(r_j+1*z_j+1) < 0")
           norm_res = MAX(norm_res,tr_rz1(ispin)/SQRT(REAL(nao*maxnmo_o,dp)))
           !
           ! beta = tr(r_j+1*z_j+1) / tr(r_j*z_j)
@@ -1753,11 +1749,13 @@ CONTAINS
 
           IF(PRESENT(ind)) THEN
             IF(rst_unit>0) READ(rst_unit,IOSTAT=iostat) ind, ivec_tmp,nspins_tmp,nao_tmp
+            CALL mp_bcast(iostat,source,group)
             CALL mp_bcast(ind,source,group)
           ELSE
             IF(rst_unit>0) READ(rst_unit,IOSTAT=iostat) ivec_tmp,nspins_tmp,nao_tmp
+            CALL mp_bcast(iostat,source,group)
           END IF
-          CALL mp_bcast(iostat,source,group)
+          
           IF(iostat.NE.0) EXIT
           CALL mp_bcast(ivec_tmp,source,group)
           CALL mp_bcast(nspins_tmp,source,group)
@@ -1765,10 +1763,8 @@ CONTAINS
 
           ! check that the number nao, nmo and nspins are
           ! the same as in the current mos
-          IF(nspins_tmp.NE.nspins) CALL stop_program(routineN,moduleN,__LINE__,&
-                                                     "nspins not consistent")
-          IF(nao_tmp   .NE.nao   ) CALL stop_program(routineN,moduleN,__LINE__,&
-                                                     "nao not consistent")
+          IF(nspins_tmp.NE.nspins) CPABORT("nspins not consistent")
+          IF(nao_tmp   .NE.nao   ) CPABORT("nao not consistent")
           !
           DO ispin = 1,nspins
              CALL get_mo_set(mos(ispin)%mo_set,mo_coeff=mo_coeff)
@@ -1776,8 +1772,7 @@ CONTAINS
              !
              IF(rst_unit>0) READ(rst_unit) nmo_tmp
              CALL mp_bcast(nmo_tmp,source,group)
-             IF(nmo_tmp.NE.nmo) CALL stop_program(routineN,moduleN,__LINE__,&
-                                                  "nmo not consistent")
+             IF(nmo_tmp.NE.nmo) CPABORT("nmo not consistent")
              !
              ! read the response
              DO i=1,nmo,MAX(max_block,1)

@@ -60,7 +60,6 @@ MODULE qmmm_init
                                              qmmm_links_type
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_environment_type
-  USE termination,                     ONLY: stop_program
 #include "./common/cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -442,17 +441,13 @@ CONTAINS
       CALL get_qs_env(qs_env, dft_control=dft_control)
 
       IF(dft_control%qs_control%semi_empirical) THEN
-         CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="QM/MM periodic calculations not implemented for semi empirical methods", &
-            error_level=cp_fatal_level)
+         CPABORT("QM/MM periodic calculations not implemented for semi empirical methods")
       ELSE IF(dft_control%qs_control%dftb) THEN
          CALL qmmm_ewald_potential_init(qmmm_env_qm%ewald_env, qmmm_env_qm%ewald_pw,&
               qmmm_coupl_type=qmmm_env_qm%qmmm_coupl_type, mm_cell=mm_cell,&
               para_env=para_env, qmmm_periodic=qmmm_periodic, print_section=print_section)
       ELSE IF(dft_control%qs_control%scptb) THEN
-         CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="QM/MM periodic calculations not implemented for SCPTB method", &
-            error_level=cp_fatal_level)
+         CPABORT("QM/MM periodic calculations not implemented for SCPTB method")
       ELSE
  
          ! setup for GPW/GPAW
@@ -1414,14 +1409,12 @@ CONTAINS
    DO i=1,num_image_mm_atom
       atom_a=qmmm_env%image_charge_pot%image_mm_list(i)
       IF(ANY(qm_atom_index==atom_a)) THEN
-         CALL stop_program(routineN,moduleN,__LINE__,&
-             "Image atom list must only contain MM atoms")
+         CPABORT("Image atom list must only contain MM atoms")
       ENDIF
       DO j=i+1,num_image_mm_atom
          atom_b=qmmm_env%image_charge_pot%image_mm_list(j)
          IF(atom_a==atom_b) &
-         CALL stop_program(routineN,moduleN,__LINE__,&
-             "There are atoms doubled in image list.")
+         CPABORT("There are atoms doubled in image list.")
       ENDDO
    ENDDO
 

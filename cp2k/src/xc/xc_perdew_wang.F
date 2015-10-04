@@ -15,7 +15,6 @@
 MODULE xc_perdew_wang
   
   USE kinds,                           ONLY: dp
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
   USE xc_derivative_set_types,         ONLY: xc_derivative_set_type,&
@@ -157,7 +156,7 @@ CONTAINS
     SELECT CASE (method)
 
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,"Unknown method")
+       CPABORT("Unknown method")
 
     CASE (pw_orig)
        A(0)  = 0.031091_dp ; A(1)  = 0.015545_dp
@@ -279,9 +278,7 @@ CONTAINS
        CALL xc_derivative_get(deriv,deriv_data=e_rho_rho_rho)
     END IF
     IF (order>3.OR.order<-3) THEN
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="derivatives bigger than 3 not implemented", &
-            error_level=cp_failure_level)
+       CPABORT("derivatives bigger than 3 not implemented")
     END IF
 
     CALL perdew_wang_lda_calc(rho,e_0,e_rho, e_rho_rho, e_rho_rho_rho, &
@@ -450,9 +447,7 @@ SUBROUTINE perdew_wang_lda_calc(rho,e_0,e_rho, e_rho_rho, e_rho_rho_rho, npoints
        CALL xc_derivative_get(deriv,deriv_data=ebbb)
     END IF
     IF (order>3.OR.order<-3) THEN
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="derivatives bigger than 3 not implemented", &
-            error_level=cp_failure_level)
+       CPABORT("derivatives bigger than 3 not implemented")
     END IF
 
     CALL perdew_wang_lsd_calc(a,b,e_0,ea,eb,eaa,eab,ebb,eaaa,eaab,eabb,&

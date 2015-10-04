@@ -29,15 +29,13 @@
 !>      @version 1.2002
 ! *****************************************************************************
 MODULE cp_error_handling
-  USE cp_log_handling,                 ONLY: CP_FAILURE_LEVEL,&
-                                             CP_WARNING_LEVEL,&
-                                             cp_get_default_logger,&
-                                             cp_log,&
-                                             cp_logger_get_default_unit_nr,&
-                                             cp_logger_type,&
+  USE cp_log_handling,                 ONLY: CP_WARNING_LEVEL,&
+                                             cp_logger_get_default_io_unit,&
                                              cp_to_string
   USE kinds,                           ONLY: default_string_length
+  USE machine,                         ONLY: m_flush
   USE message_passing,                 ONLY: mp_abort
+  USE termination,                     ONLY: print_message
   USE timings,                         ONLY: print_stack
 
   IMPLICIT NONE
@@ -48,10 +46,10 @@ MODULE cp_error_handling
 
   !API parameters var
   PUBLIC :: cp_debug, cp_assertion_failed, cp_internal_error, cp_wrong_args_error,&
-            cp_precondition_failed, cp_unimplemented_error_nr, cp_caller_error
+            cp_precondition_failed, cp_caller_error
 
   !API public routines
-  PUBLIC :: cp_assert, cp_unimplemented_error, cp_abort, cp_warn
+  PUBLIC :: cp_assert, cp_abort, cp_warn
   PUBLIC :: cp__a, cp__b, cp__w, cp__l
 
 #ifdef FD_DEBUG
@@ -79,33 +77,8 @@ MODULE cp_error_handling
   INTEGER, PARAMETER :: cp_invariant_failed = -100
   !! error number: assertion failure
   INTEGER, PARAMETER :: cp_assertion_failed = -300
-  !! error number: not implemented
-  INTEGER, PARAMETER :: cp_unimplemented_error_nr = -1000
-
 
 CONTAINS
-
-! *****************************************************************************
-!> \brief writes an error message of level level, subject to control of error
-!>      (i.e. if error%printlevel is >= level)
-!> \param level the level of the error (cp_note_level, cp_warning_level,
-!> \param fromWhere a string that contains the module name and routine name
-!>            where this test happened
-!> \param message the error message
-!> \par History
-!>      none
-!> \author Fawzi Mohamed
-!>      @version 1.2002
-! *****************************************************************************
-  SUBROUTINE cp_error_message(level, fromWhere, message)
-    INTEGER, INTENT(in)                      :: level
-    CHARACTER(len=*), INTENT(in)             :: fromWhere, message
-
-    TYPE(cp_logger_type), POINTER            :: logger
-
-    logger => cp_get_default_logger()
-    CALL cp_log(logger, level, fromWhere, message,local=.TRUE.)
-  END SUBROUTINE cp_error_message
 
 ! *****************************************************************************
 !> \brief routine that checks an assertion, if it fails set the optional
@@ -135,66 +108,19 @@ CONTAINS
     LOGICAL, INTENT(inout), OPTIONAL         :: failure
     LOGICAL, INTENT(in), OPTIONAL            :: only_ionode
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'cp_assert', &
-      routineP = moduleN//':'//routineN
-
-    LOGICAL                                  :: iam_ionode, myonly_ionode
-    TYPE(cp_logger_type), POINTER            :: logger
+    INTEGER                                  :: dummy
 
     IF (.NOT. condition) THEN
        IF (PRESENT(failure)) failure=.TRUE.
-       logger => cp_get_default_logger()
+       IF (PRESENT(only_ionode)) dummy = 42 !pretend only_ionode is used.
 
-       myonly_ionode = .FALSE.
-       IF(PRESENT(only_ionode)) myonly_ionode = only_ionode
-       iam_ionode = .TRUE.
-       IF(myonly_ionode) iam_ionode = logger%para_env%mepos==logger%para_env%source
-       IF(level > CP_WARNING_LEVEL) iam_ionode = .TRUE.
-
-       IF (iam_ionode) THEN
-          CALL cp_log(logger,level,TRIM(fromWhere)//' on MPI rank '//&
-                      TRIM(ADJUSTL(cp_to_string(logger%para_env%mepos)))//' ',&
-                      'reason: '//TRIM(ADJUSTL(message)), local=.TRUE.)
+       IF(level > cp_warning_level) THEN
+          CALL cp_abort(fromWhere, message)
+       ELSE
+          CALL cp_warn(fromWhere, message)
        ENDIF
-
-       IF(level > CP_WARNING_LEVEL) THEN
-          CALL print_stack(cp_logger_get_default_unit_nr(logger,local=.TRUE.))
-          CALL mp_abort(message)
-       ENDIF
-    END IF
+    ENDIF
   END SUBROUTINE cp_assert
-
-! *****************************************************************************
-!> \brief comodity call to signat that something is not implemented
-!> \param fromWhere routine where the error happened
-!> \param message the message to write out (UNIMPLEMENTED is added to it)
-!> \param error_level the error level of this error, defaults to
-!>        cp_failure_level
-!> \par History
-!>      05.2002 created [fawzi]
-!> \author Fawzi Mohamed
-! *****************************************************************************
-  SUBROUTINE cp_unimplemented_error(fromWhere, message,error_level)
-    CHARACTER(len=*), INTENT(in)             :: fromWhere
-    CHARACTER(len=*), INTENT(in), OPTIONAL   :: message
-    INTEGER, INTENT(in), OPTIONAL            :: error_level
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'cp_unimplemented_error', &
-      routineP = moduleN//':'//routineN
-
-    INTEGER                                  :: err_l
-
-    err_l=cp_failure_level
-
-    IF(PRESENT(error_level)) err_l=error_level
-    IF (PRESENT(message)) THEN
-       CALL cp_assert(.FALSE.,err_l,cp_unimplemented_error_nr,&
-            fromWhere, "UNIMPLEMENTED, "//message)
-    ELSE
-       CALL cp_assert(.FALSE.,err_l,cp_unimplemented_error_nr,&
-            fromWhere, "UNIMPLEMENTED")
-    END IF
-  END SUBROUTINE cp_unimplemented_error
 
 ! *****************************************************************************
 !> \brief Abort program with error message
@@ -205,10 +131,16 @@ CONTAINS
   SUBROUTINE cp_abort(location, message)
     CHARACTER(len=*), INTENT(in)             :: location, message
 
-    CALL cp_assert(.FALSE.,level=cp_failure_level,&
-         error_nr=cp_assertion_failed,&
-         fromWhere=location,&
-         message=message)
+    INTEGER                                  :: unit_nr
+
+    unit_nr = cp_logger_get_default_io_unit()
+    IF(unit_nr>0) THEN
+       CALL print_message("ABORT in "//TRIM(location)//' :: '//TRIM(ADJUSTL(message)),unit_nr,2,1,1)
+       CALL print_stack(unit_nr)
+       CALL m_flush(unit_nr)
+    ENDIF
+
+    CALL mp_abort(message)
   END SUBROUTINE cp_abort
 
 ! *****************************************************************************
@@ -220,9 +152,13 @@ CONTAINS
   SUBROUTINE cp_warn(location, message)
     CHARACTER(len=*), INTENT(in)             :: location, message
 
-    CALL cp_error_message(level=cp_warning_level,&
-         fromWhere=location,&
-         message=message)
+    INTEGER                                  :: unit_nr
+
+    unit_nr = cp_logger_get_default_io_unit()
+    IF(unit_nr>0) THEN
+       CALL print_message("WARNING in "//TRIM(location)//' :: '//TRIM(ADJUSTL(message)),unit_nr,1,1,1)
+       CALL m_flush(unit_nr)
+    ENDIF
   END SUBROUTINE cp_warn
 
 ! *****************************************************************************

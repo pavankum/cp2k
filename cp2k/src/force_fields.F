@@ -49,7 +49,6 @@ MODULE force_fields
   USE molecule_types_new,              ONLY: molecule_type
   USE particle_types,                  ONLY: particle_type
   USE qmmm_types_low,                  ONLY: qmmm_env_mm_type
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "./common/cp_common_uses.f90"
@@ -151,14 +150,12 @@ CONTAINS
     CASE (do_ff_charmm,do_ff_amber,do_ff_g96,do_ff_g87)
        INQUIRE(FILE=ff_type%ff_file_name,EXIST=found)
        IF (.NOT.found) THEN
-          CALL stop_program(routineN,moduleN,__LINE__,&
-                            "Force field file missing",para_env)
+          CPABORT("Force field file missing")
        END IF
     CASE (do_ff_undef)
        ! Do Nothing
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,&
-                         "Force field type not implemented",para_env)
+       CPABORT("Force field type not implemented")
     END SELECT
 
     !-----------------------------------------------------------------------------
@@ -174,8 +171,7 @@ CONTAINS
     CASE (do_ff_undef)
        ! Do Nothing
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,&
-                         "Force field type not implemented",para_env)
+       CPABORT("Force field type not implemented")
     END SELECT
 
     !-----------------------------------------------------------------------------
@@ -244,9 +240,7 @@ CONTAINS
        END IF
        SELECT CASE(ff_type%ff_type)
        CASE (do_ff_charmm)
-          CALL cp_unimplemented_error(fromWhere=routineP, &
-               message="Dumping FF parameter file for CHARMM FF  not implemented!", &
-               error_level=cp_warning_level)
+          CPWARN("Dumping FF parameter file for CHARMM FF  not implemented!")
        CASE (do_ff_amber)
           IF (iw>0) THEN
              ! Bonds
@@ -290,13 +284,9 @@ CONTAINS
              END DO
           END IF
        CASE (do_ff_g87,do_ff_g96)
-          CALL cp_unimplemented_error(fromWhere=routineP, &
-               message="Dumping FF parameter file for GROMOS FF not implemented!", &
-               error_level=cp_warning_level)
+          CPWARN("Dumping FF parameter file for GROMOS FF not implemented!")
        CASE (do_ff_undef)
-          CALL cp_unimplemented_error(fromWhere=routineP, &
-               message="Dumping FF parameter file for INPUT FF  not implemented!", &
-               error_level=cp_warning_level)
+          CPWARN("Dumping FF parameter file for INPUT FF  not implemented!")
        END SELECT
        IF (iw>0) THEN
           WRITE(iw,'(/,A)')"END"

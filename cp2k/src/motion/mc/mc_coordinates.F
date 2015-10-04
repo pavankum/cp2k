@@ -27,8 +27,7 @@ MODULE mc_coordinates
                                              rng_stream_type
   USE particle_list_types,             ONLY: particle_list_type
   USE physcon,                         ONLY: angstrom
-  USE termination,                     ONLY: stop_memory,&
-                                             stop_program
+  USE termination,                     ONLY: stop_memory
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "../../common/cp_common_uses.f90"
@@ -400,8 +399,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
       IF(PRESENT(avbmc_atom)) THEN
          IF( .NOT. PRESENT(rmin) .OR. .NOT. PRESENT(rmax) .OR. &
             .NOT. PRESENT(move_type) .OR. .NOT. PRESENT(target_atom)) THEN
-           CALL stop_program(routineN,moduleN,__LINE__,&
-               'AVBMC swap move is missing information!')
+           CPABORT('AVBMC swap move is missing information!')
          ENDIF
       ENDIF
 
@@ -454,7 +452,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
          ENDIF
          atom_number=atom_number+nunits(mol_type(imolecule))
       ENDDO
-      IF(molecule_number == 0) CALL stop_program(routineN,moduleN,__LINE__,&
+      IF(molecule_number == 0) CALL cp_abort(__LOCATION__,&
                'CBMC swap move cannot find which molecule number it needs')
 
       IF(lremove) THEN
@@ -469,8 +467,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
                   WRITE(*,*) r(1:3,iatom,1)
                ENDDO
             ENDIF
-            CALL stop_program(routineN,moduleN,__LINE__,&
-               'CBMC swap move found an overlap in the old config')
+            CPABORT('CBMC swap move found an overlap in the old config')
          ENDIF
       ENDIF
 
@@ -571,8 +568,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
                WRITE(*,*) r(1:3,iatom,1)*angstrom
             ENDDO
          ENDIF
-         CALL stop_program(routineN,moduleN,__LINE__,&
-              'CBMC swap move found a bad old weight')
+         CPABORT('CBMC swap move found a bad old weight')
       ENDIF
       all_overlaps=.TRUE.
       total_running_weight=0.0E0_dp
@@ -606,8 +602,7 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
                   WRITE(*,*) r(1:3,iatom,1)
                ENDDO
             ENDIF
-            CALL stop_program(routineN,moduleN,__LINE__,&
-            'CBMC swap move found all overlaps for the remove config')
+            CPABORT('CBMC swap move found all overlaps for the remove config')
          ENDIF
 
          DEALLOCATE(r_old)
@@ -620,8 +615,8 @@ SUBROUTINE generate_cbmc_swap_config( force_env, BETA, max_val, min_val, exp_max
       ENDIF
 
 ! make sure a configuration was choosen
-      IF(choosen == 0) CALL stop_program(routineN,moduleN,&
-         __LINE__,'CBMC swap move failed to select config')
+      IF(choosen == 0)&
+         CPABORT('CBMC swap move failed to select config')
 
 ! if this is an old configuration, we always choose the first one
       IF(lremove) choosen=1

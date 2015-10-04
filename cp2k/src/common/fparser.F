@@ -20,8 +20,8 @@ MODULE fparser
   
   USE kinds,                           ONLY: default_string_length,&
                                              rn => dp
-  USE termination,                     ONLY: stop_memory,&
-                                             stop_program
+  USE termination,                     ONLY: stop_memory
+#include "cp_common_uses.f90"                                             
 
   IMPLICIT NONE
 
@@ -166,12 +166,10 @@ CONTAINS
 !----- -------- --------- --------- --------- --------- --------- --------- -------
 
     IF (i < 1 .OR. i > SIZE(Comp)) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,&
-                         "Function number is out of range")
+       CPABORT("Function number is out of range")
     END IF
     IF (SIZE(var)>HUGE(0_is)) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,&
-                         "Too many variables")
+       CPABORT("Too many variables")
     END IF
     ALLOCATE (ipos(LEN_TRIM(FuncStr)))                       ! Char. positions in orig. string
     Func = FuncStr                                           ! Local copy of function string
@@ -230,8 +228,7 @@ CONTAINS
              IF (MOD(Comp(i)%Stack(SP),REAL(ipow,KIND=rn))==0.0_rn) THEN
                 Comp(i)%Stack(SP-1)=Comp(i)%Stack(SP-1)**ipow
              ELSE
-                CALL stop_program(routineN,moduleN,__LINE__,&
-                                  "Negative floating-point value raised to a real power!")
+                CPABORT("Negative floating-point value raised to a real power!")
              END IF
           ELSE
              Comp(i)%Stack(SP-1)=Comp(i)%Stack(SP-1)**Comp(i)%Stack(SP)
@@ -414,7 +411,7 @@ CONTAINS
     ELSE
        WRITE (*,'(A)') REPEAT(" ",SIZE(ipos)+1)//"?"
     END IF
-    CALL stop_program(routineN,moduleN,__LINE__,TRIM(message))
+    CPABORT(TRIM(message))
 
   END SUBROUTINE ParseErrMsg
   !
@@ -1054,8 +1051,7 @@ CONTAINS
           IF(ABS(a(i,i)-a(i-1,i-1)).GE.safe*err)RETURN
        END DO
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-                         "DX provided equals zero!")
+       CPABORT("DX provided equals zero!")
     END IF
     vals(ipar)=xval
   END FUNCTION evalfd

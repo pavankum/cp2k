@@ -36,7 +36,6 @@ MODULE topology_psf
                                              s2s,&
                                              str2id
   USE string_utilities,                ONLY: uppercase
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
   USE topology_types,                  ONLY: atom_info_type,&
@@ -132,12 +131,10 @@ CONTAINS
             psf_format = '(I10,T12,A7,T21,I8,T30,A7,T39,A6,T47,A6,T53,F10.6,T69,F8.3,T88,I1)'
             c_int      = 'I10'
           ELSE
-            CALL stop_program(routineN,moduleN,__LINE__,&
-                              "PSF_INFO| "//field(1:3)//" :: not available for UPSF format!")
+            CPABORT("PSF_INFO| "//field(1:3)//" :: not available for UPSF format!")
           ENDIF
        CASE DEFAULT
-          CALL stop_program(routineN,moduleN,__LINE__,&
-                            "PSF_INFO| "//field(1:3)//" :: Unimplemented keyword in CP2K PSF/UPSF format!")
+          CPABORT("PSF_INFO| "//field(1:3)//" :: Unimplemented keyword in CP2K PSF/UPSF format!")
        END SELECT
     END DO
     IF(iw>0) WRITE(iw,'(T2,A)') 'PSF_INFO| Parsing the NATOM section'
@@ -406,7 +403,7 @@ CONTAINS
             "PSF_INFO| Try using PSF instead of UPSF."
     END IF
 
-    CALL stop_program(routineN,moduleN,__LINE__,"Error while reading PSF data!")
+    CPABORT("Error while reading PSF data!")
 
   END SUBROUTINE read_topology_psf
 

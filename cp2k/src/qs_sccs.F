@@ -93,8 +93,6 @@ MODULE qs_sccs
   USE rs_methods,                      ONLY: derive_fdm_cd3,&
                                              derive_fdm_cd5,&
                                              derive_fdm_cd7
-  USE termination,                     ONLY: print_warning,&
-                                             stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "./common/cp_common_uses.f90"
@@ -225,8 +223,7 @@ CONTAINS
     IF (PRESENT(h_stress)) THEN
       calculate_stress_tensor = .TRUE.
       h_stress(:,:) = 0.0_dp
-      CALL stop_program(routineN,moduleN,__LINE__,&
-                        "No stress tensor is implemented for SCCS models yet",para_env)
+      CPABORT("No stress tensor is implemented for SCCS models yet")
     ELSE
        calculate_stress_tensor = .FALSE.
     END IF
@@ -322,9 +319,7 @@ CONTAINS
       CALL fattebert_gygi(rho_elec,eps_elec,deps_elec,eps0,sccs_control%beta,&
                           sccs_control%rho_zero)
     CASE DEFAULT
-      CALL stop_program(routineN,moduleN,__LINE__,&
-                        "Invalid method specified for SCCS model",&
-                        para_env)
+      CPABORT("Invalid method specified for SCCS model")
     END SELECT
 
     ! Optional output of the dielectric function in cube file format
@@ -436,19 +431,17 @@ CONTAINS
                                     sccs_control%beta,sccs_control%rho_zero,&
                                     sccs_control%delta_rho)
       CASE DEFAULT
-        CALL stop_program(routineN,moduleN,__LINE__,&
-                          "Invalid method specified for SCCS model",&
-                          para_env)
+        CPABORT("Invalid method specified for SCCS model")
       END SELECT
       cavity_surface = accurate_sum(theta%cr3d)*dvol
       CALL mp_sum(cavity_surface,para_env%group)
 
       IF (sccs_control%gamma_solvent > 0.0_dp) THEN
 
-        CALL print_warning(routineN,moduleN,__LINE__,&
-                           "Experimental feature requested: The contribution from the "//&
-                           "cavitation energy is added as an extra potential term to the "//&
-                           "Kohn-Sham potential",para_env)
+        CALL cp_warn(__LOCATION__,&
+                     "Experimental feature requested: The contribution from the "//&
+                     "cavitation energy is added as an extra potential term to the "//&
+                     "Kohn-Sham potential")
 
         ! Calculate the second derivatives of the electronic density in r-space
         DO di=1,3
@@ -521,7 +514,7 @@ CONTAINS
             WRITE (UNIT=message,FMT="(A,ES12.3,A,3(I0,A))")&
              "SCCS| Invalid dielectric function value ",eps_elec%cr3d(i,j,k),&
              " encountered at grid point (",i,",",j,",",k,")"
-            CALL stop_program(routineN,moduleN,__LINE__,message,para_env)
+            CPABORT(message)
           END IF
           rho_tot_zero%cr3d(i,j,k) = rho_solute%cr3d(i,j,k)/eps_elec%cr3d(i,j,k)
           eps_elec%cr3d(i,j,k) = LOG(eps_elec%cr3d(i,j,k))
@@ -1044,9 +1037,7 @@ CONTAINS
         CALL pw_transfer(work_g1d(2)%pw,df(i)%pw)
       END DO
     CASE DEFAULT
-      CALL stop_program(routineN,moduleN,__LINE__,&
-                        "Invalid derivative method for SCCS specified",&
-                        para_env)
+      CPABORT("Invalid derivative method for SCCS specified")
     END SELECT
 
     ! Perform method specific cleanup

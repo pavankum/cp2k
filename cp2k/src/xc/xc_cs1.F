@@ -14,7 +14,6 @@ MODULE xc_cs1
 
   
   USE kinds,                           ONLY: dp
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
   USE xc_derivative_set_types,         ONLY: xc_derivative_set_type,&
@@ -233,9 +232,7 @@ CONTAINS
             e_rho_ndrho_ndrho, e_ndrho_ndrho_ndrho, npoints)
     END IF
     IF ( order>3.OR.order<-3) THEN
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="derivatives bigger than 3 not implemented", &
-            error_level=cp_failure_level)
+       CPABORT("derivatives bigger than 3 not implemented")
     END IF
 
     CALL timestop(handle)
@@ -306,9 +303,7 @@ CONTAINS
             npoints)
     END IF
     IF ( order>1 .OR. order<1 ) THEN
-       CALL cp_unimplemented_error(fromWhere=routineP, &
-            message="derivatives bigger than 3 not implemented", &
-            error_level=cp_failure_level)
+       CPABORT("derivatives bigger than 3 not implemented")
     END IF
     CALL timestop(handle)
   END SUBROUTINE cs1_lsd_eval
@@ -640,7 +635,7 @@ CONTAINS
                                                 oca, ocb, oda, odb, r3a, r3b, &
                                                 ra, rb, xa, xb
 
-!FM IF ( .NOT. debug_flag ) CALL stop_program(routineN,moduleN,__LINE__,"Routine not tested")
+!FM IF ( .NOT. debug_flag ) CPABORT("Routine not tested")
 
     CPWARN("not tested!")
 

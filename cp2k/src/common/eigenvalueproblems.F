@@ -20,7 +20,6 @@ MODULE eigenvalueproblems
                                              lapack_chpev,&
                                              lapack_sgesvd,&
                                              lapack_ssyev
-  USE termination,                     ONLY: stop_program
 #include "cp_common_uses.f90"
 
   IMPLICIT NONE
@@ -77,7 +76,7 @@ SUBROUTINE diagonalise_ssyev( matrix, mysize, storageform, eigenvalues, &
        storageform ( 1:5 ) == "UPPER" ) THEN
      uplo = "U"
   ELSE
-     CALL stop_program(routineN,moduleN,__LINE__,"Unknown form of storage")
+     CPABORT("Unknown form of storage")
   END IF
 
   lda = SIZE ( matrix, 1 )
@@ -88,7 +87,7 @@ SUBROUTINE diagonalise_ssyev( matrix, mysize, storageform, eigenvalues, &
   CALL lapack_ssyev ( jobz, uplo, mysize, eigenvectors, lda, eigenvalues, &
        work, lwork, info )
   IF ( info /= 0 ) THEN
-     CALL stop_program(routineN,moduleN,__LINE__,"Error in diagonalisation")
+     CPABORT("Error in diagonalisation")
   END IF
 
 END SUBROUTINE diagonalise_ssyev
@@ -128,13 +127,13 @@ SUBROUTINE diagonalise_chpev ( matrix, mysize, storageform, eigenvalues, &
        storageform ( 1:5 ) == "UPPER" ) THEN
      uplo = "U"
   ELSE
-     CALL stop_program(routineN,moduleN,__LINE__,"Unknown form of storage")
+     CPABORT("Unknown form of storage")
   END IF
 
   CALL lapack_chpev ( jobz, uplo, mysize, matrix, eigenvalues, &
        eigenvectors, mysize, work, rwork, info )
   IF ( info /= 0 ) THEN
-     CALL stop_program(routineN,moduleN,__LINE__,"Error in diagonalisation")
+     CPABORT("Error in diagonalisation")
   END IF
 
 END SUBROUTINE diagonalise_chpev
@@ -170,8 +169,7 @@ SUBROUTINE cp2k_sgesvd ( matrix, svalues, mrow, ncol, uvec, vtvec )
   CALL lapack_sgesvd( jobu, jobvt, mrow, ncol, matrix, lda, svalues, &
         uvec, ldu, vtvec, ldvt, work, lwork, info )
   IF ( info /= 0 ) THEN
-     CALL stop_program(routineN,moduleN,__LINE__,&
-                       "Error in singular value decomposition.")
+     CPABORT("Error in singular value decomposition.")
   END IF
 
 END SUBROUTINE cp2k_sgesvd
@@ -208,8 +206,7 @@ SUBROUTINE cp2k_cgesvd ( matrix, svalues, mrow, ncol, uvec, vtvec )
   CALL lapack_cgesvd( jobu, jobvt, mrow, ncol, matrix, lda, svalues, &
         uvec, ldu, vtvec, ldvt, work, lwork, rwork, info )
   IF ( info /= 0 ) THEN
-     CALL stop_program(routineN,moduleN,__LINE__,&
-                       "Error in singular value decomposition.")
+     CPABORT("Error in singular value decomposition.")
   END IF
 
 END SUBROUTINE cp2k_cgesvd

@@ -57,7 +57,6 @@ MODULE cp_dbcsr_operations
   USE kinds,                           ONLY: dp,&
                                              real_4,&
                                              sp
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
 
@@ -714,9 +713,8 @@ CONTAINS
 
     my_beta=0._dp
     IF (PRESENT(beta)) THEN
-       CALL cp_assert (beta .EQ. my_beta, cp_fatal_level,&
-            cp_unimplemented_error_nr, routineN,&
-            "beta not supported, use matrix addition instead")
+       IF(beta .NE. my_beta)&
+          CPABORT("beta not supported, use matrix addition instead")
        my_beta=beta
     ENDIF
     group = fm%matrix_struct%para_env%group
@@ -838,7 +836,7 @@ CONTAINS
 
     ! Now convert to the desired matrix distribution
     IF (PRESENT (alpha)) THEN
-       CALL stop_program(routineN,moduleN,__LINE__,'no more alpha... clean me')
+       CPABORT('no more alpha... clean me')
     ELSE
        CALL cp_dbcsr_complete_redistribute (bc_mat, matrix,&
             keep_sparsity=keep_sparsity)
@@ -895,9 +893,8 @@ CONTAINS
 
     my_beta=0._dp
     IF (PRESENT(beta)) THEN
-       CALL cp_assert (beta .EQ. my_beta, cp_fatal_level,&
-            cp_unimplemented_error_nr, routineN,&
-            "beta not supported, use matrix addition instead")
+       IF(beta.NE.my_beta)&
+          CPABORT("beta not supported, use matrix addition instead")
        my_beta=beta
     ENDIF
     group = fm%matrix_struct%para_env%group

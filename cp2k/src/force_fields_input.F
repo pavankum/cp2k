@@ -57,7 +57,6 @@ MODULE force_fields_input
   USE shell_potential_types,           ONLY: shell_p_create,&
                                              shell_p_type
   USE string_utilities,                ONLY: uppercase
-  USE termination,                     ONLY: stop_program
   USE timings,                         ONLY: timeset,&
                                              timestop
 #include "./common/cp_common_uses.f90"
@@ -124,8 +123,7 @@ __LOCATION__,&
     CASE(do_ff_undef)
        ! Do Nothing
     CASE DEFAULT
-       CALL stop_program(routineN,moduleN,__LINE__,&
-                         "Force field type not implemented",para_env)
+       CPABORT("Force field type not implemented")
     END SELECT
     ! Numerical Accuracy:
     ! the factors here should depend on the energy and on the shape of each potential mapped
@@ -319,7 +317,7 @@ __LOCATION__,&
     IF (explicit) THEN
        ntot=0
        CALL shell_p_create(inp_info%shell_list,nshell)
-       CALL read_shell_section(inp_info%shell_list,tmp_section,ntot,para_env)
+       CALL read_shell_section(inp_info%shell_list,tmp_section,ntot)
     END IF
 
     tmp_section => section_vals_get_subs_vals(ff_section,"BOND")
@@ -495,7 +493,7 @@ __LOCATION__,&
        ipbv% a ( 14 ) = 88766181532.94E0_dp
        ipbv% a ( 15 ) = -79705131323.98_dp
     ELSE
-       CALL stop_program (routineN,moduleN,__LINE__,"IPBV only for WATER")
+       CPABORT("IPBV only for WATER")
     ENDIF
   END SUBROUTINE set_IPBV_ff
 
@@ -528,8 +526,7 @@ __LOCATION__,&
        ft%c = cp_unit_to_cp2k(72.50_dp,"eV*angstrom^6")
        ft%d = cp_unit_to_cp2k(145.427_dp,"eV*angstrom^8")
     ELSE
-       CALL stop_program(routineN,moduleN,__LINE__,&
-                         "BMHFT only for NaCl")
+       CPABORT("BMHFT only for NaCl")
     ENDIF
 
   END SUBROUTINE set_BMHFT_ff
@@ -543,8 +540,7 @@ __LOCATION__,&
     CHARACTER(len=*), PARAMETER :: routineN = 'set_BMHFTD_ff', &
       routineP = moduleN//':'//routineN
 
-    CALL stop_program(routineN,moduleN,__LINE__,&
-                      "No default parameters present for BMHFTD")
+    CPABORT("No default parameters present for BMHFTD")
 
   END SUBROUTINE set_BMHFTD_ff
 
@@ -1510,16 +1506,14 @@ __LOCATION__,&
 !> \param shell_list ...
 !> \param section ...
 !> \param start ...
-!> \param para_env ...
 !> \author Marcella Iannuzzi
 ! *****************************************************************************
-  SUBROUTINE read_shell_section(shell_list,section,start,para_env)
+  SUBROUTINE read_shell_section(shell_list,section,start)
 
     TYPE(shell_p_type), DIMENSION(:), &
       POINTER                                :: shell_list
     TYPE(section_vals_type), POINTER         :: section
     INTEGER, INTENT(IN)                      :: start
-    TYPE(cp_para_env_type), POINTER          :: para_env
 
     CHARACTER(len=*), PARAMETER :: routineN = 'read_shell_section', &
       routineP = moduleN//':'//routineN
@@ -1544,16 +1538,16 @@ __LOCATION__,&
        shell_list(start+i_rep)%shell%massfrac = mfrac
        CALL section_vals_val_get(section,"K2_SPRING",i_rep_section=i_rep,r_val=k)
        IF (k < 0.0_dp) THEN
-          CALL stop_program(routineN,moduleN,__LINE__,&
-                            "An invalid value was specified for the force constant k2 of the core-shell "//&
-                            "spring potential",para_env)
+          CALL cp_abort(__LOCATION__,&
+               "An invalid value was specified for the force constant k2 of the core-shell "//&
+               "spring potential")
        END IF
        shell_list(start+i_rep)%shell%k2_spring = k
        CALL section_vals_val_get(section,"K4_SPRING",i_rep_section=i_rep,r_val=k)
        IF (k < 0.0_dp) THEN
-          CALL stop_program(routineN,moduleN,__LINE__,&
-                            "An invalid value was specified for the force constant k4 of the core-shell "//&
-                            "spring potential",para_env)
+          CALL cp_abort(__LOCATION__,&
+               "An invalid value was specified for the force constant k4 of the core-shell "//&
+               "spring potential")
        END IF
        shell_list(start+i_rep)%shell%k4_spring = k
        CALL section_vals_val_get(section,"MAX_DISTANCE",i_rep_section=i_rep,r_val=maxdist)
