@@ -219,7 +219,8 @@ ifneq (,$(LIBXSMMROOT))
         16 29 55, \
         32 29 55, \
         12, \
-        13 26 28 32 45"
+        13 26 28 32 45, \
+        7 13 25 32"
     else
       LIBXSMM_MNK := $(MNK)
     endif
