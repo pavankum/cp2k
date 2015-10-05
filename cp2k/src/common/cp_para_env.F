@@ -23,10 +23,8 @@ MODULE cp_para_env
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.TRUE.
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'cp_para_env'
 
-  PUBLIC :: cp_para_env_retain, cp_para_env_release, cp_para_env_create,&
-            cp_para_env_write
-  PUBLIC :: cp_cart_create, cp_cart_release,&
-            cp_cart_write
+  PUBLIC :: cp_para_env_retain, cp_para_env_release, cp_para_env_create
+  PUBLIC :: cp_cart_create, cp_cart_release
 !***
 CONTAINS
 
@@ -256,22 +254,6 @@ SUBROUTINE cp_cart_release(cart)
   END IF
   NULLIFY(cart)
 END SUBROUTINE cp_cart_release
-
-! *****************************************************************************
-!> \brief retains the given cart
-!> \param cart the cart to retain
-!> \author fawzi
-! *****************************************************************************
-SUBROUTINE cp_cart_retain(cart)
-    TYPE(cp_para_cart_type), POINTER         :: cart
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'cp_cart_retain', &
-      routineP = moduleN//':'//routineN
-
-  CPASSERT(ASSOCIATED(cart))
-  CPASSERT(cart%ref_count>0)
-  cart%ref_count=cart%ref_count+1
-END SUBROUTINE cp_cart_retain
 
 ! *****************************************************************************
 !> \brief writes out the informations about the cart
