@@ -38,11 +38,13 @@ Functions:
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <netdb.h>
+#include <math.h>
 
 void open_socket(int *psockfd, int* inet, int* port, char* host)
 /* Opens a socket.
@@ -149,4 +151,16 @@ Args:
    if (n == 0) { perror("Error reading from socket: server has quit or connection broke"); exit(-1); }
 }
 
+void uwait(double *dsec)
+/* mini-wrapper to nanosleep
+
+   Args:
+     dsec:  number of seconds to wait (float values accepted)
+*/
+{
+   int rn;
+   struct timespec wt, rem;
+   wt.tv_sec = floor(*dsec); wt.tv_nsec=(*dsec-wt.tv_sec)*1000000000;   
+   rn = nanosleep(&wt, &rem);
+}
 
