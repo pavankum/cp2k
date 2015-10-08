@@ -16,8 +16,8 @@ MODULE pao_main
        cp_dbcsr_init, cp_dbcsr_iterator, cp_dbcsr_iterator_blocks_left, &
        cp_dbcsr_iterator_next_block, cp_dbcsr_iterator_start, &
        cp_dbcsr_iterator_stop, cp_dbcsr_multiply, cp_dbcsr_p_type, &
-       cp_dbcsr_release, cp_dbcsr_reserve_diag_blocks, cp_dbcsr_set, &
-       cp_dbcsr_trace, cp_dbcsr_type
+       cp_dbcsr_release, cp_dbcsr_reserve_diag_blocks, &
+       cp_dbcsr_row_block_sizes, cp_dbcsr_set, cp_dbcsr_trace, cp_dbcsr_type
   USE cp_para_types,                   ONLY: cp_para_env_type
   USE dm_ls_scf_qs,                    ONLY: ls_scf_dm_to_ks,&
                                              ls_scf_qs_atomic_guess
@@ -117,7 +117,9 @@ CONTAINS
     CALL cp_dbcsr_init(pao%matrix_D)
     CALL cp_dbcsr_copy(pao%matrix_D, pao%matrix_G)
 
-    CALL pao_build_selector(qs_env, pao%matrix_Y, pao%iw)
+    CALL pao_build_selector(qs_env, pao%matrix_Y)
+
+    CALL print_atom_info(pao)
 
     CALL cp_dbcsr_init(pao%matrix_U)
     CALL cp_dbcsr_create(pao%matrix_U, template=matrix_s(1)%matrix, matrix_type="N", name="PAO matrix_U")
@@ -142,6 +144,40 @@ CONTAINS
 
     CALL timestop(handle)
   END SUBROUTINE pao_init
+
+
+! *****************************************************************************
+!> \brief Prints a one line summary for each atom.
+!> \param pao ...
+! *****************************************************************************
+  SUBROUTINE print_atom_info(pao)
+    TYPE(pao_env_type), POINTER              :: pao
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'print_atom_info', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: iatom, natoms
+    INTEGER, DIMENSION(:), POINTER           :: pao_basis, param_cols, &
+                                                param_rows, pri_basis
+
+    pri_basis => cp_dbcsr_row_block_sizes(pao%matrix_Y)
+    pao_basis => cp_dbcsr_col_block_sizes(pao%matrix_Y)
+
+    CPASSERT(SIZE(pao_basis) == SIZE(pri_basis))
+    natoms = SIZE(pao_basis)
+
+    param_rows => cp_dbcsr_row_block_sizes(pao%matrix_X)
+    param_cols => cp_dbcsr_col_block_sizes(pao%matrix_X)
+    CPASSERT(SIZE(param_rows)==natoms.AND.SIZE(param_cols)==natoms)
+
+    DO iatom=1, natoms
+      IF(pao%iw>0) WRITE (pao%iw,"(A,I7,T20,A,I3,T45,A,I3,T65,A,I3)")&
+                         " PAO| atom: ", iatom,&
+                         " prim_basis: ", pri_basis(iatom),&
+                         " pao_basis: ", pao_basis(iatom),&
+                         " pao_params: ", (param_cols(iatom)*param_rows(iatom))
+    ENDDO
+  END SUBROUTINE print_atom_info
 
 
 ! *****************************************************************************
@@ -207,7 +243,7 @@ CONTAINS
 
        ! compute corresponding energy and ks matrix
        CALL ls_scf_dm_to_ks(qs_env,ls_scf_env,ls_scf_env%energy_init,iscf=0)
-       IF(pao%iw>0) WRITE (pao%iw,*) "PAO| Energy from extrapolating prev. step:",ls_scf_env%energy_init
+       IF(pao%iw>0) WRITE (pao%iw,*) "PAO| Initial energy from stored density:",ls_scf_env%energy_init
     ENDIF
 
     CALL timestop(handle)
@@ -369,9 +405,6 @@ CONTAINS
     ls_mstruct => ls_scf_env%ls_mstruct
     pao => ls_scf_env%pao_env
 
-    ! store matrix_P big before AB changes
-    CALL pao_store_P(qs_env, ls_scf_env)
-
     IF(pao%istep >= pao%max_pao) THEN
         IF(pao%iw>0) WRITE(pao%iw,*) "PAO| not converged!"
         pao_is_done = .TRUE.
@@ -386,6 +419,11 @@ CONTAINS
 
        pao_is_done = .FALSE.
        IF(pao%line_search_start) THEN
+          ! store prim. matrix_P before linesearch starts to wander off
+          CALL pao_store_P(qs_env, ls_scf_env)
+
+          CALL pao_write_restart(pao, qs_env)
+
           CALL pao_calc_grad(qs_env, ls_scf_env)
 
           ! determine CG mixing factor
@@ -416,8 +454,6 @@ CONTAINS
           CALL pao_update_AB(pao, ls_mstruct)
        ENDIF
     ENDIF
-
-    CALL pao_write_restart(pao, qs_env)
 
     CALL timestop(handle)
   END SUBROUTINE pao_update
@@ -498,7 +534,7 @@ CONTAINS
        ENDIF
 
        IF(pao%max_outer_pao>0 .AND. pao%istep-pao%last_reset > pao%max_outer_pao) THEN
-          IF(pao%iw>0) WRITE(pao%iw,*) "PAO| resetting X because of MAX_OUTER_PAO"
+          IF(pao%iw>0) WRITE(pao%iw,*) "PAO|CG| resetting because of MAX_OUTER_PAO"
           pao%last_reset = pao%istep
           beta = 0.0_dp
        ENDIF
@@ -572,7 +608,7 @@ CONTAINS
     ls_mstruct => ls_scf_env%ls_mstruct
     pao => ls_scf_env%pao_env
 
-    IF(pao%iw>0) WRITE (pao%iw,*) "PAO| Storing density matrix for next PAO interation."
+    IF(pao%iw>0) WRITE (pao%iw,*) "PAO| Storing primary density matrix for next PAO interation."
 
     CALL get_qs_env(qs_env, matrix_s=matrix_s)
 
@@ -600,12 +636,10 @@ CONTAINS
 !> \brief Build rectangular matrix to converert between primary and PAO basis.
 !> \param qs_env ...
 !> \param matrix_Y ...
-!> \param iw ...
 ! *****************************************************************************
-  SUBROUTINE pao_build_selector(qs_env, matrix_Y, iw)
+  SUBROUTINE pao_build_selector(qs_env, matrix_Y)
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(cp_dbcsr_type)                      :: matrix_Y
-    INTEGER                                  :: iw
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pao_build_selector', &
       routineP = moduleN//':'//routineN
@@ -642,9 +676,6 @@ CONTAINS
       CALL get_qs_kind(qs_kind_set(ikind), pao_basis_size=pao_basis_size)
       IF(pao_basis_size < 1) CPABORT("PAO_BASIS_SIZE too small.")
       blk_sizes_aux(i) = pao_basis_size
-      IF(iw>0) WRITE (iw,"(A,I7,T30,A,I3,T60,A,I3)") " PAO| atom: ", i,&
-                         " pao_basis_size: ", blk_sizes_aux(i),&
-                         " prim_basis_size: ", blk_sizes_pri(i)
     ENDDO
 
     CALL cp_dbcsr_init(matrix_Y)
