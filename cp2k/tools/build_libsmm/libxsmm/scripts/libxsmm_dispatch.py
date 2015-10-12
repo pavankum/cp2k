@@ -38,143 +38,57 @@ def calc_direct_index(mnk, d, h):
     return d * (h * (mnk[0]) + mnk[1]) + mnk[2]
 
 
-def create_dispatch_direct_function(typeflag, mnklist):
-    print "LIBXSMM_EXTERN_C LIBXSMM_RETARGETABLE libxsmm_" + typeflag + "mm_function libxsmm_" + typeflag + "mm_dispatch(int m, int n, int k)"
-    print "{"
-    maxm = libxsmm_utilities.max_mnk(mnklist, 0, 0)
-    maxn = libxsmm_utilities.max_mnk(mnklist, 0, 1)
-    maxk = libxsmm_utilities.max_mnk(mnklist, 0, 2)
-    d, h = maxk + 1, maxn + 1
-    print "  static /*const*/ libxsmm_" + typeflag + "mm_function functions[/*" + str(d * h * (maxm + 1)) + "*/] = {"
-    sys.stdout.write("    ")
-    begin, m, n, r = 0, 0, 0, 8
-    s = r * 6
-    for mnk in mnklist:
-        end = calc_direct_index(mnk, d, h)
-        for i in range(begin, end):
-            m = m + 1; n = n + 1
-            if (0 == (m % s)):
-                sys.stdout.write(",\n    ")
-            elif (1 < n):
-                sys.stdout.write(", ")
-            sys.stdout.write("0")
-        begin, m, n = end + 1, m + r, n + 1
-        if (r > (m % s)):
-            sys.stdout.write(",\n    ")
-            m = m + m % s
-        elif (1 < n):
-            sys.stdout.write(", ")
-        sys.stdout.write("libxsmm_" + typeflag + "mm_" + "_".join(map(str, mnk)))
-    print
-    print "  };"
-    print "  return (" + str(maxm) + " >= m && " + str(maxn) + " >= n && " + str(maxk) + " >= k) " + \
-                "? functions[" + str(d) + "*(" + str(h) + "*m+n)+k] " + \
-                ": 0;"
-    print "}"
-
-
-def create_dispatch_direct(mnklist):
+def create_dispatch(mnklist):
     print "#include <libxsmm.h>"
-    print
-    print
-    create_dispatch_direct_function("s", mnklist)
-    print
-    print
-    create_dispatch_direct_function("d", mnklist)
-
-
-def create_dispatch_bsearch_function(typeflag, mnklist):
-    print "LIBXSMM_EXTERN_C LIBXSMM_RETARGETABLE libxsmm_" + typeflag + "mm_function libxsmm_" + typeflag + "mm_dispatch(int m, int n, int k)"
-    print "{"
-    i, n, mnklen = 0, 6, len(mnklist)
-    print "  static /*const*/ libxsmm_" + typeflag + "mm_function functions[/*" + str(mnklen) + "*/] = {"
-    sys.stdout.write("    ")
-    for mnk in mnklist:
-        i = i + 1
-        sys.stdout.write("libxsmm_" + typeflag + "mm_" + "_".join(map(str, mnk)))
-        if (i < mnklen):
-            sys.stdout.write([", ", ",\n    "][0 == (i % n)])
-    print
-    print "  };"
-    print "  const int i = libxsmm_dispatch_index(m, n, k);"
-    print "  return 0 <= i ? functions[i] : 0;"
-    print "}"
-
-
-def create_dispatch_bsearch(mnklist):
-    print "#include <libxsmm.h>"
+    print "#include <libxsmm_dispatch.h>"
+    print "#include <generator_extern_typedefs.h>"
     print
     print "#if defined(LIBXSMM_OFFLOAD_BUILD)"
     print "# pragma offload_attribute(push,target(LIBXSMM_OFFLOAD_TARGET))"
     print "#endif"
-    print "#include <stdlib.h>"
+    print "#include <assert.h>"
     print "#if defined(LIBXSMM_OFFLOAD_BUILD)"
     print "# pragma offload_attribute(pop)"
     print "#endif"
     print
+    print "#if defined(NDEBUG)"
+    print "# define LIBXSMM_DISPATCH_CHECK(DISP) DISP"
+    print "#else"
+    print "# define LIBXSMM_DISPATCH_CHECK(DISP) assert(NULL == (DISP))"
+    print "#endif"
     print
-    print "LIBXSMM_RETARGETABLE int libxsmm_dispatch_compare3(const void* a, const void* b)"
+    print
+    print "LIBXSMM_RETARGETABLE extern int libxsmm_init;"
+    print
+    print
+    print "LIBXSMM_EXTERN_C LIBXSMM_RETARGETABLE void libxsmm_build_static()"
     print "{"
-    print "  const int *const ia = (const int*)a, *const ib = (const int*)b;"
-    print "  const int d0 = ia[0] - ib[0], d1 = ia[1] - ib[1], d2 = ia[2] - ib[2];"
-    print "  return 0 != d0 ? d0 : (0 != d1 ? d1 : d2);"
-    print "}"
-    print
-    print
-    print "LIBXSMM_RETARGETABLE int libxsmm_dispatch_index(int m, int n, int k)"
-    print "{"
-    i, n, mnklen = 0, 12, len(mnklist)
-    print "  static /*const*/ int indices[/*" + str(3 * mnklen) + "*/] = {"
-    sys.stdout.write("    ")
+    print "  if (0 == libxsmm_init) {"
+    print "    libxsmm_xgemm_descriptor LIBXSMM_XGEMM_DESCRIPTOR(desc, 0/*precision*/, LIBXSMM_PREFETCH, 'n', 'n', 1/*alpha*/, LIBXSMM_BETA, 0/*m*/, 0/*n*/, 0/*k*/, 0/*lda*/, 0/*ldb*/, 0/*ldc*/);"
     for mnk in mnklist:
-        i = i + 1
-        sys.stdout.write(", ".join(map(str, mnk)))
-        if (i < mnklen):
-            sys.stdout.write([", ", ",\n    "][0 == (i % n)])
-    print
-    print "  };"
-    print "  const int* hit = 0;"
-    print "  int mnk[3];"
-    print
-    print "  mnk[0] = m; mnk[1] = n; mnk[2] = k;"
-    print "  hit = (const int*)bsearch(mnk, indices, " + str(mnklen) + ", 3 * sizeof(*indices), libxsmm_dispatch_compare3);"
-    print "  return 0 != hit ? ((int)(hit - indices) / 3) : -1;"
+        mnkstr, mstr, nstr, kstr = "_".join(map(str, mnk)), str(mnk[0]), str(mnk[1]), str(mnk[2])
+        print "    desc.m = " + mstr + "; desc.n = " + nstr + "; desc.k = " + kstr + "; desc.lda = " + mstr + "; desc.ldb = " + kstr + ";"
+        print "    desc.ldc = LIBXSMM_ALIGN_STORES(" + mstr + ", sizeof(float)); desc.single_precision = 1;"
+        print "    LIBXSMM_DISPATCH_CHECK(libxsmm_dispatch(&desc, LIBXSMM_XGEMM_DESCRIPTOR_SIZE, 1/*single precision*/, (libxsmm_function)libxsmm_smm_" + mnkstr + "));"
+        print "    desc.ldc = LIBXSMM_ALIGN_STORES(" + mstr + ", sizeof(double)); desc.single_precision = 0;"
+        print "    LIBXSMM_DISPATCH_CHECK(libxsmm_dispatch(&desc, LIBXSMM_XGEMM_DESCRIPTOR_SIZE, 0/*double precision*/, (libxsmm_function)libxsmm_dmm_" + mnkstr + "));"
+    print "    libxsmm_init = 1;"
+    print "  }"
     print "}"
-    print
-    print
-    create_dispatch_bsearch_function("s", mnklist)
-    print
-    print
-    create_dispatch_bsearch_function("d", mnklist)
 
 
 if __name__ == "__main__":
     argc = len(sys.argv)
-    if (3 < argc):
-        threshold, sparsity = int(sys.argv[1]), int(sys.argv[2])
-        mnklist = libxsmm_utilities.load_mnklist(sys.argv[3:], 0, threshold)
-        maxmnk = libxsmm_utilities.max_mnk(mnklist, threshold)
-        maxm = libxsmm_utilities.max_mnk(mnklist, 0, 0)
-        maxn = libxsmm_utilities.max_mnk(mnklist, 0, 1)
-        maxk = libxsmm_utilities.max_mnk(mnklist, 0, 2)
-        maxsize = maxm * maxn * maxk
-        if (maxsize <= (sparsity * maxmnk) and maxsize <= 65536):
-            create_dispatch_direct(mnklist)
-        else:
-            create_dispatch_bsearch(mnklist)
-    elif (2 < argc):
+    if (2 < argc):
+        threshold = int(sys.argv[1])
+        mnklist = libxsmm_utilities.load_mnklist(sys.argv[2:], 0, threshold)
+        create_dispatch(mnklist)
+    elif (1 < argc):
         print "#include <libxsmm.h>"
         print
         print
-        print "LIBXSMM_EXTERN_C LIBXSMM_RETARGETABLE libxsmm_dmm_function libxsmm_dmm_dispatch(int m, int n, int k)"
+        print "LIBXSMM_EXTERN_C LIBXSMM_RETARGETABLE void libxsmm_build_static()"
         print "{"
-        print "  return 0;"
-        print "}"
-        print
-        print
-        print "LIBXSMM_EXTERN_C LIBXSMM_RETARGETABLE libxsmm_smm_function libxsmm_smm_dispatch(int m, int n, int k)"
-        print "{"
-        print "  return 0;"
         print "}"
     else:
         sys.tracebacklimit = 0
