@@ -91,6 +91,8 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 #if defined(MKL_ENABLE_AVX512_MIC)
   mkl_enable_instructions(MKL_ENABLE_AVX512_MIC);
 #endif
+  // pre-generate dispatch tables for the static code
+  libxsmm_build_static();
 
   if (reconfigure) {
 #if 0 < (LIBXSMM_ACC_STACKSIZE)
