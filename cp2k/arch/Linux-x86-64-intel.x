@@ -74,20 +74,40 @@ ifeq ($(OFFLOAD),0)
   MIC ?= 0
 endif
 
+ifeq (1,$(shell echo $$((2 > $(DBG)))))
+  ifeq (1,$(AVX))
+    TARGET = -xAVX
+  else ifeq (2,$(AVX))
+    TARGET = -xCORE-AVX2
+  else ifeq (3,$(AVX))
+    ifeq (0,$(MIC))
+      TARGET = -xCOMMON-AVX512
+    else
+      TARGET = -xMIC-AVX512
+    endif
+  else ifeq (1,$(shell echo $$((2 <= $(SSE)))))
+    TARGET = -xSSE$(SSE)
+  else ifeq (1,$(SSE))
+    TARGET = -xSSE3
+  else
+    TARGET = -xHost
+  endif
+endif
+
 # initial build flags
 CPPFLAGS  = $(NULL)
 CXXFLAGS  = -std=c++0x
 CFLAGS    = #
 FCFLAGS   = -free -fpp #-heap-arrays
 LDFLAGS   = #
-OPTFLAGS  = $(NULL)
+OPTFLAGS  = $(TARGET)
 
 # workaround for issue "cannot find address of function"
 #ATTRIBUTE = mic
 #DIAG_DISABLE := $(DIAG_DISABLE),2571,3218
 
 ifeq (0,$(DBG))
-  OPTFLAGS  += -O2 $(TARGET)
+  OPTFLAGS  += -O2
   DFLAGS    += -DNDEBUG
 
   CXXFLAGS  += -fno-alias -ansi-alias #-fp-model fast=2 #precise
@@ -225,16 +245,19 @@ ifneq (,$(LIBXSMMROOT))
       LIBXSMM_MNK := $(MNK)
     endif
   endif
-  ALIGNED_STORES := 0
+  LIBXSMM_ALIGNED_STORES := 0
   ifneq (0,$(OMP))
     ifneq (0,$(NESTED))
-      ALIGNED_STORES := 1
+      LIBXSMM_ALIGNED_STORES := 1
     endif
   endif
   ifneq (0,$(ACC))
     ifneq (0,$(OFFLOAD))
-      ALIGNED_STORES := 1
+      LIBXSMM_ALIGNED_STORES := 1
     endif
+  endif
+  ifneq (,$(shell echo "$(TARGET)" | grep "xMIC-AVX512"))
+    LIBXSMM_PREFETCH := 1
   endif
   LIBXSMM_BUILD := $(shell $(MAKE) -f $(LIBXSMMROOT)/Makefile \
     INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
@@ -242,8 +265,8 @@ ifneq (,$(LIBXSMMROOT))
     BINDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/bin \
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib \
     SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
-    ALIGNED_STORES=$(ALIGNED_STORES) MNK=$(LIBXSMM_MNK) \
-    PREFETCH=1 ROW_MAJOR=0 \
+    ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) MNK=$(LIBXSMM_MNK) \
+    PREFETCH=$(LIBXSMM_PREFETCH) ROW_MAJOR=0 \
   >&2)
 
   DFLAGS  += -D__LIBXSMM
