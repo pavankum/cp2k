@@ -53,6 +53,7 @@ DIAG_DISABLE = 8290,8291,10010,10212,11060
 # DEFAULTS
 #
 BEEP ?= 1
+JIT ?= 0
 SSE ?= 0
 AVX ?= 0
 MPI ?= 1
@@ -73,6 +74,11 @@ NESTED ?= 0
 OFFLOAD ?= $(ACC)
 ifeq ($(OFFLOAD),0)
   MIC ?= 0
+else
+  JIT = 0
+endif
+ifneq ($(MIC),0)
+  JIT = 0
 endif
 
 ifeq (1,$(shell echo $$((2 > $(DBG)))))
@@ -267,7 +273,7 @@ ifneq (,$(LIBXSMMROOT))
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib \
     SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
     ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) MNK=$(LIBXSMM_MNK) \
-    PREFETCH=$(LIBXSMM_PREFETCH) ROW_MAJOR=0 \
+    PREFETCH=$(LIBXSMM_PREFETCH) JIT=$(JIT) \
   >&2)
 
   DFLAGS  += -D__LIBXSMM
