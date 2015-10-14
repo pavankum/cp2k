@@ -231,26 +231,22 @@ ifneq (0,$(MEMKIND))
 endif
 
 ifneq (,$(LIBXSMMROOT))
-  ifeq (,$(LIBXSMM_MNK))
-    ifeq (,$(MNK))
-      LIBXSMM_MNK := " \
-        23, \
-        6, \
-        14 16 29, \
-        14 32 29, \
-        5 32 13 24 26, \
-        9 32 22, \
-        32, \
-        64, \
-        78, \
-        16 29 55, \
-        32 29 55, \
-        12, \
-        13 26 28 32 45, \
-        7 13 25 32"
-    else
-      LIBXSMM_MNK := $(MNK)
-    endif
+  ifneq (-1,$(JIT))
+    LIBXSMM_MNK := " \
+      23, \
+      6, \
+      14 16 29, \
+      14 32 29, \
+      5 32 13 24 26, \
+      9 32 22, \
+      32, \
+      64, \
+      78, \
+      16 29 55, \
+      32 29 55, \
+      12, \
+      13 26 28 32 45, \
+      7 13 25 32"
   endif
   LIBXSMM_ALIGNED_STORES := 0
   ifneq (0,$(OMP))
