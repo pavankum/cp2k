@@ -44,7 +44,7 @@ ALIGNED_LOADS ?= 0
 PREFETCH ?= 0
 
 # THRESHOLD problem size (M x N x K) determining when to use BLAS; can be zero
-THRESHOLD ?= $(shell echo $$((60 * 60 * 60)))
+THRESHOLD ?= $(shell echo $$((80 * 80 * 80)))
 
 # Beta paramater of DGEMM
 # we currently support 0 and 1
@@ -70,7 +70,7 @@ DOCDIR = documentation
 CXXFLAGS = $(NULL)
 CFLAGS = $(NULL)
 DFLAGS = $(NULL)
-IFLAGS = -I$(ROOTDIR)/include -I$(INCDIR) -I$(SRCDIR)
+IFLAGS = -I$(ROOTDIR)/include -I$(INCDIR) -I$(BLDDIR) -I$(SRCDIR)
 
 STATIC ?= 1
 OMP ?= 0
@@ -89,13 +89,11 @@ endif
 # IS NO CLEAN-UP ROUTINE, JITTED MEMORY IS FREED AT PROGRAM EXIT ONLY!
 JIT ?= 0
 ifneq (0,$(JIT))
-$(info ======================================================================)
+$(info =====================================================================)
 $(info YOU ARE USING AN EXPERIMENTAL VERSION OF LIBXSMM WITH JIT SUPPORT)
 $(info PLEASE NOTE THIS IS A PREVIEW OF OUR JITTING FEATURE, CURRENTLY THERE)
 $(info IS NO CLEAN-UP ROUTINE, JITTED MEMORY IS FREED AT PROGRAM EXIT ONLY!)
-$(info OPENMP IS SWITCHED ON, PTHREADS ARE NOT SUPPORTED, BUT NOT CHECKED.)
-$(info ======================================================================)
-OMP=1
+$(info =====================================================================)
 ifneq (0,$(ROW_MAJOR))
 $(error ROW_MAJOR needs to be 0 for JIT support!)
 endif
@@ -126,40 +124,15 @@ GPP     = $(notdir $(shell which g++      2> /dev/null))
 GCC     = $(notdir $(shell which gcc      2> /dev/null))
 GFC     = $(notdir $(shell which gfortran 2> /dev/null))
 
-ifneq (,$(ICPC))
-	CXX = $(ICPC)
-	ifeq (,$(ICC))
-		CC = $(CXX)
-	endif
-	AR = xiar
-else
-	CXX = $(GPP)
-endif
-ifneq (,$(ICC))
-	CC = $(ICC)
-	ifeq (,$(ICPC))
-		CXX = $(CC)
-	endif
-	AR = xiar
-else
-	CC = $(GCC)
-endif
-ifneq (,$(IFORT))
-	FC = $(IFORT)
-else
-	FC = $(GFC)
-endif
-ifneq (,$(CXX))
-	LD = $(CXX)
-endif
-ifeq (,$(LD))
-	LD = $(CC)
-endif
-ifeq (,$(LD))
-	LD = $(FC)
-endif
+CXX_CHECK = $(notdir $(shell which $(CXX) 2> /dev/null))
+CC_CHECK  = $(notdir $(shell which $(CC)  2> /dev/null))
+FC_CHECK  = $(notdir $(shell which $(FC)  2> /dev/null))
 
-ifeq (3,$(words $(filter icpc icc ifort,$(CXX) $(CC) $(FC))))
+ifeq (3,$(words $(filter icc icpc ifort,$(ICC) $(ICPC) $(IFORT))))
+	CC = $(ICC)
+	CXX = $(ICPC)
+	FC = $(IFORT)
+	AR = xiar
 	CXXFLAGS += -fPIC -Wall -std=c++0x
 	CFLAGS += -fPIC -Wall -std=c89
 	FCMTFLAGS += -threads
@@ -227,7 +200,16 @@ ifeq (3,$(words $(filter icpc icc ifort,$(CXX) $(CC) $(FC))))
 	endif
 	FCMODDIRFLAG = -module
 else # GCC assumed
-	VERSION = $(shell $(GCC) --version | grep "gcc (GCC)" | sed "s/gcc (GCC) \([0-9]\+\.[0-9]\+\.[0-9]\+\).*$$/\1/")
+	ifeq (,$(CXX_CHECK))
+		CXX = $(GPP)
+	endif
+	ifeq (,$(CC_CHECK))
+		CC = $(GCC)
+	endif
+	ifeq (,$(FC_CHECK))
+		FC = $(GFC)
+	endif
+	VERSION = $(shell $(CC) --version | grep "gcc (GCC)" | sed "s/gcc (GCC) \([0-9]\+\.[0-9]\+\.[0-9]\+\).*$$/\1/")
 	VERSION_MAJOR = $(shell echo "$(VERSION)" | $(CUT) -d"." -f1)
 	VERSION_MINOR = $(shell echo "$(VERSION)" | $(CUT) -d"." -f2)
 	VERSION_PATCH = $(shell echo "$(VERSION)" | $(CUT) -d"." -f3)
@@ -298,6 +280,16 @@ else # GCC assumed
 	FCMODDIRFLAG = -J
 endif
 
+ifneq (,$(CXX))
+	LD = $(CXX)
+endif
+ifeq (,$(LD))
+	LD = $(CC)
+endif
+ifeq (,$(LD))
+	LD = $(FC)
+endif
+
 ifeq (,$(CXXFLAGS))
 	CXXFLAGS = $(CFLAGS)
 endif
@@ -344,8 +336,8 @@ SRCFILES_GEN_LIB = $(patsubst %,$(SRCDIR)/%,generator_common.c generator_dense.c
 SRCFILES_GEN_BIN = $(patsubst %,$(SRCDIR)/%,generator_driver.c)
 OBJFILES_GEN_LIB = $(patsubst %,$(BLDDIR)/%.o,$(basename $(notdir $(SRCFILES_GEN_LIB))))
 OBJFILES_GEN_BIN = $(patsubst %,$(BLDDIR)/%.o,$(basename $(notdir $(SRCFILES_GEN_BIN))))
-OBJFILES_HST = $(patsubst %,$(BLDDIR)/intel64/mm_%.o,$(INDICES)) $(BLDDIR)/intel64/libxsmm_crc32.o $(BLDDIR)/intel64/libxsmm_dispatch.o $(BLDDIR)/intel64/libxsmm.o
-OBJFILES_MIC = $(patsubst %,$(BLDDIR)/mic/mm_%.o,$(INDICES)) $(BLDDIR)/mic/libxsmm_crc32.o $(BLDDIR)/mic/libxsmm_dispatch.o $(BLDDIR)/mic/libxsmm.o
+OBJFILES_HST = $(patsubst %,$(BLDDIR)/intel64/mm_%.o,$(INDICES)) $(BLDDIR)/intel64/libxsmm_crc32.o $(BLDDIR)/intel64/libxsmm_build.o
+OBJFILES_MIC = $(patsubst %,$(BLDDIR)/mic/mm_%.o,$(INDICES)) $(BLDDIR)/mic/libxsmm_crc32.o $(BLDDIR)/mic/libxsmm_build.o
 
 .PHONY: lib_all
 ifeq (0,$(OFFLOAD))
@@ -553,8 +545,8 @@ endif
 	@python $(SCRDIR)/libxsmm_impl_mm.py $(ROW_MAJOR) $(MVALUE) $(NVALUE) $(KVALUE) >> $@
 
 .PHONY: main
-main: $(BLDDIR)/libxsmm.c
-$(BLDDIR)/libxsmm.c: $(INCDIR)/libxsmm.h $(SCRDIR)/libxsmm_dispatch.py
+main: $(BLDDIR)/libxsmm_build.h
+$(BLDDIR)/libxsmm_build.h: $(INCDIR)/libxsmm.h $(SCRDIR)/libxsmm_dispatch.py
 	@mkdir -p $(dir $@)
 	@python $(SCRDIR)/libxsmm_dispatch.py $(THRESHOLD) $(INDICES) > $@
 
@@ -571,10 +563,10 @@ endif
 
 .PHONY: compile_hst
 compile_hst: $(OBJFILES_HST)
-$(BLDDIR)/intel64/%.o: $(BLDDIR)/%.c $(INCDIR)/libxsmm.h
+$(BLDDIR)/intel64/%.o: $(BLDDIR)/%.c $(INCDIR)/libxsmm.h $(BLDDIR)/libxsmm_build.h
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DFLAGS) $(IFLAGS) $(TARGET) -c $< -o $@
-$(BLDDIR)/intel64/%.o: $(SRCDIR)/%.c $(INCDIR)/libxsmm.h
+$(BLDDIR)/intel64/%.o: $(SRCDIR)/%.c $(INCDIR)/libxsmm.h $(BLDDIR)/libxsmm_build.h
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DFLAGS) $(IFLAGS) $(TARGET) -c $< -o $@
 
@@ -592,7 +584,7 @@ endif
 
 .PHONY: lib_hst
 lib_hst: $(OUTDIR)/intel64/libxsmm.$(LIBEXT)
-$(OUTDIR)/intel64/libxsmm.$(LIBEXT): $(OBJFILES_HST) $(OBJFILES_GEN_LIB) $(BLDDIR)/intel64/libxsmm_build_jit.o
+$(OUTDIR)/intel64/libxsmm.$(LIBEXT): $(OBJFILES_HST) $(OBJFILES_GEN_LIB)
 	@mkdir -p $(dir $@)
 ifeq (0,$(STATIC))
 	$(LD) -o $@ $^ -shared $(LDFLAGS) $(CLDFLAGS)
@@ -600,12 +592,11 @@ else
 	$(AR) -rs $@ $^
 endif
 ifneq (0,$(JIT))
-	$(info ======================================================================)
+	$(info =====================================================================)
 	$(info YOU ARE USING AN EXPERIMENTAL VERSION OF LIBXSMM WITH JIT SUPPORT)
 	$(info PLEASE NOTE THIS IS A PREVIEW OF OUR JITTING FEATURE, CURRENTLY THERE)
 	$(info IS NO CLEAN-UP ROUTINE, JITTED MEMORY IS FREED AT PROGRAM EXIT ONLY!)
-	$(info OPENMP IS SWITCHED ON, PTHREADS ARE NOT SUPPORTED, BUT NOT CHECKED.)
-	$(info ======================================================================)
+	$(info =====================================================================)
 endif
 
 .PHONY: samples
@@ -613,24 +604,24 @@ samples: smm cp2k
 
 .PHONY: smm
 smm: lib_all
-	@cd $(SPLDIR)/smm && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO)
+	@cd $(SPLDIR)/smm && $(MAKE) clean && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) SSE=$(SSE) AVX=$(AVX)
 
 .PHONY: smm_hst
 smm_hst: lib_hst
-	@cd $(SPLDIR)/smm && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD)
+	@cd $(SPLDIR)/smm && $(MAKE) clean && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) SSE=$(SSE) AVX=$(AVX) OFFLOAD=$(OFFLOAD)
 .PHONY: smm_mic
 smm_mic: lib_mic
-	@cd $(SPLDIR)/smm && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) MIC=$(MIC)
+	@cd $(SPLDIR)/smm && $(MAKE) clean && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) MIC=$(MIC)
 
 .PHONY: cp2k
 cp2k: lib_all
-	@cd $(SPLDIR)/cp2k && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO)
+	@cd $(SPLDIR)/cp2k && $(MAKE) clean && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) SSE=$(SSE) AVX=$(AVX)
 .PHONY: cp2k_hst
 cp2k_hst: lib_hst
-	@cd $(SPLDIR)/cp2k && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD)
+	@cd $(SPLDIR)/cp2k && $(MAKE) clean && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) SSE=$(SSE) AVX=$(AVX) OFFLOAD=$(OFFLOAD)
 .PHONY: cp2k_mic
 cp2k_mic: lib_mic
-	@cd $(SPLDIR)/cp2k && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) MIC=$(MIC)
+	@cd $(SPLDIR)/cp2k && $(MAKE) clean && $(MAKE) SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) MIC=$(MIC)
 
 .PHONY: drytest
 drytest: $(SPLDIR)/cp2k/cp2k-perf.sh
@@ -738,10 +729,10 @@ ifneq ($(abspath $(BLDDIR)),$(ROOTDIR))
 ifneq ($(abspath $(BLDDIR)),$(abspath .))
 	@rm -rf $(BLDDIR)
 else
-	@rm -f $(OBJECTS) $(BLDDIR)/libxsmm.c $(BLDDIR)/*.mod
+	@rm -f $(OBJECTS) $(BLDDIR)/libxsmm_build.h $(BLDDIR)/*.mod
 endif
 else
-	@rm -f $(OBJECTS) $(BLDDIR)/libxsmm.c $(BLDDIR)/*.mod
+	@rm -f $(OBJECTS) $(BLDDIR)/libxsmm_build.h $(BLDDIR)/*.mod
 endif
 
 .PHONY: realclean

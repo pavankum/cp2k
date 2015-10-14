@@ -1,7 +1,7 @@
 # LIBXSMM
-Library for small matrix-matrix multiplications targeting Intel Architecture (x86). The library generates code for the following instruction set extensions: Intel SSE3, Intel AVX, Intel AVX2, IMCI (KNCni) for Intel Xeon Phi coprocessors ("KNC"), and Intel AVX-512 as found in the Intel Xeon Phi processor family ("KNL") and future Intel Xeon processors. Historically the library was solely targeting the Intel Many Integrated Core Architecture "MIC") using intrinsic functions, meanwhile optimized assembly code is targeting all fore mentioned instruction set extensions. [[pdf](https://github.com/hfp/libxsmm/raw/master/documentation/libxsmm.pdf)] [[src](https://github.com/hfp/libxsmm/archive/0.9.1.zip)] [![status](https://travis-ci.org/hfp/libxsmm.svg?branch=master "Master branch build status")](https://github.com/hfp/libxsmm/archive/master.zip)
+Library for small matrix-matrix multiplications targeting Intel Architecture (x86). The library generates code for the following instruction set extensions: Intel SSE3, Intel AVX, Intel AVX2, IMCI (KNCni) for Intel Xeon Phi coprocessors ("KNC"), and Intel AVX-512 as found in the Intel Xeon Phi processor family ("KNL") and future Intel Xeon processors. Historically the library was solely targeting the Intel Many Integrated Core Architecture "MIC") using intrinsic functions, meanwhile optimized assembly code is targeting all fore mentioned instruction set extensions. [[pdf](https://github.com/hfp/libxsmm/raw/master/documentation/libxsmm.pdf)] [[src](https://github.com/hfp/libxsmm/archive/1.0.zip)] [![status](https://travis-ci.org/hfp/libxsmm.svg?branch=master "Master branch build status")](https://github.com/hfp/libxsmm/archive/master.zip)
 
-**What is a small matrix-matrix multiplication?** When characterizing the problem size using the M, N, and K parameters, a problem size suitable for LIBXSMM falls approximately within (M N K)^(1/3) <= 60 (which illustrates that non-square matrices or even "tall and skinny" shapes are covered as well). However the code generator only generates code up to the specified [threshold](#auto-dispatch). Raising the threshold may not only generate excessive amounts of code (due to unrolling), but also miss to implement a tiling scheme to effectively utilize the L2 cache. For problem sizes above the configurable threshold, LIBXSMM is falling back to BLAS.
+**What is a small matrix-matrix multiplication?** When characterizing the problem size using the M, N, and K parameters, a problem size suitable for LIBXSMM falls approximately within (M N K)^(1/3) <= 80 (which illustrates that non-square matrices or even "tall and skinny" shapes are covered as well). However the code generator only generates code up to the specified [threshold](#auto-dispatch). Raising the threshold may not only generate excessive amounts of code (due to unrolling), but also miss to implement a tiling scheme to effectively utilize the L2 cache. For problem sizes above the configurable threshold, LIBXSMM is falling back to BLAS.
 
 **How to determine whether an application can benefit from using LIBXSMM or not?** Given the application uses BLAS to carry out matrix multiplications, one may link against Intel MKL 11.2 (or higher), set the environment variable MKL_VERBOSE=1, and run the application using a representative workload (env MKL_VERBOSE=1 ./workload > verbose.txt). The collected output is the starting point for evaluating the problem sizes as imposed by the workload (grep -a "MKL_VERBOSE DGEMM" verbose.txt | cut -d, -f3-5).
 
@@ -131,7 +131,7 @@ All three levels are accessible directly (see [Interface](#interface)) allowing 
 Further, a preprocessor symbol denotes the largest problem size (*M* x *N* x *K*) that belongs to level (1) and (2), and therefore determines if a matrix multiplication falls back to level (3) of calling the LAPACK/BLAS library alongside of LIBXSMM. This threshold can be configured using for example:
 
 ```
-make THRESHOLD=$((24 * 24 * 24))
+make THRESHOLD=$((60 * 60 * 60))
 ```
 
 The maximum of the given threshold and the largest requested specialization refines the value of the threshold. If a problem size falls below the threshold, dispatching the code requires to figure out whether a specialized routine exists or not.
@@ -144,8 +144,7 @@ some limitations are in place:
 
 1. there is no support for ALIGNED_STORE/ALIGNED_LOAD build options
 2. there is no support for SSE3 (Intel Xeon 5500/5600 series) and IMCI (Intel Xeon Phi coprocessor code-named Knights Corner) instruction set extensions
-3. LIBXSMM MUST NOT be called from several PTHREADS, but OpenMP is fine (we use an OpenMP critical section to proctect code buffers), therefore OpenMP is mandatory 
-when building the JIT backend
+3. LIBXSMM uses pthread mutexes to secure updates of the JITed code cache, make sure to link with -lpthread
 
 The JIT backend version of the LIBXSMM can be built by:
 
@@ -155,6 +154,17 @@ make JIT=1
 
 You can use the aforementioned THRESHOLD parameter to control the matrix sizes for which the JIT compilation will be performed.
 
+Notes: Modern Linux distributions have support for transparent huge pages (THP). LIBXSMM takes care of this feature when setting execute permissions of the code
+cache's pages. However, we measured up to 30 precent slowdown when running JITed code which was stored on THP. For systems with kernel 2.6.38 or later it is possible
+to disabled the usage of THP of mmap regions. Please modify [src/libxsmm_build.c](https://github.com/hfp/libxsmm/blob/master/src/libxsmm_build.c#L158), if you think you got hit by this problem (you need to remove the "-c89" flag when building LIBXSMM):
+
+```C
+int l_fd = open("/dev/zero", O_RDWR);
+void* p = mmap(0, l_code_page_size, PROT_READ|PROT_WRITE, MAP_PRIVATE, l_fd, 0);
+close(l_fd);
+/* explicitly disable THP for this memory region */ 
+madvise(p, l_code_page_size, MADV_NOHUGEPAGE);
+```
 
 ### Directly invoking the generator backend
 In some special, extremely performance-critical situations it might be useful to bypass LIBXSMM's frontend entirely and to directly call into the generated code. This is possible by either invoking the code generator after a regular build process (as described above) or by just building the backend and invoking the generator:
