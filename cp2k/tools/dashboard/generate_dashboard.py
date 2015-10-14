@@ -153,12 +153,12 @@ def gen_archive(config, log, outdir, full_archive=False):
         print "Doing the full archive index pages"
         trunk_revision = None # trunk_version changes too quickly, leave it out.
         out_fn = "index_full.html"
-        full_index_link = ''
+        other_index_link = '<p>View <a href="index.html">recent archive</a></p>'
     else:
         print "Doing recent archive index pages"
         trunk_revision = log[0]['num']
         out_fn = "index.html"
-        full_index_link = '<p>View <a href="index_full.html">full archive</a></p>'
+        other_index_link = '<p>View <a href="index_full.html">full archive</a></p>'
 
     url_list = ""
     for s in config.sections():
@@ -182,7 +182,7 @@ def gen_archive(config, log, outdir, full_archive=False):
             archive_output += '<p>Get <a href="%s">more information</a></p>\n'%info_url
         if(report_type == "generic"):
             archive_output += gen_plots(archive_reports, log, outdir+"archive/"+s+"/", full_archive)
-        archive_output += full_index_link
+        archive_output += other_index_link
         archive_output += '<table border="1" cellspacing="3" cellpadding="5">\n'
         archive_output += '<tr><th>Revision</th><th>Status</th><th>Summary</th><th>Author</th><th>Commit Message</th></tr>\n\n'
 
@@ -205,7 +205,7 @@ def gen_archive(config, log, outdir, full_archive=False):
             archive_output += '</tr>\n\n'
 
         archive_output += '</table>\n'
-        archive_output += full_index_link
+        archive_output += other_index_link
         archive_output += html_footer()
         write_file(outdir+"archive/%s/%s"%(s,out_fn), archive_output)
 
@@ -266,15 +266,20 @@ def gen_plots(all_reports, log, outdir, full_archive):
         ax.set_xlabel('SVN Revision')
         ax.set_ylabel(p['ylabel'])
         for cname, c in p['curves'].items():
-            ax.errorbar(c['x'], c['y'], yerr=c['yerr'], label=c['label'],
-                        marker=markers.next(), linewidth=2, markersize=7)
+            if(full_archive):
+                ax.plot(c['x'], c['y'], label=c['label'], linewidth=2) # less crowded
+            else:
+                ax.errorbar(c['x'], c['y'], yerr=c['yerr'], label=c['label'],
+                            marker=markers.next(), linewidth=2, markersize=7)
         ax.set_xlim(rev_start-1, rev_end+1)
         ax.xaxis.set_minor_locator(AutoMinorLocator())
         ax.legend(loc='upper center', numpoints=1, ncol=3, fancybox=True, shadow=True)
         if(not full_archive): # protect against outlayers
-            ymin = min([min(c['y']) for c in p['curves'].values()]) # lowest point from lowest curve
-            ymax = max([min(c['y']) for c in p['curves'].values()]) # lowest point from highest curve
-            ax.set_ylim(0.95*ymin, 1.3*ymax)
+            ymin  = min([min(c['y']) for c in p['curves'].values()]) # lowest point from lowest curve
+            ymax1 = max([min(c['y']) for c in p['curves'].values()]) # lowest point from highest curve
+            # highest *visible* point from highest curve
+            ymax2 = max([max([y for x,y in zip(c['x'],c['y']) if x>=rev_start]) for c in p['curves'].values()])
+            ax.set_ylim(0.95*ymin, min(1.3*ymax1, 1.05*ymax2))
         fig.savefig(outdir+pname+fig_ext)
 
     # write html output
