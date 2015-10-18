@@ -39,17 +39,17 @@ MODULE dbcsr_api
        dbcsr_get_conf_nstacks, dbcsr_get_conf_randmat_seed, &
        dbcsr_get_conf_use_comm_thread, dbcsr_get_conf_use_mpi_filtering, &
        dbcsr_get_conf_use_mpi_rma, dbcsr_set_conf_avg_elements_images, &
-       dbcsr_set_conf_comm_thread_load, dbcsr_set_conf_external_timing, &
-       dbcsr_set_conf_max_ele_block, dbcsr_set_conf_mm_driver, &
-       dbcsr_set_conf_mm_stacksize, dbcsr_set_conf_nstacks, &
-       dbcsr_set_conf_randmat_seed, dbcsr_set_conf_use_comm_thread, &
-       dbcsr_set_conf_use_mpi_filtering, dbcsr_set_conf_use_mpi_rma, &
-       dbcsr_set_default_config, has_acc, has_mpi, mm_driver_acc, &
-       mm_driver_blas, mm_driver_matmul, mm_driver_smm, mm_name_acc, &
+       dbcsr_set_conf_comm_thread_load, dbcsr_set_conf_max_ele_block, &
+       dbcsr_set_conf_mm_driver, dbcsr_set_conf_mm_stacksize, &
+       dbcsr_set_conf_nstacks, dbcsr_set_conf_randmat_seed, &
+       dbcsr_set_conf_use_comm_thread, dbcsr_set_conf_use_mpi_filtering, &
+       dbcsr_set_conf_use_mpi_rma, dbcsr_set_default_config, has_acc, &
+       has_mpi, mm_driver_acc, mm_driver_blas, mm_driver_matmul, &
+       mm_driver_smm, mm_name_acc, mm_name_blas, mm_name_matmul, mm_name_smm, &
 #if defined(__LIBXSMM)
        mm_driver_xsmm, mm_name_xsmm, &
 #endif
-       mm_name_blas, mm_name_matmul, mm_name_smm, multrec_limit
+       multrec_limit
   USE dbcsr_csr_conversions,           ONLY: &
        convert_csr_to_dbcsr, convert_dbcsr_to_csr, csr_create_from_dbcsr, &
        csr_create_new, csr_create_template, csr_dbcsr_blkrow_dist, &
@@ -75,9 +75,6 @@ MODULE dbcsr_api
                                              dbcsr_create_dist_block_cyclic,&
                                              dbcsr_create_dist_r_unrot,&
                                              dbcsr_get_stored_coordinates
-  USE dbcsr_error_handling,            ONLY: dbcsr_error_set,&
-                                             dbcsr_error_stop,&
-                                             dbcsr_error_type
   USE dbcsr_io,                        ONLY: dbcsr_binary_read,&
                                              dbcsr_binary_write,&
                                              dbcsr_print,&
@@ -219,9 +216,6 @@ MODULE dbcsr_api
             dbcsr_distribution_col_clusters,&
             dbcsr_distribution_has_row_clusters,&
             dbcsr_distribution_has_col_clusters,&
-            dbcsr_error_set,&
-            dbcsr_error_stop,&
-            dbcsr_error_type,&
             dbcsr_filter,&
             dbcsr_finalize,&
             dbcsr_finalize_lib,&
@@ -310,7 +304,6 @@ MODULE dbcsr_api
             dbcsr_scale_by_vector,&
             dbcsr_set,&
             dbcsr_set_conf_comm_thread_load,&
-            dbcsr_set_conf_external_timing,&
             dbcsr_set_conf_max_ele_block,&
             dbcsr_set_conf_mm_driver,&
             dbcsr_set_conf_mm_stacksize,&

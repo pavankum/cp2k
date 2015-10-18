@@ -34,9 +34,6 @@ MODULE dbcsr_test_methods
                                              dbcsr_distribution_release
   USE dbcsr_dist_operations,           ONLY: dbcsr_get_stored_coordinates
   USE dbcsr_error_handling,            ONLY: dbcsr_assert,&
-                                             dbcsr_error_set,&
-                                             dbcsr_error_stop,&
-                                             dbcsr_error_type,&
                                              dbcsr_fatal_level,&
                                              dbcsr_internal_error,&
                                              dbcsr_wrong_args_error
@@ -74,6 +71,7 @@ MODULE dbcsr_test_methods
                                              real_8
   USE message_passing,                 ONLY: mp_comm_null,&
                                              mp_environ
+#include "../base/base_uses.f90"
 
   !$ USE OMP_LIB, ONLY: omp_get_max_threads, omp_get_thread_num, omp_get_num_threads
 
@@ -144,32 +142,30 @@ CONTAINS
 !> \brief Impose sparsity on a dense matrix based on a dbcsr
 !> \param[in] sparse          sparse matrix
 !> \param[inout] dense        dense matrix
-!> \param[inout] error        dbcsr error
 !>
 !> Take into account the symmetry of the sparse matrix.
 !> The dense matrix need to be valid.
 !> The operation is done localy.
 ! *****************************************************************************
-  SUBROUTINE dbcsr_impose_sparsity(sparse, dense, error)
+  SUBROUTINE dbcsr_impose_sparsity(sparse, dense)
     TYPE(dbcsr_obj), INTENT(IN)              :: sparse
     TYPE(dbcsr_data_obj), INTENT(inout)      :: dense
-    TYPE(dbcsr_error_type), INTENT(inout)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_impose_sparsity', &
       routineP = moduleN//':'//routineN
 
     CHARACTER                                :: symm
     INTEGER :: blk, col, col_offset, col_size, data_type, dense_col_size, &
-      dense_row_size, error_handler, row, row_offset, row_size
+      dense_row_size, handle, row, row_offset, row_size
     LOGICAL                                  :: valid
     TYPE(dbcsr_data_obj)                     :: tmp
     TYPE(dbcsr_iterator)                     :: iter
 
-    CALL dbcsr_error_set(routineN, error_handler, error)
+    CALL timeset(routineN, handle)
 
-    CALL dbcsr_data_get_sizes ( dense, dense_row_size, dense_col_size, valid, error )
+    CALL dbcsr_data_get_sizes ( dense, dense_row_size, dense_col_size, valid)
     CALL dbcsr_assert (valid, dbcsr_fatal_level, dbcsr_internal_error, &
-         routineN, "dense matrix not valid",__LINE__,error)
+         routineN, "dense matrix not valid",__LINE__)
     data_type = dbcsr_data_get_type( dense )
     symm = dbcsr_get_matrix_type(sparse)
 
@@ -216,7 +212,7 @@ CONTAINS
              CALL dbcsr_block_scale (dense, dbcsr_scalar_negative(dbcsr_scalar_one(&
                   dbcsr_type_2d_to_1d(data_type))),&
                   row_size=col_size, col_size=row_size, &
-                  lb=col_offset, lb2=row_offset, error=error)
+                  lb=col_offset, lb2=row_offset)
           CASE(dbcsr_type_hermitian)
              CALL dbcsr_block_partial_copy(&
                   dst=dense,&
@@ -227,7 +223,7 @@ CONTAINS
                   src_r_lb=row_offset, src_c_lb=col_offset,&
                   nrow=row_size, ncol=col_size)
              CALL dbcsr_block_conjg (dense, row_size=col_size, col_size=row_size, &
-                  lb=col_offset, lb2=row_offset, error=error)
+                  lb=col_offset, lb2=row_offset)
           CASE(dbcsr_type_antihermitian)
              CALL dbcsr_block_partial_copy(&
                   dst=dense,&
@@ -240,12 +236,12 @@ CONTAINS
              CALL dbcsr_block_scale (dense, dbcsr_scalar_negative(dbcsr_scalar_one(&
                   dbcsr_type_2d_to_1d(data_type))),&
                   row_size=col_size, col_size=row_size, &
-                  lb=col_offset, lb2=row_offset, error=error)
+                  lb=col_offset, lb2=row_offset)
              CALL dbcsr_block_conjg (dense, row_size=col_size, col_size=row_size, &
-                  lb=col_offset, lb2=row_offset, error=error)
+                  lb=col_offset, lb2=row_offset)
           CASE DEFAULT
              CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, &
-                  dbcsr_wrong_args_error, routineN, "wrong matrix symmetry",__LINE__,error)
+                  dbcsr_wrong_args_error, routineN, "wrong matrix symmetry",__LINE__)
           END SELECT
        ENDIF
     ENDDO
@@ -253,7 +249,7 @@ CONTAINS
 
     CALL dbcsr_data_release ( tmp )
 
-    CALL dbcsr_error_stop(error_handler, error)
+    CALL timestop(handle)
 
   END SUBROUTINE dbcsr_impose_sparsity
 
@@ -261,32 +257,30 @@ CONTAINS
 !> \brief Convert a sparse matrix to a dense matrix
 !> \param[in] sparse          sparse matrix
 !> \param[inout] dense        dense matrix
-!> \param[inout] error        dbcsr error
 !>
 !> Take into account the symmetry of the sparse matrix.
 !> The dense matrix need to be valid.
 !> The operation is done localy.
 ! *****************************************************************************
-  SUBROUTINE dbcsr_to_dense_local (sparse, dense, error)
+  SUBROUTINE dbcsr_to_dense_local (sparse, dense)
     TYPE(dbcsr_obj), INTENT(in)              :: sparse
     TYPE(dbcsr_data_obj), INTENT(inout)      :: dense
-    TYPE(dbcsr_error_type), INTENT(inout)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_to_dense_local', &
       routineP = moduleN//':'//routineN
 
     CHARACTER                                :: symm
     INTEGER :: col, col_offset, col_size, data_type, dense_col_size, &
-      dense_row_size, error_handler, row, row_offset, row_size
+      dense_row_size, handle, row, row_offset, row_size
     LOGICAL                                  :: tr, valid
     TYPE(dbcsr_data_obj)                     :: block
     TYPE(dbcsr_iterator)                     :: iter
 
-    CALL dbcsr_error_set(routineN, error_handler, error)
+    CALL timeset(routineN, handle)
 
-    CALL dbcsr_data_get_sizes (dense, dense_row_size, dense_col_size, valid, error)
+    CALL dbcsr_data_get_sizes (dense, dense_row_size, dense_col_size, valid)
     CALL dbcsr_assert (valid, dbcsr_fatal_level, dbcsr_internal_error, &
-         routineN, "dense matrix not valid",__LINE__,error)
+         routineN, "dense matrix not valid",__LINE__)
 
     symm = dbcsr_get_matrix_type(sparse)
     data_type = dbcsr_data_get_type(dense)
@@ -321,7 +315,7 @@ CONTAINS
              CALL dbcsr_block_scale (dense, dbcsr_scalar_negative(dbcsr_scalar_one(&
                   dbcsr_type_2d_to_1d(data_type))),&
                   row_size=col_size, col_size=row_size, &
-                  lb=col_offset, lb2=row_offset, error=error)
+                  lb=col_offset, lb2=row_offset)
           CASE(dbcsr_type_hermitian)
              CALL dbcsr_block_partial_copy(dst=dense,&
                   dst_rs=dense_row_size, dst_cs=dense_col_size, dst_tr=.TRUE.,&
@@ -329,7 +323,7 @@ CONTAINS
                   src=block, src_rs=row_size, src_cs=col_size, src_tr=tr,&
                      src_r_lb=1, src_c_lb=1, nrow=row_size, ncol=col_size)
              CALL dbcsr_block_conjg (dense, row_size=col_size, col_size=row_size, &
-                  lb=col_offset, lb2=row_offset, error=error)
+                  lb=col_offset, lb2=row_offset)
           CASE(dbcsr_type_antihermitian)
              CALL dbcsr_block_partial_copy(dst=dense,&
                   dst_rs=dense_row_size, dst_cs=dense_col_size, dst_tr=.TRUE.,&
@@ -339,12 +333,12 @@ CONTAINS
              CALL dbcsr_block_scale (dense, dbcsr_scalar_negative(dbcsr_scalar_one(&
                   dbcsr_type_2d_to_1d(data_type))),&
                   row_size=col_size, col_size=row_size, &
-                  lb=col_offset, lb2=row_offset, error=error)
+                  lb=col_offset, lb2=row_offset)
              CALL dbcsr_block_conjg (dense, row_size=col_size, col_size=row_size, &
-                  lb=col_offset, lb2=row_offset, error=error)
+                  lb=col_offset, lb2=row_offset)
           CASE DEFAULT
              CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, &
-                  dbcsr_wrong_args_error, routineN, "wrong matrix symmetry",__LINE__,error)
+                  dbcsr_wrong_args_error, routineN, "wrong matrix symmetry",__LINE__)
           END SELECT
        ENDIF
     END DO
@@ -352,7 +346,7 @@ CONTAINS
     CALL dbcsr_data_clear_pointer (block)
     CALL dbcsr_data_release (block)
 
-    CALL dbcsr_error_stop(error_handler, error)
+    CALL timestop(handle)
 
   END SUBROUTINE dbcsr_to_dense_local
 
@@ -387,10 +381,9 @@ CONTAINS
 !> \param data_type ...
 !> \param symmetry ...
 !> \param dist ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE dbcsr_make_random_matrix (matrix, row_blk_sizes, col_blk_sizes,&
-       name, sparsity, mp_group, data_type, symmetry, dist, error)
+       name, sparsity, mp_group, data_type, symmetry, dist)
     TYPE(dbcsr_obj), INTENT(out)             :: matrix
     INTEGER, DIMENSION(:), INTENT(in), &
       POINTER                                :: row_blk_sizes, col_blk_sizes
@@ -401,7 +394,6 @@ CONTAINS
     CHARACTER, INTENT(in), OPTIONAL          :: symmetry
     TYPE(dbcsr_distribution_obj), &
       INTENT(IN), OPTIONAL                   :: dist
-    TYPE(dbcsr_error_type), INTENT(inout)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_make_random_matrix', &
       routineP = moduleN//':'//routineN
@@ -421,7 +413,7 @@ CONTAINS
 
 !   ---------------------------------------------------------------------------
 
-    CALL dbcsr_error_set (routineN, error_handle, error)
+    CALL timeset (routineN, error_handle)
     ! the counter goes into the seed. Every new call gives a new random matrix
     randmat_counter=randmat_counter+1
     ! Create the matrix
@@ -441,8 +433,7 @@ CONTAINS
          new_dist, my_symmetry,&
          row_blk_sizes,&
          col_blk_sizes,&
-         data_type=my_data_type,&
-         error=error)
+         data_type=my_data_type)
     numproc = dbcsr_mp_numnodes (dbcsr_distribution_mp (new_dist))
     my_proc = dbcsr_mp_mynode (dbcsr_distribution_mp (new_dist))
     !
@@ -458,7 +449,7 @@ CONTAINS
          sizedata_guess=INT(REAL(dbcsr_nfullrows_total(matrix),KIND=dp)&
                            *REAL(dbcsr_nfullcols_total(matrix),KIND=dp)&
                            *(1.0_dp-sparsity)*1.1_dp/numproc),&
-         work_mutable = .TRUE.,error=error)
+         work_mutable = .TRUE.)
 
     max_nze = dbcsr_max_row_size (matrix) * dbcsr_max_col_size (matrix)
     CALL dbcsr_data_init (data_values)
@@ -503,36 +494,32 @@ CONTAINS
           ! fill based on a block based seed, makes this the same values in parallel
           CALL set_larnv_seed(row,nrow,col,ncol,randmat_counter,iseed)
           nze = row_blk_sizes(s_row) * col_blk_sizes(s_col)
-          CALL dbcsr_lapack_larnv( 1, iseed, nze, data_values, error )
+          CALL dbcsr_lapack_larnv( 1, iseed, nze, data_values)
           CALL dbcsr_put_block (matrix, s_row, s_col, data_values)
           IF(my_symmetry.NE.dbcsr_type_no_symmetry.AND.s_col.EQ.s_row) THEN
              SELECT CASE(my_symmetry)
              CASE(dbcsr_type_symmetric)
                 CALL dbcsr_block_transpose (data_values_tr, data_values, &
-                     row_size=row_blk_sizes(s_row), col_size=col_blk_sizes(s_col), lb=1, source_lb=1, &
-                     error=error)
+                     row_size=row_blk_sizes(s_row), col_size=col_blk_sizes(s_col), lb=1, source_lb=1)
              CASE(dbcsr_type_antisymmetric)
                 CALL dbcsr_block_transpose (data_values_tr, data_values, &
                      row_size=row_blk_sizes(s_row), col_size=col_blk_sizes(s_col), lb=1, source_lb=1, &
-                     scale=dbcsr_scalar_negative(dbcsr_scalar_one(my_data_type)), &
-                     error=error)
+                     scale=dbcsr_scalar_negative(dbcsr_scalar_one(my_data_type)))
              CASE(dbcsr_type_hermitian)
                 CALL dbcsr_block_transpose (data_values_tr, data_values, &
-                     row_size=row_blk_sizes(s_row), col_size=col_blk_sizes(s_col), lb=1, source_lb=1, &
-                     error=error)
+                     row_size=row_blk_sizes(s_row), col_size=col_blk_sizes(s_col), lb=1, source_lb=1)
                 CALL dbcsr_block_conjg (data_values_tr, row_size=col_blk_sizes(s_col), col_size=row_blk_sizes(s_row), &
-                     lb=1, error=error)
+                     lb=1)
              CASE(dbcsr_type_antihermitian)
                 CALL dbcsr_block_transpose (data_values_tr, data_values, &
                      row_size=row_blk_sizes(s_row), col_size=col_blk_sizes(s_col), lb=1, source_lb=1, &
-                     scale=dbcsr_scalar_negative(dbcsr_scalar_one(my_data_type)), &
-                     error=error)
+                     scale=dbcsr_scalar_negative(dbcsr_scalar_one(my_data_type)))
                 CALL dbcsr_block_conjg (data_values_tr, row_size=col_blk_sizes(s_col), col_size=row_blk_sizes(s_row), &
-                     lb=1, error=error)
+                     lb=1)
              CASE DEFAULT
                 CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, &
                      dbcsr_wrong_args_error, routineN, "wrong matrix symmetry",&
-                     __LINE__,error)
+                     __LINE__)
              END SELECT
              CALL dbcsr_put_block (matrix, s_row, s_col, data_values_tr, summation=.TRUE.)
           ENDIF
@@ -542,10 +529,10 @@ CONTAINS
     CALL dbcsr_data_release (data_values_tr)
 
     CALL dbcsr_distribution_release (new_dist)
-    CALL dbcsr_finalize (matrix, error=error)
-    CALL dbcsr_verify_matrix (matrix, error=error)
+    CALL dbcsr_finalize (matrix)
+    CALL dbcsr_verify_matrix (matrix)
     !
-    CALL dbcsr_error_stop (error_handle, error)
+    CALL timestop (error_handle)
   END SUBROUTINE dbcsr_make_random_matrix
 
 ! *****************************************************************************
@@ -568,7 +555,6 @@ CONTAINS
                                                 nblocks, nsize_mix, selector
     INTEGER, ALLOCATABLE, DIMENSION(:, :)    :: mixer
     INTEGER, DIMENSION(:), POINTER           :: sizes
-    TYPE(dbcsr_error_type)                   :: error
 
 !
 
@@ -580,7 +566,7 @@ CONTAINS
     mixer(3, :) = 1
     nblocks = 0
     current_sum = 0
-    CALL ensure_array_size (sizes, lb=1, ub=1, error=error)
+    CALL ensure_array_size (sizes, lb=1, ub=1)
 
     selector = 1
     !
@@ -593,7 +579,7 @@ CONTAINS
             size_sum - current_sum)
        sizes(nblocks) = block_size
        current_sum = current_sum + block_size
-       CALL ensure_array_size (sizes, ub=nblocks+1, factor=2.0_dp, error=error)
+       CALL ensure_array_size (sizes, ub=nblocks+1, factor=2.0_dp)
        mixer(3, selector) = mixer(3, selector) + 1
        IF (mixer(3, selector) .GT. mixer(1, selector)) THEN
           mixer(3, selector) = 1
@@ -604,7 +590,7 @@ CONTAINS
     block_sizes = sizes(1:nblocks)
     current_sum = SUM (block_sizes)
     CALL dbcsr_assert (current_sum, "EQ", size_sum, dbcsr_fatal_level,&
-         dbcsr_internal_error, routineN, "Incorrect block sizes",__LINE__,error)
+         dbcsr_internal_error, routineN, "Incorrect block sizes",__LINE__)
     DEALLOCATE(mixer, sizes)
 
   END SUBROUTINE dbcsr_make_random_block_sizes

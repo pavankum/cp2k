@@ -20,12 +20,10 @@ MODULE dbcsr_acc_operations
                                              acc_devmem_type
   USE acc_stream,                      ONLY: acc_stream_cptr,&
                                              acc_stream_type
-  USE dbcsr_error_handling,            ONLY: dbcsr_abort,&
-                                             dbcsr_error_set,&
-                                             dbcsr_error_stop,&
-                                             dbcsr_error_type
+  USE dbcsr_error_handling,            ONLY: dbcsr_abort
   USE dbcsr_mm_types,                  ONLY: dbcsr_ps_width
   USE message_passing,                 ONLY: mp_abort
+#include "../../base/base_uses.f90"
 
   IMPLICIT NONE
 
@@ -90,10 +88,9 @@ CONTAINS
 !> \param def_mnk ...
 !> \param stream ...
 !> \param success ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE dbcsr_acc_do_mm_stack(param_stack, stack_size, datatype, &
-       a_data, b_data, c_data, m_max, n_max, k_max, def_mnk, stream, success, error)
+       a_data, b_data, c_data, m_max, n_max, k_max, def_mnk, stream, success)
     TYPE(acc_devmem_type), INTENT(IN)        :: param_stack
     INTEGER, INTENT(IN)                      :: stack_size
     INTEGER, INTENT(IN)                      :: datatype
@@ -104,7 +101,6 @@ CONTAINS
     LOGICAL, INTENT(IN)                      :: def_mnk
     TYPE(acc_stream_type), INTENT(IN)        :: stream
     LOGICAL, INTENT(INOUT)                   :: success
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
 #if ! defined (__DBCSR_ACC)
     CALL mp_abort("__DBCSR_ACC not compiled in.")
@@ -116,7 +112,7 @@ CONTAINS
     INTEGER                                  :: error_handle, istat
     INTEGER(KIND=C_INT)                      :: mnk
 
-   IF (careful_mod) CALL dbcsr_error_set (routineN, error_handle, error)
+   IF (careful_mod) CALL timeset (routineN, error_handle)
 
     mnk = 0
     IF (def_mnk) mnk = 1
@@ -133,11 +129,11 @@ CONTAINS
                              INT(k_max,KIND=C_INT),&
                              mnk, acc_stream_cptr(stream))
 
-    IF (istat == 100) CALL dbcsr_abort(routineP,__LINE__,"failed due to accGetLastError().",error)
+    IF (istat == 100) CALL dbcsr_abort(routineP,__LINE__,"failed due to accGetLastError().")
 
     success = (istat == 0) ! false if no suitable kernel was found
 
-    IF (careful_mod) CALL dbcsr_error_stop (error_handle, error)
+    IF (careful_mod) CALL timestop (error_handle)
 #endif
   END SUBROUTINE dbcsr_acc_do_mm_stack
 
@@ -152,10 +148,9 @@ CONTAINS
 !> \param m ...
 !> \param n ...
 !> \param stream ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE dbcsr_acc_transpose(trs_stack, offset, nblks, datatype, buffer, m, n, stream, error)
+  SUBROUTINE dbcsr_acc_transpose(trs_stack, offset, nblks, datatype, buffer, m, n, stream)
     TYPE(acc_devmem_type), INTENT(IN)        :: trs_stack
     INTEGER, INTENT(IN)                      :: offset
     INTEGER, INTENT(IN)                      :: nblks
@@ -163,7 +158,6 @@ CONTAINS
     TYPE(acc_devmem_type), INTENT(IN)        :: buffer
     INTEGER, INTENT(IN)                      :: m, n
     TYPE(acc_stream_type), INTENT(IN)        :: stream
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
 #if ! defined (__DBCSR_ACC)
     CALL mp_abort("__DBCSR_ACC not compiled in.")
@@ -174,7 +168,7 @@ CONTAINS
 
     INTEGER                                  :: error_handle, istat
 
-    IF (careful_mod) CALL dbcsr_error_set (routineN, error_handle, error)
+    IF (careful_mod) CALL timeset (routineN, error_handle)
 
     istat = libsmm_acc_transpose_cu(acc_devmem_cptr(trs_stack),&
                              INT(offset, KIND=C_INT),&
@@ -185,8 +179,8 @@ CONTAINS
                              INT(n,KIND=C_INT),&
                              acc_stream_cptr(stream))
 
-    IF (istat /= 0) CALL dbcsr_abort(routineP,__LINE__,"something went wrong.",error)
-    IF (careful_mod) CALL dbcsr_error_stop (error_handle, error)
+    IF (istat /= 0) CALL dbcsr_abort(routineP,__LINE__,"something went wrong.")
+    IF (careful_mod) CALL timestop (error_handle)
 #endif
   END SUBROUTINE dbcsr_acc_transpose
 

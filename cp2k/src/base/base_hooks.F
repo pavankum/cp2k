@@ -15,9 +15,12 @@ MODULE base_hooks
 
   IMPLICIT NONE
   PRIVATE
-
+  
+  !API
   PUBLIC :: cp_abort, cp_warn, timeset, timestop
+  !API
   PUBLIC :: cp_abort_hook, cp_warn_hook, timeset_hook, timestop_hook
+  !API
   PUBLIC :: cp__a, cp__b, cp__w, cp__l
 
   ! this interface (with subroutines in it) musst to be defined right before
@@ -46,9 +49,9 @@ MODULE base_hooks
   END INTERFACE
 
   PROCEDURE(cp_abort_interface), POINTER :: cp_abort_hook => Null()
-  PROCEDURE(cp_warn_interface), POINTER  :: cp_warn_hook  => Null()
-  PROCEDURE(timeset_interface), POINTER  :: timeset_hook  => Null()
-  PROCEDURE(timestop_interface), POINTER  :: timestop_hook  => Null()
+  PROCEDURE(cp_warn_interface), POINTER :: cp_warn_hook => Null()
+  PROCEDURE(timeset_interface), POINTER :: timeset_hook => Null()
+  PROCEDURE(timestop_interface), POINTER :: timestop_hook => Null()
 
 CONTAINS
 
@@ -174,7 +177,7 @@ CONTAINS
     INTEGER, INTENT(in)                      :: lineNr
     CHARACTER(len=default_string_length)     :: location
 
-    WRITE (location, FMT='(A,A,I6)') filename,':',lineNr
+    WRITE (location, FMT='(A,A,I6)') TRIM(filename),':',lineNr
 
   END FUNCTION cp__l
 

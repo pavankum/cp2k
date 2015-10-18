@@ -19,9 +19,6 @@ MODULE dbcsr_dist_methods
   USE dbcsr_config,                    ONLY: avg_elements_images,&
                                              comm_thread_load
   USE dbcsr_error_handling,            ONLY: dbcsr_assert,&
-                                             dbcsr_error_set,&
-                                             dbcsr_error_stop,&
-                                             dbcsr_error_type,&
                                              dbcsr_fatal_level,&
                                              dbcsr_internal_error,&
                                              dbcsr_wrong_args_error
@@ -43,6 +40,7 @@ MODULE dbcsr_dist_methods
                                              heap_release,&
                                              heap_reset_first,&
                                              heap_t
+#include "../../base/base_uses.f90"
 
   !$ USE OMP_LIB, ONLY: omp_get_max_threads, omp_get_thread_num, omp_get_num_threads, OMP_IN_PARALLEL
   IMPLICIT NONE
@@ -99,15 +97,14 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_distribution_new', &
       routineP = moduleN//':'//routineN
 
-    INTEGER                                  :: error_handler, i, lcmv, &
-                                                mypcoor, nclusters, seq
+    INTEGER                                  :: handle, i, lcmv, mypcoor, &
+                                                nclusters, seq
     INTEGER, ALLOCATABLE, DIMENSION(:)       :: cluster_dist
     INTEGER, DIMENSION(:), POINTER           :: col_dist_tmp, ld, row_dist_tmp
-    TYPE(dbcsr_error_type)                   :: error
 
 !   ---------------------------------------------------------------------------
 
-    CALL dbcsr_error_set(routineN, error_handler, error)
+    CALL timeset(routineN, handle)
 
     ALLOCATE (dist%d)
     dist%d%refcount = 1
@@ -125,7 +122,7 @@ CONTAINS
           CALL dbcsr_assert(SIZE(row_dist_cluster), "EQ", SIZE(row_dist_block),&
                dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
                "Blocks and clusters size are different for row grid",&
-               __LINE__, error=error)
+               __LINE__)
           nclusters=MAXVAL(row_dist_cluster)
        ENDIF
     ENDIF
@@ -137,7 +134,7 @@ CONTAINS
           CALL dbcsr_assert(SIZE(col_dist_cluster), "EQ", SIZE(col_dist_block),&
                dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
                "Blocks and clusters size are different for column grid",&
-               __LINE__, error=error)
+               __LINE__)
           nclusters=MAX(nclusters,MAXVAL(col_dist_cluster))
        ENDIF
     ENDIF
@@ -152,12 +149,12 @@ CONTAINS
     CALL dbcsr_assert (MAXVAL (row_dist_block), "LT", dbcsr_mp_nprows (mp_env),&
          dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
          "A process row is too big for process grid",&
-         __LINE__, error=error)
+         __LINE__)
     ! Verify given process column distribution.
     CALL dbcsr_assert (MAXVAL (col_dist_block), "LT", dbcsr_mp_npcols (mp_env),&
          dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
          "A process column is too big for process grid",&
-         __LINE__, error=error)
+         __LINE__)
     IF (PRESENT (local_rows)) THEN
        CALL array_new(dist%d%local_rows, local_rows, gift=reuse_arrays)
     ELSE
@@ -209,13 +206,13 @@ CONTAINS
              CALL dbcsr_assert (cluster_dist(row_dist_cluster(i)),"EQ",row_dist_block(i),&
                   dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
                   "Wrong cluster distribution",&
-                  __LINE__, error=error)
+                  __LINE__)
           END IF
        END DO
        CALL dbcsr_assert (seq,"LE",nclusters/dbcsr_mp_nprows(mp_env),&
             dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
             "Clusters distribution is not uniform across processors",&
-            __LINE__, error=error)
+            __LINE__)
        dist%d%num_local_row_clusters = seq
        DEALLOCATE(cluster_dist)
     END IF
@@ -238,13 +235,13 @@ CONTAINS
              CALL dbcsr_assert (cluster_dist(col_dist_cluster(i)),"EQ",col_dist_block(i),&
                   dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
                   "Wrong cluster distribution",&
-                  __LINE__, error=error)
+                  __LINE__)
           END IF
        END DO
        CALL dbcsr_assert (seq,"LE",nclusters/dbcsr_mp_npcols(mp_env),&
             dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
             "Clusters distribution is not uniform across processors",&
-            __LINE__, error=error)
+            __LINE__)
        dist%d%num_local_col_clusters = seq
        DEALLOCATE(cluster_dist)
     END IF
@@ -264,7 +261,7 @@ CONTAINS
     dist%d%has_global_row_map = .FALSE.
     dist%d%has_global_col_map = .FALSE.
 
-    CALL dbcsr_error_stop(error_handler, error)
+    CALL timestop(handle)
 
   END SUBROUTINE dbcsr_distribution_new
 
@@ -671,8 +668,6 @@ CONTAINS
     INTEGER, DIMENSION(:), POINTER           :: lrows, td
     LOGICAL                                  :: assigned, found, heap_error
     REAL(kind=sp)                            :: load_fraction, rn, soft_thr
-
-!$  TYPE(dbcsr_error_type)                   :: error
     TYPE(heap_t)                             :: t_heap
 
 !   ---------------------------------------------------------------------------
@@ -682,7 +677,7 @@ CONTAINS
 
 !$  CALL dbcsr_assert (dist%d%num_threads, "EQ", nthreads,&
 !$                     dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-!$                     "Thread number has changed", __LINE__, error=error)
+!$                     "Thread number has changed", __LINE__)
     nrows = dbcsr_distribution_nrows (dist)
     nlrows = dbcsr_distribution_nlocal_rows (dist)
     lrows => dbcsr_distribution_local_rows (dist)

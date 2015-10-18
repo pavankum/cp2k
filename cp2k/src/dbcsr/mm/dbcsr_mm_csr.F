@@ -18,7 +18,6 @@
 !>               dbcsr_mm_methods.
 !>  - 2013-01    extensive refactoring (Ole Schuett)
 ! *****************************************************************************
-
 MODULE dbcsr_mm_csr
 
   USE array_types,                     ONLY: array_data
@@ -26,9 +25,6 @@ MODULE dbcsr_mm_csr
                                              default_resize_factor,&
                                              mm_stack_size
   USE dbcsr_error_handling,            ONLY: dbcsr_assert,&
-                                             dbcsr_error_set,&
-                                             dbcsr_error_stop,&
-                                             dbcsr_error_type,&
                                              dbcsr_fatal_level,&
                                              dbcsr_internal_error,&
                                              dbcsr_wrong_args_error
@@ -51,6 +47,7 @@ MODULE dbcsr_mm_csr
                                              int_8,&
                                              real_8,&
                                              sp
+#include "../../base/base_uses.f90"
 
   !$ USE OMP_LIB, ONLY: omp_get_max_threads, omp_get_thread_num, omp_get_num_threads
 
@@ -99,16 +96,14 @@ MODULE dbcsr_mm_csr
 
 ! *****************************************************************************
 !> \brief Initialize the library
-!> \param[in,out] error
 !> \param[in] (optional) task id from the interval [0, ntasks)
 !> \param[in] (optional) ntasks; maximum number of tasks
 !> \author Ole Schuett, Hans Pabst
 ! *****************************************************************************
-  SUBROUTINE dbcsr_mm_csr_lib_init(error, task, ntasks)
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
+  SUBROUTINE dbcsr_mm_csr_lib_init(task, ntasks)
     INTEGER, INTENT(IN), OPTIONAL            :: task, ntasks
 
-    CALL dbcsr_mm_sched_lib_init(error, task, ntasks)
+    CALL dbcsr_mm_sched_lib_init(task, ntasks)
   END SUBROUTINE
 
 
@@ -116,14 +111,12 @@ MODULE dbcsr_mm_csr
 !> \brief Finalize the library
 !> \param group ...
 !> \param output_unit ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE dbcsr_mm_csr_lib_finalize(group, output_unit, error)
+  SUBROUTINE dbcsr_mm_csr_lib_finalize(group, output_unit)
     INTEGER, INTENT(IN)                      :: group, output_unit
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
-     CALL dbcsr_mm_sched_lib_finalize(group, output_unit, error)
+     CALL dbcsr_mm_sched_lib_finalize(group, output_unit)
   END SUBROUTINE
 
 
@@ -156,7 +149,6 @@ MODULE dbcsr_mm_csr
 !> \param b_index ...
 !> \param a_norms ...
 !> \param b_norms ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
  SUBROUTINE dbcsr_mm_csr_multiply(this, left, right, mi, mf, ni, nf, ki, kf,&
@@ -167,8 +159,7 @@ MODULE dbcsr_mm_csr
        c_has_symmetry, keep_sparsity, use_eps,&
        row_max_epss,&
        flop,&
-       a_index, b_index, a_norms, b_norms,&
-       error)
+       a_index, b_index, a_norms, b_norms)
     TYPE(dbcsr_mm_csr_type), INTENT(INOUT)   :: this
     TYPE(dbcsr_type), INTENT(IN)             :: left, right
     INTEGER, INTENT(IN)                      :: mi, mf, ni, nf, ki, kf, ai, &
@@ -184,7 +175,6 @@ MODULE dbcsr_mm_csr
     INTEGER, DIMENSION(1:3, 1:bf), &
       INTENT(IN)                             :: b_index
     REAL(KIND=sp), DIMENSION(:), POINTER     :: a_norms, b_norms
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     INTEGER                                  :: ithread, max_new_nblks, &
                                                 nblks_new
@@ -201,11 +191,11 @@ MODULE dbcsr_mm_csr
     nblks_new = this%product_wm%lastblk + max_new_nblks
 
     CALL ensure_array_size(this%product_wm%row_i, ub=nblks_new,&
-         factor=default_resize_factor, error=error)
+         factor=default_resize_factor)
     CALL ensure_array_size(this%product_wm%col_i, ub=nblks_new,&
-         factor=default_resize_factor, error=error)
+         factor=default_resize_factor)
     CALL ensure_array_size(this%product_wm%blk_p, ub=nblks_new,&
-         factor=default_resize_factor, error=error)
+         factor=default_resize_factor)
 
     CALL dbcsr_mm_csr_multiply_low(this, left=left, right=right,&
             mi=mi, mf=mf, ki=ki, kf=kf,&
@@ -235,8 +225,7 @@ MODULE dbcsr_mm_csr
             stacks_fillcount=this%stacks_fillcount,&
             c_hashes=this%c_hashes,&
             a_index=a_index, b_index=b_index,&
-            a_norms=a_norms, b_norms=b_norms,&
-            error=error)
+            a_norms=a_norms, b_norms=b_norms)
 
    END SUBROUTINE dbcsr_mm_csr_multiply
 
@@ -286,7 +275,6 @@ MODULE dbcsr_mm_csr
 !> \param b_index ...
 !> \param a_norms ...
 !> \param b_norms ...
-!> \param error ...
 ! *****************************************************************************
   SUBROUTINE dbcsr_mm_csr_multiply_low(this, left, right, mi, mf, ki, kf,&
        ai, af, bi, bf,&
@@ -299,8 +287,7 @@ MODULE dbcsr_mm_csr
        row_size_maps_size, col_size_maps_size, k_size_maps_size,&
        nm_stacks, nn_stacks, nk_stacks, stack_map,&
        stacks_data, stacks_fillcount, c_hashes,&
-       a_index, b_index,a_norms, b_norms,&
-       error)
+       a_index, b_index,a_norms, b_norms)
     TYPE(dbcsr_mm_csr_type), INTENT(INOUT)   :: this
     TYPE(dbcsr_type), INTENT(IN)             :: left, right
     INTEGER, INTENT(IN)                      :: mi, mf, ki, kf, ai, af, bi, bf
@@ -339,7 +326,6 @@ MODULE dbcsr_mm_csr
     INTEGER, DIMENSION(1:3, 1:bf), &
       INTENT(IN)                             :: b_index
     REAL(KIND=sp), DIMENSION(:), POINTER     :: a_norms, b_norms
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_mm_csr_multiply_low', &
       routineP = moduleN//':'//routineN
@@ -460,7 +446,7 @@ MODULE dbcsr_mm_csr
                 IF (c_nze .EQ. 0 .OR. k_size .EQ. 0) THEN
                    CALL dbcsr_assert (.FALSE.,&
                         dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-                        "Can not call MM with LDx=0.", __LINE__, error=error)
+                        "Can not call MM with LDx=0.", __LINE__)
                    CYCLE
                 ENDIF
              ENDIF
@@ -481,7 +467,7 @@ MODULE dbcsr_mm_csr
              flop = flop + INT(2*c_nze, int_8) * INT(k_size, int_8)
 
              IF(stacks_fillcount(ws) >= SIZE(stacks_data, 2))&
-                CALL flush_stacks(this, left=left, right=right, error=error)
+                CALL flush_stacks(this, left=left, right=right)
 
           ENDDO b_blk_cycle ! b
        ENDDO a_blk_cycle ! a_col
@@ -497,22 +483,20 @@ MODULE dbcsr_mm_csr
 !> \param product ...
 !> \param m_sizes ...
 !> \param n_sizes ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
   SUBROUTINE dbcsr_mm_csr_init(this, left, right, product, &
-    m_sizes, n_sizes, error)
+    m_sizes, n_sizes)
     TYPE(dbcsr_mm_csr_type), INTENT(INOUT)   :: this
     TYPE(dbcsr_type), INTENT(IN)             :: left, right
     TYPE(dbcsr_type), INTENT(INOUT)          :: product
     INTEGER, DIMENSION(:), POINTER           :: m_sizes, n_sizes
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_mm_csr_init', &
       routineP = moduleN//':'//routineN
 
-    INTEGER :: block_estimate, default_stack, error_handler, istack, ithread, &
-      k_map, k_size, m_map, m_size, n_map, n_size, nstacks, nthreads, ps_g
+    INTEGER :: block_estimate, default_stack, handle, istack, ithread, k_map, &
+      k_size, m_map, m_size, n_map, n_size, nstacks, nthreads, ps_g
     INTEGER, ALLOCATABLE, DIMENSION(:)       :: flop_index, flop_list, &
                                                 most_common_k, most_common_m, &
                                                 most_common_n
@@ -521,7 +505,7 @@ MODULE dbcsr_mm_csr
     TYPE(stack_descriptor_type), &
       ALLOCATABLE, DIMENSION(:)              :: tmp_descr
 
-    CALL dbcsr_error_set(routineN, error_handler, error)
+    CALL timeset(routineN, handle)
 
     ithread = 0 ; nthreads = 1
     !$ ithread = OMP_GET_THREAD_NUM () ; nthreads = OMP_GET_NUM_THREADS ()
@@ -529,7 +513,7 @@ MODULE dbcsr_mm_csr
     ! find out if we have local_indexing
     CALL dbcsr_assert (right%local_indexing, "EQV", left%local_indexing,&
             dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
-            "Local index useage must be consistent.", __LINE__, error=error)
+            "Local index useage must be consistent.", __LINE__)
     local_indexing = left%local_indexing
 
     ! Setup the hash tables if needed
@@ -538,16 +522,14 @@ MODULE dbcsr_mm_csr
        ALLOCATE (this%c_hashes (product%nblkrows_local))
        CALL fill_hash_tables (this%c_hashes, product,block_estimate,&
             row_map=array_data(product%global_rows),&
-            col_map=array_data(product%global_cols),&
-            error=error)
+            col_map=array_data(product%global_cols))
     ELSE
        ALLOCATE (this%c_hashes (product%nblkrows_total))
-       CALL fill_hash_tables (this%c_hashes, product,block_estimate,&
-            error=error)
+       CALL fill_hash_tables (this%c_hashes, product,block_estimate)
     ENDIF
 
     ! Setup the MM stack
-    CALL dbcsr_get_conf_nstacks (nxstacks, error)
+    CALL dbcsr_get_conf_nstacks (nxstacks)
     this%nm_stacks = nxstacks(1)
     this%nn_stacks = nxstacks(2)
     this%nk_stacks = nxstacks(3)
@@ -555,7 +537,7 @@ MODULE dbcsr_mm_csr
     CALL dbcsr_assert (nstacks, "LE", INT (HUGE (this%stack_map)),&
          dbcsr_fatal_level, dbcsr_internal_error, routineN,&
          "Too many stacks requested (global/dbcsr/n_size_*_stacks in input)",&
-         __LINE__, error=error)
+         __LINE__)
 
 
     ALLOCATE(this%stacks_descr(nstacks))
@@ -675,9 +657,9 @@ MODULE dbcsr_mm_csr
 
     this%product_wm => product%wms(ithread+1)
     CALL dbcsr_mm_sched_init(this%sched, &
-                product_wm=this%product_wm,error=error)
+                product_wm=this%product_wm)
 
-    CALL dbcsr_error_stop(error_handler, error)
+    CALL timestop(handle)
 
   END SUBROUTINE dbcsr_mm_csr_init
 
@@ -689,38 +671,36 @@ MODULE dbcsr_mm_csr
 !> \param[in] block_estimate guess for the number of blocks in the product matrix, can be zero
 !> \param row_map ...
 !> \param col_map ...
-!> \param error ...
 ! *****************************************************************************
-  SUBROUTINE fill_hash_tables(hashes, matrix, block_estimate, row_map, col_map, error)
+  SUBROUTINE fill_hash_tables(hashes, matrix, block_estimate, row_map, col_map)
     TYPE(hash_table_type), DIMENSION(:), &
       INTENT(inout)                          :: hashes
     TYPE(dbcsr_type), INTENT(IN)             :: matrix
     INTEGER                                  :: block_estimate
     INTEGER, DIMENSION(:), INTENT(IN), &
       OPTIONAL                               :: row_map, col_map
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'fill_hash_tables', &
       routineP = moduleN//':'//routineN
 
-    INTEGER                                  :: col, error_handler, i, imat, &
-                                                n_rows, row
+    INTEGER                                  :: col, handle, i, imat, n_rows, &
+                                                row
 
 !   ---------------------------------------------------------------------------
 
-    CALL dbcsr_error_set(routineN, error_handler, error)
+    CALL timeset(routineN, handle)
     imat = 1
     !$ imat = OMP_GET_THREAD_NUM() + 1
     IF (PRESENT (row_map)) THEN
        n_rows = matrix%nblkrows_local
        CALL dbcsr_assert (SIZE(hashes), "EQ", n_rows,&
             dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-            "Local row count mismatch", __LINE__, error=error)
+            "Local row count mismatch", __LINE__)
     ELSE
        n_rows = matrix%nblkrows_total
        CALL dbcsr_assert (SIZE(hashes), "EQ", n_rows,&
             dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-            "Global row count mismatch", __LINE__, error=error)
+            "Global row count mismatch", __LINE__)
     ENDIF
     DO row = 1, n_rows
        ! create the hash table row with a reasonable initial size
@@ -736,40 +716,36 @@ MODULE dbcsr_mm_csr
        IF (PRESENT (col_map)) col = col_map(col)
        CALL hash_table_add(hashes(row), col, i)
     ENDDO
-    CALL dbcsr_error_stop(error_handler, error)
+    CALL timestop(handle)
   END SUBROUTINE fill_hash_tables
 
 
 ! *****************************************************************************
 !> \brief Signal approaching end of multiplication
 !> \param this ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE dbcsr_mm_csr_phaseout(this, error)
+  SUBROUTINE dbcsr_mm_csr_phaseout(this)
     TYPE(dbcsr_mm_csr_type), INTENT(INOUT)   :: this
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
-    CALL dbcsr_mm_sched_phaseout(this%sched, error)
+    CALL dbcsr_mm_sched_phaseout(this%sched)
   END SUBROUTINE dbcsr_mm_csr_phaseout
 
 
 ! *****************************************************************************
 !> \brief Finalizes a multiplication cycle for a set of C-blocks.
 !> \param this ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-  SUBROUTINE dbcsr_mm_csr_finalize(this, error)
+  SUBROUTINE dbcsr_mm_csr_finalize(this)
     TYPE(dbcsr_mm_csr_type), INTENT(INOUT)   :: this
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_mm_csr_finalize', &
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: i
 
-    CALL dbcsr_mm_sched_finalize(this%sched, error=error)
+    CALL dbcsr_mm_sched_finalize(this%sched)
 
     ! Clear hash tables
     DO i = 1, SIZE(this%c_hashes)
@@ -792,16 +768,14 @@ MODULE dbcsr_mm_csr
 !> \param this ...
 !> \param left ...
 !> \param right ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-SUBROUTINE dbcsr_mm_csr_purge_stacks(this, left, right, error)
+SUBROUTINE dbcsr_mm_csr_purge_stacks(this, left, right)
     TYPE(dbcsr_mm_csr_type), INTENT(INOUT)   :: this
     TYPE(dbcsr_type), INTENT(IN)             :: left, right
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
-    CALL flush_stacks(this, left, right, purge=.TRUE., error=error)
-    CALL dbcsr_mm_sched_barrier(this%sched, error)
+    CALL flush_stacks(this, left, right, purge=.TRUE.)
+    CALL dbcsr_mm_sched_barrier(this%sched)
 END SUBROUTINE dbcsr_mm_csr_purge_stacks
 
 ! *****************************************************************************
@@ -810,14 +784,12 @@ END SUBROUTINE dbcsr_mm_csr_purge_stacks
 !> \param left ...
 !> \param right ...
 !> \param purge ...
-!> \param error ...
 !> \author Ole Schuett
 ! *****************************************************************************
-SUBROUTINE flush_stacks(this, left, right, purge, error)
+SUBROUTINE flush_stacks(this, left, right, purge)
     TYPE(dbcsr_mm_csr_type), INTENT(INOUT)   :: this
     TYPE(dbcsr_type), INTENT(IN)             :: left, right
     LOGICAL, INTENT(IN), OPTIONAL            :: purge
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     INTEGER                                  :: i, min_fill, n_stacks
     INTEGER, DIMENSION(:, :), POINTER        :: stack_data
@@ -830,7 +802,7 @@ SUBROUTINE flush_stacks(this, left, right, purge, error)
       IF(purge) min_fill = 0
     ENDIF
 
-    CALL dbcsr_mm_sched_begin_burst(this%sched, error)
+    CALL dbcsr_mm_sched_begin_burst(this%sched)
 
     DO i=1, n_stacks
        IF(this%stacks_fillcount(i) > min_fill) THEN
@@ -842,14 +814,13 @@ SUBROUTINE flush_stacks(this, left, right, purge, error)
                         left,right,&
                         stack_data=stack_data,&
                         stack_fillcount=stack_fillcount,&
-                        stack_descr=stack_descr,&
-                        error=error)
+                        stack_descr=stack_descr)
 
           stack_fillcount = 0
        ENDIF
     END DO
 
-    CALL dbcsr_mm_sched_end_burst(error)
+    CALL dbcsr_mm_sched_end_burst()
 END SUBROUTINE flush_stacks
 
 
@@ -888,7 +859,6 @@ END SUBROUTINE flush_stacks
 
     INTEGER                                  :: i, row
     INTEGER, DIMENSION(mi:mf)                :: counts
-    TYPE(dbcsr_error_type)                   :: error
 
 !   ---------------------------------------------------------------------------
 ! Counts blocks per row and calculates the offsets.
@@ -903,10 +873,10 @@ END SUBROUTINE flush_stacks
        IF (careful) THEN
           CALL dbcsr_assert (list_index(1,i), "GE", mi,&
                dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-               "Out of range", __LINE__, error=error)
+               "Out of range", __LINE__)
           CALL dbcsr_assert (list_index(1,i), "LE", mf,&
                dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-               "Out of range", __LINE__, error=error)
+               "Out of range", __LINE__)
        ENDIF
        counts(list_index(1,i)) = counts(list_index(1,i))+1
     ENDDO
@@ -922,10 +892,10 @@ END SUBROUTINE flush_stacks
        IF (careful) THEN
           CALL dbcsr_assert (row_p(row) + counts(row), "LE", af-ai+1,&
                dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-               "Out of range", __LINE__, error=error)
+               "Out of range", __LINE__)
           CALL dbcsr_assert (row_p(row) + counts(row), "GE", 1,&
                dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-               "Out of range", __LINE__, error=error)
+               "Out of range", __LINE__)
        ENDIF
        blk_info(1, row_p(row) + counts(row)) = list_index(2,i)
        blk_info(2, row_p(row) + counts(row)) = list_index(3,i)

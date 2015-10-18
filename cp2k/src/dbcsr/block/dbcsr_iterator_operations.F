@@ -23,9 +23,6 @@ MODULE dbcsr_iterator_operations
                                              dbcsr_distribution_num_threads,&
                                              dbcsr_distribution_thread_dist
   USE dbcsr_error_handling,            ONLY: dbcsr_assert,&
-                                             dbcsr_error_set,&
-                                             dbcsr_error_stop,&
-                                             dbcsr_error_type,&
                                              dbcsr_fatal_level,&
                                              dbcsr_internal_error,&
                                              dbcsr_warning_level,&
@@ -40,6 +37,7 @@ MODULE dbcsr_iterator_operations
                                              dbcsr_scalar_type
   USE kinds,                           ONLY: real_4,&
                                              real_8
+#include "../../base/base_uses.f90"
 
   !$ USE OMP_LIB, ONLY: omp_get_max_threads, omp_get_thread_num, omp_get_num_threads, omp_in_parallel
 
@@ -174,16 +172,15 @@ CONTAINS
 
     INTEGER                                  :: error_handle
     TYPE(dbcsr_distribution_obj)             :: dist
-    TYPE(dbcsr_error_type)                   :: error
 
 !   ---------------------------------------------------------------------------
 
-    CALL dbcsr_error_set (routineN, error_handle, error)
+    CALL timeset (routineN, error_handle)
     iterator%shared = .TRUE.
 !$  iterator%shared = omp_in_parallel()
 !ub!$  CALL dbcsr_assert (omp_in_parallel(), "IMP", PRESENT (shared),&
 !ub!$       dbcsr_warning_level, dbcsr_caller_error, routineN,&
-!ub!$       "SHARED must be specified in OMP invocation.", __LINE__, error)
+!ub!$       "SHARED must be specified in OMP invocation.", __LINE__)
     IF (PRESENT (shared)) iterator%shared = shared
     iterator%dynamic = .TRUE.
 !$  iterator%dynamic = .FALSE.
@@ -202,17 +199,17 @@ CONTAINS
 !$  CALL dbcsr_assert (dbcsr_distribution_has_threads(dist),&
 !$       dbcsr_warning_level, dbcsr_internal_error, routineN,&
 !$       "Thread distribution should be defined for OpenMP.",&
-!$       __LINE__, error=error)
+!$       __LINE__)
     CALL dbcsr_assert (.NOT.iterator%dynamic, "IMP",&
          dbcsr_distribution_has_threads(dist),&
          dbcsr_fatal_level, dbcsr_wrong_args_error, routineN,&
          "Thread distribution must be defined for non-dynamic iterator.",&
-         __LINE__, error=error)
+         __LINE__)
 !$  IF (omp_in_parallel ()) &
 !$     CALL dbcsr_assert (omp_get_num_threads(), "EQ",&
 !$          dbcsr_distribution_num_threads(dist),&
 !$          dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-!$          "Number of threads has changed!", __LINE__, error=error)
+!$          "Number of threads has changed!", __LINE__)
     !Synchronize the positions
     NULLIFY (iterator%common_pos)
     IF (iterator%dynamic) THEN
@@ -257,17 +254,17 @@ CONTAINS
     !     iterator%dynamic,&
     !     dbcsr_fatal_level, dbcsr_caller_error, routineN,&
     !     "Locally-indexed matrices can only have a dynamic iterator.",&
-    !     __LINE__, error=error)
+    !     __LINE__)
     CALL dbcsr_assert (iterator%local_indexing, "IMP",&
          array_exists (matrix%m%local_rows),&
          dbcsr_fatal_level, dbcsr_internal_error, routineN,&
          "Local rows mapping array should exist when local indexing is used.",&
-         __LINE__, error=error)
+         __LINE__)
     CALL dbcsr_assert (iterator%local_indexing, "IMP",&
          array_exists (matrix%m%global_rows),&
          dbcsr_fatal_level, dbcsr_internal_error, routineN,&
          "Global rows mapping array should exist when local indexing is used.",&
-         __LINE__, error=error)
+         __LINE__)
     iterator%global_rows => array_data(matrix%m%global_rows)
     iterator%local_rows => array_data(matrix%m%local_rows)
 
@@ -302,7 +299,7 @@ CONTAINS
     !$ ELSE
     CALL dbcsr_iterator_seek (iterator, 1)
     !$ ENDIF
-    CALL dbcsr_error_stop (error_handle, error)
+    CALL timestop (error_handle)
   END SUBROUTINE dbcsr_iterator_start
 
 ! *****************************************************************************
@@ -316,11 +313,10 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: error_handle
-    TYPE(dbcsr_error_type)                   :: error
 
 !   ---------------------------------------------------------------------------
 
-    CALL dbcsr_error_set (routineN, error_handle, error)
+    CALL timeset (routineN, error_handle)
     iterator%row = 0
     iterator%pos = 0
 
@@ -342,7 +338,7 @@ CONTAINS
        NULLIFY (iterator%local_rows)
        NULLIFY (iterator%global_rows)
     ENDIF
-    CALL dbcsr_error_stop (error_handle, error)
+    CALL timestop (error_handle)
   END SUBROUTINE dbcsr_iterator_stop
 
 
@@ -648,11 +644,10 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: error_handle
-    TYPE(dbcsr_error_type)                   :: error
 
 !   ---------------------------------------------------------------------------
 
-    CALL dbcsr_error_set (routineN, error_handle, error)
+    CALL timeset (routineN, error_handle)
     IF (iterator%nblks .GT. 0 .AND. row .LE. iterator%nblkrows_total) THEN
        iterator%row = row
        ! This line is replaced because iterator_advance increments the block
@@ -665,7 +660,7 @@ CONTAINS
        iterator%row = 0
        iterator%pos = 0
     ENDIF
-    CALL dbcsr_error_stop (error_handle, error)
+    CALL timestop (error_handle)
   END SUBROUTINE dbcsr_iterator_seek
 
 ! *****************************************************************************
@@ -693,11 +688,10 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: bp, error_handle
-    TYPE(dbcsr_error_type)                   :: error
 
 !   ---------------------------------------------------------------------------
 
-    IF (careful_mod) CALL dbcsr_error_set (routineN, error_handle, error)
+    IF (careful_mod) CALL timeset (routineN, error_handle)
     IF (iterator%pos .LE. iterator%nblks&
          .AND. iterator%pos .NE. 0) THEN
        row = iterator%row
@@ -719,7 +713,7 @@ CONTAINS
        row = 0
        column = 0
     ENDIF
-    IF (careful_mod) CALL dbcsr_error_stop (error_handle, error)
+    IF (careful_mod) CALL timestop (error_handle)
   END SUBROUTINE iterator_next_block_index
 
 ! *****************************************************************************
@@ -751,11 +745,10 @@ CONTAINS
     INTEGER                                  :: blk_p, block_col_size, &
                                                 block_row_size, bp, csize, &
                                                 error_handle, nze, rsize
-    TYPE(dbcsr_error_type)                   :: error
 
 !   ---------------------------------------------------------------------------
 
-    IF (careful_mod) CALL dbcsr_error_set (routineN, error_handle, error)
+    IF (careful_mod) CALL timeset (routineN, error_handle)
 
     IF (iterator%pos .LE. iterator%nblks&
          .AND. iterator%pos .NE. 0) THEN
@@ -788,7 +781,7 @@ CONTAINS
        IF (PRESENT (block_number)) block_number = 0
     ENDIF
 
-    IF (careful_mod) CALL dbcsr_error_stop (error_handle, error)
+    IF (careful_mod) CALL timestop (error_handle)
 
   END SUBROUTINE iterator_next_area_block
 

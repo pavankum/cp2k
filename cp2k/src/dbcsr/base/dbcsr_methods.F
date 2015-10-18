@@ -27,10 +27,13 @@ MODULE dbcsr_methods
                                              btree_new_z => btree_new
   USE dbcsr_data_methods,              ONLY: dbcsr_data_init,&
                                              dbcsr_data_release
-  USE dbcsr_error_handling,            ONLY: &
-       dbcsr_assert, dbcsr_caller_error, dbcsr_error_set, dbcsr_error_stop, &
-       dbcsr_error_type, dbcsr_failure_level, dbcsr_fatal_level, &
-       dbcsr_internal_error, dbcsr_warning_level, dbcsr_wrong_args_error
+  USE dbcsr_error_handling,            ONLY: dbcsr_assert,&
+                                             dbcsr_caller_error,&
+                                             dbcsr_failure_level,&
+                                             dbcsr_fatal_level,&
+                                             dbcsr_internal_error,&
+                                             dbcsr_warning_level,&
+                                             dbcsr_wrong_args_error
   USE dbcsr_ptr_util,                  ONLY: memory_deallocate
   USE dbcsr_types,                     ONLY: &
        dbcsr_2d_array_type, dbcsr_array_type, dbcsr_data_obj, &
@@ -43,6 +46,7 @@ MODULE dbcsr_methods
        dbcsr_work_type
   USE kinds,                           ONLY: default_string_length
   USE message_passing,                 ONLY: mp_comm_free
+#include "../../base/base_uses.f90"
 
   !$ USE OMP_LIB, ONLY: omp_get_max_threads, omp_get_thread_num, omp_get_num_threads
   IMPLICIT NONE
@@ -127,7 +131,6 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_init_type', &
       routineP = moduleN//':'//routineN
 
-!TYPE(dbcsr_error_type), INTENT(INOUT)   :: error
 !   ---------------------------------------------------------------------------
 
     matrix%initialized = .TRUE.
@@ -235,17 +238,15 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_release', &
       routineP = moduleN//':'//routineN
 
-    TYPE(dbcsr_error_type)                   :: error
-
 !   ---------------------------------------------------------------------------
 
     CALL dbcsr_assert (dbcsr_is_initialized (matrix),&
          dbcsr_warning_level, dbcsr_caller_error, routineN,&
-         "Matrix not initialized",__LINE__,error)
+         "Matrix not initialized",__LINE__)
     IF (matrix%m%initialized) THEN
        matrix%m%refcount = matrix%m%refcount - 1
        IF (matrix%m%refcount .EQ. 0) THEN
-          CALL dbcsr_destroy (matrix,error)
+          CALL dbcsr_destroy (matrix)
        ENDIF
     ENDIF
   END SUBROUTINE dbcsr_release
@@ -253,12 +254,10 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Deallocates and destroys a matrix.
 !> \param[in,out] matrix      matrix
-!> \param[in,out] error       cp2k error
 !> \param[in] force           (optional) force deallocation
 ! *****************************************************************************
-  RECURSIVE SUBROUTINE dbcsr_destroy(matrix, error, force)
+  RECURSIVE SUBROUTINE dbcsr_destroy(matrix,force)
     TYPE(dbcsr_obj), INTENT(INOUT)           :: matrix
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
     LOGICAL, INTENT(IN), OPTIONAL            :: force
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_destroy', &
@@ -269,24 +268,23 @@ CONTAINS
 
 !   ---------------------------------------------------------------------------
 
-    CALL dbcsr_error_set (routineN, error_handle, error=error)
+    CALL timeset (routineN, error_handle)
     CALL dbcsr_assert (dbcsr_is_initialized (matrix),&
          dbcsr_warning_level, dbcsr_caller_error, routineN,&
-         "Can not destroy uninitialized matrix object.",__LINE__,error)
+         "Can not destroy uninitialized matrix object.",__LINE__)
     force_all = .FALSE.
     IF (PRESENT (force)) force_all = force
     IF (dbcsr_is_initialized (matrix)) THEN
        CALL dbcsr_assert (force_all .OR. matrix%m%refcount.EQ.0,&
             dbcsr_warning_level, dbcsr_caller_error,&
-            routineN, "You should not destroy referenced matrix.",__LINE__,error)
+            routineN, "You should not destroy referenced matrix.",__LINE__)
        CALL dbcsr_assert (.NOT.force_all .OR. matrix%m%refcount.LE.1,&
             dbcsr_warning_level, dbcsr_caller_error,&
-            routineN, "You should not destroy referenced matrix.",__LINE__,error)
+            routineN, "You should not destroy referenced matrix.",__LINE__)
        IF (force_all .OR. matrix%m%refcount .EQ. 0) THEN
           CALL dbcsr_assert (.NOT. ASSOCIATED (matrix%m%wms), dbcsr_warning_level,&
-               dbcsr_caller_error, routineN, "Destroying unfinalized matrix",__LINE__,error)
-          CALL memory_deallocate(matrix%m%index, matrix%m%index_memory_type,&
-               error=error)
+               dbcsr_caller_error, routineN, "Destroying unfinalized matrix",__LINE__)
+          CALL memory_deallocate(matrix%m%index, matrix%m%index_memory_type)
           CALL dbcsr_data_release (matrix%m%data_area)
           CALL array_release (matrix%m%row_blk_size)
           CALL array_release (matrix%m%col_blk_size)
@@ -296,23 +294,23 @@ CONTAINS
           IF (matrix%m%local_indexing) THEN
              CALL dbcsr_assert (array_exists (matrix%m%local_rows),&
                   dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-                  "Global row mapping should exist", __LINE__, error=error)
+                  "Global row mapping should exist", __LINE__)
              CALL dbcsr_assert (array_exists (matrix%m%global_rows),&
                   dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-                  "Global row mapping should exist", __LINE__, error=error)
+                  "Global row mapping should exist", __LINE__)
              CALL dbcsr_assert (array_exists (matrix%m%local_cols),&
                   dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-                  "Global column mapping should exist", __LINE__, error=error)
+                  "Global column mapping should exist", __LINE__)
              CALL dbcsr_assert (array_exists (matrix%m%global_cols),&
                   dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-                  "Global column mapping should exist", __LINE__, error=error)
+                  "Global column mapping should exist", __LINE__)
           ENDIF
-          CALL dbcsr_release_locals (matrix, error)
+          CALL dbcsr_release_locals (matrix)
           matrix%m%valid = .FALSE.
           CALL dbcsr_init (matrix%m)
        ENDIF
     ENDIF
-    CALL dbcsr_error_stop (error_handle, error=error)
+    CALL timestop (error_handle)
   END SUBROUTINE dbcsr_destroy
 
 ! *****************************************************************************
@@ -322,8 +320,6 @@ CONTAINS
   SUBROUTINE dbcsr_distribution_release(dist)
     TYPE(dbcsr_distribution_obj), &
       INTENT(INOUT)                          :: dist
-
-    TYPE(dbcsr_error_type)                   :: error
 
 !   ---------------------------------------------------------------------------
 
@@ -341,7 +337,7 @@ CONTAINS
                CALL array_release (dist%d%thread_dist)
           CALL array_release (dist%d%row_map)
           CALL array_release (dist%d%col_map)
-          CALL dbcsr_dist_release_locals (dist, error)
+          CALL dbcsr_dist_release_locals (dist)
           DEALLOCATE (dist%d)
           CALL dbcsr_distribution_init (dist)
        ENDIF
@@ -351,12 +347,10 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param dist ...
-!> \param error ...
 ! *****************************************************************************
-  SUBROUTINE dbcsr_dist_release_locals (dist, error)
+  SUBROUTINE dbcsr_dist_release_locals (dist)
     TYPE(dbcsr_distribution_obj), &
       INTENT(INOUT)                          :: dist
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     INTEGER                                  :: i
 
@@ -421,11 +415,9 @@ CONTAINS
 ! *****************************************************************************
 !> \brief ...
 !> \param matrix ...
-!> \param error ...
 ! *****************************************************************************
-  SUBROUTINE dbcsr_release_locals (matrix, error)
+  SUBROUTINE dbcsr_release_locals (matrix)
     TYPE(dbcsr_obj), INTENT(INOUT)           :: matrix
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     IF (matrix%m%has_local_rows) &
          CALL array_release (matrix%m%local_rows)
@@ -441,9 +433,8 @@ CONTAINS
     matrix%m%has_global_cols = .FALSE.
   END SUBROUTINE dbcsr_release_locals
 
-!  SUBROUTINE dbcsr_release_vlocals (matrix, error)
+!  SUBROUTINE dbcsr_release_vlocals (matrix)
 !    TYPE(dbcsr_obj), INTENT(INOUT)           :: matrix
-!    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 !
 !    IF (matrix%m%has_local_vrows) &
 !         CALL array_release (matrix%m%local_vrows)
@@ -925,8 +916,6 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_get_data_size', &
       routineP = moduleN//':'//routineN
 
-    TYPE(dbcsr_error_type)                   :: error
-
     data_size = 0
     IF (ASSOCIATED (matrix%m%data_area%d)) THEN
        SELECT CASE (matrix%m%data_area%d%data_type)
@@ -944,11 +933,11 @@ CONTAINS
                   data_size = SIZE (matrix%m%data_area%d%c_sp)
           CASE default
              CALL dbcsr_assert (.FALSE., dbcsr_failure_level, dbcsr_caller_error,&
-                  routineN, "Incorrect data type",__LINE__,error)
+                  routineN, "Incorrect data type",__LINE__)
           END SELECT
     ELSE
        CALL dbcsr_assert (.FALSE., dbcsr_warning_level, dbcsr_caller_error, routineN,&
-            "Uninitialized data area",__LINE__,error)
+            "Uninitialized data area",__LINE__)
        data_size = 0
     ENDIF
   END FUNCTION dbcsr_get_data_size
@@ -956,12 +945,10 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Count actual data storage used for matrix data.
 !> \param[in] matrix          Count data of this matrix
-!> \param[in,out] error       Error
 !> \retval data_size          Data size used by matrix 
 ! *****************************************************************************
-  FUNCTION dbcsr_get_data_size_used (matrix, error) RESULT (data_size)
+  FUNCTION dbcsr_get_data_size_used (matrix) RESULT (data_size)
     TYPE(dbcsr_obj), INTENT(IN)              :: matrix
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
     INTEGER                                  :: data_size
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_get_data_size_used', &
@@ -974,7 +961,7 @@ CONTAINS
 !type(dbcsr_iterator_type) :: iter
 !   ---------------------------------------------------------------------------
 
-    CALL dbcsr_error_set (routineN, error_handle, error)
+    CALL timeset (routineN, error_handle)
     row_blk_sizes => dbcsr_row_block_sizes (matrix)
     col_blk_sizes => dbcsr_col_block_sizes (matrix)
     data_size = 0
@@ -989,7 +976,7 @@ CONTAINS
        ENDDO
     ENDDO
     !$OMP END DO
-    CALL dbcsr_error_stop (error_handle, error)
+    CALL timestop (error_handle)
   END FUNCTION dbcsr_get_data_size_used
 
 
@@ -1027,11 +1014,9 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Releases all matrices in a 1-d arrray.
 !> \param[in,out] marray      matrix array
-!> \param error ...
 ! *****************************************************************************
-  SUBROUTINE dbcsr_destroy_1d_array(marray, error)
+  SUBROUTINE dbcsr_destroy_1d_array(marray)
     TYPE(dbcsr_array_type), INTENT(INOUT)    :: marray
-    TYPE(dbcsr_error_type), INTENT(inout)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_destroy_1d_array', &
       routineP = moduleN//':'//routineN
@@ -1041,7 +1026,7 @@ CONTAINS
 !   ---------------------------------------------------------------------------
 
     DO i = LBOUND(marray%mats,1), UBOUND (marray%mats,1)
-       CALL dbcsr_destroy (marray%mats(i), error=error, force=.TRUE.)
+       CALL dbcsr_destroy (marray%mats(i),force=.TRUE.)
     ENDDO
     DEALLOCATE (marray%mats)
     !CALL dbcsr_destroy_image_dist(marray%image_dist)
@@ -1051,11 +1036,9 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Releases all matrices in 2-d arrray.
 !> \param[in,out] marray      matrix array
-!> \param error ...
 ! *****************************************************************************
-  SUBROUTINE dbcsr_destroy_2d_array(marray,error)
+  SUBROUTINE dbcsr_destroy_2d_array(marray)
     TYPE(dbcsr_2d_array_type), INTENT(INOUT) :: marray
-    TYPE(dbcsr_error_type), INTENT(inout)    :: error
 
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_destroy_2d_array', &
       routineP = moduleN//':'//routineN
@@ -1066,10 +1049,10 @@ CONTAINS
 
     DO row = LBOUND(marray%mats,1), UBOUND (marray%mats,1)
        DO col = LBOUND(marray%mats,2), UBOUND (marray%mats,2)
-          CALL dbcsr_destroy (marray%mats(row, col), error=error, force=.TRUE.)
+          CALL dbcsr_destroy (marray%mats(row, col),force=.TRUE.)
        ENDDO
     ENDDO
-    CALL dbcsr_image_dist_release (marray%image_dist, error)
+    CALL dbcsr_image_dist_release (marray%image_dist)
     DEALLOCATE (marray%mats)
   END SUBROUTINE dbcsr_destroy_2d_array
 
@@ -1077,12 +1060,10 @@ CONTAINS
 !> \brief Releases a reference to and possible deallocates an image
 !>         distribution
 !> \param imgdist ...
-!> \param error ...
 ! *****************************************************************************
-  SUBROUTINE dbcsr_image_dist_release (imgdist, error)
+  SUBROUTINE dbcsr_image_dist_release (imgdist)
     TYPE(dbcsr_imagedistribution_obj), &
       INTENT(INOUT)                          :: imgdist
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     IF (ASSOCIATED (imgdist%i)) THEN
        imgdist%i%refcount = imgdist%i%refcount - 1
@@ -1096,12 +1077,10 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Retains a reference to an image distribution
 !> \param imgdist ...
-!> \param error ...
 ! *****************************************************************************
-  SUBROUTINE dbcsr_image_dist_hold (imgdist, error)
+  SUBROUTINE dbcsr_image_dist_hold (imgdist)
     TYPE(dbcsr_imagedistribution_obj), &
       INTENT(INOUT)                          :: imgdist
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     imgdist%i%refcount = imgdist%i%refcount + 1
   END SUBROUTINE dbcsr_image_dist_hold
@@ -1109,13 +1088,11 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Initialized an image distribution
 !> \param imgdist ...
-!> \param error ...
 !> \par Akin to nullify.
 ! *****************************************************************************
-  SUBROUTINE dbcsr_image_dist_init (imgdist, error)
+  SUBROUTINE dbcsr_image_dist_init (imgdist)
     TYPE(dbcsr_imagedistribution_obj), &
       INTENT(OUT)                            :: imgdist
-    TYPE(dbcsr_error_type), INTENT(INOUT)    :: error
 
     NULLIFY (imgdist%i)
   END SUBROUTINE dbcsr_image_dist_init
@@ -1220,12 +1197,10 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_mutable_release', &
       routineP = moduleN//':'//routineN
 
-    TYPE(dbcsr_error_type)                   :: error
-
 !   ---------------------------------------------------------------------------
 
     CALL dbcsr_assert (ASSOCIATED (mutable%m), dbcsr_fatal_level,&
-         dbcsr_caller_error, routineN, "Mutable data area not instantiated",__LINE__,error)
+         dbcsr_caller_error, routineN, "Mutable data area not instantiated",__LINE__)
     mutable%m%refcount = mutable%m%refcount - 1
     IF (mutable%m%refcount .EQ. 0) THEN
        CALL dbcsr_mutable_destroy (mutable)
@@ -1246,17 +1221,15 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'dbcsr_mutable_new', &
       routineP = moduleN//':'//routineN
 
-    TYPE(dbcsr_error_type)                   :: error
-
 !   ---------------------------------------------------------------------------
 
     CALL dbcsr_assert (.NOT.ASSOCIATED (mutable%m), dbcsr_fatal_level,&
-         dbcsr_caller_error, routineN, "Mutable data area already instantiated",__LINE__,error)
+         dbcsr_caller_error, routineN, "Mutable data area already instantiated",__LINE__)
     CALL dbcsr_assert (data_type.EQ.dbcsr_type_real_4&
          .OR. data_type.EQ.dbcsr_type_real_8&
          .OR. data_type.EQ.dbcsr_type_complex_4&
          .OR. data_type.EQ.dbcsr_type_complex_8, dbcsr_fatal_level,&
-         dbcsr_wrong_args_error, routineN, "Invalid data type",__LINE__,error)
+         dbcsr_wrong_args_error, routineN, "Invalid data type",__LINE__)
     ALLOCATE (mutable%m)
     mutable%m%refcount = 1
     mutable%m%data_type = data_type
