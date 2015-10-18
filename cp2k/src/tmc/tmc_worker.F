@@ -152,7 +152,6 @@ CONTAINS
              atoms=tmc_env%params%atoms, cell=tmc_env%params%cell)
       para_env_m_w => tmc_env%tmc_comp_set%para_env_m_w
       master = check_if_group_master(tmc_env%tmc_comp_set%para_env_sub_group)
-!      CALL get_mimal_distances()
     ELSE
       ! analysis group
       CPASSERT(ASSOCIATED(tmc_env%tmc_comp_set%para_env_m_ana))
@@ -344,10 +343,10 @@ CONTAINS
                                      res_exist=flag, ierr=ierr)
                   IF(.NOT.flag) tmc_env%params%print_dipole = .FALSE.
                   ! TODO maybe let run with the changed option, but inform user properly
-                  CALL cp_assert(flag, cp_failure_level,cp_assertion_failed,&
-                       routineP,&
-                       "TMC: The requested dipoles are not porvided by the "//&
-                       "force environment.")
+                  IF(.NOT.flag)&
+                     CALL cp_abort(__LOCATION__,&
+                          "TMC: The requested dipoles are not porvided by the "//&
+                          "force environment.")
                 END IF
               CASE DEFAULT
                 CALL cp_abort(__LOCATION__,&
@@ -887,10 +886,10 @@ CONTAINS
 
     CPASSERT(ASSOCIATED(f_env))
     CPASSERT(ASSOCIATED(f_env%force_env))
-    CALL cp_assert(ASSOCIATED(f_env%force_env%qs_env), &
-                   cp_failure_level,cp_assertion_failed,routineP,&
-                   "the intermediate SCF energy request can not be set "//&
-                   "employing this force environment! ") 
+    IF(.NOT.ASSOCIATED(f_env%force_env%qs_env))&
+       CALL cp_abort(__LOCATION__,&
+            "the intermediate SCF energy request can not be set "//&
+            "employing this force environment! ")
 
     ! set the information
     values(1) = REAL(comm, KIND=dp)
@@ -929,10 +928,10 @@ CONTAINS
 
     CPASSERT(ASSOCIATED(f_env))
     CPASSERT(ASSOCIATED(f_env%force_env))
-    CALL cp_assert(ASSOCIATED(f_env%force_env%qs_env), &
-                   cp_failure_level,cp_assertion_failed,routineP,&
-                   "the SCF intermediate energy communicator can not be "//&
-                   "removed! ")
+    IF(.NOT.ASSOCIATED(f_env%force_env%qs_env))&
+       CALL cp_abort(__LOCATION__,&
+            "the SCF intermediate energy communicator can not be "//&
+            "removed! ")
 
     description = "[EXT_SCF_ENER_COMM]"
 
@@ -941,37 +940,5 @@ CONTAINS
     CALL cp_subsys_get(subsys, results=results)
     CALL cp_results_erase(results, description=description)
   END SUBROUTINE remove_intermediate_info_comm
-
-
-!! *****************************************************************************
-!!> \brief get the pointer to the minimal distances 
-!!>        to check for overlapping atoms
-!!> \param rlist_lowsq minimal distanced depending on atom types
-!!> \param error variable to control error logging, stopping,...
-!!>        see module cp_error_handling
-!!> \author Mandes 03.2013
-!! *****************************************************************************
-!  SUBROUTINE get_mimal_distances(env_id, rlist_lowsq)
-!    INTEGER                                  :: env_id
-!    REAL(KIND=dp), DIMENSION(:, :), &
-!      OPTIONAL, POINTER                      :: rlist_lowsq
-!
-!    CHARACTER(LEN=*), PARAMETER :: routineN = 'get_mimal_distances', &
-!      routineP = moduleN//':'//routineN
-!
-!    TYPE(f_env_type), POINTER                :: f_env
-!
-!    CPASSERT(env_id.GT.0)
-!    CPASSERT(.NOT.ASSOCIATED(rlist_lowsq))
-!
-!    CALL f_env_get_from_id(env_id,f_env)
-!    IF(ASSOCIATED(f_env%force_env)) THEN
-!      IF(ASSOCIATED(f_env%force_env%fist_env)) THEN
-!        CALL fist_nonbond_env_get(f_env%force_env%fist_env%fist_nonbond_env, &
-!               rlist_lowsq=rlist_lowsq)
-!      END IF
-!    END IF
-!    
-!  END SUBROUTINE get_mimal_distances
 
 END MODULE tmc_worker

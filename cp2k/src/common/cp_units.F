@@ -592,26 +592,20 @@ CONTAINS
 !> \brief controls that the kind and contains meaningful information
 !> \param basic_kind the kind of the unit
 !> \param basic_unit the unit to check
-!> \param error_level error level of the errors due to invalid values.
-!>        Defaults to cp_failure_level
 !> \retval res ...
 !> \author fawzi
 ! *****************************************************************************
-  FUNCTION cp_basic_unit_check(basic_kind,basic_unit,error_level)&
+  FUNCTION cp_basic_unit_check(basic_kind,basic_unit)&
        RESULT(res)
     INTEGER, INTENT(in)                      :: basic_kind, basic_unit
-    INTEGER, INTENT(in), OPTIONAL            :: error_level
     LOGICAL                                  :: res
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_basic_unit_check', &
       routineP = moduleN//':'//routineN
 
-    INTEGER                                  :: my_error_level
     LOGICAL                                  :: failure
 
     failure = .FALSE.
-    my_error_level=cp_failure_level
-    IF (PRESENT(error_level)) my_error_level=error_level
 
     SELECT CASE(basic_kind)
     CASE(cp_ukind_undef)
@@ -705,17 +699,16 @@ CONTAINS
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_basic_unit_to_cp2k', &
       routineP = moduleN//':'//routineN
-    INTEGER, PARAMETER :: my_error_level = cp_failure_level
 
     INTEGER                                  :: my_power
 
     my_power=1
     IF (PRESENT(power)) my_power=power
     IF (basic_unit==cp_units_none.AND.basic_kind/=cp_ukind_undef) THEN
-       CALL cp_assert(basic_kind==cp_units_none,my_error_level,&
-            cp_assertion_failed,routineP,&
-            "unit not yet fully specified, unit of kind "//&
-            TRIM(cp_to_string(basic_unit)))
+       IF(basic_kind/=cp_units_none)&
+          CALL cp_abort(__LOCATION__,&
+               "unit not yet fully specified, unit of kind "//&
+               TRIM(cp_to_string(basic_unit)))
     END IF
     SELECT CASE(basic_kind)
     CASE(cp_ukind_undef)
@@ -875,7 +868,6 @@ CONTAINS
 
     CHARACTER(len=*), PARAMETER :: routineN = 'cp_basic_unit_desc', &
       routineP = moduleN//':'//routineN
-    INTEGER, PARAMETER :: my_error_level = cp_failure_level
 
     INTEGER                                  :: a, my_power
     LOGICAL                                  :: my_accept_undefined
@@ -886,10 +878,9 @@ CONTAINS
     IF (accept_undefined) my_accept_undefined=accept_undefined
     IF (PRESENT(power)) my_power=power
     IF (basic_unit==cp_units_none) THEN
-       CALL cp_assert(my_accept_undefined.OR.basic_kind/=cp_units_none,&
-            my_error_level,cp_assertion_failed,routineP,&
-            "unit not yet fully specified, unit of kind "//&
-            TRIM(cp_to_string(basic_kind)))
+       IF(.NOT.my_accept_undefined.AND.basic_kind==cp_units_none)&
+          CALL cp_abort(__LOCATION__,"unit not yet fully specified, unit of kind "//&
+               TRIM(cp_to_string(basic_kind)))
     END IF
     SELECT CASE(basic_kind)
     CASE(cp_ukind_undef)
@@ -925,10 +916,10 @@ CONTAINS
           res="K_e"
        CASE(cp_units_none)
           res="energy"
-          CALL cp_assert(my_accept_undefined,my_error_level,&
-               cp_assertion_failed,routineP,&
-               "unit not yet fully specified, unit of kind "//&
-               TRIM(res))
+          IF(.NOT.my_accept_undefined)&
+             CALL cp_abort(__LOCATION__,&
+                  "unit not yet fully specified, unit of kind "//&
+                  TRIM(res))
        CASE default
           CPABORT("unknown energy unit:"//TRIM(cp_to_string(basic_unit)))
        END SELECT
@@ -956,10 +947,10 @@ CONTAINS
           res="au_temp"
        CASE(cp_units_none)
           res="temperature"
-          CALL cp_assert(my_accept_undefined,my_error_level,&
-               cp_assertion_failed,routineP,&
-               "unit not yet fully specified, unit of kind "//&
-               TRIM(res))
+          IF(.NOT.my_accept_undefined)&
+             CALL cp_abort(__LOCATION__,&
+                  "unit not yet fully specified, unit of kind "//&
+                  TRIM(res))
        CASE default
           CPABORT("unknown temperature unit:"//TRIM(cp_to_string(basic_unit)))
        END SELECT
@@ -981,10 +972,10 @@ CONTAINS
           res="au_p"
        CASE(cp_units_none)
           res="pressure"
-          CALL cp_assert(my_accept_undefined,my_error_level,&
-               cp_assertion_failed,routineP,&
-               "unit not yet fully specified, unit of kind "//&
-               TRIM(res))
+          IF(.NOT.my_accept_undefined)&
+             CALL cp_abort(__LOCATION__,&
+                  "unit not yet fully specified, unit of kind "//&
+                  TRIM(res))
        CASE default
           CPABORT("unknown pressure unit:"//TRIM(cp_to_string(basic_unit)))
        END SELECT
@@ -996,10 +987,10 @@ CONTAINS
           res="deg"
        CASE(cp_units_none)
           res="angle"
-          CALL cp_assert(my_accept_undefined,my_error_level,&
-               cp_assertion_failed,routineP,&
-               "unit not yet fully specified, unit of kind "//&
-               TRIM(res))
+          IF(.NOT.my_accept_undefined)&
+             CALL cp_abort(__LOCATION__,&
+                  "unit not yet fully specified, unit of kind "//&
+                  TRIM(res))
        CASE default
           CPABORT("unknown angle unit:"//TRIM(cp_to_string(basic_unit)))
        END SELECT
@@ -1017,10 +1008,10 @@ CONTAINS
           res="wavenumber_t"
        CASE(cp_units_none)
           res="time"
-          CALL cp_assert(my_accept_undefined,my_error_level,&
-               cp_assertion_failed,routineP,&
-               "unit not yet fully specified, unit of kind "//&
-               TRIM(res))
+          IF(.NOT.my_accept_undefined)&
+             CALL cp_abort(__LOCATION__,&
+                  "unit not yet fully specified, unit of kind "//&
+                  TRIM(res))
        CASE default
           CPABORT("unknown time unit:"//TRIM(cp_to_string(basic_unit)))
        END SELECT
@@ -1034,10 +1025,10 @@ CONTAINS
           res="m_e"
        CASE(cp_units_none)
           res="mass"
-          CALL cp_assert(my_accept_undefined,my_error_level,&
-               cp_assertion_failed,routineP,&
-               "unit not yet fully specified, unit of kind "//&
-               TRIM(res))
+          IF(.NOT.my_accept_undefined)&
+             CALL cp_abort(__LOCATION__,&
+                  "unit not yet fully specified, unit of kind "//&
+                  TRIM(res))
        CASE default
           CPABORT("unknown mass unit:"//TRIM(cp_to_string(basic_unit)))
        END SELECT
@@ -1049,10 +1040,10 @@ CONTAINS
           res="au_pot"
        CASE(cp_units_none)
           res="potential"
-          CALL cp_assert(my_accept_undefined,my_error_level,&
-               cp_assertion_failed,routineP,&
-               "unit not yet fully specified, unit of kind "//&
-               TRIM(res))
+          IF(.NOT.my_accept_undefined)&
+             CALL cp_abort(__LOCATION__,&
+                  "unit not yet fully specified, unit of kind "//&
+                  TRIM(res))
        CASE default
           CPABORT("unknown potential unit:"//TRIM(cp_to_string(basic_unit)))
        END SELECT
@@ -1066,10 +1057,10 @@ CONTAINS
           res="au_f"
        CASE(cp_units_none)
           res="force"
-          CALL cp_assert(my_accept_undefined,my_error_level,&
-               cp_assertion_failed,routineP,&
-               "unit not yet fully specified, unit of kind "//&
-               TRIM(res))
+          IF(.NOT.my_accept_undefined)&
+             CALL cp_abort(__LOCATION__,&
+                  "unit not yet fully specified, unit of kind "//&
+                  TRIM(res))
        CASE default
           CPABORT("unknown potential unit:"//TRIM(cp_to_string(basic_unit)))
        END SELECT
@@ -1177,9 +1168,7 @@ CONTAINS
        IF (my_basic_unit==0.AND.unit%kind_id(i_unit)/=cp_ukind_undef) THEN
           CPASSERT(PRESENT(defaults))
           CPASSERT(ASSOCIATED(defaults))
-          CALL cp_assert(ASSOCIATED(defaults%units(unit%kind_id(i_unit))%unit),&
-               cp_failure_level,cp_assertion_failed,routineP,&
-               __LOCATION__)
+          CPASSERT(ASSOCIATED(defaults%units(unit%kind_id(i_unit))%unit))
           my_basic_unit=defaults%units(unit%kind_id(i_unit))%unit%unit_id(1)
        END IF
        res=cp_basic_unit_to_cp2k(value=res,basic_unit=my_basic_unit,&

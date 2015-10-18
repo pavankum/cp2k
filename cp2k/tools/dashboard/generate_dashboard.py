@@ -254,26 +254,28 @@ def gen_plots(all_reports, log, outdir, full_archive):
 
     # create png images
     fig_ext = "_full.png" if(full_archive) else ".png"
-    markers = itertools.cycle('os>^*')
     rev_end = log[0]['num']
     rev_start = min(all_reports.keys()) if(full_archive) else rev_end-100
     for pname, p in plots.items():
         print "Working on plot: "+pname
-        fig = plt.figure(figsize=(10,4))
-        fig.subplots_adjust(bottom=0.18, left=0.08, right=0.97)
-        fig.suptitle(p['title'], fontsize=14, fontweight='bold')
+        fig = plt.figure(figsize=(12,4))
+        fig.subplots_adjust(bottom=0.18, left=0.06, right=0.70)
+        fig.suptitle(p['title'], fontsize=14, fontweight='bold', x=0.4)
         ax = fig.add_subplot(111)
         ax.set_xlabel('SVN Revision')
         ax.set_ylabel(p['ylabel'])
-        for cname, c in p['curves'].items():
+        markers = itertools.cycle('os>^*')
+        for cname in sorted(p['curves'].keys()):
+            c= p['curves'][cname]
             if(full_archive):
                 ax.plot(c['x'], c['y'], label=c['label'], linewidth=2) # less crowded
             else:
                 ax.errorbar(c['x'], c['y'], yerr=c['yerr'], label=c['label'],
-                            marker=markers.next(), linewidth=2, markersize=7)
+                            marker=markers.next(), linewidth=2, markersize=6)
         ax.set_xlim(rev_start-1, rev_end+1)
         ax.xaxis.set_minor_locator(AutoMinorLocator())
-        ax.legend(loc='upper center', numpoints=1, ncol=3, fancybox=True, shadow=True)
+        ax.legend(bbox_to_anchor=(1.01, 1), loc='upper left',
+                  numpoints=1, fancybox=True, shadow=True, borderaxespad=0.0)
         if(not full_archive): # protect against outlayers
             ymin  = min([min(c['y']) for c in p['curves'].values()]) # lowest point from lowest curve
             ymax1 = max([min(c['y']) for c in p['curves'].values()]) # lowest point from highest curve
@@ -284,8 +286,8 @@ def gen_plots(all_reports, log, outdir, full_archive):
 
     # write html output
     html_output = ""
-    for pname, p in plots.items():
-        html_output += '<p><a href="plot_data.txt"><img src="%s" alt="%s"></a></p>\n'%(pname+fig_ext, p['title'])
+    for pname in sorted(plots.keys()):
+        html_output += '<a href="plot_data.txt"><img src="%s" alt="%s"></a>\n'%(pname+fig_ext, plots[pname]['title'])
     return(html_output)
 
 #===============================================================================
