@@ -261,6 +261,8 @@ ifneq (,$(LIBXSMMROOT))
   endif
   ifneq (,$(shell echo "$(TARGET)" | grep "xMIC-AVX512"))
     LIBXSMM_PREFETCH := 1
+  else
+    LIBXSMM_PREFETCH := 0
   endif
   LIBXSMM_BUILD := $(shell $(MAKE) -f $(LIBXSMMROOT)/Makefile \
     INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
