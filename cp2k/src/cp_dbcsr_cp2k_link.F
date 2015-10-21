@@ -39,6 +39,8 @@ MODULE cp_dbcsr_cp2k_link
        mm_driver_xsmm, mm_name_xsmm, &
 #endif
        mm_name_blas, mm_name_matmul, mm_name_smm, multrec_limit
+  USE cp_log_handling,                 ONLY: cp_logger_would_log,&
+                                             cp_note_level
   USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                              section_vals_type,&
                                              section_vals_val_get
