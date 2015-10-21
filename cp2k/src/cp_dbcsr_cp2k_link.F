@@ -39,7 +39,10 @@ MODULE cp_dbcsr_cp2k_link
        mm_driver_xsmm, mm_name_xsmm, &
 #endif
        mm_name_blas, mm_name_matmul, mm_name_smm, multrec_limit
-  USE cp_log_handling,                 ONLY: cp_logger_would_log,&
+  USE cp_log_handling,                 ONLY: cp_get_default_logger,&
+                                             cp_logger_get_default_io_unit,&
+                                             cp_logger_type,&
+                                             cp_logger_would_log,&
                                              cp_note_level
   USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                              section_vals_type,&
@@ -59,7 +62,6 @@ MODULE cp_dbcsr_cp2k_link
                                              neighbor_list_iterator_p_type,&
                                              neighbor_list_iterator_release,&
                                              neighbor_list_set_p_type
-#include "./common/cp_common_uses.f90"
 #include "./base/base_uses.f90"
 
   IMPLICIT NONE
