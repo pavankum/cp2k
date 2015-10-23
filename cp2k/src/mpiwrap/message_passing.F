@@ -30,6 +30,7 @@ MODULE message_passing
                                              m_walltime
 
 !$ USE OMP_LIB,                        ONLY: omp_get_thread_num
+#include "../base/base_uses.f90"
 
 #if defined(__parallel) && ! defined(__HAS_NO_MPI_MOD)
   USE mpi  ! compiler *errors* mean mpi installation and fortran compiler mismatch: see INSTALL (-D__HAS_NO_MPI_MOD)
@@ -563,24 +564,7 @@ MODULE message_passing
   INTEGER, PARAMETER :: charlen=1
   INTEGER, SAVE, PRIVATE :: last_mp_perf_env_id=0
 
-  ! external timing hooks
-  ! this interface (with subroutines in it) musst to be defined right before
-  ! the regular subroutines/functions - otherwise prettify.py will screw up.
-  INTERFACE
-    SUBROUTINE timeset_interface(routineN, handle)
-    CHARACTER(LEN=*), INTENT(IN)             :: routineN
-    INTEGER, INTENT(OUT)                     :: handle
-
-    END SUBROUTINE timeset_interface
-    SUBROUTINE timestop_interface(handle)
-    INTEGER, INTENT(IN)                      :: handle
-
-    END SUBROUTINE timestop_interface
-  END INTERFACE
-
-  ! assumed to be private...
-  PROCEDURE(timeset_interface), POINTER, PUBLIC, SAVE  :: mp_external_timeset  => NULL()
-  PROCEDURE(timestop_interface), POINTER, PUBLIC, SAVE :: mp_external_timestop => NULL()
+  LOGICAL, PUBLIC, SAVE :: mp_collect_timings = .FALSE.
 
 CONTAINS
 
@@ -598,9 +582,6 @@ CONTAINS
     INTEGER                                  :: ierr
 !$  INTEGER                                  :: provided_tsl
 !$  LOGICAL                                  :: no_threading_support
-
-    mp_external_timeset  => NULL()
-    mp_external_timestop => NULL()
 
 #if defined(__NO_MPI_THREAD_SUPPORT_CHECK)
     ! Hack that does not request or check MPI thread suppolt level.
@@ -688,7 +669,10 @@ CONTAINS
 
     t_end = m_walltime ( )
     CALL add_perf(perf_id=1,count=1,time=t_end-t_start)
-#endif 
+#else
+    MARK_USED(ranks_order)
+    mp_new_comm = mp_comm
+#endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_reordering
 
@@ -708,7 +692,7 @@ CONTAINS
     IF (debug_comm_count .NE. 0) THEN
        ! A bug, we're leaking or double-freeing communicators. Needs to be fixed where the leak happens.
        ! Memory leak checking might be helpful to locate the culprit 
-       CALL mp_abort("mp_world_finalize: assert failed:  leaking communicators")
+       CPABORT("mp_world_finalize: assert failed:  leaking communicators")
     ENDIF
     CALL mpi_finalize ( ierr )
     IF ( ierr /= 0 ) CALL mp_stop ( ierr, "mpi_finalize @ mp_world_finalize" )
@@ -737,7 +721,7 @@ CONTAINS
 
     stack_pointer = stack_pointer + 1
     IF (stack_pointer > max_stack_size) THEN
-       CALL mp_abort ( "stack_pointer too large : message_passing @ add_mp_perf_env" )
+       CPABORT("stack_pointer too large : message_passing @ add_mp_perf_env")
     ENDIF
     NULLIFY(mp_perf_stack(stack_pointer)%mp_perf_env)
     IF (PRESENT(perf_env)) THEN
@@ -762,7 +746,7 @@ CONTAINS
     NULLIFY(perf_env)
     ALLOCATE(perf_env,stat=stat)
     IF (stat/=0) THEN
-       CALL mp_abort ( "allocation failed in mp_perf_env_create")
+       CPABORT("allocation failed in mp_perf_env_create")
     ENDIF
     last_mp_perf_env_id=last_mp_perf_env_id+1
     perf_env%id_nr=last_mp_perf_env_id
@@ -785,8 +769,7 @@ CONTAINS
 
     IF (ASSOCIATED(perf_env)) THEN
        IF (perf_env%ref_count<1) THEN
-          CALL mp_abort(&
-               "invalid ref_count: message_passing @ mp_perf_env_release")
+          CPABORT("invalid ref_count: message_passing @ mp_perf_env_release")
        END IF
        perf_env%ref_count=perf_env%ref_count-1
        IF (perf_env%ref_count==0) THEN
@@ -804,10 +787,10 @@ CONTAINS
     TYPE(mp_perf_env_type), POINTER          :: perf_env
 
     IF (.NOT.ASSOCIATED(perf_env)) THEN
-       CALL mp_abort("unassociated perf_env: message_passing @ mp_perf_env_retain")
+       CPABORT("unassociated perf_env: message_passing @ mp_perf_env_retain")
     END IF
     IF (perf_env%ref_count<1) THEN
-       CALL mp_abort("invalid ref_count: message_passing @ mp_perf_env_retain")
+       CPABORT("invalid ref_count: message_passing @ mp_perf_env_retain")
     END IF
     perf_env%ref_count=perf_env%ref_count+1
   END SUBROUTINE mp_perf_env_retain
@@ -828,10 +811,10 @@ CONTAINS
 #endif
 
     IF (.NOT.ASSOCIATED(perf_env)) THEN
-       CALL mp_abort ("unassociated perf_env : message_passing @ mp_perf_env_describe" )
+       CPABORT("unassociated perf_env : message_passing @ mp_perf_env_describe")
     ENDIF
     IF (perf_env%ref_count<1) THEN
-       CALL mp_abort ("invalid perf_env%ref_count : message_passing @ mp_perf_env_describe" )
+       CPABORT("invalid perf_env%ref_count : message_passing @ mp_perf_env_describe")
     ENDIF
 #if defined(__parallel)
     IF ( iw > 0 ) THEN
@@ -865,6 +848,8 @@ CONTAINS
        END DO
        WRITE ( iw, '( 1X, 79("-"), / )' )
     END IF
+#else
+    MARK_USED(iw)
 #endif
   END SUBROUTINE mp_perf_env_describe
 
@@ -873,7 +858,7 @@ CONTAINS
 ! *****************************************************************************
   SUBROUTINE rm_mp_perf_env ()
     IF (stack_pointer<1) THEN
-       CALL mp_abort ( "no perf_env in the stack : message_passing @ rm_mp_perf_env" )
+       CPABORT("no perf_env in the stack : message_passing @ rm_mp_perf_env")
     ENDIF
     CALL mp_perf_env_release(mp_perf_stack(stack_pointer)%mp_perf_env)
     stack_pointer = stack_pointer - 1
@@ -887,7 +872,7 @@ CONTAINS
     TYPE(mp_perf_env_type), POINTER          :: res
 
     IF (stack_pointer<1) THEN
-       CALL mp_abort ( "no perf_env in the stack : message_passing @ get_mp_perf_env" )
+       CPABORT("no perf_env in the stack : message_passing @ get_mp_perf_env")
     ENDIF
     res => mp_perf_stack(stack_pointer)%mp_perf_env
   END FUNCTION get_mp_perf_env
@@ -932,6 +917,11 @@ CONTAINS
     IF (PRESENT(msg_size)) THEN
        mp_perf%msg_size = mp_perf%msg_size+REAL(msg_size,dp)
     END IF
+#else
+    MARK_USED(perf_id)
+    MARK_USED(count)
+    MARK_USED(time)
+    MARK_USED(msg_size)
 #endif
 
   END SUBROUTINE add_perf
@@ -985,7 +975,7 @@ CONTAINS
 #if defined(__parallel)
     CALL mpi_abort ( MPI_COMM_WORLD, 1, ierr )
 #else
-    CALL m_abort() ! uncomment if you want nice core dumps
+    CALL m_abort()
 #endif
 #endif
     ! this routine never returns and levels with non-zero exit code
@@ -1018,7 +1008,7 @@ CONTAINS
     WRITE(full_error,'(A,I0,A)') ' MPI error (!?) ',ierr,' in '//TRIM(prg_code)
 #endif
 
-    CALL mp_abort(full_error)
+    CPABORT(full_error)
 
   END SUBROUTINE mp_stop
 
@@ -1043,6 +1033,8 @@ CONTAINS
     IF ( ierr /= 0 ) CALL mp_stop ( ierr, "mpi_barrier @ mp_sync" )
     t_end = m_walltime ( )
     CALL add_perf(perf_id=5,count=1,time=t_end-t_start)
+#else
+    MARK_USED(group)
 #endif
     CALL mp_timestop(handle)
 
@@ -1078,6 +1070,8 @@ CONTAINS
 
     CALL mpi_comm_size ( groupid, numtask, ierr )
     IF ( ierr /= 0 ) CALL mp_stop ( ierr, "mpi_comm_size @ mp_environ_l" )
+#else
+    MARK_USED(groupid)
 #endif
     CALL mp_timestop(handle)
 
@@ -1115,6 +1109,8 @@ CONTAINS
 
     CALL mpi_cart_get ( groupid, 2, dims, periods, task_coor, ierr )
     IF ( ierr /= 0 ) CALL mp_stop ( ierr, "mpi_cart_get @ mp_environ_c" )
+#else
+    MARK_USED(groupid)
 #endif
     CALL mp_timestop(handle)
 
@@ -1149,6 +1145,8 @@ CONTAINS
 #if defined(__parallel)
     CALL mpi_cart_get ( comm, ndims, dims, periods, task_coor, ierr )
     IF ( ierr /= 0 ) CALL mp_stop ( ierr, "mpi_cart_get @ mp_environ_c" )
+#else
+    MARK_USED(comm)
 #endif
     CALL mp_timestop(handle)
 
@@ -1245,6 +1243,8 @@ CONTAINS
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_cart_coords @ mp_cart_coords" )
 #else
     coords = 0
+    MARK_USED(rank)
+    MARK_USED(comm)
 #endif
     CALL mp_timestop(handle)
 
@@ -1287,6 +1287,9 @@ CONTAINS
     CASE default
        res = 4
     END SELECT
+#else
+    MARK_USED(comm1)
+    MARK_USED(comm2)
 #endif
     CALL mp_timestop(handle)
 
@@ -1318,6 +1321,9 @@ CONTAINS
     CALL mpi_cart_sub ( comm, rdim, sub_comm, ierr )
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_cart_sub @ mp_cart_sub" )
     debug_comm_count = debug_comm_count + 1
+#else
+    MARK_USED(comm)
+    MARK_USED(rdim)
 #endif
     CALL mp_timestop(handle)
 
@@ -1344,6 +1350,8 @@ CONTAINS
     CALL mpi_comm_free ( comm, ierr )
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_comm_free @ mp_comm_free" )
     debug_comm_count = debug_comm_count - 1
+#else
+    MARK_USED(comm)
 #endif
     CALL mp_timestop(handle)
 
@@ -1415,7 +1423,8 @@ CONTAINS
     CALL mpi_comm_group ( comm2, g2, ierr )
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_comm_group @ mp_rank_compare" )
     ALLOCATE ( rin ( 0 : n - 1 ), STAT = ierr )
-    IF ( ierr /= 0 ) CALL mp_abort( "allocate @ mp_rank_compare" )
+    IF ( ierr /= 0 )&
+       CPABORT("allocate @ mp_rank_compare")
     DO i = 0, n-1
        rin ( i ) = i
     END DO
@@ -1423,10 +1432,15 @@ CONTAINS
     IF ( ierr /= 0 ) CALL mp_stop( ierr, &
          "mpi_group_translate_rank @ mp_rank_compare" )
     CALL mpi_group_free(g1, ierr)
-    IF ( ierr /= 0 ) CALL mp_abort( "group_free @ mp_rank_compare" )
+    IF ( ierr /= 0 )&
+       CPABORT("group_free @ mp_rank_compare")
     CALL mpi_group_free(g2, ierr)
-    IF ( ierr /= 0 ) CALL mp_abort( "group_free @ mp_rank_compare" )
+    IF ( ierr /= 0 )&
+       CPABORT("group_free @ mp_rank_compare")
     DEALLOCATE ( rin)
+#else
+    MARK_USED(comm1)
+    MARK_USED(comm2)
 #endif
     CALL mp_timestop(handle)
 
@@ -1457,6 +1471,7 @@ CONTAINS
     IF ( ierr /= 0 ) CALL mp_stop ( ierr, "mpi_dims_create @ mp_dims_create" )
 #else
     dims = 1
+    MARK_USED(nodes)
 #endif
     CALL mp_timestop(handle)
 
@@ -1488,6 +1503,8 @@ CONTAINS
     IF ( ierr /= 0 ) CALL mp_stop ( ierr, "mpi_cart_rank @ mp_cart_rank" )
 #else
     rank = 0
+    MARK_USED(group)
+    MARK_USED(pos)
 #endif
     CALL mp_timestop(handle)
 
@@ -1528,6 +1545,8 @@ CONTAINS
     t_end = m_walltime ( )
     CALL add_perf(perf_id=9,count=1,time=t_end-t_start)
     DEALLOCATE (status)
+#else
+    MARK_USED(request)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_wait
@@ -1568,6 +1587,8 @@ CONTAINS
     t_end = m_walltime ( )
     CALL add_perf(perf_id=9,count=1,time=t_end-t_start)
     DEALLOCATE (status)
+#else
+    MARK_USED(requests)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_waitall_1
@@ -1607,6 +1628,8 @@ CONTAINS
     t_end = m_walltime ( )
     CALL add_perf(perf_id=9,count=1,time=t_end-t_start)
     DEALLOCATE (status)
+#else
+    MARK_USED(requests)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_waitall_2
@@ -1667,6 +1690,9 @@ CONTAINS
 
     t_end = m_walltime ( )
     CALL add_perf(perf_id=9,count=1,time=t_end-t_start)
+#else
+    MARK_USED(requests)
+    completed = 1
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_waitany
@@ -1707,7 +1733,10 @@ CONTAINS
 
     IF (PRESENT(completed)) completed = completed_l
     IF (PRESENT(flag)) flag = flag_l
-
+#else
+    MARK_USED(requests)
+    IF(PRESENT(completed)) completed = 1
+    IF(PRESENT(flag)) flag = .TRUE.
 #endif
   END SUBROUTINE mp_testany_1
 
@@ -1746,7 +1775,10 @@ CONTAINS
 
     IF (PRESENT(completed)) completed = completed_l
     IF (PRESENT(flag)) flag = flag_l
-
+#else
+    MARK_USED(requests)
+    IF(PRESENT(completed)) completed = 1
+    IF(PRESENT(flag)) flag = .TRUE.
 #endif
   END SUBROUTINE mp_testany_2
 
@@ -1810,6 +1842,8 @@ CONTAINS
     CALL add_perf(perf_id=10,count=1,time=t_end-t_start)
 #else
     CALL mp_comm_dup(comm,sub_comm)
+    MARK_USED(color)
+    MARK_USED(key)
 #endif
     CALL mp_timestop(handle)
 
@@ -1863,33 +1897,33 @@ CONTAINS
     ! actual number of groups
 
     IF (.NOT. PRESENT(subgroup_min_size) .AND. .NOT. PRESENT(n_subgroups)) THEN
-       CALL mp_abort(routineP//" missing arguments ")
+       CPABORT(routineP//" missing arguments")
     ENDIF
     IF (PRESENT(subgroup_min_size) .AND. PRESENT(n_subgroups)) THEN
-       CALL mp_abort(routineP//" too many arguments ")
+       CPABORT(routineP//" too many arguments")
     ENDIF
 
     CALL mp_environ(nnodes,mepos,comm)
 
     IF (.NOT. ASSOCIATED(group_distribution)) THEN
-       CALL mp_abort(routineP//" group_distribution not associated")
+       CPABORT(routineP//" group_distribution not associated")
     ENDIF
     IF (LBOUND(group_distribution,1) .NE. 0 .OR. &
          UBOUND(group_distribution,1).NE.nnodes-1) THEN
-       CALL mp_abort(routineP//" group_distribution wrong bounds")
+       CPABORT(routineP//" group_distribution wrong bounds")
     ENDIF
 
 #if defined(__parallel)
     t_start = m_walltime ( )
     IF (PRESENT(subgroup_min_size)) THEN
        IF (subgroup_min_size<0 .OR. subgroup_min_size>nnodes) THEN
-          CALL mp_abort(routineP//" subgroup_min_size too small or too large")
+          CPABORT(routineP//" subgroup_min_size too small or too large")
        ENDIF
        ngroups= nnodes / subgroup_min_size
        my_subgroup_min_size = subgroup_min_size
     ELSE  ! n_subgroups
        IF (n_subgroups<=0) THEN
-          CALL mp_abort(routineP//" n_subgroups too small")
+          CPABORT(routineP//" n_subgroups too small")
        ENDIF
        IF (nnodes/n_subgroups > 0) THEN ! we have a least one cpu per group
           ngroups = n_subgroups
@@ -1943,6 +1977,8 @@ CONTAINS
     CALL mp_comm_dup(comm,sub_comm)
     group_distribution(0)=0
     ngroups=1
+    MARK_USED(stride)
+    MARK_USED(group_partition)
 #endif
     CALL mp_timestop(handle)
 
@@ -1995,6 +2031,10 @@ CONTAINS
         tag = status_single(MPI_TAG)
       END IF
     END IF
+#else
+    tag = -1
+    MARK_USED(comm)
+    MARK_USED(source)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_probe
@@ -2028,6 +2068,10 @@ CONTAINS
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_bcast @ " // routineN )
     t_end = m_walltime ( )
     CALL add_perf(perf_id=2,count=1,time=t_end-t_start,msg_size=msglen*loglen)
+#else
+    MARK_USED(msg)
+    MARK_USED(source)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_bcast_b
@@ -2057,6 +2101,9 @@ CONTAINS
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_bcast @ "//routineN )
     t_end = m_walltime ( )
     CALL add_perf(perf_id=2,count=1,time=t_end-t_start,msg_size=msglen*loglen)
+#else
+    MARK_USED(source)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_bcast_bv
@@ -2108,6 +2155,10 @@ CONTAINS
     DEALLOCATE (imsg)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=2,count=1,time=t_end-t_start,msg_size=msglen*charlen)
+#else
+    MARK_USED(msg)
+    MARK_USED(source)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_bcast_av
@@ -2173,6 +2224,10 @@ CONTAINS
     DEALLOCATE (imsglen)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=2,count=1,time=t_end-t_start,msg_size=msglen*charlen*msgsiz)
+#else
+    MARK_USED(msg)
+    MARK_USED(source)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_bcast_am
@@ -2202,8 +2257,7 @@ CONTAINS
 
     ierr = 0
     IF ("d" .EQ. "l" .AND. real_8 .EQ. int_8) THEN
-       CALL mp_abort&
-            ("Minimal location not available with long integers @ "//routineN)
+       CPABORT("Minimal location not available with long integers @ "//routineN)
     ENDIF
     CALL mp_timeset(routineN,handle)
 
@@ -2211,13 +2265,17 @@ CONTAINS
     t_start = m_walltime ( )
     msglen = SIZE(msg)
     ALLOCATE (res(1:msglen),STAT=ierr)
-    IF ( ierr /= 0 ) CALL mp_abort( "allocate @ "//routineN )
+    IF ( ierr /= 0 )&
+       CPABORT("allocate @ "//routineN)
     CALL mpi_allreduce(msg,res,1,MPI_2DOUBLE_PRECISION,MPI_MINLOC,gid, ierr)
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_allreduce @ "//routineN )
     msg = res
     DEALLOCATE (res)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=3,count=1,time=t_end-t_start,msg_size=msglen*real_8_size)
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_minloc_dv
@@ -2247,8 +2305,7 @@ CONTAINS
 
     ierr = 0
     IF ("i" .EQ. "l" .AND. int_4 .EQ. int_8) THEN
-       CALL mp_abort&
-            ("Minimal location not available with long integers @ "//routineN)
+       CPABORT("Minimal location not available with long integers @ "//routineN)
     ENDIF
     CALL mp_timeset(routineN,handle)
 
@@ -2262,6 +2319,9 @@ CONTAINS
     DEALLOCATE (res)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=3,count=1,time=t_end-t_start,msg_size=msglen*int_4_size)
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_minloc_iv
@@ -2291,8 +2351,7 @@ CONTAINS
 
     ierr = 0
     IF ("l" .EQ. "l" .AND. int_8 .EQ. int_8) THEN
-       CALL mp_abort&
-            ("Minimal location not available with long integers @ "//routineN)
+       CPABORT("Minimal location not available with long integers @ "//routineN)
     ENDIF
     CALL mp_timeset(routineN,handle)
 
@@ -2306,6 +2365,9 @@ CONTAINS
     DEALLOCATE (res)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=3,count=1,time=t_end-t_start,msg_size=msglen*int_8_size)
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_minloc_lv
@@ -2335,8 +2397,7 @@ CONTAINS
 
     ierr = 0
     IF ("r" .EQ. "l" .AND. real_4 .EQ. int_8) THEN
-       CALL mp_abort&
-            ("Minimal location not available with long integers @ "//routineN)
+       CPABORT("Minimal location not available with long integers @ "//routineN)
     ENDIF
     CALL mp_timeset(routineN,handle)
 
@@ -2350,6 +2411,9 @@ CONTAINS
     DEALLOCATE (res)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=3,count=1,time=t_end-t_start,msg_size=msglen*real_4_size)
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_minloc_rv
@@ -2379,8 +2443,7 @@ CONTAINS
 
     ierr = 0
     IF ("d" .EQ. "l" .AND. real_8 .EQ. int_8) THEN
-       CALL mp_abort&
-            ("Maximal location not available with long integers @ "//routineN)
+       CPABORT("Maximal location not available with long integers @ "//routineN)
     ENDIF
     CALL mp_timeset(routineN,handle)
 
@@ -2394,6 +2457,9 @@ CONTAINS
     DEALLOCATE (res)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=3,count=1,time=t_end-t_start,msg_size=msglen*real_8_size)
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_maxloc_dv
@@ -2423,8 +2489,7 @@ CONTAINS
 
     ierr = 0
     IF ("i" .EQ. "l" .AND. int_4 .EQ. int_8) THEN
-       CALL mp_abort&
-            ("Maximal location not available with long integers @ "//routineN)
+       CPABORT("Maximal location not available with long integers @ "//routineN)
     ENDIF
     CALL mp_timeset(routineN,handle)
 
@@ -2438,6 +2503,9 @@ CONTAINS
     DEALLOCATE (res)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=3,count=1,time=t_end-t_start,msg_size=msglen*int_4_size)
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_maxloc_iv
@@ -2467,8 +2535,7 @@ CONTAINS
 
     ierr = 0
     IF ("l" .EQ. "l" .AND. int_8 .EQ. int_8) THEN
-       CALL mp_abort&
-            ("Maximal location not available with long integers @ "//routineN)
+       CPABORT("Maximal location not available with long integers @ "//routineN)
     ENDIF
     CALL mp_timeset(routineN,handle)
 
@@ -2482,6 +2549,9 @@ CONTAINS
     DEALLOCATE (res)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=3,count=1,time=t_end-t_start,msg_size=msglen*int_8_size)
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_maxloc_lv
@@ -2511,8 +2581,7 @@ CONTAINS
 
     ierr = 0
     IF ("r" .EQ. "l" .AND. real_4 .EQ. int_8) THEN
-       CALL mp_abort&
-            ("Maximal location not available with long integers @ "//routineN)
+       CPABORT("Maximal location not available with long integers @ "//routineN)
     ENDIF
     CALL mp_timeset(routineN,handle)
 
@@ -2526,6 +2595,9 @@ CONTAINS
     DEALLOCATE (res)
     t_end = m_walltime ( )
     CALL add_perf(perf_id=3,count=1,time=t_end-t_start,msg_size=msglen*real_4_size)
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_maxloc_rv
@@ -2557,6 +2629,9 @@ CONTAINS
     CALL mpi_allreduce(msg,res,msglen,MPI_LOGICAL,MPI_LOR,gid,ierr)
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_allreduce @ "//routineN )
     msg = res
+#else
+    MARK_USED(msg)
+    MARK_USED(gid)
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_sum_b
@@ -2599,6 +2674,8 @@ CONTAINS
     CALL mpi_file_set_errhandler(fh, MPI_ERRORS_RETURN, ierr)
     IF (ierr .NE. 0) CALL mp_stop ( ierr, "mpi_file_set_errhandler @ mp_file_open" )
 #else
+    MARK_USED(groupid)
+    MARK_USED(info)
     IF ((amode_status .EQ. file_amode_create) .OR. &
         (amode_status .EQ. file_amode_create+file_amode_wronly) .OR. &
         (amode_status .EQ. file_amode_create+file_amode_wronly+file_amode_excl) ) THEN
@@ -2693,9 +2770,11 @@ CONTAINS
     IF (PRESENT(msglen)) msg_len = msglen
     ALLOCATE(status(MPI_STATUS_SIZE))
     CALL MPI_FILE_WRITE_AT(fh, offset, msg, msg_len, MPI_CHARACTER, status, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_file_write_at_chv @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_file_write_at_chv @ "//routineN)
     DEALLOCATE(status)
 #else
+    MARK_USED(msglen)
     WRITE(UNIT=fh, POS=offset+1) msg
 #endif
   END SUBROUTINE mp_file_write_at_chv
@@ -2720,7 +2799,8 @@ CONTAINS
 
     ALLOCATE(status(MPI_STATUS_SIZE))
     CALL MPI_FILE_WRITE_AT(fh, offset, msg, LEN(msg), MPI_CHARACTER, status, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_file_write_at_ch @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_file_write_at_ch @ "//routineN)
     DEALLOCATE(status)
 #else
     WRITE(UNIT=fh, POS=offset+1) msg
@@ -2754,9 +2834,11 @@ CONTAINS
     IF (PRESENT(msglen)) msg_len = msglen
     ALLOCATE(status(MPI_STATUS_SIZE))
     CALL MPI_FILE_WRITE_AT_ALL(fh, offset, msg, msg_len, MPI_CHARACTER, status, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_file_write_at_all_chv @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_file_write_at_all_chv @ "//routineN)
     DEALLOCATE(status)
 #else
+    MARK_USED(msglen)
     WRITE(UNIT=fh, POS=offset+1) msg
 #endif
   END SUBROUTINE mp_file_write_at_all_chv
@@ -2781,7 +2863,8 @@ CONTAINS
 
     ALLOCATE(status(MPI_STATUS_SIZE))
     CALL MPI_FILE_WRITE_AT_ALL(fh, offset, msg, LEN(msg), MPI_CHARACTER, status, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_file_write_at_all_ch @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_file_write_at_all_ch @ "//routineN)
     DEALLOCATE(status)
 #else
     WRITE(UNIT=fh, POS=offset+1) msg
@@ -2816,9 +2899,11 @@ CONTAINS
     IF (PRESENT(msglen)) msg_len = msglen
     ALLOCATE(status(MPI_STATUS_SIZE))
     CALL MPI_FILE_READ_AT(fh, offset, msg, msg_len, MPI_CHARACTER, status, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_file_read_at_chv @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_file_read_at_chv @ "//routineN)
     DEALLOCATE(status)
 #else
+    MARK_USED(msglen)
     READ(UNIT=fh, POS=offset+1) msg
 #endif
   END SUBROUTINE mp_file_read_at_chv
@@ -2843,7 +2928,8 @@ CONTAINS
 
     ALLOCATE(status(MPI_STATUS_SIZE))
     CALL MPI_FILE_READ_AT(fh, offset, msg, LEN(msg), MPI_CHARACTER, status, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_file_read_at_ch @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_file_read_at_ch @ "//routineN)
     DEALLOCATE(status)
 #else
     READ(UNIT=fh, POS=offset+1) msg
@@ -2877,9 +2963,11 @@ CONTAINS
     IF (PRESENT(msglen)) msg_len = msglen
     ALLOCATE(status(MPI_STATUS_SIZE))
     CALL MPI_FILE_READ_AT_ALL(fh, offset, msg, msg_len, MPI_CHARACTER, status, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_file_read_at_all_chv @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_file_read_at_all_chv @ "//routineN)
     DEALLOCATE(status)
 #else
+    MARK_USED(msglen)
     READ(UNIT=fh, POS=offset+1) msg
 #endif
   END SUBROUTINE mp_file_read_at_all_chv
@@ -2904,7 +2992,8 @@ CONTAINS
 
     ALLOCATE(status(MPI_STATUS_SIZE))
     CALL MPI_FILE_READ_AT_ALL(fh, offset, msg, LEN(msg), MPI_CHARACTER, status, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_file_read_at_all_ch @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_file_read_at_all_ch @ "//routineN)
     DEALLOCATE(status)
 #else
     READ(UNIT=fh, POS=offset+1) msg
@@ -2932,7 +3021,8 @@ CONTAINS
     ierr = 0
 #if defined(__parallel)
     CALL MPI_TYPE_SIZE (type_descriptor%type_handle, type_size, ierr)
-    IF (ierr .NE. 0) CALL mp_abort("mpi_type_size @ "//routineN)
+    IF (ierr .NE. 0)&
+       CPABORT("mpi_type_size @ "//routineN)
 #else 
     SELECT CASE (type_descriptor%type_handle)
     CASE (1)
@@ -2981,7 +3071,8 @@ CONTAINS
     type_descriptor%length = 1
 #if defined(__parallel)
     CALL mpi_get_address (MPI_BOTTOM, type_descriptor%base, ierr)
-    IF (ierr /= 0) CALL mp_abort("MPI_get_address @ "//routineN)
+    IF (ierr /= 0)&
+       CPABORT("MPI_get_address @ "//routineN)
     ALLOCATE (displacements(n))
 #endif
     type_descriptor%vector_descriptor(1:2) = 1
@@ -3000,12 +3091,14 @@ CONTAINS
     CALL MPI_Type_create_struct(n,&
          lengths, displacements, old_types,&
          type_descriptor%type_handle, ierr)
-    IF (ierr /= 0) CALL mp_abort("MPI_Type_create_struct @ "//routineN)
+    IF (ierr /= 0)&
+       CPABORT("MPI_Type_create_struct @ "//routineN)
     CALL MPI_Type_commit (type_descriptor%type_handle, ierr)
-    IF (ierr /= 0) CALL mp_abort("MPI_Type_commit @ "//routineN)
+    IF (ierr /= 0)&
+       CPABORT("MPI_Type_commit @ "//routineN)
 #endif
     IF (PRESENT (vector_descriptor) .OR. PRESENT (index_descriptor)) THEN
-       CALL mp_abort (routineN//" Vectors and indices NYI")
+       CPABORT(routineN//" Vectors and indices NYI")
     ENDIF
   END FUNCTION mp_type_make_struct
 
@@ -3033,7 +3126,8 @@ CONTAINS
        DEALLOCATE (type_descriptor%subtype)
 #if defined(__parallel)
        CALL MPI_Type_free (type_descriptor%type_handle, ierr)
-       IF (ierr /= 0) CALL mp_abort("MPI_Type_free @ "//routineN)
+       IF (ierr /= 0)&
+          CPABORT("MPI_Type_free @ "//routineN)
 #endif
     ENDIF
   END SUBROUTINE mp_type_free
@@ -3068,6 +3162,11 @@ CONTAINS
             comm,request,ierr)
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_isend @ "//routineN )
 #else
+    MARK_USED(msgin)
+    MARK_USED(dest)
+    MARK_USED(comm)
+    MARK_USED(request)
+    MARK_USED(tag)
     ierr=1
     CALL mp_stop( ierr, "mp_isend called in non parallel case" )
 #endif
@@ -3103,8 +3202,13 @@ CONTAINS
          comm,request,ierr)
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_irecv @ "//routineN )
 #else
+    MARK_USED(msgout)
+    MARK_USED(source)
+    MARK_USED(comm)
+    MARK_USED(request)
+    MARK_USED(tag)
     ierr=1
-    CALL mp_abort( "mp_irecv called in non parallel case" )
+    CPABORT("mp_irecv called in non parallel case")
 #endif
   END SUBROUTINE mp_irecv_custom
 
@@ -3132,7 +3236,8 @@ CONTAINS
     t_end = m_walltime ( )
     CALL add_perf(perf_id=21,count=1,time=t_end-t_start)
 #else
-    CALL mp_abort( "mp_win_free called in non parallel case" )
+    MARK_USED(win)
+    CPABORT("mp_win_free called in non parallel case")
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_win_free
@@ -3158,14 +3263,15 @@ CONTAINS
 #if __MPI_VERSION > 2
     CALL mpi_win_lock_all(MPI_MODE_NOCHECK,win,ierr)
 #else
-    CALL mp_abort("mp_win_lock_all requires MPI-3 standard")
+    CPABORT("mp_win_lock_all requires MPI-3 standard")
 #endif
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_win_lock_all @ "//routineN )
 
     t_end = m_walltime ( )
     CALL add_perf(perf_id=19,count=1,time=t_end-t_start)
 #else
-    CALL mp_abort( "mp_win_lock_all called in non parallel case" )
+    MARK_USED(win)
+    CPABORT("mp_win_lock_all called in non parallel case")
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_win_lock_all
@@ -3191,14 +3297,15 @@ CONTAINS
 #if __MPI_VERSION > 2
     CALL mpi_win_unlock_all(win,ierr)
 #else
-    CALL mp_abort("mp_win_unlock_all requires MPI-3 standard")
+    CPABORT("mp_win_unlock_all requires MPI-3 standard")
 #endif
     IF ( ierr /= 0 ) CALL mp_stop( ierr, "mpi_win_unlock_all @ "//routineN )
 
     t_end = m_walltime ( )
     CALL add_perf(perf_id=19,count=1,time=t_end-t_start)
 #else
-    CALL mp_abort( "mp_win_unlock_all called in non parallel case" )
+    MARK_USED(win)
+    CPABORT("mp_win_unlock_all called in non parallel case")
 #endif
     CALL mp_timestop(handle)
   END SUBROUTINE mp_win_unlock_all
@@ -3222,7 +3329,7 @@ CONTAINS
 !> \note
 !>      quickly adapted benchmark code, will only work on an even number of CPUs.
 ! *****************************************************************************
-  SUBROUTINE mpi_perf_test(comm,npow,output_unit)
+  SUBROUTINE mpi_perf_test(comm,npow,output_unit)  
 
     INTEGER, INTENT(IN)                      :: comm, npow,output_unit
 
@@ -3297,7 +3404,7 @@ CONTAINS
     DO i=1,npow
        ncount=10**i
        t2=0.0E0_dp
-       IF (ncount.GT.nbufmax) CALL mp_abort()
+       IF (ncount.GT.nbufmax) CPABORT("")
        DO j=1,3**(npow-i)
           CALL MPI_BARRIER(comm,ierror)
           t1=MPI_WTIME()
@@ -3321,7 +3428,7 @@ CONTAINS
     DO i=1,npow
        ncount=10**i
        t2=0.0E0_dp
-       IF (ncount.GT.nbufmax) CALL mp_abort()
+       IF (ncount.GT.nbufmax) CPABORT("")
        DO j=1,3**(npow-i)
           CALL MPI_BARRIER(comm,ierror)
           t1=MPI_WTIME()
@@ -3344,7 +3451,7 @@ CONTAINS
     ENDIF
     ncount=10**npow
     IF (ionode .AND. output_unit > 0) WRITE(output_unit,*) "For messages of ",ncount*8," bytes"
-    IF (ncount.GT.nbufmax) CALL mp_abort()
+    IF (ncount.GT.nbufmax) CPABORT("")
     DO itask=0,nprocs-1
        DO jtask=itask+1,nprocs-1
           CALL MPI_BARRIER(comm,ierror)
@@ -3379,7 +3486,7 @@ CONTAINS
     DO i=1,npow
        ncount=10**i
        t2=0.0E0_dp
-       IF (ncount.GT.nbufmax) CALL mp_abort()
+       IF (ncount.GT.nbufmax) CPABORT("")
        DO j=1,3**(npow-i)
           CALL MPI_BARRIER(comm,ierror)
           t1=MPI_WTIME()
@@ -3407,7 +3514,7 @@ CONTAINS
     DO i=1,npow
        ncount=10**i
        t2=0.0E0_dp
-       IF (ncount.GT.nbufmax) CALL mp_abort()
+       IF (ncount.GT.nbufmax) CPABORT("")
        DO j=1,3**(npow-i)
           CALL MPI_BARRIER(comm,ierror)
           t1=MPI_WTIME()
@@ -3435,7 +3542,7 @@ CONTAINS
     DO i=1,npow
        ncount=10**i
        t2=0.0E0_dp
-       IF (ncount.GT.nbufmax) CALL mp_abort()
+       IF (ncount.GT.nbufmax) CPABORT("")
        DO j=1,3**(npow-i)
           CALL MPI_BARRIER(comm,ierror)
           t1=MPI_WTIME()
@@ -3455,7 +3562,7 @@ CONTAINS
     DO i=1,npow
        ncount=10**i
        t2=0.0E0_dp
-       IF (ncount.GT.nbufmax) CALL mp_abort()
+       IF (ncount.GT.nbufmax) CPABORT("")
        DO j=1,3**(npow-i)
           CALL MPI_BARRIER(comm,ierror)
           t1=MPI_WTIME()
@@ -3478,7 +3585,7 @@ CONTAINS
     DO i=1,npow
        ncount=10**i
        t2=0.0E0_dp
-       IF (ncount.GT.nbufmax) CALL mp_abort()
+       IF (ncount.GT.nbufmax) CPABORT("")
        scount=ncount/nprocs
        rcount=ncount/nprocs
        DO j=1,nprocs
@@ -3542,7 +3649,7 @@ CONTAINS
        CALL mpi_allreduce(maxdiff,res2,1,MPI_DOUBLE_PRECISION,MPI_MAX,comm, ierr)
        IF (ionode .AND. output_unit > 0) WRITE(output_unit,*) "MPI_SENDRECV_REPLACE  ",res,res2
        ! *** involved shift ****
-       IF (MODULO(nprocs,2)/=0) CALL mp_abort()
+       IF (MODULO(nprocs,2)/=0) CPABORT("")
        DO j=1,Nprocs
           DO i=1,Nloc
              grid3(i,j)=MODULO(i*j*taskid,itests)
@@ -3603,6 +3710,8 @@ CONTAINS
     DEALLOCATE(send_timings)
     DEALLOCATE(send_timings2)
 #else
+    MARK_USED(comm)
+    MARK_USED(npow)
     IF (output_unit > 0) WRITE(output_unit,*) "No MPI tests for a serial program"
 #endif
   END SUBROUTINE mpi_perf_test
@@ -3616,8 +3725,8 @@ CONTAINS
     CHARACTER(len=*), INTENT(IN)             :: routineN
     INTEGER, INTENT(OUT)                     :: handle
 
-    IF(ASSOCIATED(mp_external_timeset))&
-       CALL mp_external_timeset(routineN, handle)
+    IF(mp_collect_timings)&
+       CALL timeset(routineN, handle)
   END SUBROUTINE mp_timeset
 
 ! *****************************************************************************
@@ -3627,8 +3736,8 @@ CONTAINS
   SUBROUTINE mp_timestop(handle)
     INTEGER, INTENT(IN)                      :: handle
 
-    IF(ASSOCIATED(mp_external_timestop))&
-       CALL mp_external_timestop(handle)
+    IF(mp_collect_timings)&
+       CALL timestop(handle)
   END SUBROUTINE mp_timestop
 
 END MODULE message_passing
