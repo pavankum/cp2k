@@ -45,7 +45,7 @@
 #else
 # define LIBXSMM_EXTERN_C
 # define LIBXSMM_VARIADIC
-# if (199901L <= __STDC_VERSION__)
+# if defined(__STDC_VERSION__) && (199901L <= (__STDC_VERSION__))
 #   define LIBXSMM_PRAGMA(DIRECTIVE) _Pragma(LIBXSMM_STRINGIFY(DIRECTIVE))
 #   define LIBXSMM_RESTRICT restrict
 #   define LIBXSMM_INLINE static inline
@@ -77,7 +77,7 @@
 # define LIBXSMM_PRAGMA_SIMD_COLLAPSE(N) LIBXSMM_PRAGMA(simd collapse(N))
 # define LIBXSMM_PRAGMA_SIMD_PRIVATE(...) LIBXSMM_PRAGMA(simd private(__VA_ARGS__))
 # define LIBXSMM_PRAGMA_SIMD LIBXSMM_PRAGMA(simd)
-#elif (201307 <= _OPENMP) /*OpenMP 4.0*/
+#elif defined(_OPENMP) && (201307 <= _OPENMP) /*OpenMP 4.0*/
 # define LIBXSMM_PRAGMA_SIMD_REDUCTION(EXPRESSION) LIBXSMM_PRAGMA(omp simd reduction(EXPRESSION))
 # define LIBXSMM_PRAGMA_SIMD_COLLAPSE(N) LIBXSMM_PRAGMA(omp simd collapse(N))
 # define LIBXSMM_PRAGMA_SIMD_PRIVATE(...) LIBXSMM_PRAGMA(omp simd private(__VA_ARGS__))
@@ -205,18 +205,14 @@
 # define NOMINMAX 1
 #endif
 #if defined(_WIN32)
-# define LIBXSMM_SNPRINTF(S, N, F, ...) _snprintf_s(S, N, _TRUNCATE, F, __VA_ARGS__)
+# define LIBXSMM_SNPRINTF(S, N, ...) _snprintf_s(S, N, _TRUNCATE, __VA_ARGS__)
 # define LIBXSMM_FLOCK(FILE) _lock_file(FILE)
 # define LIBXSMM_FUNLOCK(FILE) _unlock_file(FILE)
 #else
-# if defined(__GNUC__)
-#   if (199901L <= __STDC_VERSION__)
-#     define LIBXSMM_SNPRINTF(S, N, F, ...) snprintf(S, N, F, ##__VA_ARGS__)
-#   else
-#     define LIBXSMM_SNPRINTF(S, N, F, ...) sprintf(S, F, ##__VA_ARGS__); LIBXSMM_UNUSED(N)
-#   endif
+# if defined(__STDC_VERSION__) && (199901L <= (__STDC_VERSION__))
+#   define LIBXSMM_SNPRINTF(S, N, ...) snprintf(S, N, __VA_ARGS__)
 # else
-#   define LIBXSMM_SNPRINTF(S, N, F, ...) snprintf(S, N, F, __VA_ARGS__)
+#   define LIBXSMM_SNPRINTF(S, N, ...) sprintf(S, __VA_ARGS__); LIBXSMM_UNUSED(N)
 # endif
 # if !defined(__CYGWIN__)
 #   define LIBXSMM_FLOCK(FILE) flockfile(FILE)
@@ -248,9 +244,9 @@
 # define LIBXSMM_LOCK_RELEASE(LOCK) ReleaseMutex(LOCK)
 #endif
 
-#define LIBXSMM_BLASPREC(PREFIX, REAL, FUNCTION) LIBXSMM_BLASPREC_##REAL(PREFIX, FUNCTION)
-#define LIBXSMM_BLASPREC_double(PREFIX, FUNCTION) PREFIX##d##FUNCTION
-#define LIBXSMM_BLASPREC_float(PREFIX, FUNCTION) PREFIX##s##FUNCTION
+#define LIBXSMM_BLASPREC(REAL, FUNCTION) LIBXSMM_BLASPREC_##REAL(FUNCTION)
+#define LIBXSMM_BLASPREC_double(FUNCTION) d##FUNCTION
+#define LIBXSMM_BLASPREC_float(FUNCTION) s##FUNCTION
 
 #if defined(LIBXSMM_OFFLOAD_BUILD)
 # pragma offload_attribute(push,target(LIBXSMM_OFFLOAD_TARGET))
