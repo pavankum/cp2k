@@ -259,7 +259,7 @@ ifneq (,$(LIBXSMMROOT))
       LIBXSMM_ALIGNED_STORES := 1
     endif
   endif
-  ifneq (,$(shell echo "$(TARGET)" | grep "xMIC-AVX512"))
+  ifneq (,$(filter xMIC-AVX512,$(TARGET)))
     LIBXSMM_PREFETCH := 1
   else
     LIBXSMM_PREFETCH := 0
@@ -482,6 +482,10 @@ cube_utils.o: cube_utils.F
 ifneq (0,$(OMP))
 xc_tpss.o: xc_tpss.F
 	$(FC) -c $(FCFLAGS) -no-openmp $<
+ifneq (,$(filter heap-arrays,$(FCFLAGS)))
+dbcsr_util.o: dbcsr_util.F
+	$(FC) -c $(FCFLAGS) -no-heap-arrays $<
+endif
 endif
 endif
 
