@@ -13,6 +13,7 @@
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # include <libxstream_begin.h>
 #endif
+#include <iostream>
 #include <cstdlib>
 #if defined(__MKL) || defined(MKL_DIRECT_CALL_SEQ) || defined(MKL_DIRECT_CALL)
 # include <mkl_service.h>
@@ -22,19 +23,18 @@
 #endif
 
 
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(cp__b)(const char* filename, int name_length, int* line_number, const char* message, int message_length);
-
 LIBXSMM_ACC_EXTERN_C void xsmm_acc_abort(const char* filename, int line_number, const char* message)
 {
-  LIBXSMM_ACC_FSYMBOL(cp__b)(
-    filename, static_cast<int>(char_traits<char>::length(filename)), &line_number,
-    message,  static_cast<int>(char_traits<char>::length(message)));
+  if (filename && *filename) {
+    std::cerr << filename << ':' << line_number << " - " << ((message && *message) ? message : "unknown error") << std::endl/*includes flush*/;
+  }
+  exit(-1);
 }
 
 
 #if defined(__RECONFIGURE)
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*, void*);
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*, void*);
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*);
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*);
 extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
 extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load);
 
