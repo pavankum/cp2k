@@ -259,7 +259,7 @@ ifneq (,$(LIBXSMMROOT))
       LIBXSMM_ALIGNED_STORES := 1
     endif
   endif
-  ifneq (,$(filter xMIC-AVX512,$(TARGET)))
+  ifneq (,$(filter %MIC-AVX512,$(TARGET)))
     LIBXSMM_PREFETCH := 1
   else
     LIBXSMM_PREFETCH := 0
@@ -481,11 +481,15 @@ cube_utils.o: cube_utils.F
 	$(FC) -c $(FCFLAGS) -O1 $<
 ifneq (0,$(OMP))
 xc_tpss.o: xc_tpss.F
-	$(FC) -c $(FCFLAGS) -no-openmp $<
-ifneq (,$(filter heap-arrays,$(FCFLAGS)))
+	$(FC) -c $(filter-out -openmp,$(FCFLAGS)) $<
+realspace_grid_types.o: realspace_grid_types.F
+	$(FC) -c $(filter-out -heap-arrays,$(FCFLAGS)) $<
+matrix_exp.o: matrix_exp.F
+	$(FC) -c $(filter-out -heap-arrays,$(FCFLAGS)) $<
+cp_dbcsr_operations.o: cp_dbcsr_operations.F
+	$(FC) -c $(filter-out -heap-arrays,$(FCFLAGS)) $<
 dbcsr_util.o: dbcsr_util.F
-	$(FC) -c $(FCFLAGS) -no-heap-arrays $<
-endif
+	$(FC) -c $(filter-out -heap-arrays,$(FCFLAGS)) $<
 endif
 endif
 
