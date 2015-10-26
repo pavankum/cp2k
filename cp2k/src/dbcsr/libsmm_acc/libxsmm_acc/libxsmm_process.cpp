@@ -333,21 +333,20 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 
     switch(static_cast<libxsmm_acc_elem_type>(datatype)) {
       case LIBXSMM_ACC_ELEM_F32: {
-#if 0
+#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
+        result = LIBXSMM_ACC_NOT_SUPPORTED; // none of the other ACC/Offload-layers seems to handle single precision
+#else // non-offload use case
         result = libxsmm_process_private::process<float,false>(stack, stacksize, nparams, def_mnk, max_m, max_n, max_k, a_data, b_data, c_data, stream);
-#else
-        result = LIBXSMM_ACC_NOT_SUPPORTED;
 #endif
-        result = LIBXSMM_ACC_ERROR_CONDITION;
       } break;
       case LIBXSMM_ACC_ELEM_F64: {
         result = libxsmm_process_private::process<double,false>(stack, stacksize, nparams, def_mnk, max_m, max_n, max_k, a_data, b_data, c_data, stream);
       } break;
       case LIBXSMM_ACC_ELEM_C32: {
-        result = LIBXSMM_ACC_ERROR_CONDITION;
+        result = LIBXSMM_ACC_NOT_SUPPORTED;
       } break;
       case LIBXSMM_ACC_ELEM_C64: {
-        result = LIBXSMM_ACC_ERROR_CONDITION;
+        result = LIBXSMM_ACC_NOT_SUPPORTED;
       } break;
       default:
         result = LIBXSMM_ACC_ERROR_CONDITION;
