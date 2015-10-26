@@ -105,7 +105,7 @@ endif
 CPPFLAGS  = $(NULL)
 CXXFLAGS  = -std=c++0x
 CFLAGS    = #
-FCFLAGS   = -free -fpp #-heap-arrays
+FCFLAGS   = -free -fpp -heap-arrays
 LDFLAGS   = #
 OPTFLAGS  = $(TARGET)
 
