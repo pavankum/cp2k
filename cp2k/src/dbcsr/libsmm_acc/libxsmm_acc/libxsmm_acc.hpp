@@ -85,6 +85,9 @@
 # endif
 #endif
 
+#define LIBXSMM_ACC_ABORT(MESSAGE) xsmm_acc_abort(__FILE__, __LINE__, MESSAGE)
+
+
 /** Upper limits for the supported matrix sizes. */
 #define LIBXSMM_ACC_MAX_M 368
 #define LIBXSMM_ACC_MAX_N 368
@@ -189,6 +192,8 @@ template<> struct libxsmm_acc_elem<float,true>    { static const libxsmm_acc_ele
                                                     static const char* name() { return "c32"; } };
 template<> struct libxsmm_acc_elem<double,true>   { static const libxsmm_acc_elem_type type = LIBXSMM_ACC_ELEM_C64;
                                                     static const char* name() { return "c64"; } };
+
+LIBXSMM_ACC_EXTERN_C void xsmm_acc_abort(const char* filename, int line_number, const char* message);
 
 #endif // defined(__LIBXSMM) || (defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM))
 #endif // LIBXSMM_ACC_HPP
