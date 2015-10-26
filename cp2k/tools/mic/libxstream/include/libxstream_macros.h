@@ -49,7 +49,7 @@
 # define LIBXSTREAM_EXTERN_C
 # define LIBXSTREAM_VARIADIC
 # define LIBXSTREAM_EXPORT_C LIBXSTREAM_EXPORT
-# if (199901L <= __STDC_VERSION__)
+# if defined(__STDC_VERSION__) && (199901L <= (__STDC_VERSION__))
 #   define LIBXSTREAM_PRAGMA(DIRECTIVE) _Pragma(LIBXSTREAM_STRINGIFY(DIRECTIVE))
 #   define LIBXSTREAM_RESTRICT restrict
 #   define LIBXSTREAM_INLINE static inline
@@ -81,7 +81,7 @@
 # define LIBXSTREAM_PRAGMA_SIMD_COLLAPSE(N) LIBXSTREAM_PRAGMA(simd collapse(N))
 # define LIBXSTREAM_PRAGMA_SIMD_PRIVATE(...) LIBXSTREAM_PRAGMA(simd private(__VA_ARGS__))
 # define LIBXSTREAM_PRAGMA_SIMD LIBXSTREAM_PRAGMA(simd)
-#elif (201307 <= _OPENMP) /*OpenMP 4.0*/
+#elif defined(_OPENMP) && (201307 <= _OPENMP) /*OpenMP 4.0*/
 # define LIBXSTREAM_PRAGMA_SIMD_REDUCTION(EXPRESSION) LIBXSTREAM_PRAGMA(omp simd reduction(EXPRESSION))
 # define LIBXSTREAM_PRAGMA_SIMD_COLLAPSE(N) LIBXSTREAM_PRAGMA(omp simd collapse(N))
 # define LIBXSTREAM_PRAGMA_SIMD_PRIVATE(...) LIBXSTREAM_PRAGMA(omp simd private(__VA_ARGS__))
@@ -94,18 +94,20 @@
 #endif
 
 #if defined(__INTEL_COMPILER)
+# define LIBXSTREAM_PRAGMA_FORCEINLINE LIBXSTREAM_PRAGMA(forceinline recursive)
 # define LIBXSTREAM_PRAGMA_LOOP_COUNT(MIN, MAX, AVG) LIBXSTREAM_PRAGMA(loop_count min(MIN) max(MAX) avg(AVG))
 # define LIBXSTREAM_PRAGMA_UNROLL_N(N) LIBXSTREAM_PRAGMA(unroll(N))
 # define LIBXSTREAM_PRAGMA_UNROLL LIBXSTREAM_PRAGMA(unroll)
 /*# define LIBXSTREAM_UNUSED(VARIABLE) LIBXSTREAM_PRAGMA(unused(VARIABLE))*/
 #else
+# define LIBXSTREAM_PRAGMA_FORCEINLINE
 # define LIBXSTREAM_PRAGMA_LOOP_COUNT(MIN, MAX, AVG)
 # define LIBXSTREAM_PRAGMA_UNROLL_N(N)
 # define LIBXSTREAM_PRAGMA_UNROLL
 #endif
 
 #if !defined(LIBXSTREAM_UNUSED)
-# if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+# if 0 /*defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)*/
 #   define LIBXSTREAM_UNUSED(VARIABLE) LIBXSTREAM_PRAGMA(LIBXSTREAM_STRINGIFY(unused(VARIABLE)))
 # else
 #   define LIBXSTREAM_UNUSED(VARIABLE) (void)(VARIABLE)
@@ -183,31 +185,10 @@
 /*# define LIBXSTREAM_OFFLOAD_BUILD 0*/
 # define LIBXSTREAM_OFFLOAD(A)
 #endif
+#if !defined(LIBXSTREAM_OFFLOAD_TARGET)
+# define LIBXSTREAM_OFFLOAD_TARGET mic
+#endif
 #define LIBXSTREAM_RETARGETABLE LIBXSTREAM_OFFLOAD(LIBXSTREAM_OFFLOAD_TARGET)
-
-#define LIBXSTREAM_IMPORT_DLL __declspec(dllimport)
-#if defined(_WINDLL) && defined(_WIN32)
-# if defined(LIBXSTREAM_EXPORTED)
-#   define LIBXSTREAM_EXPORT __declspec(dllexport)
-# else
-#   define LIBXSTREAM_EXPORT LIBXSTREAM_IMPORT_DLL
-# endif
-#else
-# define LIBXSTREAM_EXPORT
-#endif
-
-/**
- * Below group of preprocessor symbols are used to configure the DEBUG, CHECK, and TRACE properties.
- */
-#if defined(LIBXSTREAM_DEBUG) && (2 <= ((2*LIBXSTREAM_DEBUG+1)/2) || (1 == ((2*LIBXSTREAM_DEBUG+1)/2) && !defined(NDEBUG)) || defined(_DEBUG)) && !defined(LIBXSTREAM_INTERNAL_DEBUG)
-# define LIBXSTREAM_INTERNAL_DEBUG LIBXSTREAM_DEBUG
-#endif
-#if defined(LIBXSTREAM_CHECK) && (1 <= ((2*LIBXSTREAM_CHECK+1)/2)) && !defined(LIBXSTREAM_INTERNAL_CHECK)
-# define LIBXSTREAM_INTERNAL_CHECK LIBXSTREAM_CHECK
-#endif
-#if defined(LIBXSTREAM_TRACE) && (1 == ((2*LIBXSTREAM_TRACE+1)/2) || (2 <= ((2*LIBXSTREAM_TRACE+1)/2) && !defined(NDEBUG)) || defined(LIBXSTREAM_INTERNAL_DEBUG)) && !defined(LIBXSTREAM_INTERNAL_TRACE)
-# define LIBXSTREAM_INTERNAL_TRACE LIBXSTREAM_TRACE
-#endif
 
 /**
  * Below group of preprocessor symbols are used to fixup some platform specifics.
@@ -227,8 +208,70 @@
 #if !defined(NOMINMAX)
 # define NOMINMAX 1
 #endif
+#if defined(_WIN32)
+# define LIBXSTREAM_SNPRINTF(S, N, ...) _snprintf_s(S, N, _TRUNCATE, __VA_ARGS__)
+# define LIBXSTREAM_FLOCK(FILE) _lock_file(FILE)
+# define LIBXSTREAM_FUNLOCK(FILE) _unlock_file(FILE)
+#else
+# if defined(__STDC_VERSION__) && (199901L <= (__STDC_VERSION__))
+#   define LIBXSTREAM_SNPRINTF(S, N, ...) snprintf(S, N, __VA_ARGS__)
+# else
+#   define LIBXSTREAM_SNPRINTF(S, N, ...) sprintf(S, __VA_ARGS__); LIBXSTREAM_UNUSED(N)
+# endif
+# if !defined(__CYGWIN__)
+#   define LIBXSTREAM_FLOCK(FILE) flockfile(FILE)
+#   define LIBXSTREAM_FUNLOCK(FILE) funlockfile(FILE)
+# else /* Only available with __CYGWIN__ *and* C++0x. */
+#   define LIBXSTREAM_FLOCK(FILE)
+#   define LIBXSTREAM_FUNLOCK(FILE)
+# endif
+#endif
 
-LIBXSTREAM_EXPORT_C LIBXSTREAM_RETARGETABLE void libxstream_sink(const void*);
+#if defined(__GNUC__)
+# if defined(LIBXSTREAM_OFFLOAD_BUILD)
+#   pragma offload_attribute(push,target(LIBXSTREAM_OFFLOAD_TARGET))
+#   include <pthread.h>
+#   pragma offload_attribute(pop)
+# else
+#   include <pthread.h>
+# endif
+# define LIBXSTREAM_LOCK_TYPE pthread_mutex_t
+# define LIBXSTREAM_LOCK_CONSTRUCT PTHREAD_MUTEX_INITIALIZER
+# define LIBXSTREAM_LOCK_DESTROY(LOCK) pthread_mutex_destroy(&(LOCK))
+# define LIBXSTREAM_LOCK_ACQUIRE(LOCK) pthread_mutex_lock(&(LOCK))
+# define LIBXSTREAM_LOCK_RELEASE(LOCK) pthread_mutex_unlock(&(LOCK))
+#else /*TODO: Windows*/
+# define LIBXSTREAM_LOCK_TYPE HANDLE
+# define LIBXSTREAM_LOCK_CONSTRUCT 0
+# define LIBXSTREAM_LOCK_DESTROY(LOCK) CloseHandle(LOCK)
+# define LIBXSTREAM_LOCK_ACQUIRE(LOCK) WaitForSingleObject(LOCK, INFINITE)
+# define LIBXSTREAM_LOCK_RELEASE(LOCK) ReleaseMutex(LOCK)
+#endif
+
+/**
+ * Below group of preprocessor symbols are used to configure the DEBUG, CHECK, and TRACE properties.
+ */
+#if defined(LIBXSTREAM_DEBUG) && (2 <= ((2*LIBXSTREAM_DEBUG+1)/2) || (1 == ((2*LIBXSTREAM_DEBUG+1)/2) && !defined(NDEBUG)) || defined(_DEBUG)) && !defined(LIBXSTREAM_INTERNAL_DEBUG)
+# define LIBXSTREAM_INTERNAL_DEBUG LIBXSTREAM_DEBUG
+#endif
+#if defined(LIBXSTREAM_CHECK) && (1 <= ((2*LIBXSTREAM_CHECK+1)/2)) && !defined(LIBXSTREAM_INTERNAL_CHECK)
+# define LIBXSTREAM_INTERNAL_CHECK LIBXSTREAM_CHECK
+#endif
+#if defined(LIBXSTREAM_TRACE) && (1 == ((2*LIBXSTREAM_TRACE+1)/2) || (2 <= ((2*LIBXSTREAM_TRACE+1)/2) && !defined(NDEBUG)) || defined(LIBXSTREAM_INTERNAL_DEBUG)) && !defined(LIBXSTREAM_INTERNAL_TRACE)
+# define LIBXSTREAM_INTERNAL_TRACE LIBXSTREAM_TRACE
+#endif
+
+#define LIBXSTREAM_IMPORT_DLL __declspec(dllimport)
+#if defined(_WINDLL) && defined(_WIN32)
+# if defined(LIBXSTREAM_EXPORTED)
+#   define LIBXSTREAM_EXPORT __declspec(dllexport)
+# else
+#   define LIBXSTREAM_EXPORT LIBXSTREAM_IMPORT_DLL
+# endif
+#else
+# define LIBXSTREAM_EXPORT
+#endif
+
 LIBXSTREAM_EXPORT_C LIBXSTREAM_RETARGETABLE int libxstream_nonconst(int value);
 
 #if defined(LIBXSTREAM_INTERNAL_DEBUG)
@@ -292,21 +335,6 @@ LIBXSTREAM_EXPORT_C LIBXSTREAM_RETARGETABLE int libxstream_nonconst(int value);
 # define LIBXSTREAM_DEVICE_NAME "LIBXSTREAM_OFFLOAD_TARGET"
 #else
 # define LIBXSTREAM_DEVICE_NAME "host"
-#endif
-
-#if defined(_WIN32)
-# define LIBXSTREAM_SNPRINTF(S, N, F, ...) _snprintf_s(S, N, _TRUNCATE, F, __VA_ARGS__)
-# define LIBXSTREAM_FLOCK(FILE) _lock_file(FILE)
-# define LIBXSTREAM_FUNLOCK(FILE) _unlock_file(FILE)
-#else
-# define LIBXSTREAM_SNPRINTF(S, N, F, ...) snprintf(S, N, F, __VA_ARGS__)
-# if !defined(__CYGWIN__) || defined(LIBXSTREAM_STDFEATURES)
-#   define LIBXSTREAM_FLOCK(FILE) flockfile(FILE)
-#   define LIBXSTREAM_FUNLOCK(FILE) funlockfile(FILE)
-# else
-#   define LIBXSTREAM_FLOCK(FILE)
-#   define LIBXSTREAM_FUNLOCK(FILE)
-# endif
 #endif
 
 #if defined(LIBXSTREAM_INTERNAL_CHECK)
