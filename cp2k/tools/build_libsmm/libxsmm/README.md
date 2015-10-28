@@ -1,5 +1,5 @@
 # LIBXSMM
-LIBXSMM is a generalized library for small matrix-matrix multiplications targeting Intel Architecture (x86). The idea and the interface of the library is inspired by the CP2K Open Source Molecular Dynamics application [1] and its "libsmm" library in particular. LIBXSMM is generating code for the following instruction set extensions: Intel SSE3, Intel AVX, Intel AVX2, IMCI (KNCni) for Intel Xeon Phi coprocessors ("KNC"), and Intel AVX-512 as found in the Intel Xeon Phi processor family ("KNL") and future Intel Xeon processors. Historically the library was solely targeting the Intel Many Integrated Core Architecture "MIC") using intrinsic functions, meanwhile optimized assembly code is targeting all aforementioned instruction set extensions (static code generation), and Just-In-Time (JIT) code generation is targeting Intel AVX and beyond. [[pdf](https://github.com/hfp/libxsmm/raw/master/documentation/libxsmm.pdf)] [[src](https://github.com/hfp/libxsmm/archive/1.0.1.zip)] [![status](https://travis-ci.org/hfp/libxsmm.svg?branch=master "Master branch build status")](https://github.com/hfp/libxsmm/archive/master.zip)
+LIBXSMM is a library for small matrix-matrix multiplications targeting Intel Architecture (x86). The library is generating code for the following instruction set extensions: Intel SSE3, Intel AVX, Intel AVX2, IMCI (KNCni) for Intel Xeon Phi coprocessors ("KNC"), and Intel AVX-512 as found in the Intel Xeon Phi processor family ("KNL") and future Intel Xeon processors. Historically the library was solely targeting the Intel Many Integrated Core Architecture "MIC") using intrinsic functions, meanwhile optimized assembly code is targeting all aforementioned instruction set extensions (static code generation), and Just-In-Time (JIT) code generation is targeting Intel AVX and beyond. [[pdf](https://github.com/hfp/libxsmm/raw/master/documentation/libxsmm.pdf)] [[src](https://github.com/hfp/libxsmm/archive/1.0.1.zip)] [![status](https://travis-ci.org/hfp/libxsmm.svg?branch=master "Master branch build status")](https://github.com/hfp/libxsmm/archive/master.zip)
 
 **What is a small matrix-matrix multiplication?** When characterizing the problem size using the M, N, and K parameters, a problem size suitable for LIBXSMM falls approximately within (M N K)^(1/3) \<= 80 (which illustrates that non-square matrices or even "tall and skinny" shapes are covered as well). However the code generator only generates code up to the specified [threshold](#auto-dispatch). Raising the threshold may not only generate excessive amounts of code (due to unrolling in M and K dimension), but also miss to implement a tiling scheme to effectively utilize the L2 cache. For problem sizes above the configurable threshold, LIBXSMM is falling back to BLAS.
 
@@ -170,9 +170,9 @@ bin/generator
 
 The code generator driver program accepts the following arguments:
 
-1. dense/dense_asm/sparse (dense create C file, dense_asm creates ASM)
-2. Filename to append
-3. Routine name to be created in 2.
+1. dense/dense_asm/sparse (dense creates C code, dense_asm creates ASM)
+2. Filename of a file to append to
+3. Routine name to be created
 4. M parameter
 5. N parameter
 6. K parameter
@@ -182,9 +182,9 @@ The code generator driver program accepts the following arguments:
 10. alpha (currently only 1)
 11. beta (0 or 1)
 12. Alignment override for A (1 auto, 0 no alignment)
-13. Alignment override for C ( 1 auto, 0 no alignment)
-14. Prefetching mode (just dense & dense_asm, see next list)
-15. SP/DP single or double precision
+13. Alignment override for C (1 auto, 0 no alignment)
+14. Prefetch strategy, see below enumeration (dense/dense_asm only)
+15. single precision (SP), or double precision (DP)
 16. CSC file (just required when 1. is "sparse"). Matrix market format.
 
 The prefetch strategy can be:
@@ -235,7 +235,7 @@ Although the library is under development, the published interface is rather sta
 * API supporting sparse matrices and other cases
 
 ## Applications and References
-**\[1] [http://cp2k.org/](http://cp2k.org/)**: Open Source Molecular Dynamics which (optionally) uses LIBXSMM. The application is generating batches of small matrix-matrix multiplications ("matrix stack") out of a problem-specific distributed block-sparse matrix (see https://github.com/hfp/libxsmm/raw/master/documentation/cp2k.pdf).
+**\[1] [http://cp2k.org/](http://cp2k.org/)**: Open Source Molecular Dynamics with its DBCSR component generating batches of small matrix multiplications ("matrix stacks") out of a problem-specific distributed block-sparse matrix. The idea and the interface of LIBXSMM is sharing some origin with CP2K's "libsmm" library which can be optionally substituted by LIBXSMM (see https://github.com/hfp/libxsmm/raw/master/documentation/cp2k.pdf).
 
 **\[2] [https://github.com/SeisSol/SeisSol/](https://github.com/SeisSol/SeisSol/)**: SeisSol is one of the leading codes for earthquake scenarios, in particular for simulating dynamic rupture processes. LIBXSMM provides highly optimized assembly kernels which form the computational back-bone of SeisSol (see https://github.com/TUM-I5/seissol_kernels/).
 
