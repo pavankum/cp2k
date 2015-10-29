@@ -121,18 +121,18 @@ ifeq (0,$(DBG))
   CFLAGS    += -fno-alias -ansi-alias #-fp-model fast=2 #precise
   FCFLAGS   += #-fp-model fast=2 #source
   LDFLAGS   += #
-
-  ifneq (0,$(IPO))
-    OPTFLAGS += -ipo-separate
-  else ifeq (0,$(IPO))
-    LDFLAGS += -no-ipo
-  endif
 else
   OPTFLAGS  += -O0
   ifeq (2,$(DBG))
     FCFLAGS   += -fpe0 # debugging NaNs
   endif
   SYM = $(DBG)
+endif
+
+ifneq (0,$(IPO))
+  OPTFLAGS += -ipo-separate
+else ifeq (0,$(IPO))
+  LDFLAGS += -no-ipo
 endif
 
 ifneq (0,$(SYM))
