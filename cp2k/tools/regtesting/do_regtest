@@ -22,6 +22,7 @@ skip_dirs[1]=""
 ndirstorestrict=0
 restrict_dirs[1]=""
 default_err_tolerance="1.0E-14"
+mpiexec="mpiexec"
 
 # parse options
 while [ $# -ge 1 ]; do
@@ -43,6 +44,10 @@ while [ $# -ge 1 ]; do
  -cp2kdir)
   cp2k_dir=$2
   shift ;;
+ # MPI executable
+ -mpiexec)
+  mpiexec=$2 
+  shift;;
  # MPI ranks
  -mpiranks)
   numprocs=$2 
@@ -204,7 +209,7 @@ else
 fi
 
 if [[ $numprocs > 1 ]] ; then
-    cp2k_run_prefix=${cp2k_run_prefix:-"mpiexec -np ${numprocs} ${valgrindstring}"}
+    cp2k_run_prefix=${cp2k_run_prefix:-"${mpiexec} -np ${numprocs} ${valgrindstring}"}
 else
     cp2k_run_prefix=${cp2k_run_prefix:-"${valgrindstring}"}
 fi
