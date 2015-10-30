@@ -114,6 +114,7 @@ while [ $# -ge 1 ]; do
   echo "  -h, -help, --help         print this help screen."
   echo "  -c, -config FILE          read any of the following configuration switches from FILE."
   echo "  -cp2kdir PATH             location of cp2k source tree relative to current working directory."
+  echo "  -mpiexec EXE              name of the executable to run mpi-ranks. Default: mpiexec."
   echo ""
   echo "Svn:"
   echo "  -svndate DATE             checkout svn revision of given DATE. Default: use trunk."
