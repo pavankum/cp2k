@@ -2313,7 +2313,6 @@ MODULE hfx_energy_potential
     neris_tmp = 0
     primitive_integrals = 0.0_dp
     max_l = la_max + lb_max + lc_max + ld_max
-    !DIR$ SIMD
     DO list_ij = 1,nelements_ij
       ZetaInv = pgf_list_ij(list_ij)%ZetaInv
       ipgf = pgf_list_ij(list_ij)%ipgf

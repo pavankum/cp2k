@@ -242,7 +242,6 @@ CONTAINS
 !> \author Matthias Krack
 !> \note
 ! *****************************************************************************
-  !DIR$ OPTIMIZE:3
   SUBROUTINE scf_env_do_scf(scf_env,scf_control,qs_env,converged,should_stop)
 
     TYPE(qs_scf_env_type), POINTER           :: scf_env

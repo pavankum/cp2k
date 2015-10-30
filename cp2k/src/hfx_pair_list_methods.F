@@ -308,7 +308,6 @@ MODULE hfx_pair_list_methods
 !> \param nimages ...
 !> \param do_periodic ...
 ! *****************************************************************************
-  !DIR$ OPTIMIZE:3
   SUBROUTINE build_pair_list_pgf(npgfa, npgfb,list, zeta, zetb, screen1, screen2, pgf, R_pgf,&
                                  log10_pmax, log10_eps_schwarz, ra, rb, nelements,&
                                  neighbor_cells, nimages, do_periodic)
