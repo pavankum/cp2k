@@ -139,13 +139,13 @@ ifneq (0,$(SYM))
   DFLAGS += -D__USE_CP2K_TRACE
   OPTFLAGS  += -traceback
   ifneq (1,$(SYM))
-    CXXFLAGS := -g3 -gdwarf-2 -debug inline-debug-info $(CXXFLAGS)
-    CFLAGS := -g3 -gdwarf-2 -debug inline-debug-info $(CFLAGS)
-    FCFLAGS := -g $(FCFLAGS)
+    CXXFLAGS := -g3 -gdwarf-2 -debug $(CXXFLAGS)
+    CFLAGS := -g3 -gdwarf-2 -debug $(CFLAGS)
+    FCFLAGS := -g -debug $(FCFLAGS)
   else
-    CXXFLAGS := -g $(CXXFLAGS)
-    CFLAGS := -g $(CFLAGS)
-    FCFLAGS := -g $(FCFLAGS)
+    CXXFLAGS := -g -debug $(CXXFLAGS)
+    CFLAGS := -g -debug $(CFLAGS)
+    FCFLAGS := -g -debug $(FCFLAGS)
   endif
 endif
 
