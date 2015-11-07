@@ -35,11 +35,9 @@ AR       = xiar -r
 #
 #LIBXCROOT = $(HOME)/libxc
 
-# LIBXSMM: cp2k/tools/build_libsmm/libxsmm or https://github.com/hfp/libxsmm
-# Please note that CP2K redistributes a tested version of LIBXSMM
-# which is built automatically (if LIBXSMMROOT is set).
+# LIBXSMM (https://github.com/hfp/libxsmm)
 #
-LIBXSMMROOT = $(TOOLSRC)/build_libsmm/libxsmm
+#LIBXSMMROOT = $(HOME)/libxsmm
 
 # LIBXSTREAM: cp2k/tools/mic/libxstream or https://github.com/hfp/libxstream
 # Please note that CP2K redistributes a tested version of LIBXSTREAM
