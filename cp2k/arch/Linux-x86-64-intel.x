@@ -51,7 +51,7 @@ DIAG_DISABLE = 8290,8291,10010,10212,11060
 # DEFAULTS
 #
 BEEP ?= 1
-JIT ?= 0
+JIT ?= 1
 SSE ?= 0
 AVX ?= 0
 MPI ?= 1
@@ -229,7 +229,7 @@ ifneq (0,$(MEMKIND))
 endif
 
 ifneq (,$(LIBXSMMROOT))
-  ifneq (-1,$(JIT))
+  ifeq (0,$(JIT))
     LIBXSMM_MNK := " \
       23, \
       6, \
