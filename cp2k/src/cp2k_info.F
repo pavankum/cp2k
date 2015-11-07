@@ -145,6 +145,9 @@ CONTAINS
 #if defined(__PW_CUDA)
     flags=TRIM(flags)//" pw_cuda"
 #endif
+#if defined(__HAS_PATCHED_CUFFT_70)
+    flags=TRIM(flags)//" patched_cufft_70"
+#endif
 
 #if defined __HAS_smm_vec
    flags=TRIM(flags)//" smm_vec"
@@ -200,6 +203,10 @@ CONTAINS
 IF(INDEX(flags, " smm_") > 0) THEN
    flags=TRIM(flags)//" smm"
 ENDIF
+
+#if defined __LIBXSMM
+   flags=TRIM(flags)//" libxsmm"
+#endif
 
 #if defined __CRAY_PM_ACCEL_ENERGY
    flags=TRIM(flags)//" cray_pm_accel_energy"

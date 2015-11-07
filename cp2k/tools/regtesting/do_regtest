@@ -210,7 +210,11 @@ else
 fi
 
 if [[ $numprocs > 1 ]] ; then
-    cp2k_run_prefix=${cp2k_run_prefix:-"${mpiexec} -np ${numprocs} ${valgrindstring}"}
+    if [[ "$farming" == "yes" ]]; then
+       cp2k_run_prefix=${cp2k_run_prefix:-"${mpiexec} -np ${maxtasks} ${valgrindstring}"}
+    else
+       cp2k_run_prefix=${cp2k_run_prefix:-"${mpiexec} -np ${numprocs} ${valgrindstring}"}
+    fi
 else
     cp2k_run_prefix=${cp2k_run_prefix:-"${valgrindstring}"}
 fi
@@ -1057,8 +1061,10 @@ EOF
    done
    printf "&END FARMING\n" >> ${dir_out}/farming.inp
    echo "Running farming for $ijob jobs"
-   ${cp2k_prefix} ${dir_base}/${cp2k_dir}/exe/${dir_triplet}/cp2k.${cp2k_version} farming.inp ${cp2k_postfix} >& farming.out
-   if [[ $? ]]; then # on failed farming, provide info
+   ${cp2k_prefix} ${dir_base}/${cp2k_dir}/exe/${dir_triplet}/cp2k.${cp2k_version} farming.inp ${cp2k_postfix} < /dev/null >& farming.out
+   if (( $? )); then # on failed farming, provide info
+      echo "farming went fine"
+   else
       echo "==================== Farming terminated with an error, dumping output  ========================"
       cat farming.out    
       echo "==============================================================================================="
