@@ -39,6 +39,11 @@ LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_RETARGETABLE void LIBXSMM_ACC_FSYMBOL(sgemm)(
 
 namespace libxsmm_process_private {
 
+/**
+ * Below lock mechanism is only needed if processing matrix-stack is parallelized by itself.
+ * This might be due to CP2K's ACCeleration layer, or due to a future implementation where
+ * the (CPU-)codepath allows for nested parallelism.
+ */
 #if defined(LIBXSMM_ACC_OPENMP) && defined(LIBXSMM_ACC_SYNCHRONIZATION) && (1 < (LIBXSMM_ACC_SYNCHRONIZATION))
 LIBXSMM_ACC_RETARGETABLE class LIBXSMM_ACC_RETARGETABLE lock_type {
 public:
@@ -65,25 +70,38 @@ private:
 #endif
 
 
+/**
+ * This functor provides all services needed to perform a (Small)Matrix-Matrix multiplication.
+ * The primary purpose is to uniform the different function signatures provided of the different
+ * internal implementations. In particular it allows to operate LIBXSMM's SMM, but also providing
+ * a fallback in case LIBXSMM is not present. Further if LIBXSMM is present, the internal
+ * implementation might be pre-dispatched depending on attributes of the matrix-stack (def_mnk).
+ */
 template<typename T, typename U>
 class LIBXSMM_ACC_RETARGETABLE smm_type {
 public:
-  typedef void (*xmm_function_type)(const T*, const T*, T*
-    LIBXSMM_ACC_PREFETCH_DECL(const T*, pa) LIBXSMM_ACC_PREFETCH_DECL(const T*, pb) LIBXSMM_ACC_PREFETCH_DECL(const T*, pc));
-  typedef void (*smm_function_type)(U, U, U, U, xmm_function_type, const T *LIBXSMM_ACC_RESTRICT, const T *LIBXSMM_ACC_RESTRICT, T *LIBXSMM_ACC_RESTRICT
-    LIBXSMM_ACC_PREFETCH_DECL(const T*, pa) LIBXSMM_ACC_PREFETCH_DECL(const T*, pb) LIBXSMM_ACC_PREFETCH_DECL(const T*, pc));
+#if defined(__LIBXSMM)
+  typedef typename libxsmm_function<T>::type xfunc_type;
+  typedef typename libxsmm_gemm_xargs<T>::type xargs_type;
+#else
+  typedef const void* xfunc_type; // dummy
+  typedef struct xargs_type*; // dummy
+#endif
 
 public:
   smm_type(U def_mnk, U m, U n, U k)
 #if defined(__LIBXSMM)
-    : m_xmm_function(0 != def_mnk ? static_cast<xmm_function_type>(libxsmm_mm_dispatch<T>(m, n, k)) : static_cast<xmm_function_type>(0))
-    , m_smm_function(0 != def_mnk
-      ? ((LIBXSMM_MAX_MNK) >= (m * n * k) ? (0 != m_xmm_function ? smm_type::xmm : smm_type::imm) : smm_type::bmm)
+    : m_predispatched((0 != def_mnk && (LIBXSMM_MAX_MNK) >= (m * n * k))
+      ? static_cast<xfunc_type>(libxsmm_dispatch<T>(m, n, k/*default xargs!*/))
+      : static_cast<xfunc_type>(0))
+    , m_function(0 != m_predispatched ? smm_type::xmm/*pre-dispatched*/
       : ((LIBXSMM_MAX_MNK) >= (m * n * k) ? smm_type::amm : smm_type::bmm))
 #else
-    : m_xmm_function(0), m_smm_function(smm_type::bmm)
+    : m_predispatched(0), m_function(smm_type::bmm/*fallback if no LIBXSMM is present*/)
 #endif
-  {}
+  {
+    LIBXSMM_ACC_ASSERT(m_function);
+  }
 
 public:
   void zero_c(T *LIBXSMM_ACC_RESTRICT c, U size) const {
@@ -118,50 +136,48 @@ public:
 #endif
   }
 
-  void operator()(U m, U n, U k, U ldc, const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c
-    LIBXSMM_ACC_PREFETCH_DECL(const T*, pa) LIBXSMM_ACC_PREFETCH_DECL(const T*, pb) LIBXSMM_ACC_PREFETCH_DECL(const T*, pc)) const
+  void operator()(U m, U n, U k, U ldc,
+    const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c,
+    const xargs_type* xargs = 0) const
   {
-    LIBXSMM_ACC_ASSERT(m_smm_function);
-    m_smm_function(m, n, k, ldc, m_xmm_function, a, b, c LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
+    m_function(m, n, k, ldc, a, b, c, m_predispatched, xargs);
   }
 
 private:
 #if defined(__LIBXSMM)
-  LIBXSMM_ACC_RETARGETABLE static void xmm(U, U, U, U, xmm_function_type xmm_function,
-    const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c
-    LIBXSMM_ACC_PREFETCH_DECL(const T*, pa) LIBXSMM_ACC_PREFETCH_DECL(const T*, pb) LIBXSMM_ACC_PREFETCH_DECL(const T*, pc))
+  LIBXSMM_ACC_RETARGETABLE static void xmm(U /*m*/, U /*n*/, U /*k*/, U /*ldc*/,
+    const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c,
+    xfunc_type xfunc, const xargs_type* xargs)
   {
-    LIBXSMM_ACC_ASSERT(xmm_function);
-    xmm_function(a, b, c LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
+    LIBXSMM_ACC_ASSERT(xfunc);
+    xfunc(a, b, c, xargs);
   }
 
-  LIBXSMM_ACC_RETARGETABLE static void imm(U m, U n, U k, U, xmm_function_type,
-    const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c
-    LIBXSMM_ACC_PREFETCH_DECL(const T*, pa) LIBXSMM_ACC_PREFETCH_DECL(const T*, pb) LIBXSMM_ACC_PREFETCH_DECL(const T*, pc))
+  LIBXSMM_ACC_RETARGETABLE static void amm(U m, U n, U k, U ldc,
+    const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c,
+    xfunc_type/*unused*/, const xargs_type* xargs)
   {
     LIBXSMM_ACC_ASSERT((LIBXSMM_MAX_MNK) >= (m * n * k));
-    libxsmm_imm(m, n, k, a, b, c LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
-  }
-
-  LIBXSMM_ACC_RETARGETABLE static void amm(U m, U n, U k, U, xmm_function_type,
-    const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c
-    LIBXSMM_ACC_PREFETCH_DECL(const T*, pa) LIBXSMM_ACC_PREFETCH_DECL(const T*, pb) LIBXSMM_ACC_PREFETCH_DECL(const T*, pc))
-  {
-    LIBXSMM_ACC_ASSERT((LIBXSMM_MAX_MNK) >= (m * n * k));
-    const xmm_function_type xmm_function = libxsmm_mm_dispatch<T>(m, n, k);
-
-    if (xmm_function) {
-      xmm_function(a, b, c LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
+    const libxsmm_dispatch<T> xfunc(m, n, k/*default xargs!*/);
+# if (0 == LIBXSMM_JIT) // JIT disabled: check if xfunc is present
+    if (xfunc)
+# else
+    LIBXSMM_ACC_ASSERT(xfunc);
+# endif
+    {
+      xfunc(a, b, c, xargs);
     }
+# if (0 == LIBXSMM_JIT)
     else {
-      libxsmm_imm(m, n, k, a, b, c LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
+      blasmm(m, n, k, ldc, a, b, c);
     }
+# endif
   }
 #endif
 
-  LIBXSMM_ACC_RETARGETABLE static void bmm(U m, U n, U k, U ldc, xmm_function_type,
-    const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c
-    LIBXSMM_ACC_PREFETCH_DECL(const T*, pa) LIBXSMM_ACC_PREFETCH_DECL(const T*, pb) LIBXSMM_ACC_PREFETCH_DECL(const T*, pc))
+  LIBXSMM_ACC_RETARGETABLE static void bmm(U m, U n, U k, U ldc,
+    const T *LIBXSMM_ACC_RESTRICT a, const T *LIBXSMM_ACC_RESTRICT b, T *LIBXSMM_ACC_RESTRICT c,
+    xfunc_type/*unused*/, const xargs_type*/*unused*/)
   {
     blasmm(m, n, k, ldc, a, b, c);
   }
@@ -181,8 +197,8 @@ private:
   }
 
 private:
-  mutable/*offload attribute*/ xmm_function_type m_xmm_function;
-  smm_function_type m_smm_function;
+  mutable/*offload attribute*/ xfunc_type m_predispatched;
+  void (*m_function)(U, U, U, U, const T *LIBXSMM_ACC_RESTRICT, const T *LIBXSMM_ACC_RESTRICT, T *LIBXSMM_ACC_RESTRICT, xfunc_type xfunc, const xargs_type* xargs);
 };
 
 
@@ -231,11 +247,19 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
         if (i < nstacksize) {
           LIBXSMM_ACC_ASSUME_ALIGNED(pnxt, LIBXSMM_ACC_ALIGNED_MAX);
           for (U j = 0; j < LIBXSMM_ACC_PARAM_COUNT; ++j) pnxt[j] = stack[i+j];
+#if defined(__LIBXSMM)
+          const typename smm_type<T,U>::xargs_type xargs = {
+            LIBXSMM_ALPHA, LIBXSMM_BETA,
+            LIBXSMM_ACC_PREFETCH_A(a + pnxt[LIBXSMM_ACC_PARAM_A] - 1)
+            LIBXSMM_ACC_PREFETCH_B(b + pnxt[LIBXSMM_ACC_PARAM_B] - 1)
+            LIBXSMM_ACC_PREFETCH_C(pc)
+          };
+#else
+          const typename smm_type<T,U>::xargs_type xargs = 0;
+#endif
           smm(pcur[LIBXSMM_ACC_PARAM_M], pcur[LIBXSMM_ACC_PARAM_N], pcur[LIBXSMM_ACC_PARAM_K], ldc,
-            a + pcur[LIBXSMM_ACC_PARAM_A] - 1, b + pcur[LIBXSMM_ACC_PARAM_B] - 1, tmp
-            LIBXSMM_ACC_PREFETCH_ARGA(a + pnxt[LIBXSMM_ACC_PARAM_A] - 1)
-            LIBXSMM_ACC_PREFETCH_ARGB(b + pnxt[LIBXSMM_ACC_PARAM_B] - 1)
-            LIBXSMM_ACC_PREFETCH_ARGC(pc));
+            a + pcur[LIBXSMM_ACC_PARAM_A] - 1, b + pcur[LIBXSMM_ACC_PARAM_B] - 1, tmp,
+            &xargs);
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
           if (pcur[LIBXSMM_ACC_PARAM_C] != pnxt[LIBXSMM_ACC_PARAM_C] || end <= i) {
             break;
@@ -243,10 +267,9 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
           std::swap(pcur, pnxt);
 #endif
         }
-        else {
+        else { // last element of the matrix-stack (there is no next element to be prefetched)
           const T *const pa = a + pcur[LIBXSMM_ACC_PARAM_A] - 1, *const pb = b + pcur[LIBXSMM_ACC_PARAM_B] - 1;
-          smm(pcur[LIBXSMM_ACC_PARAM_M], pcur[LIBXSMM_ACC_PARAM_N], pcur[LIBXSMM_ACC_PARAM_K], ldc, pa, pb, tmp 
-            LIBXSMM_ACC_PREFETCH_ARGA(pa) LIBXSMM_ACC_PREFETCH_ARGB(pb) LIBXSMM_ACC_PREFETCH_ARGC(pc));
+          smm(pcur[LIBXSMM_ACC_PARAM_M], pcur[LIBXSMM_ACC_PARAM_N], pcur[LIBXSMM_ACC_PARAM_K], ldc, pa, pb, tmp);
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
           break;
 #endif
