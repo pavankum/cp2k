@@ -50,7 +50,6 @@ public:
   lock_type() {
     for (int i = 0; i < (LIBXSMM_ACC_SYNCHRONIZATION); ++i) omp_init_lock(m_lock + i);
   }
-  
   ~lock_type() {
     for (int i = 0; i < (LIBXSMM_ACC_SYNCHRONIZATION); ++i) omp_destroy_lock(m_lock + i);
   }
@@ -59,7 +58,6 @@ public:
   void acquire(const void* address) {
     omp_set_lock(m_lock + LIBXSMM_ACC_HASH2(address, LIBXSMM_ACC_ALIGNED_MAX, LIBXSMM_ACC_SYNCHRONIZATION));
   }
-
   void release(const void* address) {
     omp_unset_lock(m_lock + LIBXSMM_ACC_HASH2(address, LIBXSMM_ACC_ALIGNED_MAX, LIBXSMM_ACC_SYNCHRONIZATION));
   }
@@ -233,6 +231,13 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
     {
       const U ldc = LIBXSMM_ACC_ALIGN_VALUE(pcur[LIBXSMM_ACC_PARAM_M], sizeof(T), LIBXSMM_ACC_ALIGNED_STORES);
       T *const pc = c + pcur[LIBXSMM_ACC_PARAM_C] - 1;
+#if defined(__LIBXSMM)
+      typename smm_type<T,U>::xargs_type xargs = { LIBXSMM_ALPHA, LIBXSMM_BETA,
+        LIBXSMM_ACC_PREFETCH_A(0) LIBXSMM_ACC_PREFETCH_B(0) LIBXSMM_ACC_PREFETCH_C(pc)
+      };
+#else
+      const typename smm_type<T,U>::xargs_type xargs = 0;
+#endif
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))) || (1 < (LIBXSMM_ACC_ALIGNED_STORES))
       smm.zero_c(tmp, ldc * pcur[LIBXSMM_ACC_PARAM_N]);
 #else
@@ -248,14 +253,8 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
           LIBXSMM_ACC_ASSUME_ALIGNED(pnxt, LIBXSMM_ACC_ALIGNED_MAX);
           for (U j = 0; j < LIBXSMM_ACC_PARAM_COUNT; ++j) pnxt[j] = stack[i+j];
 #if defined(__LIBXSMM)
-          const typename smm_type<T,U>::xargs_type xargs = {
-            LIBXSMM_ALPHA, LIBXSMM_BETA,
-            LIBXSMM_ACC_PREFETCH_A(a + pnxt[LIBXSMM_ACC_PARAM_A] - 1)
-            LIBXSMM_ACC_PREFETCH_B(b + pnxt[LIBXSMM_ACC_PARAM_B] - 1)
-            LIBXSMM_ACC_PREFETCH_C(pc)
-          };
-#else
-          const typename smm_type<T,U>::xargs_type xargs = 0;
+          LIBXSMM_ACC_PREFETCH_A(xargs.pa = a + pnxt[LIBXSMM_ACC_PARAM_A] - 1)
+          LIBXSMM_ACC_PREFETCH_B(xargs.pb = b + pnxt[LIBXSMM_ACC_PARAM_B] - 1)
 #endif
           smm(pcur[LIBXSMM_ACC_PARAM_M], pcur[LIBXSMM_ACC_PARAM_N], pcur[LIBXSMM_ACC_PARAM_K], ldc,
             a + pcur[LIBXSMM_ACC_PARAM_A] - 1, b + pcur[LIBXSMM_ACC_PARAM_B] - 1, tmp,
