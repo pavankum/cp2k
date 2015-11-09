@@ -206,7 +206,6 @@ CONTAINS
           CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_caller_error,&
                routineN, "Invalid data type",__LINE__)
        END SELECT
-
     CASE (mm_driver_xsmm)
        SELECT CASE (this%data_area%d%data_type)
        CASE (dbcsr_type_real_4)
@@ -218,7 +217,6 @@ CONTAINS
        CASE default
           CPABORT("Data type not supported by XSMM backend")
        END SELECT
-
     CASE (mm_driver_blas)
        SELECT CASE (this%data_area%d%data_type)
        CASE (dbcsr_type_real_4)
