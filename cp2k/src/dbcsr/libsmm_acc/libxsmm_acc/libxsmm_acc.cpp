@@ -35,17 +35,6 @@ LIBXSMM_ACC_EXTERN_C void xsmm_acc_abort(const char* filename, int line_number, 
 #if defined(__RECONFIGURE)
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*);
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*);
-extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
-extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load);
-
-#if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
-extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers);
-extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams);
-extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers);
-extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
-#endif
-
 
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver)
 {
@@ -67,33 +56,44 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 #if defined(__LIBXSMM)
   // pre-generate dispatch tables for the static code
   libxsmm_init();
+# if defined(LIBXSMM_ACC_MM_DRIVER)
+  extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_mm_driver);
+  LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_mm_driver) = LIBXSMM_ACC_MM_DRIVER;
+# endif
 #endif
 
   if (reconfigure) {
-#if 0 < (LIBXSMM_ACC_STACKSIZE)
+#if defined(LIBXSMM_ACC_STACKSIZE)
     const int stacksize = LIBXSMM_ACC_STACKSIZE;
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize);
 #endif
-#if 0 < (LIBXSMM_ACC_MULTREC_LIMIT)
-    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = LIBXSMM_ACC_MULTREC_LIMIT;
-#endif
-#if 0 < (LIBXSMM_ACC_COMM_THREAD_LOAD)
+#if defined(LIBXSMM_ACC_COMM_THREAD_LOAD)
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load);
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load) = LIBXSMM_ACC_COMM_THREAD_LOAD;
 #endif
+#if defined(LIBXSMM_ACC_MULTREC_LIMIT)
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = LIBXSMM_ACC_MULTREC_LIMIT;
+#endif
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-# if 0 < (LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS)
+# if defined(LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS)
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams) = LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS;
 # endif
-# if 0 < (LIBXSMM_ACC_ACCDRV_POSTERIOR_BUFFERS)
+# if defined(LIBXSMM_ACC_ACCDRV_POSTERIOR_BUFFERS)
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers);
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers) = LIBXSMM_ACC_ACCDRV_POSTERIOR_BUFFERS;
 # endif
-# if 0 < (LIBXSMM_ACC_ACCDRV_PRIORITY_STREAMS)
+# if defined(LIBXSMM_ACC_ACCDRV_PRIORITY_STREAMS)
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams);
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams) = LIBXSMM_ACC_ACCDRV_PRIORITY_STREAMS;
 # endif
-# if 0 < (LIBXSMM_ACC_ACCDRV_PRIORITY_BUFFERS)
+# if defined(LIBXSMM_ACC_ACCDRV_PRIORITY_BUFFERS)
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers);
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers) = LIBXSMM_ACC_ACCDRV_PRIORITY_BUFFERS;
 # endif
-# if 0 < (LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM)
+# if defined(LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM)
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) = LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM;
 # endif
 #endif

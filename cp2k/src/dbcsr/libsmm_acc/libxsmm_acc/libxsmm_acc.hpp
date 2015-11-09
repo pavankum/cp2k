@@ -136,24 +136,16 @@
 #endif
 
 #if defined(__RECONFIGURE)
-/** Reconfigure property if non-zero. */
+# define LIBXSMM_ACC_MM_DRIVER 4 /*mm_driver_xsmm*/
 # define LIBXSMM_ACC_STACKSIZE 1000000
-/** Reconfigure property if non-zero. */
 # define LIBXSMM_ACC_MULTREC_LIMIT 64
-/** Reconfigure property if non-zero. */
 # define LIBXSMM_ACC_COMM_THREAD_LOAD 99
 # if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-/** Reconfigure property if non-zero. */
 #   define LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS 1
-/** Reconfigure property if non-zero. */
 #   define LIBXSMM_ACC_ACCDRV_POSTERIOR_BUFFERS 1
-/** Reconfigure property if non-zero. */
 #   define LIBXSMM_ACC_ACCDRV_PRIORITY_STREAMS 1
-/** Reconfigure property if non-zero. */
 #   define LIBXSMM_ACC_ACCDRV_PRIORITY_BUFFERS 1
-/** Reconfigure property if non-zero. */
 #   define LIBXSMM_ACC_ACCDRV_MIN_MFLOPS_PERSTACK 120
-/** Reconfigure property if non-zero. */
 #   define LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM 0
 # endif
 #endif // defined(__RECONFIGURE)
