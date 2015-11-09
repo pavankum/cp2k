@@ -38,9 +38,6 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_
 
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver)
 {
-  // make sure to reconfigure *after* the original configuration procedure ran
-  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
-
   static const char *const env = getenv("LIBXSMM_ACC_RECONFIGURE");
   static const libxsmm_acc_bool_type reconfigure = (env && *env)
     ? (0 != atoi(env))
@@ -57,9 +54,16 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
   // pre-generate dispatch tables for the static code
   libxsmm_init();
 # if defined(LIBXSMM_ACC_MM_DRIVER)
-  extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_mm_driver);
-  LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_mm_driver) = LIBXSMM_ACC_MM_DRIVER;
+  const int acc_driver = LIBXSMM_ACC_MM_DRIVER;
+  // make sure to reconfigure *after* the original configuration procedure ran
+  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(&acc_driver);
+# else
+  // make sure to reconfigure *after* the original configuration procedure ran
+  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
 # endif
+#else
+  // make sure to reconfigure *after* the original configuration procedure ran
+  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
 #endif
 
   if (reconfigure) {
