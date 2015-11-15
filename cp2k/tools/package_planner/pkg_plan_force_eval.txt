@@ -1,8 +1,7 @@
 [
 #============================================================================
-        {'dirname':'start', 'requires+': ['../other_runs']},
-        {'dirname':'other_runs',
-         'requires': ["../common", "../base", "../", "../input", "../acc", "../dbcsrwrap", "../pw", "../mpiwrap", "../subsys", "../force_eval","../fm",],
+        {'dirname':'start',
+         'requires+': ['../subsys', '../fm',],
          'files': ["ipi_driver.F",
                    "optimize_basis.F",
                    "cp2k_debug.F",
