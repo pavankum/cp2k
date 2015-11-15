@@ -67,7 +67,8 @@ MODULE cp2k_runs
                                              init_farming_env,&
                                              job_finished,&
                                              job_running
-  USE force_env_methods,               ONLY: force_env_calc_energy_force
+  USE force_env_methods,               ONLY: force_env_calc_energy_force,&
+                                             linres_calculation
   USE force_env_types,                 ONLY: force_env_get,&
                                              force_env_type
   USE geo_opt,                         ONLY: cp_geo_opt
@@ -122,7 +123,6 @@ MODULE cp2k_runs
   USE pw_cuda,                         ONLY: pw_cuda_finalize,&
                                              pw_cuda_init
   USE qs_environment_types,            ONLY: get_qs_env
-  USE qs_linres_module,                ONLY: linres_calculation
   USE qs_tddfpt_module,                ONLY: tddfpt_calculation
   USE reference_manager,               ONLY: print_all_references,&
                                              print_format_html

@@ -22,10 +22,6 @@ MODULE qs_linres_module
                                              cp_logger_type
   USE cp_output_handling,              ONLY: cp_print_key_finished_output,&
                                              cp_print_key_unit_nr
-  USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_type,&
-                                             use_qmmm,&
-                                             use_qs_force
   USE input_constants,                 ONLY: lr_current,&
                                              lr_none,&
                                              ot_precond_full_all,&
@@ -94,52 +90,11 @@ MODULE qs_linres_module
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC :: linres_calculation, linres_calculation_low
+  PUBLIC :: linres_calculation_low
 
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qs_linres_module'
 
 CONTAINS
-
-! *****************************************************************************
-!> \brief Driver for the linear response calculatios
-!> \param force_env ...
-!> \par History
-!>      06.2005 created [MI]
-!> \author MI
-! *****************************************************************************
-  SUBROUTINE linres_calculation(force_env)
-
-    TYPE(force_env_type), POINTER            :: force_env
-
-    CHARACTER(LEN=*), PARAMETER :: routineN = 'linres_calculation', &
-      routineP = moduleN//':'//routineN
-
-    INTEGER                                  :: handle
-    TYPE(qs_environment_type), POINTER       :: qs_env
-
-    CALL timeset(routineN,handle)
-
-    NULLIFY(qs_env)
-
-    CPASSERT(ASSOCIATED(force_env))
-    CPASSERT(force_env%ref_count>0)
-
-    SELECT CASE(force_env%in_use)
-    CASE(use_qs_force)
-       CALL force_env_get(force_env,qs_env=qs_env)
-    CASE(use_qmmm)
-       qs_env => force_env%qmmm_env%qs_env
-    CASE DEFAULT
-       CPABORT("Doesnt recognize this force_env.")
-    END SELECT
-
-    qs_env%linres_run = .TRUE.
-
-    CALL linres_calculation_low(qs_env)
-
-    CALL timestop(handle)
-
-  END SUBROUTINE linres_calculation
 
 ! *****************************************************************************
 !> \brief Linear response can be called as run type or as post scf calculation

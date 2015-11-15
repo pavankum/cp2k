@@ -113,6 +113,7 @@ MODULE force_env_methods
   USE qs_environment_types,            ONLY: qs_env_retain,&
                                              qs_environment_type
   USE qs_force,                        ONLY: qs_calc_energy_force
+  USE qs_linres_module,                ONLY: linres_calculation_low
   USE restraint,                       ONLY: restraint_control
   USE string_utilities,                ONLY: compress
   USE virial_types,                    ONLY: cp_virial,&
@@ -132,7 +133,8 @@ MODULE force_env_methods
 
   PUBLIC :: force_env_create,&
             force_env_calc_energy_force,&
-            force_env_calc_num_pressure
+            force_env_calc_num_pressure,&
+            linres_calculation
 
   INTEGER, SAVE, PRIVATE :: last_force_env_id=0
 
@@ -1059,5 +1061,46 @@ CONTAINS
     END IF
     CALL cp_print_key_finished_output(unit_nr,logger,mixed_section,"PRINT%DIPOLE")
   END SUBROUTINE mixed_energy_forces
+
+! *****************************************************************************
+!> \brief Driver for the linear response calculatios
+!> \param force_env ...
+!> \par History
+!>      06.2005 created [MI]
+!> \author MI
+! *****************************************************************************
+  SUBROUTINE linres_calculation(force_env)
+
+    TYPE(force_env_type), POINTER            :: force_env
+
+    CHARACTER(LEN=*), PARAMETER :: routineN = 'linres_calculation', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: handle
+    TYPE(qs_environment_type), POINTER       :: qs_env
+
+    CALL timeset(routineN,handle)
+
+    NULLIFY(qs_env)
+
+    CPASSERT(ASSOCIATED(force_env))
+    CPASSERT(force_env%ref_count>0)
+
+    SELECT CASE(force_env%in_use)
+    CASE(use_qs_force)
+       CALL force_env_get(force_env,qs_env=qs_env)
+    CASE(use_qmmm)
+       qs_env => force_env%qmmm_env%qs_env
+    CASE DEFAULT
+       CPABORT("Doesnt recognize this force_env.")
+    END SELECT
+
+    qs_env%linres_run = .TRUE.
+
+    CALL linres_calculation_low(qs_env)
+
+    CALL timestop(handle)
+
+  END SUBROUTINE linres_calculation
 
 END MODULE force_env_methods
