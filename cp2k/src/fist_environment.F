@@ -45,7 +45,8 @@ MODULE fist_environment
   USE exclusion_types,                 ONLY: exclusion_type
   USE fist_energy_types,               ONLY: allocate_fist_energy,&
                                              fist_energy_type
-  USE fist_environment_types,          ONLY: fist_env_get,&
+  USE fist_environment_types,          ONLY: fist_env_create,&
+                                             fist_env_get,&
                                              fist_env_set,&
                                              fist_environment_type
   USE fist_nonbond_env_types,          ONLY: fist_nonbond_env_release,&
@@ -79,6 +80,60 @@ MODULE fist_environment
   PUBLIC :: fist_init
 
 CONTAINS
+
+! *****************************************************************************
+!> \brief Controls program flow for classical MD and path-integrals
+!> \param fist_env ...
+!> \param root_section ...
+!> \param para_env ...
+!> \param qmmm ...
+!> \param qmmm_env ...
+!> \param force_env_section ...
+!> \param subsys_section ...
+!> \param use_motion_section ...
+!> \param prev_subsys ...
+!> \author CJM
+! *****************************************************************************
+  SUBROUTINE fist_init(fist_env, root_section, para_env,&
+       qmmm, qmmm_env, force_env_section, subsys_section, use_motion_section, prev_subsys)
+    TYPE(fist_environment_type), POINTER     :: fist_env
+    TYPE(section_vals_type), POINTER         :: root_section
+    TYPE(cp_para_env_type), POINTER          :: para_env
+    LOGICAL, OPTIONAL                        :: qmmm
+    TYPE(qmmm_env_mm_type), OPTIONAL, &
+      POINTER                                :: qmmm_env
+    TYPE(section_vals_type), POINTER         :: force_env_section, &
+                                                subsys_section
+    LOGICAL, INTENT(IN)                      :: use_motion_section
+    TYPE(cp_subsys_type), OPTIONAL, POINTER  :: prev_subsys
+
+    CHARACTER(LEN=*), PARAMETER :: routineN = 'fist_init', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: handle
+    LOGICAL                                  :: myqmmm
+
+    CALL timeset(routineN,handle)
+    myqmmm=.FALSE.
+    IF (PRESENT(qmmm)) THEN
+       myqmmm=qmmm
+    END IF
+
+    CALL fist_env_create(fist_env, para_env=para_env)
+    IF (PRESENT(qmmm_env)) THEN
+       CALL fist_env_set(fist_env, qmmm=myqmmm, qmmm_env=qmmm_env)
+    ELSE
+       CALL fist_env_set(fist_env, qmmm=myqmmm)
+    END IF
+    ! *** Read the input and the database files and perform further  ***
+    ! *** initializations for the setup of the FIST environment ***
+    CALL fist_init_low(fist_env, root_section, para_env, force_env_section,&
+         subsys_section, use_motion_section, prev_subsys=prev_subsys)
+
+    CALL timestop(handle)
+  END SUBROUTINE fist_init
+
+
 ! *****************************************************************************
 !> \brief reads the input and database file for fist
 !> \param fist_env ...
@@ -91,7 +146,7 @@ CONTAINS
 !> \par Used By
 !>      fist_main
 ! *****************************************************************************
-  SUBROUTINE fist_init ( fist_env, root_section,para_env, force_env_section,&
+  SUBROUTINE fist_init_low ( fist_env, root_section,para_env, force_env_section,&
        subsys_section, use_motion_section, prev_subsys)
 
     TYPE(fist_environment_type), POINTER     :: fist_env
@@ -102,7 +157,7 @@ CONTAINS
     LOGICAL, INTENT(IN)                      :: use_motion_section
     TYPE(cp_subsys_type), OPTIONAL, POINTER  :: prev_subsys
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'fist_init', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'fist_init_low', &
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: handle, iw
@@ -205,7 +260,7 @@ CONTAINS
 
     CALL timestop(handle)
 
-  END SUBROUTINE fist_init
+  END SUBROUTINE fist_init_low
 
 ! *****************************************************************************
 !> \brief   Read the input and the database files for the setup of the

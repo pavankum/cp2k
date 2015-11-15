@@ -52,7 +52,9 @@ MODULE f77_interface
                                              cp2k_init,&
                                              cp2k_read,&
                                              cp2k_setup
-  USE fist_main,                       ONLY: fist_create_force_env
+  USE fist_environment,                ONLY: fist_init
+  USE fist_environment_types,          ONLY: fist_env_release,&
+                                             fist_environment_type
   USE force_env_methods,               ONLY: force_env_calc_energy_force,&
                                              force_env_create
   USE force_env_types,                 ONLY: &
@@ -578,6 +580,7 @@ CONTAINS
     TYPE(enumeration_type), POINTER          :: enum
     TYPE(f_env_p_type), DIMENSION(:), &
       POINTER                                :: f_envs_old
+    TYPE(fist_environment_type), POINTER     :: fist_env
     TYPE(force_env_type), POINTER            :: force_env, my_force_env
     TYPE(fp_type), POINTER                   :: fp_env
     TYPE(global_environment_type), POINTER   :: globenv
@@ -596,7 +599,7 @@ CONTAINS
 
     CPASSERT(ASSOCIATED(input_declaration))
     NULLIFY(para_env, force_env,timer_env,mp_perf_env, globenv,meta_env,&
-            fp_env,eip_env,mixed_env,qs_env,qmmm_env)
+            fp_env,eip_env,mixed_env,qs_env,qmmm_env, fist_env)
     new_env_id=-1
     IF (PRESENT(mpi_comm)) THEN
        CALL cp_para_env_create(para_env, group=mpi_comm, owns_group=.FALSE.)
@@ -763,9 +766,12 @@ CONTAINS
 
        SELECT CASE (method_name_id)
        CASE (do_fist)
-          CALL fist_create_force_env ( my_force_env, root_section, my_para_env, globenv,&
+          CALL fist_init(fist_env, root_section, my_para_env,&
                force_env_section=force_env_section, subsys_section=subsys_section,&
                use_motion_section=use_motion_section)
+          CALL force_env_create(my_force_env, root_section, fist_env=fist_env,&
+                para_env=para_env, globenv=globenv, force_env_section=force_env_section)
+          CALL fist_env_release(fist_env)
 
        CASE (do_qs)
           CALL qs_env_create(qs_env,globenv)

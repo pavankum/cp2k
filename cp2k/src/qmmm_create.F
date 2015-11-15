@@ -28,9 +28,7 @@ MODULE qmmm_create
   USE cp_subsys_types,                 ONLY: cp_subsys_release,&
                                              cp_subsys_type
   USE fist_environment,                ONLY: fist_init
-  USE fist_environment_types,          ONLY: fist_env_create,&
-                                             fist_env_get,&
-                                             fist_env_set,&
+  USE fist_environment_types,          ONLY: fist_env_get,&
                                              fist_environment_type
   USE fist_nonbond_env_types,          ONLY: fist_nonbond_env_type
   USE global_types,                    ONLY: global_environment_type
@@ -234,10 +232,12 @@ CONTAINS
 
     ! First Initialize Fist...
     CALL section_vals_val_set(force_env_section,"METHOD",i_val=do_fist)
-    CALL fist_env_create(fist_env, para_env=para_env)
-    CALL fist_env_set(fist_env, qmmm=.TRUE., qmmm_env=qmmm_env_mm)
-    CALL fist_init(fist_env, root_section, para_env, force_env_section,&
-         subsys_section, use_motion_section, prev_subsys=prev_subsys)
+    CALL fist_init(fist_env, root_section, para_env,&
+                   qmmm=.TRUE., qmmm_env=qmmm_env_mm,&
+                   force_env_section=force_env_section,&
+                   subsys_section=subsys_section,&
+                   use_motion_section=use_motion_section,&
+                   prev_subsys=prev_subsys)
     CALL fist_env_get(fist_env, subsys=subsys_mm, cell=mm_cell)
 
     ! Set up QM/MM Options
