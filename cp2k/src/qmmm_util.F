@@ -13,11 +13,7 @@ MODULE qmmm_util
   USE cp_log_handling,                 ONLY: cp_logger_get_default_io_unit
   USE cp_subsys_types,                 ONLY: cp_subsys_type
   USE fist_environment_types,          ONLY: fist_env_get
-  USE force_env_types,                 ONLY: force_env_type,&
-                                             use_qmmm,&
-                                             use_qmmmx
-  USE input_constants,                 ONLY: do_qmmm_wall_none,&
-                                             do_qmmm_wall_quadratic,&
+  USE input_constants,                 ONLY: do_qmmm_wall_quadratic,&
                                              do_qmmm_wall_reflective
   USE input_section_types,             ONLY: section_vals_get,&
                                              section_vals_get_subs_vals,&
@@ -91,13 +87,13 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Apply reflective QM walls in order to avoid QM atoms escaping from
 !>      the QM Box
-!> \param force_env ...
+!> \param qmmm_env ...
 !> \par History
 !>      08.2007 created [tlaino] - Zurich University
 !> \author Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE apply_qmmm_walls_reflective(force_env)
-    TYPE(force_env_type), POINTER            :: force_env
+  SUBROUTINE apply_qmmm_walls_reflective(qmmm_env)
+    TYPE(qmmm_env_type), POINTER             :: qmmm_env
 
     CHARACTER(len=*), PARAMETER :: routineN = 'apply_qmmm_walls_reflective', &
       routineP = moduleN//':'//routineN
@@ -112,14 +108,16 @@ CONTAINS
     TYPE(cp_subsys_type), POINTER            :: subsys_mm, subsys_qm
     TYPE(particle_type), DIMENSION(:), &
       POINTER                                :: particles_mm
-    TYPE(section_vals_type), POINTER         :: walls_section
+    TYPE(section_vals_type), POINTER         :: input, walls_section
 
     NULLIFY(subsys_mm, subsys_qm, qm_atom_index,particles_mm, qm_cell, mm_cell,&
          walls_section)
 
-    IF(force_env%in_use/=use_qmmm .AND. force_env%in_use/=use_qmmmx) RETURN
+    CPASSERT(ASSOCIATED(qmmm_env))
+    CPASSERT(qmmm_env%ref_count>0)
 
-    walls_section => section_vals_get_subs_vals(force_env%root_section,"FORCE_EVAL%QMMM%WALLS")
+    CALL get_qs_env(qmmm_env%qs_env, input=input)
+    walls_section => section_vals_get_subs_vals(input,"FORCE_EVAL%QMMM%WALLS")
     CALL section_vals_get(walls_section, explicit=explicit)
     IF (explicit) THEN
        NULLIFY(list)
@@ -132,22 +130,9 @@ CONTAINS
        skin(:) = 0.0_dp
     END IF
 
-    IF (force_env%in_use==use_qmmmx) THEN
-       IF(iwall_type /= do_qmmm_wall_none)&
-          CALL cp_warn(__LOCATION__,&
-               "Reflective walls for QM/MM are not implemented (or useful) when "//&
-               "force mixing is active.  Skipping!")
-       RETURN
-    END IF
-
-
-    ! from here on we can be sure that it's conventional QM/MM
-    CPASSERT(ASSOCIATED(force_env%qmmm_env))
-    CPASSERT(force_env%qmmm_env%ref_count>0)
-
-    CALL fist_env_get(force_env%qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm)
-    CALL get_qs_env(force_env%qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm)
-    qm_atom_index   => force_env%qmmm_env%qm%qm_atom_index
+    CALL fist_env_get(qmmm_env%fist_env,cell=mm_cell,subsys=subsys_mm)
+    CALL get_qs_env(qmmm_env%qs_env,cell=qm_cell,cp_subsys=subsys_qm)
+    qm_atom_index   => qmmm_env%qm%qm_atom_index
     CPASSERT(ASSOCIATED(qm_atom_index))
 
     qm_cell_diag = (/qm_cell%hmat(1,1),&

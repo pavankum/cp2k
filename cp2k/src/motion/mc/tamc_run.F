@@ -42,7 +42,8 @@ MODULE tamc_run
   USE distribution_1d_types,           ONLY: distribution_1d_type
   USE force_env_methods,               ONLY: force_env_calc_energy_force
   USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_type
+                                             force_env_type,&
+                                             use_qmmm
   USE free_energy_types,               ONLY: fe_env_create,&
                                              free_energy_type
   USE global_types,                    ONLY: global_environment_type
@@ -974,7 +975,8 @@ SUBROUTINE qs_tamc(force_env, globenv,averages)
 !!!! this bit should vanish once I understand what the hell is with it
 
 !     ! Do some checks on coordinates and box
-     CALL apply_qmmm_walls_reflective(force_env)
+     IF(force_env%in_use==use_qmmm)&
+       CALL apply_qmmm_walls_reflective(force_env%qmmm_env)
 
      CALL cp_subsys_get(subsys=subsys,atomic_kinds=atomic_kinds,local_particles=local_particles,&
          particles=particles,local_molecules_new=local_molecules,molecules_new=molecules,&
