@@ -27,7 +27,9 @@ MODULE input_cp2k_motion_print
                                              section_add_subsection,&
                                              section_create,&
                                              section_release,&
-                                             section_type
+                                             section_type,&
+                                             section_vals_type,&
+                                             section_vals_val_get
   USE string_utilities,                ONLY: newline,&
                                              s2a
 #include "./base/base_uses.f90"
@@ -38,7 +40,7 @@ MODULE input_cp2k_motion_print
   LOGICAL, PRIVATE, PARAMETER :: debug_this_module=.TRUE.
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'input_cp2k_motion_print'
 
-PUBLIC :: create_motion_print_section, add_format_keyword
+PUBLIC :: create_motion_print_section, add_format_keyword, get_output_format
 
 CONTAINS
 
@@ -316,5 +318,44 @@ CONTAINS
     END IF
 
   END SUBROUTINE add_format_keyword
+
+! *****************************************************************************
+!> \brief Info on the unit to be opened to dump MD informations
+!> \param section ...
+!> \param path ...
+!> \param my_form ...
+!> \param my_ext ...
+!> \author Teodoro Laino - University of Zurich - 07.2007
+! *****************************************************************************
+  SUBROUTINE get_output_format(section,path,my_form,my_ext)
+
+    TYPE(section_vals_type), POINTER         :: section
+    CHARACTER(LEN=*), INTENT(IN), OPTIONAL   :: path
+    CHARACTER(LEN=*), INTENT(OUT)            :: my_form, my_ext
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'get_output_format', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: output_format
+
+    IF (PRESENT(path)) THEN
+       CALL section_vals_val_get(section,TRIM(path)//"%FORMAT",i_val=output_format)
+    ELSE
+       CALL section_vals_val_get(section,"FORMAT",i_val=output_format)
+    END IF
+
+    SELECT CASE (output_format)
+    CASE (dump_dcd,dump_dcd_aligned_cell)
+       my_form = "UNFORMATTED"
+       my_ext  = ".dcd"
+    CASE (dump_pdb)
+       my_form = "FORMATTED"
+       my_ext  = ".pdb"
+    CASE DEFAULT
+       my_form = "FORMATTED"
+       my_ext  = ".xyz"
+    END SELECT
+
+  END SUBROUTINE get_output_format
 
 END MODULE input_cp2k_motion_print

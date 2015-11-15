@@ -9,7 +9,6 @@
 !> \date   02.2008
 ! *****************************************************************************
 MODULE motion_utils
-
   USE cell_types,                      ONLY: cell_type
   USE cp2k_info,                       ONLY: compile_revision,&
                                              cp2k_version,&
@@ -30,6 +29,7 @@ MODULE motion_utils
                                              dump_dcd_aligned_cell,&
                                              dump_pdb,&
                                              dump_xmol
+  USE input_cp2k_motion_print,         ONLY: get_output_format
   USE input_section_types,             ONLY: section_get_ival,&
                                              section_vals_get,&
                                              section_vals_get_subs_vals,&
@@ -51,8 +51,7 @@ MODULE motion_utils
 
   PRIVATE
 
-  PUBLIC :: write_trajectory, write_stress_tensor, write_simulation_cell,&
-            get_output_format, rot_ana
+  PUBLIC :: write_trajectory, write_stress_tensor, write_simulation_cell, rot_ana
 
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'motion_utils'
   REAL(KIND=dp), PARAMETER, PUBLIC     :: thrs_motion = 1.0E4_dp*EPSILON(0.0_dp)
@@ -459,45 +458,6 @@ CONTAINS
     CALL timestop(handle)
 
   END SUBROUTINE write_trajectory
-
-! *****************************************************************************
-!> \brief Info on the unit to be opened to dump MD informations
-!> \param section ...
-!> \param path ...
-!> \param my_form ...
-!> \param my_ext ...
-!> \author Teodoro Laino - University of Zurich - 07.2007
-! *****************************************************************************
-  SUBROUTINE get_output_format(section,path,my_form,my_ext)
-
-    TYPE(section_vals_type), POINTER         :: section
-    CHARACTER(LEN=*), INTENT(IN), OPTIONAL   :: path
-    CHARACTER(LEN=*), INTENT(OUT)            :: my_form, my_ext
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'get_output_format', &
-      routineP = moduleN//':'//routineN
-
-    INTEGER                                  :: output_format
-
-    IF (PRESENT(path)) THEN
-       CALL section_vals_val_get(section,TRIM(path)//"%FORMAT",i_val=output_format)
-    ELSE
-       CALL section_vals_val_get(section,"FORMAT",i_val=output_format)
-    END IF
-
-    SELECT CASE (output_format)
-    CASE (dump_dcd,dump_dcd_aligned_cell)
-       my_form = "UNFORMATTED"
-       my_ext  = ".dcd"
-    CASE (dump_pdb)
-       my_form = "FORMATTED"
-       my_ext  = ".pdb"
-    CASE DEFAULT
-       my_form = "FORMATTED"
-       my_ext  = ".xyz"
-    END SELECT
-
-  END SUBROUTINE get_output_format
 
 ! *****************************************************************************
 !> \brief   Prints the Stress Tensor

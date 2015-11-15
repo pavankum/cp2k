@@ -51,6 +51,7 @@ MODULE qs_loc_methods
        do_loc_crazy, do_loc_direct, do_loc_jacobi, do_loc_l1_norm_sd, &
        do_loc_none, dump_dcd, dump_dcd_aligned_cell, dump_xmol, op_loc_berry, &
        op_loc_boys, op_loc_pipek, state_loc_list
+  USE input_cp2k_motion_print,         ONLY: get_output_format
   USE input_section_types,             ONLY: section_get_ival,&
                                              section_get_ivals,&
                                              section_get_lval,&
@@ -64,7 +65,6 @@ MODULE qs_loc_methods
   USE machine,                         ONLY: m_flush
   USE mathconstants,                   ONLY: twopi
   USE memory_utilities,                ONLY: reallocate
-  USE motion_utils,                    ONLY: get_output_format
   USE particle_list_types,             ONLY: particle_list_type
   USE particle_methods,                ONLY: get_particle_set,&
                                              write_particle_coordinates
