@@ -321,8 +321,10 @@ CONTAINS
        ! loop over molecules to generate a molecular guess
        ! this procedure is initiated here to avoid passing globenv deep down
        ! the subroutine stack
-       IF (do_mol_loop(force_env=force_env)) &
-          CALL loop_over_molecules(globenv,force_env)
+       IF(method_name_id == do_qs) THEN
+          IF (do_mol_loop(force_env%qs_env)) &
+             CALL loop_over_molecules(globenv, root_section, force_env%qs_env)
+       ENDIF
 
        SELECT CASE(globenv%run_type_id)
        CASE (energy_run)

@@ -27,8 +27,6 @@ MODULE mscfg_methods
   USE cp_subsys_types,                 ONLY: cp_subsys_get,&
                                              cp_subsys_release,&
                                              cp_subsys_type
-  USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_type
   USE global_types,                    ONLY: global_environment_type
   USE input_constants,                 ONLY: almo_frz_crystal,&
                                              almo_frz_none,&
@@ -67,15 +65,17 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Prepare data for calculations on isolated molecules.
 !> \param globenv ...
-!> \param force_env ...
+!> \param root_section ...
+!> \param qs_env ...
 !> \par   History
 !>        10.2014 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! *****************************************************************************
-  SUBROUTINE loop_over_molecules(globenv,force_env)
+  SUBROUTINE loop_over_molecules(globenv, root_section, qs_env)
 
     TYPE(global_environment_type), POINTER   :: globenv
-    TYPE(force_env_type), POINTER            :: force_env
+    TYPE(section_vals_type), POINTER         :: root_section
+    TYPE(qs_environment_type), POINTER       :: qs_env
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'loop_over_molecules', &
       routineP = moduleN//':'//routineN
@@ -87,9 +87,7 @@ CONTAINS
                                                 multip_of_frag
     TYPE(molecule_type), DIMENSION(:), &
       POINTER                                :: molecule_set
-    TYPE(qs_environment_type), POINTER       :: qs_env
 
-    CALL force_env_get(force_env,qs_env=qs_env)
     CPASSERT(ASSOCIATED(qs_env))
     CALL get_qs_env(qs_env,&
       molecule_set=molecule_set)
@@ -107,7 +105,7 @@ CONTAINS
             mol_to_charge=charge_of_frag,& 
             mol_to_multiplicity=multip_of_frag) 
     
-    CALL calcs_on_isolated_molecules(force_env, globenv, nmols,&
+    CALL calcs_on_isolated_molecules(qs_env, root_section, globenv, nmols,&
             first_atom_of_frag, last_atom_of_frag, charge_of_frag, multip_of_frag)
    
     DEALLOCATE(first_atom_of_frag)
@@ -120,7 +118,8 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Run calculations on isolated molecules. The ideas for setting up
 !>        the calculations are borrowed from BSSE files
-!> \param force_env ...
+!> \param qs_env ...
+!> \param root_section ...
 !> \param globenv ...
 !> \param nfrags ...
 !> \param first_atom_of_frag ...
@@ -131,10 +130,11 @@ CONTAINS
 !>        10.2014 created
 !> \author Rustam Z Khaliullin
 ! *****************************************************************************
-  SUBROUTINE calcs_on_isolated_molecules(force_env, globenv, nfrags,&
+  SUBROUTINE calcs_on_isolated_molecules(qs_env, root_section, globenv, nfrags,&
     first_atom_of_frag, last_atom_of_frag, charge_of_frag, multip_of_frag)
 
-    TYPE(force_env_type), POINTER            :: force_env
+    TYPE(qs_environment_type), POINTER       :: qs_env
+    TYPE(section_vals_type), POINTER         :: root_section
     TYPE(global_environment_type), POINTER   :: globenv
     INTEGER, INTENT(IN)                      :: nfrags
     INTEGER, DIMENSION(:), INTENT(IN)        :: first_atom_of_frag, &
@@ -160,22 +160,18 @@ CONTAINS
       POINTER                                :: mscfg_env
     TYPE(particle_list_type), POINTER        :: particles
     TYPE(qs_energy_type), POINTER            :: qs_energy
-    TYPE(qs_environment_type), POINTER       :: qs_env, qs_env_loc
+    TYPE(qs_environment_type), POINTER       :: qs_env_loc
     TYPE(section_vals_type), POINTER         :: dft_section, &
                                                 force_env_section, &
-                                                qs_section, root_section, &
-                                                subsys_section
+                                                qs_section, subsys_section
 
     CALL timeset(routineN,handle)
 
-
     NULLIFY(subsys_loc, subsys, particles, para_env, cell, atom_index, atom_type, &
-         force_env_section, qs_env_loc, mscfg_env, qs_env, qs_energy)
-    CALL force_env_get(force_env, force_env_section=force_env_section, &
-            qs_env=qs_env)
+         force_env_section, qs_env_loc, mscfg_env, qs_energy)
+    CALL get_qs_env(qs_env, input=force_env_section)
     CALL section_vals_val_get(force_env_section,"METHOD",i_val=force_method)
     CPASSERT(force_method.eq.do_qs)
-    root_section   => force_env%root_section
     subsys_section => section_vals_get_subs_vals(force_env_section,"SUBSYS")
     dft_section    => section_vals_get_subs_vals(force_env_section,"DFT")
     !
@@ -189,8 +185,7 @@ CONTAINS
     !
     ! Get access to critical data before the loop
     !
-    CALL force_env_get(force_env=force_env, subsys=subsys, para_env=para_env,&
-         cell=cell)
+    CALL get_qs_env(qs_env, cp_subsys=subsys, para_env=para_env, cell=cell)
     CALL cp_subsys_get(subsys, particles=particles)
     CALL get_qs_env(qs_env, mscfg_env=mscfg_env)
     CPASSERT(ASSOCIATED(mscfg_env))
@@ -370,27 +365,24 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief Is the loop over molecules requested? 
-!> \param force_env ...
+!> \param qs_env ...
 !> \retval do_mol_loop ...
 !> \par History
 !>       10.2014 created [Rustam Z. Khaliullin]
 !> \author Rustam Z. Khaliullin
 ! *****************************************************************************
-  FUNCTION do_mol_loop(force_env)
-  
-    TYPE(force_env_type), POINTER            :: force_env
+  FUNCTION do_mol_loop(qs_env)
+    TYPE(qs_environment_type), POINTER       :: qs_env
     LOGICAL                                  :: do_mol_loop
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'do_mol_loop', &
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: almo_guess_type, &
-                                                frz_term_type, &
-                                                method_name_id, scf_guess_type
+                                                frz_term_type, scf_guess_type
     LOGICAL                                  :: is_crystal, is_fast_dirty
     TYPE(molecular_scf_guess_env_type), &
       POINTER                                :: mscfg_env
-    TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(section_vals_type), POINTER         :: force_env_section, subsection
 
     do_mol_loop=.FALSE.
@@ -398,64 +390,53 @@ CONTAINS
     is_fast_dirty = .TRUE.
     is_crystal = .FALSE.
 
-    NULLIFY(qs_env, mscfg_env, force_env_section, subsection)
-    CALL force_env_get(force_env, force_env_section=force_env_section)
-    CALL section_vals_val_get(force_env_section,"METHOD",i_val=method_name_id)
-    
-    IF (method_name_id.eq.do_qs) THEN
+    CPASSERT(ASSOCIATED(qs_env))
 
-       CALL force_env_get(force_env, qs_env=qs_env)
-       CPASSERT(ASSOCIATED(qs_env))
-       
-       CALL get_qs_env(qs_env, mscfg_env=mscfg_env)
-       CPASSERT(ASSOCIATED(mscfg_env))
-     
-       !!!! RZK-warning: All decisions are based on the values of input keywords
-       !!!! The real danger is that many of these keywords might not be even
-       !!!! in control of the job. They might be simply present in the input
-       !!!! This section must be re-writen more accurately
-   
-       ! check ALMO SCF guess option
-       NULLIFY(subsection)
-       subsection    => section_vals_get_subs_vals(force_env_section,"DFT%ALMO_SCF")
-       CALL section_vals_val_get(subsection,"ALMO_SCF_GUESS",i_val=almo_guess_type)
-   
-       ! check SCF guess option
-       NULLIFY(subsection)
-       subsection    => section_vals_get_subs_vals(force_env_section,"DFT%SCF")
-       CALL section_vals_val_get(subsection,"SCF_GUESS",i_val=scf_guess_type)
-       
-       ! check ALMO EDA options 
-       NULLIFY(subsection)
-       !!!LATER subsection    => section_vals_get_subs_vals(force_env_section,"DFT%ALMO_SCF%ALMO_DA")
-       !!!LATER CALL section_vals_val_get(subsection,"FRZ_TERM",i_val=frz_term_type)
-       frz_term_type = almo_frz_none
-   
-       ! Are we doing the loop ?
-       IF (  scf_guess_type  .EQ. molecular_guess .OR. & ! SCF guess is molecular
-             almo_guess_type .EQ. molecular_guess .OR. & ! ALMO SCF guess is molecular
-             frz_term_type   .NE. almo_frz_none ) THEN   ! ALMO FRZ term is requested
-          
-          do_mol_loop=.TRUE.
-   
-          ! If we are calculating molecular guess it is OK to do fast and dirty loop
-          ! It is NOT ok to be sloppy with ALMO EDA calculations of the FRZ term
-          IF ( frz_term_type   .NE. almo_frz_none ) THEN
-             is_fast_dirty=.FALSE.
-             IF (  frz_term_type .EQ. almo_frz_crystal ) THEN
-                is_crystal = .TRUE.
-             ENDIF
+    NULLIFY(mscfg_env, force_env_section)
+    CALL get_qs_env(qs_env, mscfg_env=mscfg_env, input=force_env_section)
+    CPASSERT(ASSOCIATED(mscfg_env))
+
+    !!!! RZK-warning: All decisions are based on the values of input keywords
+    !!!! The real danger is that many of these keywords might not be even
+    !!!! in control of the job. They might be simply present in the input
+    !!!! This section must be re-writen more accurately
+
+    ! check ALMO SCF guess option
+    NULLIFY(subsection)
+    subsection    => section_vals_get_subs_vals(force_env_section,"DFT%ALMO_SCF")
+    CALL section_vals_val_get(subsection,"ALMO_SCF_GUESS",i_val=almo_guess_type)
+
+    ! check SCF guess option
+    NULLIFY(subsection)
+    subsection    => section_vals_get_subs_vals(force_env_section,"DFT%SCF")
+    CALL section_vals_val_get(subsection,"SCF_GUESS",i_val=scf_guess_type)
+
+    ! check ALMO EDA options 
+    NULLIFY(subsection)
+    !!!LATER subsection    => section_vals_get_subs_vals(force_env_section,"DFT%ALMO_SCF%ALMO_DA")
+    !!!LATER CALL section_vals_val_get(subsection,"FRZ_TERM",i_val=frz_term_type)
+    frz_term_type = almo_frz_none
+
+    ! Are we doing the loop ?
+    IF (  scf_guess_type  .EQ. molecular_guess .OR. & ! SCF guess is molecular
+          almo_guess_type .EQ. molecular_guess .OR. & ! ALMO SCF guess is molecular
+          frz_term_type   .NE. almo_frz_none ) THEN   ! ALMO FRZ term is requested
+
+       do_mol_loop=.TRUE.
+
+       ! If we are calculating molecular guess it is OK to do fast and dirty loop
+       ! It is NOT ok to be sloppy with ALMO EDA calculations of the FRZ term
+       IF ( frz_term_type   .NE. almo_frz_none ) THEN
+          is_fast_dirty=.FALSE.
+          IF (  frz_term_type .EQ. almo_frz_crystal ) THEN
+             is_crystal = .TRUE.
           ENDIF
-   
        ENDIF
-       
-       mscfg_env%is_fast_dirty = is_fast_dirty
-       mscfg_env%is_crystal = is_crystal
 
-    END IF
+    ENDIF
 
-    RETURN 
-
+    mscfg_env%is_fast_dirty = is_fast_dirty
+    mscfg_env%is_crystal = is_crystal
   END FUNCTION do_mol_loop
 
 END MODULE mscfg_methods
