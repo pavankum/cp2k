@@ -440,6 +440,8 @@ endif
 ifneq (0,$(RECONFIGURE))
   DFLAGS  += -D__RECONFIGURE
   LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_mm_driver_
+  LDFLAGS += -Wl,--wrap=dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s_
+  LDFLAGS += -Wl,--wrap=dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d_
   DIAG_DISABLE := $(DIAG_DISABLE),11021
 endif
 
