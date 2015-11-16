@@ -73,62 +73,60 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*);
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver)
 {
-  if (!libxsmm_acc_private::explicit_configure || libxsmm_acc_private::reconfigure) {
 #if defined(MKL_ENABLE_AVX512_MIC)
-    mkl_enable_instructions(MKL_ENABLE_AVX512_MIC);
+  mkl_enable_instructions(MKL_ENABLE_AVX512_MIC);
 #endif
 #if defined(__LIBXSMM)
-    // pre-generate dispatch tables for the static code
-    libxsmm_init();
+  // pre-generate dispatch tables for the static code
+  libxsmm_init();
 # if defined(LIBXSMM_ACC_MM_DRIVER)
-    const int acc_driver = LIBXSMM_ACC_MM_DRIVER;
-    // make sure to reconfigure *after* the original configuration procedure ran
-    LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(&acc_driver);
+  const int acc_driver = LIBXSMM_ACC_MM_DRIVER;
+  // make sure to reconfigure *after* the original configuration procedure ran
+  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(&acc_driver);
 # else
-    // make sure to reconfigure *after* the original configuration procedure ran
-    LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
+  // make sure to reconfigure *after* the original configuration procedure ran
+  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
 # endif
 #else
-    // make sure to reconfigure *after* the original configuration procedure ran
-    LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
+  // make sure to reconfigure *after* the original configuration procedure ran
+  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
 #endif
 
-    if (libxsmm_acc_private::reconfigure) {
+  if (libxsmm_acc_private::reconfigure) {
 #if defined(LIBXSMM_ACC_STACKSIZE)
-      const int stacksize = LIBXSMM_ACC_STACKSIZE;
-      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize);
+    const int stacksize = LIBXSMM_ACC_STACKSIZE;
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize);
 #endif
 #if defined(LIBXSMM_ACC_COMM_THREAD_LOAD)
-      extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load);
-      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load) = LIBXSMM_ACC_COMM_THREAD_LOAD;
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load) = LIBXSMM_ACC_COMM_THREAD_LOAD;
 #endif
 #if defined(LIBXSMM_ACC_MULTREC_LIMIT)
-      extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
-      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = LIBXSMM_ACC_MULTREC_LIMIT;
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = LIBXSMM_ACC_MULTREC_LIMIT;
 #endif
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # if defined(LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS)
-      extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
-      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams) = LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS;
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams) = LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS;
 # endif
 # if defined(LIBXSMM_ACC_ACCDRV_POSTERIOR_BUFFERS)
-      extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers);
-      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers) = LIBXSMM_ACC_ACCDRV_POSTERIOR_BUFFERS;
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_buffers) = LIBXSMM_ACC_ACCDRV_POSTERIOR_BUFFERS;
 # endif
 # if defined(LIBXSMM_ACC_ACCDRV_PRIORITY_STREAMS)
-      extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams);
-      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams) = LIBXSMM_ACC_ACCDRV_PRIORITY_STREAMS;
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_streams) = LIBXSMM_ACC_ACCDRV_PRIORITY_STREAMS;
 # endif
 # if defined(LIBXSMM_ACC_ACCDRV_PRIORITY_BUFFERS)
-      extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers);
-      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers) = LIBXSMM_ACC_ACCDRV_PRIORITY_BUFFERS;
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_priority_buffers) = LIBXSMM_ACC_ACCDRV_PRIORITY_BUFFERS;
 # endif
 # if defined(LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM)
-      extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
-      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) = LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM;
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) = LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM;
 # endif
 #endif
-    }
   }
 }
 
