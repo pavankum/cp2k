@@ -183,24 +183,27 @@
     CPASSERT(LIBXSMM_COL_MAJOR==1)
     CPASSERT(LIBXSMM_ROW_MAJOR==0)
 
-    IF(stack_descr%defined_mnk) THEN
+    IF (stack_descr%defined_mnk) THEN
        WRITE (*,*) "OLE: trying dispatch"
        CALL libxsmm_dispatch(func,&
                              m=stack_descr%m, n=stack_descr%n, k=stack_descr%k,&
                              alpha=one, beta=one, flags=LIBXSMM_PREFETCH)
        IF (libxsmm_available(func)) THEN
-          WRITE (*,*) "OLE: dispatched"
           DO sp = 1, stack_size
              fa = params(p_a_first,sp)
              fb = params(p_b_first,sp)
              fc = params(p_c_first,sp)
-             IF(sp < stack_size) THEN ! prefetch next blocks
+             IF (sp < stack_size) THEN ! prefetch next blocks
                 pa = params(p_a_first,sp+1)
                 pb = params(p_b_first,sp+1)
                 pc = params(p_c_first,sp+1)
              ENDIF
-             CALL libxsmm_call(func, a=a_data(fa), b=b_data(fb), c=c_data(fc),&
-                               pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
+             IF (LIBXSMM_PREFETCH_NONE.NE.LIBXSMM_PREFETCH) THEN
+                CALL libxsmm_call(func, a=a_data(fa), b=b_data(fb), c=c_data(fc),&
+                                  pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
+             ELSE
+                CALL libxsmm_call(func, a=a_data(fa), b=b_data(fb), c=c_data(fc))
+             ENDIF
           ENDDO
           RETURN
        ENDIF
