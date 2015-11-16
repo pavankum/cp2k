@@ -69,7 +69,7 @@ LIBXSMM_ACC_RETARGETABLE void kernel(const U* stack, const U* pstacksize, const 
 #if defined(LIBXSMM_ACC_MKLTRANS) && defined(__MKL)
     mkl_imatcopy(static_cast<size_t>(m), static_cast<size_t>(n), mat);
 #else
-    LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_MATRIX_SIZE], LIBXSMM_ACC_ALIGNED_MAX);
+    LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_MATRIX_SIZE], LIBXSMM_ACC_ALIGNMENT);
 
     for (U i = 0; i < m; ++i) {
       LIBXSMM_ACC_PRAGMA_LOOP_COUNT(1, LIBXSMM_ACC_MAX_N, 23)
