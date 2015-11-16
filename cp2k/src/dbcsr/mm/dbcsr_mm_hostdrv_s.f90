@@ -151,7 +151,12 @@
        stack_size, a_data, b_data, c_data)
 
 #if defined(__LIBXSMM) && 1
-    USE libxsmm, ONLY: libxsmm_smm
+    USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_smm_function,&
+                                                 libxsmm_dispatch  => libxsmm_sdispatch_mnk,&
+                                                 libxsmm_available => libxsmm_savailable,&
+                                                 libxsmm_call      => libxsmm_scall_prf,&
+                                                 libxsmm_mm        => libxsmm_smm,&
+                                                 LIBXSMM_PREFETCH_NONE
 #endif
 
     INTEGER, INTENT(IN)                       :: stack_size
@@ -167,29 +172,64 @@
       routineP = moduleN//':'//routineN
 
 #if defined(__LIBXSMM) && 1
-    REAL(kind=real_4), DIMENSION(:,:), POINTER          :: a_ptr, b_ptr, c_ptr
-    INTEGER                                   :: fa, fb, fc, m, n, k, sp
+    REAL(real_4), PARAMETER                  :: one = 1.0_real_4
+    INTEGER                                   :: fa, fb, fc, pa, pb, pc, m, n, k, sp
+    REAL(real_4), DIMENSION(:,:), POINTER    :: a_ptr, b_ptr, c_ptr
+    TYPE(libxsmm_function)                    :: func
 
+
+    IF(stack_descr%defined_mnk) THEN
+       WRITE (*,*) "OLE: trying dispatch"
+       CALL libxsmm_dispatch(func,&
+                             m=stack_descr%m, n=stack_descr%n, k=stack_descr%k,&
+                             alpha=one, beta=one, flags=LIBXSMM_PREFETCH_NONE)
+       IF (libxsmm_available(func)) THEN
+          WRITE (*,*) "OLE: dispatched"
+          DO sp = 1, stack_size
+             fa = params(p_a_first,sp)
+             fb = params(p_b_first,sp)
+             fc = params(p_c_first,sp)
+             IF(sp < stack_size) THEN ! prefetch next blocks
+                pa = params(p_a_first,sp+1)
+                pb = params(p_b_first,sp+1)
+                pc = params(p_c_first,sp+1)
+             ENDIF
+             CALL libxsmm_call(func, a=a_data(fa), b=b_data(fb), c=c_data(fc),&
+                               pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
+          ENDDO
+          RETURN
+       ENDIF
+    ENDIF
+
+    WRITE (*,*) "OLE: regular"
+    ! dispatch interface was not used, call regular interface.
     DO sp = 1, stack_size
-       fa = params(p_a_first,sp)
-       fb = params(p_b_first,sp)
-       fc = params(p_c_first,sp)
        m = params(p_m,sp)
        n = params(p_n,sp)
        k = params(p_k,sp)
+       fa = params(p_a_first,sp)
+       fb = params(p_b_first,sp)
+       fc = params(p_c_first,sp)
        a_ptr(1:m,1:k) => a_data(fa:fa+(m*k))
        b_ptr(1:k,1:n) => b_data(fb:fb+(k*n))
        c_ptr(1:m,1:n) => c_data(fc:fc+(m*n))
-
-       CALL libxsmm_smm(m, n, k, a_ptr, b_ptr, c_ptr)
+       IF(sp < stack_size) THEN ! prefetch next blocks
+          pa = params(p_a_first,sp+1)
+          pb = params(p_b_first,sp+1)
+          pc = params(p_c_first,sp+1)
+       ENDIF
+       CALL libxsmm_mm(m=m, n=n, k=k,&
+                       a=a_ptr, b=b_ptr, c=c_ptr,&
+                       pa=a_data(pa), pb=b_data(pb), pc=c_data(pc),&
+                       flags=LIBXSMM_PREFETCH_NONE, alpha=one, beta=one)
     ENDDO
 
 #else
+    MARK_USED(stack_descr)
     ! We do not want to abort here, fall back to BLAS.
     CALL blas_process_mm_stack_s(params, stack_size,a_data, b_data, c_data)
 #endif
 
-    MARK_USED(stack_descr)
   END SUBROUTINE xsmm_process_mm_stack_s
 
 ! *****************************************************************************
