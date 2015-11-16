@@ -156,7 +156,7 @@
                                                  libxsmm_available => libxsmm_cavailable,&
                                                  libxsmm_call      => libxsmm_ccall_prf,&
                                                  libxsmm_mm        => libxsmm_cmm,&
-                                                 LIBXSMM_PREFETCH,&
+                                                 LIBXSMM_PREFETCH,LIBXSMM_PREFETCH_NONE,&
                                                  LIBXSMM_ROW_MAJOR,&
                                                  LIBXSMM_COL_MAJOR
 #endif
