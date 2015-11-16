@@ -156,7 +156,9 @@
                                                  libxsmm_available => libxsmm_savailable,&
                                                  libxsmm_call      => libxsmm_scall_prf,&
                                                  libxsmm_mm        => libxsmm_smm,&
-                                                 LIBXSMM_PREFETCH_NONE
+                                                 LIBXSMM_PREFETCH,&
+                                                 LIBXSMM_ROW_MAJOR,&
+                                                 LIBXSMM_COL_MAJOR
 #endif
 
     INTEGER, INTENT(IN)                       :: stack_size
@@ -178,11 +180,14 @@
     TYPE(libxsmm_function)                    :: func
 
 
+    CPASSERT(LIBXSMM_COL_MAJOR==1)
+    CPASSERT(LIBXSMM_ROW_MAJOR==0)
+
     IF(stack_descr%defined_mnk) THEN
        WRITE (*,*) "OLE: trying dispatch"
        CALL libxsmm_dispatch(func,&
                              m=stack_descr%m, n=stack_descr%n, k=stack_descr%k,&
-                             alpha=one, beta=one, flags=LIBXSMM_PREFETCH_NONE)
+                             alpha=one, beta=one, flags=LIBXSMM_PREFETCH)
        IF (libxsmm_available(func)) THEN
           WRITE (*,*) "OLE: dispatched"
           DO sp = 1, stack_size
@@ -221,7 +226,7 @@
        CALL libxsmm_mm(m=m, n=n, k=k,&
                        a=a_ptr, b=b_ptr, c=c_ptr,&
                        pa=a_data(pa), pb=b_data(pb), pc=c_data(pc),&
-                       flags=LIBXSMM_PREFETCH_NONE, alpha=one, beta=one)
+                       flags=LIBXSMM_PREFETCH, alpha=one, beta=one)
     ENDDO
 
 #else
