@@ -303,7 +303,7 @@ LIBXSMM_ACC_RETARGETABLE void context(const U* stack, const U* stacksize, const 
 }
 
 
-template<typename T, libxsmm_acc_bool_type Complex, typename U>
+template<typename T, bool Complex, typename U>
 int process(const U* stack, U stacksize, U nparams, U def_mnk, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data, void* stream)
 {
   LIBXSMM_ACC_CHECK_CONDITION(

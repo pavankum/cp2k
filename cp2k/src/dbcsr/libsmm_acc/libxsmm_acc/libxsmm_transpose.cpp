@@ -89,7 +89,7 @@ LIBXSMM_ACC_RETARGETABLE void kernel(const U* stack, const U* pstacksize, const 
 }
 
 
-template<typename T, libxsmm_acc_bool_type Complex, typename U>
+template<typename T, bool Complex, typename U>
 int transpose(const U* stack, U offset, U nblocks, U m, U n, void* data, void* stream)
 {
   LIBXSMM_ACC_CHECK_CONDITION(

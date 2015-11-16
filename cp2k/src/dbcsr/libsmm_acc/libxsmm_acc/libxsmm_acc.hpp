@@ -147,12 +147,10 @@
 /*#define LIBXSMM_ACC_PRETRANSPOSE*/
 /*#define LIBXSMM_ACC_MKLTRANS*/
 
-typedef bool libxsmm_acc_bool_type;
-
 /** Must match stack_descriptor_type. */
 struct libxsmm_acc_stackdesc_type {
   int m, n, k, max_m, max_n, max_k;
-  libxsmm_acc_bool_type defined_mnk;
+  bool defined_mnk;
 };
 
 enum libxsmm_acc_param_type {
@@ -167,7 +165,7 @@ enum libxsmm_acc_elem_type {
   LIBXSMM_ACC_ELEM_C32 = 5, LIBXSMM_ACC_ELEM_C64 = 7
 };
 
-template<typename T, libxsmm_acc_bool_type Complex> struct libxsmm_acc_elem {
+template<typename T, bool Complex> struct libxsmm_acc_elem {
                                                     static const libxsmm_acc_elem_type type = LIBXSMM_ACC_ELEM_UNKNOWN;
                                                     static const char* name() { return "unknown"; } };
 template<> struct libxsmm_acc_elem<float,false>   { static const libxsmm_acc_elem_type type = LIBXSMM_ACC_ELEM_F32;
