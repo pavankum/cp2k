@@ -38,7 +38,7 @@ namespace libxsmm_acc_private {
 # endif
 
 template<typename T>
-void xsmm_process_mm_stack(const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize, const T* a, const T* b, T* c)
+void process_mm_stack(const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize, const T* a, const T* b, T* c)
 {
   int result = LIBXSMM_ACC_ERROR_CONDITION;
 
@@ -133,37 +133,37 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 }
 
 
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s)(
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s)(
   const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize,
   const float* a, const float* b, float* c);
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s)(
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_acc_process_mm_stack_s)(
   const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize,
   const float* a, const float* b, float* c)
 {
   if (!libxsmm_acc_private::explicit_configure || libxsmm_acc_private::reconfigure) {
-    libxsmm_acc_private::xsmm_process_mm_stack(
+    libxsmm_acc_private::process_mm_stack(
       descriptor, params, stacksize, a, b, c);
   }
   else {
-    LIBXSMM_ACC_FSYMBOL(__real_dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s)(
+    LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s)(
       descriptor, params, stacksize, a, b, c);
   }
 }
 
 
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d)(
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d)(
   const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize,
   const double* a, const double* b, double* c);
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d)(
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_acc_process_mm_stack_d)(
   const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize,
   const double* a, const double* b, double* c)
 {
   if (!libxsmm_acc_private::explicit_configure || libxsmm_acc_private::reconfigure) {
-    libxsmm_acc_private::xsmm_process_mm_stack(
+    libxsmm_acc_private::process_mm_stack(
       descriptor, params, stacksize, a, b, c);
   }
   else {
-    LIBXSMM_ACC_FSYMBOL(__real_dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d)(
+    LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d)(
       descriptor, params, stacksize, a, b, c);
   }
 }
