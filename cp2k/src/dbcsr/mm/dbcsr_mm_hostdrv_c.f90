@@ -158,6 +158,7 @@
                                                  libxsmm_call_prf  => libxsmm_ccall_prf,&
                                                  libxsmm_mm_abc    => libxsmm_cmm_abc,&
                                                  libxsmm_mm_prf    => libxsmm_cmm_prf,&
+                                                 ! default redirects to LIBXSMM's build-time default
                                                  LIBXSMM_PREFETCH_DEFAULT => LIBXSMM_PREFETCH,&
                                                  LIBXSMM_PREFETCH_NONE,&
                                                  LIBXSMM_ROW_MAJOR,&
@@ -188,7 +189,6 @@
     CPASSERT(LIBXSMM_ROW_MAJOR==0)
 
     IF (stack_descr%defined_mnk) THEN
-       WRITE (*,*) "OLE: dispatch"
        CALL libxsmm_dispatch(func, flags=LIBXSMM_FLAGS, lda=0, ldb=0, ldc=0,&
                              m=stack_descr%m, n=stack_descr%n, k=stack_descr%k,&
                              alpha=one, beta=one, prefetch=LIBXSMM_PREFETCH_DEFAULT)
@@ -213,7 +213,6 @@
        ENDIF
     ENDIF
 
-    WRITE (*,*) "OLE: regular"
     ! dispatch interface was not used, call regular interface.
     DO sp = 1, stack_size
        m = params(p_m,sp)
@@ -231,13 +230,11 @@
              pb = params(p_b_first,sp+1)
              pc = params(p_c_first,sp+1)
           ENDIF
-          CALL libxsmm_mm_prf(m=m, n=n, k=k,&
-                              a=a_ptr, b=b_ptr, c=c_ptr,&
+          CALL libxsmm_mm_prf(m=m, n=n, k=k, a=a_ptr, b=b_ptr, c=c_ptr,&
                               pa=a_data(pa), pb=b_data(pb), pc=c_data(pc),&
                               flags=LIBXSMM_FLAGS, alpha=one, beta=one)
        ELSE
-          CALL libxsmm_mm_abc(m=m, n=n, k=k,&
-                              a=a_ptr, b=b_ptr, c=c_ptr,&
+          CALL libxsmm_mm_abc(m=m, n=n, k=k, a=a_ptr, b=b_ptr, c=c_ptr,&
                               flags=LIBXSMM_FLAGS, alpha=one, beta=one)
        ENDIF
     ENDDO
