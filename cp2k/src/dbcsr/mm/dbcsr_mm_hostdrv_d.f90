@@ -154,9 +154,11 @@
     USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_dmm_function,&
                                                  libxsmm_dispatch  => libxsmm_ddispatch_mnk,&
                                                  libxsmm_available => libxsmm_davailable,&
-                                                 libxsmm_call      => libxsmm_dcall_prf,&
+                                                 libxsmm_call_abc  => libxsmm_dcall_abc,&
+                                                 libxsmm_call_prf  => libxsmm_dcall_prf,&
                                                  libxsmm_mm        => libxsmm_dmm,&
-                                                 LIBXSMM_PREFETCH,LIBXSMM_PREFETCH_NONE,&
+                                                 LIBXSMM_PREFETCH,&
+                                                 LIBXSMM_PREFETCH_NONE,&
                                                  LIBXSMM_ROW_MAJOR,&
                                                  LIBXSMM_COL_MAJOR
 #endif
@@ -199,10 +201,10 @@
                 pc = params(p_c_first,sp+1)
              ENDIF
              IF (LIBXSMM_PREFETCH_NONE.NE.LIBXSMM_PREFETCH) THEN
-                CALL libxsmm_call(func, a=a_data(fa), b=b_data(fb), c=c_data(fc),&
-                                  pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
+                CALL libxsmm_call_prf(func, a=a_data(fa), b=b_data(fb), c=c_data(fc),&
+                                      pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
              ELSE
-                CALL libxsmm_call(func, a=a_data(fa), b=b_data(fb), c=c_data(fc))
+                CALL libxsmm_call_abc(func, a=a_data(fa), b=b_data(fb), c=c_data(fc))
              ENDIF
           ENDDO
           RETURN
