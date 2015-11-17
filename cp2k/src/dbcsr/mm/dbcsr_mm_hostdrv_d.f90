@@ -152,15 +152,17 @@
 
 #if defined(__LIBXSMM) && 1
     USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_dmm_function,&
-                                                 libxsmm_dispatch  => libxsmm_ddispatch_mnk,&
+                                                 libxsmm_dispatch  => libxsmm_ddispatch_all,&
                                                  libxsmm_available => libxsmm_davailable,&
                                                  libxsmm_call_abc  => libxsmm_dcall_abc,&
                                                  libxsmm_call_prf  => libxsmm_dcall_prf,&
-                                                 libxsmm_mm        => libxsmm_dmm,&
-                                                 LIBXSMM_PREFETCH,&
+                                                 libxsmm_mm_abc    => libxsmm_dmm_abc,&
+                                                 libxsmm_mm_prf    => libxsmm_dmm_prf,&
+                                                 LIBXSMM_PREFETCH_DEFAULT => LIBXSMM_PREFETCH,&
                                                  LIBXSMM_PREFETCH_NONE,&
                                                  LIBXSMM_ROW_MAJOR,&
-                                                 LIBXSMM_COL_MAJOR
+                                                 LIBXSMM_COL_MAJOR,&
+                                                 LIBXSMM_FLAGS
 #endif
 
     INTEGER, INTENT(IN)                       :: stack_size
@@ -186,10 +188,10 @@
     CPASSERT(LIBXSMM_ROW_MAJOR==0)
 
     IF (stack_descr%defined_mnk) THEN
-       WRITE (*,*) "OLE: trying dispatch"
-       CALL libxsmm_dispatch(func,&
+       WRITE (*,*) "OLE: dispatch"
+       CALL libxsmm_dispatch(func, flags=LIBXSMM_FLAGS, lda=0, ldb=0, ldc=0,&
                              m=stack_descr%m, n=stack_descr%n, k=stack_descr%k,&
-                             alpha=one, beta=one, flags=LIBXSMM_PREFETCH)
+                             alpha=one, beta=one, prefetch=LIBXSMM_PREFETCH_DEFAULT)
        IF (libxsmm_available(func)) THEN
           DO sp = 1, stack_size
              fa = params(p_a_first,sp)
@@ -200,7 +202,7 @@
                 pb = params(p_b_first,sp+1)
                 pc = params(p_c_first,sp+1)
              ENDIF
-             IF (LIBXSMM_PREFETCH_NONE.NE.LIBXSMM_PREFETCH) THEN
+             IF (LIBXSMM_PREFETCH_NONE.NE.LIBXSMM_PREFETCH_DEFAULT) THEN
                 CALL libxsmm_call_prf(func, a=a_data(fa), b=b_data(fb), c=c_data(fc),&
                                       pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
              ELSE
@@ -223,15 +225,21 @@
        a_ptr(1:m,1:k) => a_data(fa:fa+(m*k))
        b_ptr(1:k,1:n) => b_data(fb:fb+(k*n))
        c_ptr(1:m,1:n) => c_data(fc:fc+(m*n))
-       IF(sp < stack_size) THEN ! prefetch next blocks
-          pa = params(p_a_first,sp+1)
-          pb = params(p_b_first,sp+1)
-          pc = params(p_c_first,sp+1)
+       IF (LIBXSMM_PREFETCH_NONE.NE.LIBXSMM_PREFETCH_DEFAULT) THEN
+          IF (sp < stack_size) THEN ! prefetch next blocks
+             pa = params(p_a_first,sp+1)
+             pb = params(p_b_first,sp+1)
+             pc = params(p_c_first,sp+1)
+          ENDIF
+          CALL libxsmm_mm_prf(m=m, n=n, k=k,&
+                              a=a_ptr, b=b_ptr, c=c_ptr,&
+                              pa=a_data(pa), pb=b_data(pb), pc=c_data(pc),&
+                              flags=LIBXSMM_FLAGS, alpha=one, beta=one)
+       ELSE
+          CALL libxsmm_mm_abc(m=m, n=n, k=k,&
+                              a=a_ptr, b=b_ptr, c=c_ptr,&
+                              flags=LIBXSMM_FLAGS, alpha=one, beta=one)
        ENDIF
-       CALL libxsmm_mm(m=m, n=n, k=k,&
-                       a=a_ptr, b=b_ptr, c=c_ptr,&
-                       pa=a_data(pa), pb=b_data(pb), pc=c_data(pc),&
-                       flags=LIBXSMM_PREFETCH, alpha=one, beta=one)
     ENDDO
 
 #else
