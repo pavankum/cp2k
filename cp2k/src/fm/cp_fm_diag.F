@@ -28,7 +28,8 @@ USE cp_log_handling, ONLY: cp_logger_type, cp_get_default_logger, cp_logger_get_
                                              cp_fm_upper_to_full
   USE cp_fm_struct,                    ONLY: cp_fm_struct_create,&
                                              cp_fm_struct_release,&
-                                             cp_fm_struct_type
+                                             cp_fm_struct_type,&
+                                             cp_fm_struct_get
   USE cp_fm_types,                     ONLY: cp_fm_create,&
                                              cp_fm_release,&
                                              cp_fm_get_info,&
@@ -921,8 +922,9 @@ CONTAINS
     INTEGER                                  :: handle
 #if defined(__SCALAPACK) && (defined(__ELPA) || defined (__ELPA2))
     INTEGER                                  :: comm_col, comm_row, group, &
-                                                mypcol, &
-                                                myprow, n, n_rows, nblk, neig
+                                                mypcol, myprow, n, &
+                                                n_rows, n_cols, &
+                                                nblk, neig
     LOGICAL                                  :: success
     REAL(KIND=dp), DIMENSION(:), POINTER     :: eval
     REAL(KIND=dp), DIMENSION(:, :), POINTER  :: m, v
@@ -953,8 +955,11 @@ CONTAINS
     ! elpa needs the full matrix
     CALL cp_fm_upper_to_full(matrix,eigenvectors)
 
-    n_rows = matrix%matrix_struct%local_leading_dimension
-    nblk = matrix%matrix_struct%nrow_block
+    CALL cp_fm_struct_get(matrix%matrix_struct,&
+       local_leading_dimension=n_rows,&
+       ncol_local=n_cols,&
+       nrow_block=nblk)
+
     neig = SIZE(eigenvalues,1)
     ! the full eigenvalues vector is needed
     ALLOCATE(eval(n))
@@ -964,7 +969,7 @@ CONTAINS
     CALL solve_evp_real_2stage(n,neig,m,n_rows,eval,v,n_rows,nblk,comm_row,comm_col,group)
 
 #else
-    success = solve_evp_real_2stage(n,neig,m,n_rows,eval,v,n_rows,nblk,comm_row,comm_col,group,&
+    success = solve_evp_real_2stage(n,neig,m,n_rows,eval,v,n_rows,nblk,n_cols,comm_row,comm_col,group,&
               THIS_REAL_ELPA_KERNEL_API=kernel_type,useQR=.FALSE.)
      IF(.NOT.success)&
         CPABORT("ELPA failed to diagonalize a matrix")
