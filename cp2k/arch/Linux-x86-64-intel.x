@@ -70,12 +70,16 @@ MEMKIND ?= 1
 NESTED ?= 0
 
 OFFLOAD ?= $(ACC)
-ifeq ($(OFFLOAD),0)
+ifeq (0,$(OFFLOAD))
   MIC ?= 0
 else
   JIT = 0
 endif
-ifneq ($(MIC),0)
+ifneq (0,$(MIC))
+  JIT = 0
+endif
+
+ifneq (0,$(SSE))
   JIT = 0
 endif
 
@@ -267,6 +271,7 @@ ifneq (,$(LIBXSMMROOT))
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib \
     SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
     ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) MNK=$(LIBXSMM_MNK) \
+    M=$(LIBXSMM_M) N=$(LIBXSMM_N) K=$(LIBXSMM_K) \
     PREFETCH=$(LIBXSMM_PREFETCH) JIT=$(JIT) \
   >&2)
 
