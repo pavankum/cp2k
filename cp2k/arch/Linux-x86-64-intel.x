@@ -190,12 +190,16 @@ ifneq (,$(LIBXCROOT))
 endif
 
 ifneq (,$(ELPAROOT))
-  ifneq (1,$(ELPA)) # default is ELPA2
-    DFLAGS  += -D__ELPA2
+  ifeq (,$(ELPA)) # default is ELPA3
+    DFLAGS  += -D__ELPA3
     IFLAGS  += -I$(ELPAROOT)/include/elpa/modules
     LIBS    += $(ELPAROOT)/lib/libelpa.a
-  else ifeq (1,$(ELPA))
-    DFLAGS  += -D__ELPA
+  else ifneq (0,$(ELPA))
+    ifeq (1,$(ELPA))
+      DFLAGS  += -D__ELPA
+    else
+      DFLAGS  += -D__ELPA$(ELPA)
+    endif
     IFLAGS  += -I$(ELPAROOT)/include/elpa/modules
     LIBS    += $(ELPAROOT)/lib/libelpa.a
   endif
