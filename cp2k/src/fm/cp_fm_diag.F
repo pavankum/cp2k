@@ -53,7 +53,7 @@ USE cp_log_handling, ONLY: cp_logger_type, cp_get_default_logger, cp_logger_get_
                                              ieee_all
 #endif
 
-#if defined (__ELPA)  || defined(__ELPA2)
+#if defined (__ELPA) || defined(__ELPA2) || defined(__ELPA3)
   USE ELPA2, ONLY: solve_evp_real_2stage
 #endif
 
@@ -112,7 +112,7 @@ CONTAINS
     IF(try_library) THEN
         IF(diag_lib.EQ."ELPA") THEN
 
-#if defined (__ELPA)  || defined (__ELPA2)
+#if defined (__ELPA) || defined (__ELPA2) || defined (__ELPA3)
             diag_type = 3
 #else
           ! ELPA library not linked, switch to SL
@@ -920,7 +920,7 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: handle
-#if defined(__SCALAPACK) && (defined(__ELPA) || defined (__ELPA2))
+#if defined(__SCALAPACK) && (defined(__ELPA) || defined (__ELPA2) || defined(__ELPA3))
     INTEGER                                  :: comm_col, comm_row, group, &
                                                 mypcol, myprow, n, &
                                                 n_rows, n_cols, &
@@ -932,7 +932,7 @@ CONTAINS
 #endif
 
     CALL timeset(routineN,handle)
-#if defined(__SCALAPACK) && (defined(__ELPA) || defined (__ELPA2))
+#if defined(__SCALAPACK) && (defined(__ELPA) || defined (__ELPA2) || defined (__ELPA3))
 
     success = .TRUE.
 
@@ -967,13 +967,16 @@ CONTAINS
     ! Calculate eigenvalues/eigenvectors
 #if defined (__ELPA)
     CALL solve_evp_real_2stage(n,neig,m,n_rows,eval,v,n_rows,nblk,comm_row,comm_col,group)
-
+#elif defined (__ELPA2)
+    success = solve_evp_real_2stage(n,neig,m,n_rows,eval,v,n_rows,nblk,comm_row,comm_col,group,&
+              THIS_REAL_ELPA_KERNEL_API=kernel_type,useQR=.FALSE.)
 #else
     success = solve_evp_real_2stage(n,neig,m,n_rows,eval,v,n_rows,nblk,n_cols,comm_row,comm_col,group,&
               THIS_REAL_ELPA_KERNEL_API=kernel_type,useQR=.FALSE.)
-     IF(.NOT.success)&
-        CPABORT("ELPA failed to diagonalize a matrix")
 #endif
+
+    IF(.NOT.success)&
+       CPABORT("ELPA failed to diagonalize a matrix")
 
     eigenvalues(1:neig) = eval(1:neig)
 
