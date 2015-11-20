@@ -446,18 +446,18 @@ function run_regtest_dir() {
              this_test="RUNTIME FAIL"
            fi 
         fi 
-        #
-        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" >>${error_description_file}
-        echo ${output_file} >>${error_description_file}
+        # failed starts (farming) are not interesting
         if (( cp2k_exit_status != 43 )); then
+          echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" >>${error_description_file}
+          echo ${output_file} >>${error_description_file}
           tail -n 100 ${output_file} >>${error_description_file}
           # append an eventual valgrind report to the file
           grep "^==[0-9][0-9]*== " ${output_file} | head -n 20 >> ${error_description_file}
+          echo "EXIT CODE: " $cp2k_exit_status " MEANING: " $this_test >>${error_description_file}
+          echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" >>${error_description_file}
+          n_runtime_error=$((n_runtime_error+1))
+          failed_tests="${failed_tests} ${output_file}"
         fi
-        echo "EXIT CODE: " $cp2k_exit_status " MEANING: " $this_test >>${error_description_file}
-        echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" >>${error_description_file}
-        n_runtime_error=$((n_runtime_error+1))
-        failed_tests="${failed_tests} ${output_file}"
      else
         # ran but did not end !?
         grep -a "ENDED" ${output_file} &> /dev/null
@@ -641,7 +641,7 @@ lockfile=${dir_last}/LOCKFILE
 # kills all processes that have a PID of ppid (good for running jobs), removes the lockfile, and exits with code 8
 pgid=`ps -o "%r" $$ | grep "[0-9]"`
 trapcommand="rm -f ${lockfile} ; kill -- -$pgid  >& out.kill ; exit 8"
-trap "$trapcommand" SIGINT SIGTERM SIGKILL SIGPIPE
+trap "$trapcommand" SIGINT SIGTERM SIGKILL SIGPIPE SIGHUP SIGQUIT
 
 if [[ -f ${lockfile} ]]; then
    # the lockfile is touched before the start of any new regtest. If it hasn't been touched
@@ -1064,11 +1064,11 @@ EOF
    echo "Running farming for $ijob jobs"
    ${cp2k_prefix} ${dir_base}/${cp2k_dir}/exe/${dir_triplet}/cp2k.${cp2k_version} farming.inp ${cp2k_postfix} < /dev/null >& farming.out
    if (( $? )); then # on failed farming, provide info
-      echo "farming went fine"
-   else
       echo "==================== Farming terminated with an error, dumping output  ========================"
       cat farming.out    
       echo "==============================================================================================="
+   else
+      echo "farming went fine"
    fi
    fi
 
