@@ -1389,7 +1389,7 @@ CONTAINS
 !> \param fixd_list ...
 !> \author Teodoro Laino
 ! *****************************************************************************
-  SUBROUTINE colvar_eval_mol_f(colvar, cell, particles, pos, fixd_list)
+  RECURSIVE SUBROUTINE colvar_eval_mol_f(colvar, cell, particles, pos, fixd_list)
     TYPE(colvar_type), POINTER               :: colvar
     TYPE(cell_type), POINTER                 :: cell
     TYPE(particle_type), DIMENSION(:), &
@@ -1403,10 +1403,8 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: i, j
-    LOGICAL                                  :: colvar_ok
 
-    colvar_ok=ASSOCIATED(colvar)
-    CPASSERT(colvar_ok)
+    CPASSERT(ASSOCIATED(colvar))
 
     IF (PRESENT(pos)) THEN
        DO i = 1, SIZE(colvar%i_atom)
@@ -1460,76 +1458,12 @@ CONTAINS
     CASE (u_colvar_id, Wc_colvar_id, HBP_colvar_id)
        CPABORT("need force_env!")
     CASE DEFAULT
-       CPABORT("")
+       CPABORT("unkown colvar type")
     END SELECT
     ! Check for fixed atom constraints
     IF (PRESENT(fixd_list)) CALL check_fixed_atom_cns_colv(fixd_list, colvar)
 
   END SUBROUTINE colvar_eval_mol_f
-
-! *****************************************************************************
-!> \brief evaluates the derivatives (dsdr) given and due to the given colvar
-!>        for the specification of a recursive colvar type
-!> \param colvar the collective variable to evaluate
-!> \param cell ...
-!> \param particles ...
-!> \author sfchiff
-! *****************************************************************************
-  SUBROUTINE colvar_recursive_eval(colvar,cell,particles)
-    TYPE(colvar_type), POINTER               :: colvar
-    TYPE(cell_type), POINTER                 :: cell
-    TYPE(particle_type), DIMENSION(:), &
-      POINTER                                :: particles
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'colvar_recursive_eval', &
-      routineP = moduleN//':'//routineN
-
-! Initialize the content of the derivative
-
-    colvar%dsdr=0.0_dp
-    SELECT CASE(colvar%type_id)
-    CASE (dist_colvar_id)
-       CALL dist_colvar(colvar,cell,particles=particles)
-    CASE (coord_colvar_id)
-       CALL coord_colvar(colvar,cell,particles=particles)
-    CASE (torsion_colvar_id)
-       CALL torsion_colvar(colvar, cell, particles=particles)
-    CASE (angle_colvar_id)
-       CALL angle_colvar(colvar, cell, particles=particles)
-    CASE (dfunct_colvar_id)
-       CALL dfunct_colvar(colvar, cell, particles=particles)
-    CASE (plane_distance_colvar_id)
-       CALL plane_distance_colvar(colvar,cell, particles=particles)
-    CASE (plane_plane_angle_colvar_id)
-       CALL plane_plane_angle_colvar(colvar,cell, particles=particles)
-    CASE (rotation_colvar_id)
-       CALL rotation_colvar(colvar,cell, particles=particles)
-    CASE (qparm_colvar_id)
-       CALL qparm_colvar(colvar,cell, particles=particles)
-    CASE (hydronium_colvar_id)
-       CALL hydronium_colvar(colvar,cell,particles=particles)
-    CASE(rmsd_colvar_id)
-       CALL rmsd_colvar(colvar,particles=particles)
-    CASE (reaction_path_colvar_id)
-       CALL reaction_path_colvar(colvar,cell,particles=particles)
-    CASE (distance_from_path_colvar_id)
-       CALL distance_from_path_colvar(colvar,cell,particles=particles)
-    CASE (combine_colvar_id)
-       CALL combine_colvar(colvar,cell,particles=particles)
-    CASE (xyz_diag_colvar_id)
-       CALL xyz_diag_colvar(colvar,cell,particles=particles)
-    CASE (xyz_outerdiag_colvar_id)
-       CALL xyz_outerdiag_colvar(colvar,cell,particles=particles)
-    CASE (ring_puckering_colvar_id)
-       CALL ring_puckering_colvar(colvar,cell,particles=particles)
-    CASE (mindist_colvar_id)
-       CALL mindist_colvar(colvar,cell,particles=particles)
-    CASE (u_colvar_id, Wc_colvar_id, HBP_colvar_id)
-       CPABORT("need force_env!")
-    CASE DEFAULT
-       CPABORT("Unkown colvar")
-    END SELECT
-  END SUBROUTINE colvar_recursive_eval
 
 ! *****************************************************************************
 !> \brief Get coordinates of atoms or of geometrical points
@@ -3256,7 +3190,7 @@ CONTAINS
 !> \param particles ...
 !> \author Teodoro Laino [tlaino] - 12.2008
 ! *****************************************************************************
-  SUBROUTINE combine_colvar(colvar,cell,subsys,particles)
+  RECURSIVE SUBROUTINE combine_colvar(colvar,cell,subsys,particles)
     TYPE(colvar_type), POINTER               :: colvar
     TYPE(cell_type), POINTER                 :: cell
     TYPE(cp_subsys_type), OPTIONAL, POINTER  :: subsys
@@ -3292,7 +3226,7 @@ CONTAINS
 
     ! Evaluate the individual COLVARs
     DO i=1,ncolv
-       CALL colvar_recursive_eval(colvar%combine_cvs_param%colvar_p(i)%colvar,cell,my_particles)
+       CALL colvar_eval_mol_f(colvar%combine_cvs_param%colvar_p(i)%colvar,cell,my_particles)
        ss_vals(i)=colvar%combine_cvs_param%colvar_p(i)%colvar%ss
     ENDDO
 
@@ -3400,7 +3334,7 @@ CONTAINS
 !> \param particles ...
 !> \author fschiff
 ! *****************************************************************************
-  SUBROUTINE rpath_colvar(colvar,cell,particles)
+  RECURSIVE SUBROUTINE rpath_colvar(colvar,cell,particles)
     TYPE(colvar_type), POINTER               :: colvar
     TYPE(cell_type), POINTER                 :: cell
     TYPE(particle_type), DIMENSION(:), &
@@ -3429,7 +3363,7 @@ CONTAINS
     ALLOCATE(ss_vals(ncolv))
 
     DO i=1,ncolv
-       CALL colvar_recursive_eval(colvar%reaction_path_param%colvar_p(i)%colvar,cell,particles)
+       CALL colvar_eval_mol_f(colvar%reaction_path_param%colvar_p(i)%colvar,cell,particles)
        ss_vals(i)=colvar%reaction_path_param%colvar_p(i)%colvar%ss
     ENDDO
 
@@ -3739,7 +3673,7 @@ CONTAINS
 !> \date 01.2010
 !> \author MI
 ! *****************************************************************************
-  SUBROUTINE  distance_from_path_colvar(colvar,cell,subsys,particles)
+  RECURSIVE SUBROUTINE  distance_from_path_colvar(colvar,cell,subsys,particles)
     TYPE(colvar_type), POINTER               :: colvar
     TYPE(cell_type), POINTER                 :: cell
     TYPE(cp_subsys_type), OPTIONAL, POINTER  :: subsys
@@ -3782,7 +3716,7 @@ CONTAINS
 !> \date  01.2010
 !> \author MI
 ! *****************************************************************************
-  SUBROUTINE  dpath_colvar(colvar,cell,particles)
+  RECURSIVE SUBROUTINE  dpath_colvar(colvar,cell,particles)
     TYPE(colvar_type), POINTER               :: colvar
     TYPE(cell_type), POINTER                 :: cell
     TYPE(particle_type), DIMENSION(:), &
@@ -3807,7 +3741,7 @@ CONTAINS
     ALLOCATE(ss_vals(ncolv))
 
     DO i=1,ncolv
-       CALL colvar_recursive_eval(colvar%reaction_path_param%colvar_p(i)%colvar,cell,particles)
+       CALL colvar_eval_mol_f(colvar%reaction_path_param%colvar_p(i)%colvar,cell,particles)
        ss_vals(i)=colvar%reaction_path_param%colvar_p(i)%colvar%ss
     ENDDO
 

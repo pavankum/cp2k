@@ -49,8 +49,8 @@
                    "metadynamics.F",
                    #"colvar_methods.F",
                    "colvar_eval_glob.F",
-                   "colvar_utils.F",
-                   "topology_constraint_util.F",
+                   #"colvar_utils.F",
+                   #"topology_constraint_util.F",
                    #"topology.F",
                    
                    "qmmmx_update.F",
