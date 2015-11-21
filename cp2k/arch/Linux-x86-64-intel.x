@@ -261,6 +261,7 @@ ifneq (,$(LIBXSMMROOT))
   ifneq (0,$(ACC))
     ifneq (0,$(OFFLOAD))
       LIBXSMM_ALIGNED_STORES := 1
+      LIBXSMM_PREFETCH := 1
     endif
   endif
   ifneq (,$(filter %MIC-AVX512,$(TARGET)))
