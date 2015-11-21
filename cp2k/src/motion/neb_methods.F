@@ -154,12 +154,12 @@ CONTAINS
        neb_env%motion_print_section => print_section
        neb_env%neb_section          => neb_section
        neb_env%nsize_xyz            = rep_env%ndim
-       neb_env%nsize_int            = number_of_colvar(f_env%force_env)
+       neb_env%nsize_int            = number_of_colvar(subsys)
        check = (neb_env%nsize_xyz >= neb_env%nsize_int)
        CPASSERT(check)
        ! Check that teh used colvar are uniquely determined
-       check = (number_of_colvar(f_env%force_env) == &
-                number_of_colvar(f_env%force_env, unique=.TRUE.))
+       check = (number_of_colvar(subsys) == &
+                number_of_colvar(subsys, unique=.TRUE.))
        CPASSERT(check)
        CALL read_neb_section(neb_env,neb_section)
        ! Print BAND header

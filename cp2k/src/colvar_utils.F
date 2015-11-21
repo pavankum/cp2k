@@ -16,11 +16,10 @@ MODULE colvar_utils
        colvar_counters, colvar_setup, colvar_type, coord_colvar_id, &
        distance_from_path_colvar_id, gyration_colvar_id, mindist_colvar_id, &
        population_colvar_id, reaction_path_colvar_id, rmsd_colvar_id
+  USE cp_para_types,                   ONLY: cp_para_env_type
   USE cp_subsys_types,                 ONLY: cp_subsys_get,&
                                              cp_subsys_type
   USE distribution_1d_types,           ONLY: distribution_1d_type
-  USE force_env_types,                 ONLY: force_env_get,&
-                                             force_env_type
   USE input_constants,                 ONLY: rmsd_all,&
                                              rmsd_list
   USE kinds,                           ONLY: dp
@@ -59,14 +58,14 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief Gives back the number of colvar defined for a force_eval
-!> \param force_env ...
+!> \param subsys ...
 !> \param only_intra_colvar ...
 !> \param unique ...
 !> \retval ntot ...
 !> \author Teodoro Laino 05.2007 [tlaino] - Zurich University
 ! *****************************************************************************
-  FUNCTION number_of_colvar(force_env, only_intra_colvar, unique) RESULT(ntot)
-    TYPE(force_env_type), POINTER            :: force_env
+  FUNCTION number_of_colvar(subsys, only_intra_colvar, unique) RESULT(ntot)
+    TYPE(cp_subsys_type), POINTER            :: subsys
     LOGICAL, INTENT(IN), OPTIONAL            :: only_intra_colvar, unique
     INTEGER                                  :: ntot
 
@@ -76,7 +75,6 @@ CONTAINS
     INTEGER                                  :: handle, ikind, imol
     LOGICAL                                  :: my_unique, skip_inter_colvar
     TYPE(colvar_counters)                    :: ncolv
-    TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(global_constraint_type), POINTER    :: gci
     TYPE(mol_kind_new_list_type), POINTER    :: molecule_kinds
     TYPE(mol_new_list_type), POINTER         :: molecules
@@ -84,14 +82,13 @@ CONTAINS
                                                 molecule_kind_set(:)
     TYPE(molecule_type), POINTER             :: molecule, molecule_set( : )
 
-    NULLIFY(subsys, molecules, molecule_kind, molecule, molecule_set, gci)
+    NULLIFY(molecules, molecule_kind, molecule, molecule_set, gci)
     CALL timeset(routineN,handle)
     skip_inter_colvar = .FALSE.
     my_unique         = .FALSE.
     IF (PRESENT(only_intra_colvar)) skip_inter_colvar = only_intra_colvar
     IF (PRESENT(unique)) my_unique = unique
     ntot = 0
-    CALL force_env_get(force_env=force_env, subsys=subsys)
     CALL cp_subsys_get(subsys=subsys, molecules_new=molecules,  gci=gci,&
          molecule_kinds_new=molecule_kinds)
 
@@ -127,12 +124,12 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Set the value of target for constraints/restraints
 !> \param targets ...
-!> \param force_env ...
+!> \param subsys ...
 !> \author Teodoro Laino 05.2007 [tlaino] - Zurich University
 ! *****************************************************************************
-  SUBROUTINE set_colvars_target(targets, force_env)
+  SUBROUTINE set_colvars_target(targets, subsys)
     REAL(KIND=dp), DIMENSION(:), INTENT(IN)  :: targets
-    TYPE(force_env_type), POINTER            :: force_env
+    TYPE(cp_subsys_type), POINTER            :: subsys
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'set_colvars_target', &
       routineP = moduleN//':'//routineN
@@ -142,15 +139,13 @@ CONTAINS
     TYPE(colvar_constraint_type), &
       DIMENSION(:), POINTER                  :: colv_list
     TYPE(colvar_counters)                    :: ncolv
-    TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(global_constraint_type), POINTER    :: gci
     TYPE(mol_kind_new_list_type), POINTER    :: molecule_kinds
     TYPE(molecule_kind_type), POINTER        :: molecule_kind
 
-    NULLIFY(cell, subsys, molecule_kinds, molecule_kind, gci, colv_list)
+    NULLIFY(cell, molecule_kinds, molecule_kind, gci, colv_list)
     CALL timeset(routineN,handle)
-    CALL force_env_get(force_env=force_env, subsys=subsys, cell=cell)
-    CALL cp_subsys_get(subsys=subsys, gci=gci, molecule_kinds_new=molecule_kinds)
+    CALL cp_subsys_get(subsys, cell=cell, gci=gci, molecule_kinds_new=molecule_kinds)
 
     nkind  =  molecule_kinds % n_els
     ! Set Target for Intramolecular Colvars
@@ -182,7 +177,7 @@ CONTAINS
 
 ! *****************************************************************************
 !> \brief Computes the values of colvars and the Wilson matrix B and its invers A
-!> \param force_env ...
+!> \param subsys ...
 !> \param coords ...
 !> \param cvalues ...
 !> \param Bmatrix ...
@@ -190,9 +185,8 @@ CONTAINS
 !> \param Amatrix ...
 !> \author Teodoro Laino 05.2007 [tlaino] - Zurich University
 ! *****************************************************************************
-  SUBROUTINE eval_colvar ( force_env, coords, cvalues, Bmatrix, MassI, Amatrix)
-
-    TYPE(force_env_type), POINTER            :: force_env
+  SUBROUTINE eval_colvar(subsys, coords, cvalues, Bmatrix, MassI, Amatrix)
+    TYPE(cp_subsys_type), POINTER            :: subsys
     REAL(KIND=dp), DIMENSION(:), &
       INTENT(IN), OPTIONAL                   :: coords
     REAL(KIND=dp), DIMENSION(:), INTENT(OUT) :: cvalues
@@ -217,7 +211,7 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(:), POINTER     :: rwrk
     TYPE(cell_type), POINTER                 :: cell
     TYPE(colvar_counters)                    :: ncolv
-    TYPE(cp_subsys_type), POINTER            :: subsys
+    TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(distribution_1d_type), POINTER      :: local_molecules
     TYPE(global_constraint_type), POINTER    :: gci
     TYPE(mol_kind_new_list_type), POINTER    :: molecule_kinds
@@ -227,7 +221,7 @@ CONTAINS
     TYPE(particle_list_type), POINTER        :: particles
     TYPE(particle_type), POINTER             :: particle_set( : )
 
-    NULLIFY(cell, subsys, local_molecules, molecule_kinds, &
+    NULLIFY(cell, local_molecules, molecule_kinds, &
          molecules, molecule_kind, molecule, &
          molecule_set, particles, particle_set, gci)
     IF (PRESENT(Bmatrix)) THEN
@@ -238,13 +232,14 @@ CONTAINS
     CALL timeset(routineN,handle)
     ALLOCATE(map(SIZE(cvalues)))
     map=HUGE(0) ! init all, since used in a sort, but not all set in parallel.
-    CALL force_env_get(force_env=force_env, subsys=subsys, cell=cell)
     n_tot=0
     cvalues = 0.0_dp
     CALL cp_subsys_get(subsys=subsys,&
          particles=particles,&
          molecules_new=molecules,&
          local_molecules_new=local_molecules,&
+         cell=cell,&
+         para_env=para_env,&
          gci=gci,&
          molecule_kinds_new=molecule_kinds)
 
@@ -252,7 +247,7 @@ CONTAINS
     particle_set      => particles%els
     molecule_set      => molecules % els
     ! Intramolecular Colvars
-    IF (number_of_colvar(force_env, only_intra_colvar=.TRUE.)/=0) THEN
+    IF (number_of_colvar(subsys, only_intra_colvar=.TRUE.)/=0) THEN
        MOL:  DO ikind = 1, nkind
           nmol_per_kind = local_molecules % n_el ( ikind )
           DO imol = 1, nmol_per_kind
@@ -270,9 +265,9 @@ CONTAINS
              ENDIF
           END DO
        END DO MOL
-       CALL mp_sum(n_tot,force_env%para_env%group)
-       CALL mp_sum(cvalues,force_env%para_env%group)
-       IF (PRESENT(Bmatrix)) CALL mp_sum(Bmatrix,force_env%para_env%group)
+       CALL mp_sum(n_tot,para_env%group)
+       CALL mp_sum(cvalues,para_env%group)
+       IF (PRESENT(Bmatrix)) CALL mp_sum(Bmatrix,para_env%group)
     END IF
     offset = n_tot
     ! Intermolecular Colvars
@@ -531,7 +526,7 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Computes the forces in the frame of collective variables, and additional
 !>        also the local metric tensor
-!> \param force_env ...
+!> \param subsys ...
 !> \param forces ...
 !> \param coords ...
 !> \param nsize_xyz ...
@@ -540,9 +535,9 @@ CONTAINS
 !> \param Mmatrix ...
 !> \author Teodoro Laino 05.2007
 ! *****************************************************************************
-  SUBROUTINE get_clv_force(force_env, forces, coords, nsize_xyz, nsize_int, cvalues,&
+  SUBROUTINE get_clv_force(subsys, forces, coords, nsize_xyz, nsize_int, cvalues,&
        Mmatrix)
-    TYPE(force_env_type), POINTER            :: force_env
+    TYPE(cp_subsys_type), POINTER            :: subsys
     REAL(KIND=dp), DIMENSION(:), &
       INTENT(INOUT), OPTIONAL                :: forces, coords
     INTEGER, INTENT(IN)                      :: nsize_xyz, nsize_int
@@ -563,7 +558,7 @@ CONTAINS
        ALLOCATE(wrk(nsize_int))
        ALLOCATE(Amatrix(nsize_int,nsize_xyz))
        ! Compute the transformation matrices and the invese mass diagonal Matrix
-       CALL eval_colvar(force_env, coords, cvalues, Bmatrix, MassI, Amatrix)
+       CALL eval_colvar(subsys, coords, cvalues, Bmatrix, MassI, Amatrix)
        wrk = MATMUL(Amatrix,forces)
        forces              = 0.0_dp
        forces(1:nsize_int) = wrk
@@ -571,7 +566,7 @@ CONTAINS
        DEALLOCATE(wrk)
     ELSE
        ! Compute the transformation matrices and the invese mass diagonal Matrix
-       CALL eval_colvar(force_env, coords, cvalues, Bmatrix, MassI)
+       CALL eval_colvar(subsys, coords, cvalues, Bmatrix, MassI)
     END IF
     ! Compute the Metric Tensor
     DO i = 1, nsize_int

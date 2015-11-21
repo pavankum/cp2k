@@ -16,7 +16,9 @@ MODULE averages_types
                                              cp_to_string
   USE cp_output_handling,              ONLY: cp_print_key_finished_output,&
                                              cp_print_key_unit_nr
-  USE force_env_types,                 ONLY: force_env_type
+  USE cp_subsys_types,                 ONLY: cp_subsys_type
+  USE force_env_types,                 ONLY: force_env_get,&
+                                             force_env_type
   USE input_section_types,             ONLY: section_vals_get,&
                                              section_vals_get_subs_vals,&
                                              section_vals_remove_values,&
@@ -87,6 +89,7 @@ CONTAINS
 
     INTEGER                                  :: i, nint
     LOGICAL                                  :: do_colvars
+    TYPE(cp_subsys_type), POINTER            :: subsys
 
     ALLOCATE (averages)
     NULLIFY(averages%virial)
@@ -128,7 +131,8 @@ CONTAINS
        CALL section_vals_val_get(averages_section,"AVERAGE_COLVAR",l_val=do_colvars)
        ! Total number of COLVARs
        nint = 0
-       IF (do_colvars) nint = number_of_colvar(force_env)
+       CALL force_env_get(force_env, subsys=subsys)
+       IF (do_colvars) nint = number_of_colvar(subsys)
        ALLOCATE(averages%avecolvar(nint))
        ALLOCATE(averages%aveMmatrix(nint*nint))
        DO i = 1, nint
@@ -238,17 +242,20 @@ CONTAINS
     REAL(KIND=dp)                            :: start_time
     REAL(KIND=dp), DIMENSION(:), POINTER     :: cvalues, Mmatrix, tmp
     TYPE(cp_logger_type), POINTER            :: logger
+    TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(section_vals_type), POINTER         :: restart_section
 
     CALL timeset(routineN,handle)
     CALL section_vals_val_get(averages%averages_section,"ACQUISITION_START_TIME",&
          r_val=start_time)
     IF (averages%do_averages) THEN
-       NULLIFY(cvalues, Mmatrix, logger)
+       NULLIFY(cvalues, Mmatrix, logger, subsys)
        logger => cp_get_default_logger()
        ! Determine the nr. of internal colvar (if any/requested)
        nint = 0
        IF (ASSOCIATED(averages%avecolvar)) nint = SIZE(averages%avecolvar)
+
+       CALL force_env_get(force_env, subsys=subsys)
 
        ! Evaluate averages if we collected enough statistics (user defined)
        IF (time>=start_time) THEN
@@ -343,7 +350,7 @@ CONTAINS
              END IF
              ! Colvars
              IF (nint>0) THEN
-                CALL get_clv_force(force_env, nsize_xyz=nat*3, nsize_int=nint, &
+                CALL get_clv_force(subsys, nsize_xyz=nat*3, nsize_int=nint, &
                      cvalues=averages%avecolvar,Mmatrix=averages%aveMmatrix)
              END IF
           CASE DEFAULT
@@ -380,7 +387,7 @@ CONTAINS
              IF (nint>0) THEN
                 ALLOCATE(cvalues(nint))
                 ALLOCATE(Mmatrix(nint*nint))
-                CALL get_clv_force(force_env, nsize_xyz=nat*3, nsize_int=nint, cvalues=cvalues,&
+                CALL get_clv_force(subsys, nsize_xyz=nat*3, nsize_int=nint, cvalues=cvalues,&
                      Mmatrix=Mmatrix)
                 CALL get_averages(averages%avecolvar, cvalues, delta_t)
                 CALL get_averages(averages%aveMmatrix, Mmatrix, delta_t)

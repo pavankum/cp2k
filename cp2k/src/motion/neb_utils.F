@@ -36,6 +36,7 @@ MODULE neb_utils
   USE cp_parser_types,                 ONLY: cp_parser_type,&
                                              parser_create,&
                                              parser_release
+  USE cp_subsys_types,                 ONLY: cp_subsys_type
   USE f77_interface,                   ONLY: f_env_add_defaults,&
                                              f_env_rm_defaults,&
                                              f_env_type,&
@@ -162,6 +163,7 @@ CONTAINS
     REAL(KIND=dp), DIMENSION(3)              :: r
     REAL(KIND=dp), DIMENSION(:), POINTER     :: initial_colvars, rptr
     TYPE(cp_parser_type), POINTER            :: parser
+    TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(section_vals_type), POINTER         :: coord_section, &
                                                 replica_section, vel_section
 
@@ -255,7 +257,8 @@ CONTAINS
              coords%int(:,i_rep) = initial_colvars
           ELSE
              ! Compute the values of the collective variables
-             CALL eval_colvar(neb_env%force_env,coords%xyz(:,i_rep),coords%int(:,i_rep))
+              CALL force_env_get(neb_env%force_env, subsys=subsys)
+             CALL eval_colvar(subsys,coords%xyz(:,i_rep),coords%int(:,i_rep))
           END IF
        END IF
        ! Dump cartesian and colvar info..
@@ -526,6 +529,7 @@ CONTAINS
     INTEGER                                  :: handle, handle2, ierr, j, n_el
     LOGICAL                                  :: explicit, failure
     TYPE(cp_logger_type), POINTER            :: logger
+    TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(f_env_type), POINTER                :: f_env
     TYPE(global_environment_type), POINTER   :: globenv
     TYPE(section_vals_type), POINTER         :: md_section, root_section
@@ -535,8 +539,10 @@ CONTAINS
     CALL f_env_add_defaults(f_env_id=rep_env%f_env_id,f_env=f_env,&
          failure=failure, handle=handle2)
     logger => cp_get_default_logger()
-    CALL force_env_get(f_env%force_env,globenv=globenv,&
-         root_section=root_section)
+    CALL force_env_get(f_env%force_env,&
+                      globenv=globenv,&
+                      subsys=subsys,&
+                      root_section=root_section)
     j    = rep_env%local_rep_indices(1)-1
     n_el = 3*rep_env%nparticle
     Mmatrix = 0.0_dp
@@ -551,7 +557,7 @@ CONTAINS
        CALL section_vals_get(md_section,explicit=explicit)
        CPASSERT(explicit)
        ! Let's syncronize the target of Collective Variables for this run
-       CALL set_colvars_target(coords%int(:,irep+j), f_env%force_env)
+       CALL set_colvars_target(coords%int(:,irep+j), subsys)
        ! Do a molecular dynamics and get back the derivative
        ! of the free energy w.r.t. the colvar and the metric tensor
        CALL qs_mol_dyn(f_env%force_env,globenv=globenv)
@@ -604,6 +610,7 @@ CONTAINS
     INTEGER                                  :: handle, handle2, ierr, j, n_el
     LOGICAL                                  :: explicit, failure
     TYPE(cp_logger_type), POINTER            :: logger
+    TYPE(cp_subsys_type), POINTER            :: subsys
     TYPE(f_env_type), POINTER                :: f_env
     TYPE(global_environment_type), POINTER   :: globenv
     TYPE(section_vals_type), POINTER         :: geoopt_section, root_section
@@ -613,8 +620,10 @@ CONTAINS
     CALL f_env_add_defaults(f_env_id=rep_env%f_env_id,f_env=f_env,&
          failure=failure, handle=handle2)
     logger => cp_get_default_logger()
-    CALL force_env_get(f_env%force_env,globenv=globenv,&
-         root_section=root_section)
+    CALL force_env_get(f_env%force_env,&
+                       globenv=globenv,&
+                       root_section=root_section,&
+                       subsys=subsys)
     j    = rep_env%local_rep_indices(1)-1
     n_el = 3*rep_env%nparticle
     Mmatrix = 0.0_dp
@@ -628,7 +637,7 @@ CONTAINS
        CALL section_vals_get(geoopt_section,explicit=explicit)
        CPASSERT(explicit)
        ! Let's syncronize the target of Collective Variables for this run
-       CALL set_colvars_target(coords%int(:,irep+j), f_env%force_env)
+       CALL set_colvars_target(coords%int(:,irep+j), subsys)
        ! Do a geometry optimization..
        CALL cp_geo_opt(f_env%force_env,globenv=globenv)
        ! Once the geometry optimization is ended let's do a single run
@@ -645,7 +654,7 @@ CONTAINS
        CALL get_energy(rep_env%f_env_id, rep_env%f(n_el+1,j+1), ierr)
        CPASSERT(ierr==0)
        ! The gradients in the colvar coordinates
-       CALL get_clv_force(f_env%force_env, rep_env%f(1:n_el,j+1), rep_env%r(1:n_el,j+1),&
+       CALL get_clv_force(subsys, rep_env%f(1:n_el,j+1), rep_env%r(1:n_el,j+1),&
             SIZE(coords%xyz,1), SIZE(coords%wrk,1), cvalues(:,j+1), Mmatrix(:,j+1))
     ELSE
        rep_env%r(:,j+1) = 0.0_dp
