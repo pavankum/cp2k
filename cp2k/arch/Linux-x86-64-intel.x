@@ -299,6 +299,7 @@ ifneq (0,$(ACC))
       MIC_CCFLAGS += -openmp -no-openmp -offload-option,mic,compiler,"-openmp"
       MIC_FCFLAGS += -openmp -no-openmp -offload-option,mic,compiler,"-openmp"
       MIC_LDFLAGS += -offload-option,mic,ld,"--no-undefined"
+      DIAG_DISABLE := $(DIAG_DISABLE),10121
       ifneq (,$(ATTRIBUTE))
         MIC_CXFLAGS += -offload-attribute-target=$(ATTRIBUTE)
         MIC_CCFLAGS += -offload-attribute-target=$(ATTRIBUTE)
