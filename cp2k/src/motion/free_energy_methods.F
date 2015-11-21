@@ -8,7 +8,7 @@
 !> \author Teodoro Laino (01.2007) [tlaino]
 ! *****************************************************************************
 MODULE free_energy_methods
-  USE colvar_methods,                  ONLY: colvar_eval_glob_f
+  USE colvar_eval_glob,                ONLY: colvar_eval_glob_f
   USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                              cp_logger_get_default_io_unit,&
                                              cp_logger_type,&

@@ -35,9 +35,9 @@
                    "ep_methods.F",
                    "ep_f77_low.F",
 
-                   # this should become a package on it's own
+                   "external_potential_methods.F",
+
                    "restraint.F",
-                   "colvar_methods.F",
                    "constraint_clv.F",
                    "constraint.F",
                    "constraint_vsite.F",
@@ -45,7 +45,14 @@
                    "constraint_util.F",
                    "constraint_3x3.F",
                    "constraint_4x6.F",
-
+                   "metadynamics_utils.F",
+                   "metadynamics.F",
+                   #"colvar_methods.F",
+                   "colvar_eval_glob.F",
+                   "colvar_utils.F",
+                   "topology_constraint_util.F",
+                   #"topology.F",
+                   
                    "qmmmx_update.F",
 
                    ]
@@ -53,36 +60,37 @@
 
 ##============================================================================
 #        {'dirname':'motion', 'requires+': ['../strain']},
-#        {'dirname':'force_eval', 'requires+': ['../strain']},
+#        #{'dirname':'force_eval', 'requires+': ['../strain']},
 #        {'dirname':'motion/thermostat', 'requires+': ['../../strain']},
 #        {'dirname':'motion/mc',         'requires+': ['../../strain']},
 #
 #        {'dirname':'strain',
-#         'requires': ["../common", "../base", "../", "../input", "../acc", "../dbcsrwrap", "../pw", "../mpiwrap", "../subsys"],
-#         'files': ["restraint.F",
-#                   "colvar_methods.F",
-#                   "constraint_clv.F",
-#                   "constraint.F",
-#                   "constraint_vsite.F",
-#                   "constraint_fxd.F",
-#                   "constraint_util.F",
-#                   "constraint_3x3.F",
-#                   "constraint_4x6.F",
+#         'requires': ["../force_eval", "../common", "../base", "../", "../input", "../acc", "../dbcsrwrap", "../pw", "../mpiwrap", "../subsys"],
+#         'files': [
+#                     
 #                   ]
 #        },
-#
-#
+
+
 #============================================================================
         {'dirname':'motion',
          'files': [
-                   "colvar_utils.F",
-                   "metadynamics_utils.F",
-                   "metadynamics.F",
                    "optimize_input.F",
                    "mode_selective.F",
-                   "topology.F",
+ 
+            #"colvar_methods.F",
+            #"colvar_utils.F",
+            #"topology_constraint_util.F",
+            #"topology.F",
                    ]
         },
+
+##============================================================================
+#        {'dirname':'subsys',
+#         'files': [
+#                  "cp_subsys_methods.F",
+#                   ]
+#        },
 
 #============================================================================
         {'dirname':'motion',            'requires+': ['./utils']},

@@ -19,7 +19,7 @@ MODULE tamc_run
                                              release_barostat_type
   USE bibliography,                    ONLY: VandenCic2006
   USE cell_types,                      ONLY: cell_type
-  USE colvar_methods,                  ONLY: colvar_eval_glob_f
+  USE colvar_eval_glob,                ONLY: colvar_eval_glob_f
   USE colvar_types,                    ONLY: HBP_colvar_id,&
                                              WC_colvar_id,&
                                              colvar_p_type

@@ -18,7 +18,7 @@ USE cp_log_handling, ONLY: cp_logger_type, cp_get_default_logger
 #else
   USE cell_types,                      ONLY: cell_type
 #endif
-  USE colvar_methods,                  ONLY: colvar_eval_glob_f
+  USE colvar_eval_glob,                ONLY: colvar_eval_glob_f
   USE colvar_types,                    ONLY: colvar_p_type,&
                                              torsion_colvar_id
   USE constraint_fxd,                  ONLY: fix_atom_control

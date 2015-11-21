@@ -18,7 +18,6 @@ MODULE constraint_fxd
                                              use_perd_y,&
                                              use_perd_yz,&
                                              use_perd_z
-  USE colvar_types,                    ONLY: colvar_type
   USE cp_subsys_types,                 ONLY: cp_subsys_get,&
                                              cp_subsys_type
   USE distribution_1d_types,           ONLY: distribution_1d_type
@@ -44,7 +43,6 @@ MODULE constraint_fxd
   PUBLIC :: fix_atom_control,&
             check_fixed_atom_cns_g3x3,&
             check_fixed_atom_cns_g4x6,&
-            check_fixed_atom_cns_colv,&
             create_local_fixd_list,&
             release_local_fixd_list
 
@@ -386,40 +384,6 @@ CONTAINS
        lg4x6 % init = .TRUE.
     END IF
   END SUBROUTINE check_fixed_atom_cns_g4x6
-
-! *****************************************************************************
-!> \brief ...
-!> \param fixd_list ...
-!> \param colvar ...
-!> \par History
-!>      none
-! *****************************************************************************
-  SUBROUTINE check_fixed_atom_cns_colv(fixd_list, colvar)
-    TYPE(fixd_constraint_type), &
-      DIMENSION(:), POINTER                  :: fixd_list
-    TYPE(colvar_type), POINTER               :: colvar
-
-    INTEGER                                  :: i, j, k
-
-    IF (ASSOCIATED(fixd_list)) THEN
-       IF (ASSOCIATED(fixd_list)) THEN
-          IF (SIZE(fixd_list)>0) THEN
-             DO i = 1, SIZE(colvar%i_atom)
-                j = colvar%i_atom(i)
-                DO k = 1, SIZE(fixd_list)
-                   IF (fixd_list(k)%fixd==j) THEN
-                      IF (fixd_list(k)%itype/=use_perd_xyz) CYCLE
-                      IF (.NOT.fixd_list(k)%restraint%active)&
-                           colvar%dsdr(:,i) = 0.0_dp
-                      EXIT
-                   END IF
-                END DO
-             END DO
-          END IF
-       END IF
-    END IF
-
-  END SUBROUTINE check_fixed_atom_cns_colv
 
 ! *****************************************************************************
 !> \brief setup a list of local atoms on which to apply constraints/restraints
