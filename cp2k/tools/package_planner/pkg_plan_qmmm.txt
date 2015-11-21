@@ -1,0 +1,203 @@
+[
+#============================================================================
+        {'dirname':'start',
+         'requires+': ['../subsys', '../fm',],
+         'files': ["ipi_driver.F",
+                   "optimize_basis.F",
+                   "cp2k_debug.F",
+                   "optimize_input.F",
+                   "mode_selective.F",
+                   "bsse.F",
+                  ]
+         },
+
+#============================================================================
+        {'dirname':'start',             'requires+': ['../force_eval']},
+        {'dirname':'swarm',             'requires+': ['../force_eval']},
+        {'dirname':'tmc',               'requires+': ['../force_eval']},
+        {'dirname':'motion',            'requires+': ['../force_eval']},
+        {'dirname':'motion/mc',         'requires+': ['../../force_eval']},
+        {'dirname':'motion/thermostat', 'requires+': ['../../force_eval']},
+
+        {'dirname':'force_eval',
+         'requires': ["../common", "../base", "../", "../input", "../acc", "../dbcsrwrap", "../pw", "../mpiwrap", "../subsys", "../fm", "../aobasis"],
+         'files': ["force_env_methods.F",
+                   "force_env_types.F",
+                   "force_env_utils.F",
+                   "f77_interface.F",
+                   "input_restart_force_eval.F",
+                   "replica_methods.F",
+                   "replica_types.F",
+                   "environment.F",
+
+                   "external_potential_methods.F",
+
+                   "restraint.F",
+                   "constraint_clv.F",
+                   "constraint.F",
+                   "constraint_vsite.F",
+                   "constraint_fxd.F",
+                   "constraint_util.F",
+                   "constraint_3x3.F",
+                   "constraint_4x6.F",
+                   "metadynamics_utils.F",
+                   "metadynamics.F",
+                   "colvar_eval_glob.F",
+
+                   "qmmmx_update.F",
+
+                   ]
+        },
+
+##============================================================================
+#        {'dirname':'motion', 'requires+': ['../strain']},
+#        #{'dirname':'force_eval', 'requires+': ['../strain']},
+#        {'dirname':'motion/thermostat', 'requires+': ['../../strain']},
+#        {'dirname':'motion/mc',         'requires+': ['../../strain']},
+#
+#        {'dirname':'strain',
+#         'requires': ["../force_eval", "../common", "../base", "../", "../input", "../acc", "../dbcsrwrap", "../pw", "../mpiwrap", "../subsys"],
+#         'files': [
+#                     
+#                   ]
+#        },
+
+
+#============================================================================
+        {'dirname':'motion',
+         'files': [
+                   "optimize_input.F",
+                   "mode_selective.F",
+ 
+            #"colvar_methods.F",
+            #"colvar_utils.F",
+            #"topology_constraint_util.F",
+            #"topology.F",
+                   ]
+        },
+
+#============================================================================
+        {'dirname':'motion',            'requires+': ['./utils']},
+        {'dirname':'motion/thermostat', 'requires+': ['../utils']},
+
+        {'dirname':'motion/utils',
+         'requires': ["../../common", "../../base", "../../", "../../input", "../../subsys",  "../../force_eval"],
+         'files': [
+                   "motion_utils.F",
+                   ]
+        },
+
+#============================================================================
+       #{'dirname':'subsys',
+       # 'requires': ['../topology'],
+       # # 'files': [
+       # #          "cp_subsys_methods.F",
+       # #          ]
+       #},
+
+##============================================================================
+#        {'dirname':'topology',
+#         'requires': ["../common", "../base", "../fm", "../input", "../subsys",],
+#         'files': [
+#
+#                   ]
+#        },
+
+#============================================================================
+        {'dirname':'motion',            'requires+': ['../qmmm']},
+        {'dirname':'motion/mc',         'requires+': ['../../qmmm']},
+        {'dirname':'motion/thermostat', 'requires+': ['../../qmmm']},
+        {'dirname':'motion/utils',      'requires+': ['../../qmmm']},
+        {'dirname':'force_eval',        'requires+': ['../qmmm']},
+        {'dirname':'start',             'requires+': ['../qmmm']},
+        {'dirname':'swarm',             'requires+': ['../qmmm']},
+        {'dirname':'tmc',               'requires+': ['../qmmm']},
+
+        {'dirname':'qmmm',
+         'requires': ["../", "../common", "../base", "../fm", "../dbcsrwrap", "../mpiwrap", "../input", "../pw", "../subsys", "../aobasis", ],
+         'files': [
+                    "cp_subsys_methods.F",
+                    #"cell_methods.F",
+
+                    "se_fock_matrix_coulomb.F",
+                    "se_fock_matrix_dbg.F",
+                    "se_fock_matrix.F",
+                    "atoms_input.F",
+                    "ewalds_multipole.F",
+                    "ewalds_multipole_debug.F",
+                    "fist_environment.F",
+                    "fist_environment_types.F",
+                    "fist_force.F",
+                    "fist_neighbor_list_control.F",
+                    "fist_neighbor_list_types.F",
+                    "fist_neighbor_lists.F",
+                    "fist_nonbond_env_types.F",
+                    "fist_nonbond_force.F",
+                    "fist_pol_scf.F",
+                    "force_fields_all.F",
+                    "force_fields.F",
+                    "force_fields_ext.F",
+                    "force_fields_input.F",
+                    "force_fields_util.F",
+                    "manybody_potential.F",
+                    "manybody_siepmann.F",
+                    "manybody_tersoff.F",
+                    "manybody_quip.F",
+                    "manybody_eam.F",
+                    "qmmm_create.F",
+                    "qmmm_elpot.F",
+                    "qmmm_ff_fist.F",
+                    "qmmm_force.F",
+                    "qmmm_gaussian_data.F",
+                    "qmmm_gaussian_init.F",
+                    "qmmm_gaussian_input.F",
+                    "qmmm_gaussian_types.F",
+                    "qmmm_gpw_energy.F",
+                    "qmmm_gpw_forces.F",
+                    "qmmm_image_charge.F",
+                    "qmmm_init.F",
+                    "qmmm_links_methods.F",
+                    "qmmm_per_elpot.F",
+                    "qmmm_pw_grid.F",
+                    "qmmm_se_energy.F",
+                    "qmmm_se_forces.F",
+                    "qmmm_topology_util.F",
+                    "qmmm_types.F",
+                    "qmmm_types_low.F",
+                    "qmmm_util.F",
+                    "qmmmx_create.F",
+                    "qmmmx_force.F",
+                    "qmmmx_types.F",
+                    "qmmmx_util.F",
+
+                  # should this become a package on it's own?
+                  "topology_connectivity_util.F",
+                  "topology_types.F",
+                  "exclusion_types.F",
+                  "colvar_methods.F",
+                  "colvar_utils.F",
+                  "topology_coordinate_util.F",
+                  "topology_util.F",
+                  "topology.F",
+                  "input_cp2k_colvar.F",
+                  "rmsd.F",
+                  "topology_input.F",
+                  "topology_amber.F",
+                  "topology_constraint_util.F",
+                  "topology_coordinate_util.F",
+                  "topology.F",
+                  "topology_generate_util.F",
+                  "topology_pdb.F",
+                  "topology_psf.F",
+                  "topology_util.F",
+                  "topology_xyz.F",
+                  "topology_gromos.F",
+                  "topology_cp2k.F",
+                  "topology_cif.F",
+                  "topology_xtl.F",
+                  "topology_multiple_unit_cell.F",
+                    ]
+        },
+
+]
+#EOF
