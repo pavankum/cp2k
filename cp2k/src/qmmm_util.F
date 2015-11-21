@@ -117,7 +117,7 @@ CONTAINS
     CPASSERT(qmmm_env%ref_count>0)
 
     CALL get_qs_env(qmmm_env%qs_env, input=input)
-    walls_section => section_vals_get_subs_vals(input,"FORCE_EVAL%QMMM%WALLS")
+    walls_section => section_vals_get_subs_vals(input,"QMMM%WALLS")
     CALL section_vals_get(walls_section, explicit=explicit)
     IF (explicit) THEN
        NULLIFY(list)

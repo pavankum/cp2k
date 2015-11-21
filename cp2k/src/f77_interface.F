@@ -770,7 +770,7 @@ CONTAINS
                force_env_section=force_env_section, subsys_section=subsys_section,&
                use_motion_section=use_motion_section)
           CALL force_env_create(my_force_env, root_section, fist_env=fist_env,&
-                para_env=para_env, globenv=globenv, force_env_section=force_env_section)
+                para_env=my_para_env, globenv=globenv, force_env_section=force_env_section)
           CALL fist_env_release(fist_env)
 
        CASE (do_qs)
