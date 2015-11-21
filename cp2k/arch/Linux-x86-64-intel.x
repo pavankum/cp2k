@@ -67,12 +67,13 @@ MKL_STATIC ?= 1
 RECONFIGURE ?= 1
 TBBMALLOC ?= 1
 MEMKIND ?= 1
+OFFLOAD ?= 0
 NESTED ?= 0
 
-OFFLOAD ?= $(ACC)
 ifeq (0,$(OFFLOAD))
   MIC ?= 0
 else
+  ACC = 1
   JIT = 0
 endif
 ifneq (0,$(MIC))
@@ -253,6 +254,7 @@ ifneq (,$(LIBXSMMROOT))
       4 5 7 9 13 25 26 28 32 45"
   endif
   LIBXSMM_ALIGNED_STORES := 0
+  LIBXSMM_PREFETCH := 0
   ifneq (0,$(OMP))
     ifneq (0,$(NESTED))
       LIBXSMM_ALIGNED_STORES := 1
@@ -266,8 +268,6 @@ ifneq (,$(LIBXSMMROOT))
   endif
   ifneq (,$(filter %MIC-AVX512,$(TARGET)))
     LIBXSMM_PREFETCH := 1
-  else
-    LIBXSMM_PREFETCH := 0
   endif
   LIBXSMM_BUILD := $(shell $(MAKE) -f $(LIBXSMMROOT)/Makefile \
     INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
