@@ -61,7 +61,6 @@ MODULE dbcsr_mm_hostdrv
   PUBLIC :: dbcsr_mm_hostdrv_process
   PUBLIC :: dbcsr_mm_hostdrv_type
   PUBLIC :: dbcsr_mm_hostdrv_init
-  PUBLIC :: dbcsr_mm_hostdrv_lib_finalize
 
   LOGICAL, PARAMETER :: debug_mod  = .FALSE.
   LOGICAL, PARAMETER :: careful_mod = .FALSE.
@@ -125,17 +124,6 @@ CONTAINS
 
   END SUBROUTINE dbcsr_mm_hostdrv_init
 
-
-! *****************************************************************************
-!> \brief Finalize the library
-!> \author Ole Schuett
-! *****************************************************************************
-  SUBROUTINE dbcsr_mm_hostdrv_lib_finalize()
-#if defined(__LIBXSMM)
-    USE libxsmm,                           ONLY:  libxsmm_finalize
-    CALL libxsmm_finalize()
-#endif
-  END SUBROUTINE dbcsr_mm_hostdrv_lib_finalize
 
 ! *****************************************************************************
 !> \brief Calls the various drivers that process the stack.
