@@ -83,6 +83,7 @@ private:
 #else
   typedef const void* xfunc_type; // dummy
 #endif
+
   mutable/*offload attribute*/ xfunc_type m_predispatched;
   void (*m_function)(const xfunc_type&, U, U, U, U,
     const T *LIBXSMM_ACC_RESTRICT, const T *LIBXSMM_ACC_RESTRICT, T *LIBXSMM_ACC_RESTRICT,
@@ -104,6 +105,10 @@ public:
   }
 
 public:
+  bool efficient() const {
+    return 0 != m_predispatched;
+  }
+
   void zero_c(T *LIBXSMM_ACC_RESTRICT c, U size) const {
     LIBXSMM_ACC_ASSUME_ALIGNED(c, LIBXSMM_ACC_ALIGNED_STORES);
     LIBXSMM_ACC_PRAGMA_LOOP_COUNT(1, LIBXSMM_ACC_LOOP_MAX_M*LIBXSMM_ACC_LOOP_MAX_N, LIBXSMM_ACC_LOOP_AVG_M*LIBXSMM_ACC_LOOP_AVG_N)
@@ -296,15 +301,20 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
 
 
 template<size_t N, typename T, typename U>
-LIBXSMM_ACC_RETARGETABLE void context(const U* stack, const U* stacksize, const U* def_mnk, const U* max_m, const U* max_n, const U* max_k, const T* a, const T* b, T* c)
+LIBXSMM_ACC_RETARGETABLE void context(const U* stack, const U* stacksize, const U* def_mnk,
+  const U* max_m, const U* max_n, const U* max_k, const T* a, const T* b, T* c,
+  U* efficient/*Boolean*/)
 {
   const smm_type<T,U> smm(*def_mnk, *max_m, *max_n, *max_k);
   work<LIBXSMM_ACC_NPARAMS,T,U>(stack, *stacksize, smm, a, b, c);
+  if (efficient) *efficient = static_cast<int>(smm.efficient());
 }
 
 
 template<typename T, bool Complex, typename U>
-int process(const U* stack, U stacksize, U nparams, U def_mnk, U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data, void* stream)
+int process(const U* stack, U stacksize, U nparams, U def_mnk,
+  U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
+  void* stream_or_boolean)
 {
   LIBXSMM_ACC_CHECK_CONDITION(
     0 != stack && 0 <= stacksize && LIBXSMM_ACC_NPARAMS == nparams &&
@@ -312,28 +322,27 @@ int process(const U* stack, U stacksize, U nparams, U def_mnk, U max_m, U max_n,
     0 != a_data && 0 != b_data && 0 != c_data);
 
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-  if (stream) {
-    const size_t shape = stacksize;
-    libxstream_argument* signature = 0;
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 0,      stack, libxstream_map_to<U>::type(), 1, &shape));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 1, &stacksize, libxstream_map_to<U>::type(), 0, 0));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 2,   &def_mnk, libxstream_map_to<U>::type(), 0, 0));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 3,     &max_m, libxstream_map_to<U>::type(), 0, 0));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 4,     &max_n, libxstream_map_to<U>::type(), 0, 0));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 5,     &max_k, libxstream_map_to<U>::type(), 0, 0));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 6,     a_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input(signature, 7,     b_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_inout(signature, 8,     c_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
-    const libxstream_function libxsmm_process_function = reinterpret_cast<libxstream_function>(context<LIBXSMM_ACC_NPARAMS,T,U>);
-    LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_call(libxsmm_process_function, signature, static_cast<libxstream_stream*>(stream), LIBXSTREAM_CALL_DEFAULT));
-  }
-  else
+  const size_t shape = stacksize;
+  libxstream_argument* signature = 0;
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_signature(&signature));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input (signature, 0,      stack, libxstream_map_to<U>::type(), 1, &shape));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input (signature, 1, &stacksize, libxstream_map_to<U>::type(), 0, 0));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input (signature, 2,   &def_mnk, libxstream_map_to<U>::type(), 0, 0));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input (signature, 3,     &max_m, libxstream_map_to<U>::type(), 0, 0));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input (signature, 4,     &max_n, libxstream_map_to<U>::type(), 0, 0));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input (signature, 5,     &max_k, libxstream_map_to<U>::type(), 0, 0));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input (signature, 6,     a_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_input (signature, 7,     b_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_inout (signature, 8,     c_data, libxstream_map_to<T>::type(), 1, 0/*unknown*/));
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_output(signature, 9,          0, libxstream_map_to<U>::type(), 0, 0));
+  const libxstream_function libxsmm_process_function = reinterpret_cast<libxstream_function>(context<LIBXSMM_ACC_NPARAMS,T,U>);
+  LIBXSMM_ACC_CHECK_CALL_ASSERT(libxstream_fn_call(libxsmm_process_function, signature,
+    static_cast<libxstream_stream*>(stream_or_boolean), LIBXSTREAM_CALL_DEFAULT));
+#else
+  context<LIBXSMM_ACC_NPARAMS>(stack, &stacksize, &def_mnk, &max_m, &max_n, &max_k,
+    static_cast<const T*>(a_data), static_cast<const T*>(b_data), static_cast<T*>(c_data),
+    static_cast<U*>(stream_or_boolean));
 #endif
-  {
-    context<LIBXSMM_ACC_NPARAMS>(stack, &stacksize, &def_mnk, &max_m, &max_n, &max_k,
-      static_cast<const T*>(a_data), static_cast<const T*>(b_data), static_cast<T*>(c_data));
-  }
 
   return LIBXSMM_ACC_ERROR_NONE;
 }
@@ -346,13 +355,13 @@ const libxstream_function libxsmm_process_function = reinterpret_cast<libxstream
 #endif
 
 
-extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream)
+extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams, int datatype, void* a_data, void* b_data, void* c_data, int max_m, int max_n, int max_k, int def_mnk, void* stream_or_boolean)
 {
 #if defined(LIBXSMM_ACC_PRETRANSPOSE)
   LIBXSMM_ACC_ASSERT(false/*TODO: implement C = A * B which is assuming that B is pre-transposed (B^T).*/);
 #endif
 #if defined(__RECONFIGURE) && defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
-  const int mflops = 0 != stream ? static_cast<int>(2E-6 * stacksize * max_m * max_n * max_k + 0.5) : LIBXSMM_ACC_ACCDRV_MIN_MFLOPS_PERSTACK;
+  const int mflops = 0 != stream_or_boolean ? static_cast<int>(2E-6 * stacksize * max_m * max_n * max_k + 0.5) : LIBXSMM_ACC_ACCDRV_MIN_MFLOPS_PERSTACK;
   int result = (LIBXSMM_ACC_ACCDRV_MIN_MFLOPS_PERSTACK) <= mflops ? LIBXSMM_ACC_ERROR_NONE : LIBXSMM_ACC_NOT_SUPPORTED;
 #else
   int result = LIBXSMM_ACC_ERROR_NONE;
@@ -366,11 +375,11 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
         result = LIBXSMM_ACC_NOT_SUPPORTED; // none of the other ACC/Offload-layers seems to handle single precision
 #else // non-offload use case
-        result = libxsmm_process_private::process<float,false>(stack, stacksize, nparams, def_mnk, max_m, max_n, max_k, a_data, b_data, c_data, stream);
+        result = libxsmm_process_private::process<float,false>(stack, stacksize, nparams, def_mnk, max_m, max_n, max_k, a_data, b_data, c_data, stream_or_boolean);
 #endif
       } break;
       case LIBXSMM_ACC_ELEM_F64: {
-        result = libxsmm_process_private::process<double,false>(stack, stacksize, nparams, def_mnk, max_m, max_n, max_k, a_data, b_data, c_data, stream);
+        result = libxsmm_process_private::process<double,false>(stack, stacksize, nparams, def_mnk, max_m, max_n, max_k, a_data, b_data, c_data, stream_or_boolean);
       } break;
       case LIBXSMM_ACC_ELEM_C32: {
         result = LIBXSMM_ACC_NOT_SUPPORTED;
