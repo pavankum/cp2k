@@ -106,7 +106,7 @@ CONTAINS
        CALL cp_dbcsr_reserve_diag_blocks(pao%matrix_X)
 
        ! init matrix_X
-       IF(pao%iw>0) WRITE(pao%iw,*) "PAO| initializing potential with random noise from 0.0 ... +0.1"
+       IF(pao%iw>0) WRITE(pao%iw,*) "PAO| initializing potential with random noise."
        CALL fill_randomly(pao%matrix_X, pao%random_seed)
        CALL cp_dbcsr_scale(pao%matrix_X, +0.1_dp)
     ENDIF

@@ -69,6 +69,9 @@ CONTAINS
     CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%EPS_PAO",r_val=pao%eps_pao)
     IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,E10.1)") " PAO|","EPS_PAO", pao%eps_pao
 
+    CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%MIN_STEP",r_val=pao%min_step)
+    IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,E10.1)") " PAO|","MIN_STEP", pao%min_step
+
     CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%MAX_PAO",i_val=pao%max_pao)
     IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,I10)") " PAO|","MAX_PAO", pao%max_pao
 
@@ -91,14 +94,11 @@ CONTAINS
     CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%CHECK_GRADIENT_PARAM_TOL",r_val=pao%check_grad_param_tol)
     IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,E10.1)") " PAO|","CHECK_GRADIENT_PARAM_TOL",pao%check_grad_param_tol
 
-    CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%CHECK_GRADIENT_MCWEENY_TOL",r_val=pao%check_grad_mcweeny_tol)
-    IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,E10.1)") " PAO|","CHECK_GRADIENT_MCWEENY_TOL",pao%check_grad_mcweeny_tol
+    CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%CHECK_GRADIENT_FULL_TOL",r_val=pao%check_grad_full_tol)
+    IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,E10.1)") " PAO|","CHECK_GRADIENT_FULL_TOL",pao%check_grad_full_tol
 
     CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%PREOPT_DM_FILE",c_val=pao%preopt_dm_file)
     IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,A)") " PAO|","PREOPT_DM_FILE ",pao%preopt_dm_file
-
-    CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%EPS_PREOPT",r_val=pao%eps_preopt)
-    IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,E10.1)") " PAO|","EPS_PREOPT", pao%eps_preopt
 
     CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%SEED",i_val=pao%random_seed)
     IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,I10)") " PAO|","SEED", pao%random_seed
@@ -164,6 +164,12 @@ CONTAINS
     CALL section_add_keyword(section,keyword)
     CALL keyword_release(keyword)
 
+    CALL keyword_create(keyword, name="MIN_STEP",&
+         description="Save guard agains noisy gradients",&
+         default_r_val=1.e-5_dp)
+    CALL section_add_keyword(section,keyword)
+    CALL keyword_release(keyword)
+
     CALL keyword_create(keyword, name="MAX_PAO",&
          description="Maximum number of PAO basis optimization steps.",&
          default_i_val=1000)
@@ -199,14 +205,8 @@ CONTAINS
     CALL keyword_release(keyword)
 
     ! Preopt  ******************************************************************
-    CALL keyword_create(keyword, name="EPS_PREOPT",&
-         description="Convergence criteria for pre-optimization.",&
-         default_r_val=1.e-6_dp)
-    CALL section_add_keyword(section,keyword)
-    CALL keyword_release(keyword)
-
     CALL keyword_create(keyword, name="PREOPT_DM_FILE",&
-         description="Read density matrix for preopt from given file.",&
+         description="Read pre-optimized density matrix from given file.",&
          repeats=.FALSE., default_c_val="")
     CALL section_add_keyword(section,keyword)
     CALL keyword_release(keyword)
@@ -225,8 +225,8 @@ CONTAINS
     CALL section_add_keyword(section,keyword)
     CALL keyword_release(keyword)
 
-    CALL keyword_create(keyword, name="CHECK_GRADIENT_MCWEENY_TOL",&
-         description="Tolerance for check of analytic gradient of McWeeny against the numeric one."//&
+    CALL keyword_create(keyword, name="CHECK_GRADIENT_FULL_TOL",&
+         description="Tolerance for check of full analytic gradient against the numeric one."//&
          " Negative values mean don't check at all.",&
          default_r_val=-1.0_dp)
     CALL section_add_keyword(section,keyword)

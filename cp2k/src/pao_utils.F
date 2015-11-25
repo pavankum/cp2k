@@ -8,22 +8,23 @@
 !> \author Ole Schuett
 ! *****************************************************************************
 MODULE pao_utils
-  USE cp_dbcsr_interface,              ONLY: cp_dbcsr_frobenius_norm,&
-                                             cp_dbcsr_iterator,&
-                                             cp_dbcsr_iterator_blocks_left,&
-                                             cp_dbcsr_iterator_next_block,&
-                                             cp_dbcsr_iterator_start,&
-                                             cp_dbcsr_iterator_stop,&
-                                             cp_dbcsr_trace,&
-                                             cp_dbcsr_type
+  USE cp_blacs_env,                    ONLY: cp_blacs_env_type
+  USE cp_dbcsr_diag,                   ONLY: cp_dbcsr_syevd
+  USE cp_dbcsr_interface,              ONLY: &
+       cp_dbcsr_create, cp_dbcsr_init, cp_dbcsr_iterator, &
+       cp_dbcsr_iterator_blocks_left, cp_dbcsr_iterator_next_block, &
+       cp_dbcsr_iterator_start, cp_dbcsr_iterator_stop, cp_dbcsr_multiply, &
+       cp_dbcsr_nfullcols_total, cp_dbcsr_nfullrows_total, cp_dbcsr_release, &
+       cp_dbcsr_type
+  USE cp_para_types,                   ONLY: cp_para_env_type
   USE dm_ls_scf_types,                 ONLY: ls_scf_env_type
   USE kinds,                           ONLY: dp
-  USE machine,                         ONLY: m_walltime
-  USE pao_types,                       ONLY: pao_env_type
   USE parallel_rng_types,              ONLY: create_rng_stream,&
                                              delete_rng_stream,&
                                              next_random_number,&
                                              rng_stream_type
+  USE qs_environment_types,            ONLY: get_qs_env,&
+                                             qs_environment_type
 #include "./base/base_uses.f90"
 
   IMPLICIT NONE
@@ -32,128 +33,68 @@ MODULE pao_utils
 
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'pao_utils'
 
-  PUBLIC :: fill_randomly, pao_calc_CG_beta, pao_test_convergence
-  PUBLIC :: pao_print_step_delimiter
+  PUBLIC :: fill_randomly
 
 CONTAINS
 
-
 ! *****************************************************************************
-!> \brief Write iteration delimiter
-!> \param pao ...
-! *****************************************************************************
-  SUBROUTINE pao_print_step_delimiter(pao)
-    TYPE(pao_env_type), POINTER              :: pao
-
-    IF(pao%iw>0) WRITE(pao%iw,"(A,I9,A)") " PAO| ======================= Iteration: ",&
-                 pao%istep," ============================="
-
-  END SUBROUTINE pao_print_step_delimiter
-
-! *****************************************************************************
-!> \brief Test whether the PAO optimization has reached convergence
-!> \param pao ...
+!> \brief ...
+!> \param qs_env ...
 !> \param ls_scf_env ...
-!> \param new_energy ...
-!> \param mode ...
-!> \param is_converged ...
 ! *****************************************************************************
-  SUBROUTINE pao_test_convergence(pao, ls_scf_env, new_energy, mode, is_converged)
-    TYPE(pao_env_type), POINTER              :: pao
+  SUBROUTINE print_eigenvalues_PS(qs_env, ls_scf_env)
+    TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(ls_scf_env_type)                    :: ls_scf_env
-    REAL(KIND=dp), INTENT(IN)                :: new_energy
-    CHARACTER(LEN=*), INTENT(IN)             :: mode
-    LOGICAL, INTENT(OUT)                     :: is_converged
 
-    REAL(KIND=dp)                            :: energy_diff, loop_eps, &
-                                                norm_G, now, threshold, &
-                                                time_diff
+    TYPE(cp_dbcsr_type)                      :: matrix_x
 
-    IF(TRIM(mode)=="TRS4" .OR. TRIM(mode)=="McWeeny") THEN
-       threshold = pao%eps_preopt
-    ELSE IF(TRIM(mode)=="SCF") THEN
-       threshold = pao%eps_pao
-    ELSE
-       CPABORT("Unknown mode")
-    ENDIF
+!TYPE(cp_dbcsr_type)                      :: matrix_PS
+!CALL cp_dbcsr_init(matrix_PS)
+!CALL cp_dbcsr_create(matrix_PS, template=ls_scf_env%matrix_s, matrix_type="N")
+!CALL cp_dbcsr_multiply("N", "N", 1.0_dp, ls_scf_env%matrix_p(1), ls_scf_env%matrix_s,&
+!                       0.0_dp, matrix_PS)
+!CALL print_eigenvalues(qs_env, matrix_PS)
+!CALL cp_dbcsr_release(matrix_PS)
 
-    is_converged = .FALSE.
-
-    ! calculate progress
-    energy_diff = new_energy - pao%energy_prev
-    pao%energy_prev = new_energy
-    now = m_walltime()
-    time_diff = now - pao%step_start_time
-    pao%step_start_time = now
-
-    norm_G = cp_dbcsr_frobenius_norm(pao%matrix_G)
-    IF(pao%iw>0) WRITE(pao%iw,*) "PAO| energy:", new_energy
-    IF(pao%iw>0) WRITE(pao%iw,*) "PAO| gradient norm:", norm_G
-
-    IF(pao%istep>1) THEN
-       IF(pao%iw>0) WRITE(pao%iw,*) "PAO| energy improvement:", energy_diff
-       IF(energy_diff>0.0_dp) CPWARN("PAO| energy increased")
-
-       loop_eps = norm_G / ls_scf_env%nelectron_total
-       is_converged = (loop_eps < threshold)
-
-       ! print one-liner
-       IF(pao%iw>0) WRITE (pao%iw,'(A,I6,1X,A8,1X,F20.9,1X,E10.3,1X,E10.3,1X,F6.3)')&
-                    " PAO| step ",&
-                    pao%istep,&
-                    TRIM(mode),&
-                    new_energy,&
-                    loop_eps,&
-                    pao%linesearch%step_size,& !prev step, which let to the current energy
-                    time_diff
-    ENDIF
-  END SUBROUTINE pao_test_convergence
+    CALL cp_dbcsr_init(matrix_x)
+    CALL cp_dbcsr_create(matrix_x, template=ls_scf_env%matrix_p(1), matrix_type="N")
+    CALL cp_dbcsr_multiply("N", "N", 1.0_dp, ls_scf_env%matrix_s_sqrt, ls_scf_env%matrix_p(1),&
+                           0.0_dp, matrix_x)
+    CALL cp_dbcsr_multiply("N", "N", 1.0_dp, matrix_x, ls_scf_env%matrix_s_sqrt, &
+                          0.0_dp, matrix_x)
+    CALL print_eigenvalues(qs_env, matrix_x)
+    CALL cp_dbcsr_release(matrix_x)
+  END SUBROUTINE print_eigenvalues_PS
 
 
 ! *****************************************************************************
-!> \brief Conjugate gradient algorithm
-!> \param pao ...
-!> \param beta ...
+!> \brief ...
+!> \param qs_env ...
+!> \param matrix ...
 ! *****************************************************************************
-  SUBROUTINE pao_calc_CG_beta(pao, beta)
-    TYPE(pao_env_type), POINTER              :: pao
-    REAL(KIND=dp), INTENT(OUT)               :: beta
+  SUBROUTINE print_eigenvalues(qs_env, matrix)
+    TYPE(qs_environment_type), POINTER       :: qs_env
+    TYPE(cp_dbcsr_type)                      :: matrix
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'pao_calc_CG_beta', &
-      routineP = moduleN//':'//routineN
+    INTEGER                                  :: k
+    REAL(dp), DIMENSION(:), POINTER          :: eigenvalues
+    TYPE(cp_blacs_env_type), POINTER         :: blacs_env
+    TYPE(cp_dbcsr_type)                      :: eigenvectors
+    TYPE(cp_para_env_type), POINTER          :: para_env
 
-    REAL(KIND=dp)                            :: trace_G_mix, trace_G_new, &
-                                                trace_G_prev
+    CPASSERT(cp_dbcsr_nfullrows_total(matrix)==cp_dbcsr_nfullcols_total(matrix))
+    k = cp_dbcsr_nfullrows_total(matrix)
+    CALL cp_dbcsr_init(eigenvectors)
+    CALL cp_dbcsr_create(eigenvectors, template=matrix, matrix_type="N")
+    ALLOCATE(eigenvalues(k))
+    CALL get_qs_env(qs_env, para_env=para_env, blacs_env=blacs_env)
+    CALL cp_dbcsr_syevd(matrix, eigenvectors, eigenvalues, para_env, blacs_env)
+    WRITE (*,*) "eigenvalues(PS)", eigenvalues
+    WRITE (*,*) "SUM(eigenvalues(PS))", SUM(eigenvalues)
+    DEALLOCATE(eigenvalues)
+    CALL cp_dbcsr_release(eigenvectors)
+  END SUBROUTINE print_eigenvalues
 
-    beta = 0.0_dp !default
-
-    IF(pao%istep > pao%cg_init_steps) THEN
-       CALL cp_dbcsr_trace(pao%matrix_G, pao%matrix_G, trace_G_new)
-       CALL cp_dbcsr_trace(pao%matrix_G_prev, pao%matrix_G_prev, trace_G_prev)
-       CALL cp_dbcsr_trace(pao%matrix_G, pao%matrix_G_prev, trace_G_mix)
-       IF(pao%iw_cg>0) WRITE(pao%iw_cg,*) "PAO|CG| trace_G_new ", trace_G_new
-       IF(pao%iw_cg>0) WRITE(pao%iw_cg,*) "PAO|CG| trace_G_prev ", trace_G_prev
-       IF(pao%iw_cg>0) WRITE(pao%iw_cg,*) "PAO|CG| trace_G_mix ", trace_G_mix
-
-       IF(trace_G_prev/=0.0_dp) THEN
-          beta = (trace_G_new - trace_G_mix) / trace_G_prev  !Polak–Ribiere
-       ENDIF
-
-       IF(beta < 0.0_dp) THEN
-          IF(pao%iw_cg>0) WRITE(pao%iw_cg,*) "PAO|CG| resetting because beta < 0"
-          beta = 0.0_dp
-       ENDIF
-
-       IF(pao%max_outer_pao>0 .AND. pao%istep-pao%last_reset > pao%max_outer_pao) THEN
-          IF(pao%iw>0) WRITE(pao%iw,*) "PAO|CG| resetting because of MAX_OUTER_PAO"
-          pao%last_reset = pao%istep
-          beta = 0.0_dp
-       ENDIF
-    ENDIF
-
-    IF(pao%iw_cg>0) WRITE(pao%iw_cg,*) "PAO|CG| beta: ", beta
-
-  END SUBROUTINE pao_calc_CG_beta
 
 ! *****************************************************************************
 !> \brief Fills a DBCSR matrix with random noise.

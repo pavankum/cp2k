@@ -46,7 +46,7 @@ MODULE pao_io
 
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'pao_io'
 
-  PUBLIC ::  pao_write_restart, pao_read_restart
+  PUBLIC :: pao_read_restart, pao_write_restart
 
 CONTAINS
 
