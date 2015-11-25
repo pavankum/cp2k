@@ -9,12 +9,13 @@
 ! *****************************************************************************
 MODULE pao_param_exp
   USE cp_control_types,                ONLY: dft_control_type
-  USE cp_dbcsr_interface,              ONLY: &
-       cp_dbcsr_add_on_diag, cp_dbcsr_copy, cp_dbcsr_create, &
-       cp_dbcsr_get_block_p, cp_dbcsr_init, cp_dbcsr_p_type, &
-       cp_dbcsr_release, cp_dbcsr_reserve_diag_blocks, cp_dbcsr_set
+  USE cp_dbcsr_interface,              ONLY: cp_dbcsr_create,&
+                                             cp_dbcsr_get_block_p,&
+                                             cp_dbcsr_init,&
+                                             cp_dbcsr_p_type,&
+                                             cp_dbcsr_reserve_diag_blocks,&
+                                             cp_dbcsr_set
   USE kinds,                           ONLY: dp
-  USE pao_input,                       ONLY: pao_none_precon
   USE pao_types,                       ONLY: pao_env_type
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_environment_type
@@ -26,7 +27,7 @@ MODULE pao_param_exp
 
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'pao_param_exp'
 
-  PUBLIC :: pao_param_init_exp, pao_param_finalize_exp, pao_calc_U_exp
+  PUBLIC :: pao_param_init_exp, pao_calc_U_exp
 
 CONTAINS
 
@@ -66,35 +67,8 @@ CONTAINS
        IF(dft_control%nspins /= 1) CPABORT("open shell not yet implemented")
     ENDIF
 
-    ! build none preconditioner
-    IF(pao%preconditioner /= pao_none_precon) CPABORT("preconditioner not supported")
-    CALL cp_dbcsr_init(pao%matrix_precon)
-    CALL cp_dbcsr_copy(pao%matrix_precon, pao%matrix_X)
-    CALL cp_dbcsr_set(pao%matrix_precon, 0.0_dp)
-    CALL cp_dbcsr_add_on_diag(pao%matrix_precon, 1.0_dp)
-    CALL cp_dbcsr_init(pao%matrix_precon_inv)
-    CALL cp_dbcsr_copy(pao%matrix_precon_inv, pao%matrix_precon)
-
     CALL timestop(handle)
   END SUBROUTINE pao_param_init_exp
-
-
-! *****************************************************************************
-!> \brief Finalize exponential parametrization
-!> \param pao ...
-! *****************************************************************************
-  SUBROUTINE pao_param_finalize_exp(pao)
-    TYPE(pao_env_type), POINTER              :: pao
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'pao_param_finalize_exp', &
-      routineP = moduleN//':'//routineN
-
-! pao%matrix_X is keept for the next MD step
-
-    CALL cp_dbcsr_release(pao%matrix_precon)
-    CALL cp_dbcsr_release(pao%matrix_precon_inv)
-
-  END SUBROUTINE pao_param_finalize_exp
 
 
 ! *****************************************************************************

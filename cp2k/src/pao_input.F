@@ -35,9 +35,6 @@ MODULE pao_input
 
   PUBLIC :: create_pao_section, parse_pao_section, id2str
 
-  INTEGER, PARAMETER, PUBLIC               :: pao_none_precon=421,&
-                                              pao_sinv_precon=422
-
   INTEGER, PARAMETER, PUBLIC               :: pao_rotinv_param=101,&
                                               pao_fock_param=102,&
                                               pao_exp_param=103
@@ -81,9 +78,6 @@ CONTAINS
     CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%PARAMETERIZATION",i_val=pao%parameterization)
     IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,A10)") " PAO|","PARAMETERIZATION", id2str(pao%parameterization)
 
-    CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%PRECONDITIONER",i_val=pao%preconditioner)
-    IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,A10)") " PAO|","PRECONDITIONER", id2str(pao%preconditioner)
-
     CALL section_vals_val_get(input,"DFT%LS_SCF%PAO%CG_INIT_STEPS",i_val=pao%cg_init_steps)
     IF(pao%iw>0) WRITE (pao%iw,"(A,T40,A,T71,I10)") " PAO|","CG_INIT_STEPS",pao%cg_init_steps
     IF(pao%cg_init_steps<1) CPABORT("PAO: CG_INIT_STEPS < 1")
@@ -118,10 +112,6 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     SELECT CASE(id)
-      CASE(pao_none_precon)
-        s = "NONE"
-      CASE(pao_sinv_precon)
-        s = "SINV"
       CASE(pao_rotinv_param)
         s = "ROTINV"
       CASE(pao_fock_param)
@@ -183,16 +173,6 @@ CONTAINS
     CALL keyword_release(keyword)
 
     ! Parametrization **********************************************************
-    CALL keyword_create(keyword, name="PRECONDITIONER",&
-         description="Preconditioner used by the linear potential parametrization.",&
-         enum_c_vals=s2a("NONE","SINV"),&
-         enum_i_vals=(/pao_none_precon, pao_sinv_precon/),&
-         enum_desc=s2a("No preconditioner",&
-                       "Invert overlap matrix between V terms"),&
-         default_i_val=pao_sinv_precon)
-    CALL section_add_keyword(section,keyword)
-    CALL keyword_release(keyword)
-
     CALL keyword_create(keyword, name="PARAMETERIZATION",&
          description="Parametrization of the mapping between the primary and the PAO basis.",&
          enum_c_vals=s2a("ROTINV","FOCK","EXP"),&

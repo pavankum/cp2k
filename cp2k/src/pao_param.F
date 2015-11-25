@@ -20,7 +20,6 @@ MODULE pao_param
   USE message_passing,                 ONLY: mp_max
   USE pao_input,                       ONLY: pao_exp_param
   USE pao_param_exp,                   ONLY: pao_calc_U_exp,&
-                                             pao_param_finalize_exp,&
                                              pao_param_init_exp
   USE pao_param_linpot,                ONLY: pao_calc_U_linpot,&
                                              pao_param_finalize_linpot,&
@@ -117,7 +116,7 @@ CONTAINS
 
     SELECT CASE(pao%parameterization)
       CASE(pao_exp_param)
-        CALL pao_param_finalize_exp(pao)
+        ! nothing todo, matrix_X is kept for the next MD step
       CASE DEFAULT
         CALL pao_param_finalize_linpot(pao)
     END SELECT
@@ -138,8 +137,7 @@ CONTAINS
     INTEGER                                  :: acol, arow, handle, iatom, &
                                                 n1, n2
     LOGICAL                                  :: found
-    REAL(dp), DIMENSION(:, :), POINTER       :: block_precon, block_pX, &
-                                                block_U, block_X
+    REAL(dp), DIMENSION(:, :), POINTER       :: block_U, block_X
     TYPE(cp_dbcsr_iterator)                  :: iter
 
     CALL timeset(routineN,handle)
@@ -154,16 +152,8 @@ CONTAINS
 
        CALL cp_dbcsr_get_block_p(matrix=pao%matrix_U, row=iatom, col=iatom, block=block_U, found=found)
        CPASSERT(ASSOCIATED(block_U))
-       CALL cp_dbcsr_get_block_p(matrix=pao%matrix_precon, row=iatom, col=iatom, block=block_precon, found=found)
-       CPASSERT(ASSOCIATED(block_precon))
 
-       ! apply preconditioner
-       ALLOCATE(block_pX(n1,n2))
-       block_pX = MATMUL(block_precon, block_X)
-
-       CALL pao_calc_U_low(pao, iatom, block_pX, block_U)
-
-       DEALLOCATE(block_pX)
+       CALL pao_calc_U_low(pao, iatom, block_X, block_U)
     END DO
 
     CALL cp_dbcsr_iterator_stop(iter)
@@ -211,12 +201,11 @@ CONTAINS
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: acol, arow, group, handle, &
-                                                iatom, n1, n2
+                                                iatom
     LOGICAL                                  :: found
     REAL(dp)                                 :: grad_check_max
-    REAL(dp), DIMENSION(:, :), POINTER       :: block_G, block_M, block_pG, &
-                                                block_precon, block_pX, &
-                                                block_U, block_X
+    REAL(dp), DIMENSION(:, :), POINTER       :: block_G, block_M, block_U, &
+                                                block_X
     TYPE(cp_dbcsr_iterator)                  :: iter
 
     CALL timeset(routineN,handle)
@@ -228,8 +217,6 @@ CONTAINS
        CALL cp_dbcsr_iterator_next_block(iter, arow, acol, block_X)
        IF(arow /= acol) CPABORT("encountered off-diagonal block")
        iatom = arow
-       n1 = SIZE(block_X,1)
-       n2 = SIZE(block_X,2)
 
        CALL cp_dbcsr_get_block_p(matrix=pao%matrix_U, row=arow, col=acol, block=block_U, found=found)
        CPASSERT(ASSOCIATED(block_U))
@@ -237,27 +224,17 @@ CONTAINS
        CPASSERT(ASSOCIATED(block_G))
        CALL cp_dbcsr_get_block_p(matrix=matrix_M, row=arow, col=acol, block=block_M, found=found)
        CPASSERT(ASSOCIATED(block_M))
-       CALL cp_dbcsr_get_block_p(matrix=pao%matrix_precon, row=iatom, col=iatom, block=block_precon, found=found)
-       CPASSERT(ASSOCIATED(block_precon))
-
-       ! apply preconditioner to block_X
-       ALLOCATE(block_pX(n1,n2), block_pG(n1,n2))
-       block_pX = MATMUL(block_precon, block_X)
 
        SELECT CASE(pao%parameterization)
          CASE(pao_exp_param)
-           CALL pao_calc_U_exp(pao, iatom, block_pX, block_U, block_M, block_pG)
+           CALL pao_calc_U_exp(pao, iatom, block_X, block_U, block_M, block_G)
          CASE DEFAULT
-           CALL pao_calc_U_linpot(pao, iatom, block_pX, block_U, block_M, block_pG)
+           CALL pao_calc_U_linpot(pao, iatom, block_X, block_U, block_M, block_G)
        END SELECT
 
        IF(pao%check_grad_param_tol>0.0_dp)&
-          CALL pao_check_grad_param(pao, iatom, block_pX, block_pG, block_M, grad_check_max)
+          CALL pao_check_grad_param(pao, iatom, block_X, block_G, block_M, grad_check_max)
 
-       ! apply preconditioner to block_G
-       block_G = MATMUL(block_precon, block_pG)
-
-       DEALLOCATE(block_pX, block_pG)
     END DO
 
     CALL cp_dbcsr_iterator_stop(iter)
