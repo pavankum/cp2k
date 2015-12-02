@@ -179,7 +179,6 @@ CONTAINS
 
     DO WHILE(pao%istep < pao%max_pao)
        pao%istep = pao%istep + 1
-       icycle = icycle + 1
 
        IF(pao%iw>0) WRITE(pao%iw,"(A,I9,A)") " PAO| ======================= Iteration: ",&
                  pao%istep," ============================="
@@ -192,6 +191,7 @@ CONTAINS
        CALL pao_check_trace_PS(ls_scf_env)
 
        IF(pao%linesearch%starts) THEN
+          icycle = icycle + 1
           ! calc new gradient
           CALL pao_calc_outer_grad_lnv(qs_env, ls_scf_env, matrix_M)
           CALL pao_calc_grad(pao, matrix_M)
@@ -223,7 +223,7 @@ CONTAINS
        CALL pao_update_AB(pao, ls_mstruct)
     ENDDO
 
-    IF(cycle_converged .AND. icycle==1) THEN
+    IF(cycle_converged .AND. icycle<3) THEN ! step_size criterium needs two cycles
        IF(pao%iw>0) WRITE(pao%iw,*) "PAO| converged after ", pao%istep, " steps :-)"
        pao_is_done = .TRUE.
     ELSE IF(.NOT. cycle_converged) THEN
