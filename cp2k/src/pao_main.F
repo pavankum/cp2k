@@ -24,7 +24,8 @@ MODULE pao_main
                                              linesearch_step
   USE machine,                         ONLY: m_walltime
   USE pao_input,                       ONLY: parse_pao_section
-  USE pao_io,                          ONLY: pao_read_restart
+  USE pao_io,                          ONLY: pao_read_restart,&
+                                             pao_write_restart
   USE pao_methods,                     ONLY: &
        pao_build_orthogonalizer, pao_build_selector, pao_calc_CG_beta, &
        pao_calc_outer_grad_lnv, pao_calc_trace_ph, pao_check_trace_ps, &
@@ -231,6 +232,8 @@ CONTAINS
     ELSE
        pao_is_done = .FALSE.
     ENDIF
+
+    CALL pao_write_restart(pao, qs_env, energy)
 
     CALL timestop(handle)
   END SUBROUTINE pao_update
