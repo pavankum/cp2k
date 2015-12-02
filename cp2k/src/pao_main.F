@@ -81,7 +81,14 @@ CONTAINS
 
     CALL parse_pao_section(pao, input)
 
-    ! preconditioner has to be build before pao_param_init()
+    ! get initial P and KS matrices in primary basis
+    IF(LEN_TRIM(pao%preopt_dm_file)>0) THEN
+       CALL pao_read_preopt_dm(pao, qs_env)
+    ELSE
+       CALL ls_scf_qs_atomic_guess(qs_env, ls_scf_env%energy_init)
+       IF(pao%iw>0) WRITE(pao%iw,'(A,F20.9)') " PAO| Energy from initial atomic guess:", ls_scf_env%energy_init
+    ENDIF
+
     CALL pao_build_orthogonalizer(pao, qs_env)
 
     IF(pao%istep>0) THEN ! was there a previous MD step?
@@ -126,14 +133,6 @@ CONTAINS
 
     section => section_vals_get_subs_vals(input,"DFT%LS_SCF%PAO%LINE_SEARCH")
     CALL linesearch_init(pao%linesearch, section, "PAO|")
-
-    ! get initial P and KS matrices
-    IF(LEN_TRIM(pao%preopt_dm_file)>0) THEN
-       CALL pao_read_preopt_dm(pao, qs_env, ls_scf_env)
-    ELSE
-       CALL ls_scf_qs_atomic_guess(qs_env,ls_scf_env%energy_init)
-       IF(pao%iw>0) WRITE(pao%iw,'(A,F20.9)') " PAO| Energy from initial atomic guess:",ls_scf_env%energy_init
-    ENDIF
 
     CALL timestop(handle)
   END SUBROUTINE pao_init

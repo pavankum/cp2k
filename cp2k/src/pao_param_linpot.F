@@ -14,7 +14,7 @@ MODULE pao_param_linpot
        cp_dbcsr_iterator, cp_dbcsr_iterator_blocks_left, &
        cp_dbcsr_iterator_next_block, cp_dbcsr_iterator_start, &
        cp_dbcsr_iterator_stop, cp_dbcsr_p_type, cp_dbcsr_release, &
-       cp_dbcsr_reserve_diag_blocks, cp_dbcsr_scale, cp_dbcsr_set
+       cp_dbcsr_reserve_diag_blocks, cp_dbcsr_set
   USE kinds,                           ONLY: dp
   USE pao_input,                       ONLY: pao_fock_param,&
                                              pao_rotinv_param
@@ -26,7 +26,6 @@ MODULE pao_param_linpot
                                              pao_param_finalize_fock,&
                                              pao_param_init_fock
   USE pao_types,                       ONLY: pao_env_type
-  USE pao_utils,                       ONLY: fill_randomly
   USE qs_environment_types,            ONLY: get_qs_env,&
                                              qs_environment_type
 #include "./base/base_uses.f90"
@@ -59,7 +58,8 @@ CONTAINS
                                                 kterm, max_terms, natoms, &
                                                 nterms
     INTEGER, DIMENSION(:), POINTER           :: col_blk_size, row_blk_size
-    REAL(dp), DIMENSION(:, :), POINTER       :: block_V_term
+    LOGICAL                                  :: found
+    REAL(dp), DIMENSION(:, :), POINTER       :: block_H, block_V_term, block_X
     TYPE(cp_dbcsr_iterator)                  :: iter
     TYPE(cp_dbcsr_p_type), DIMENSION(:), &
       POINTER                                :: matrix_ks, matrix_s
@@ -98,11 +98,7 @@ CONTAINS
                             row_blk_size=row_blk_size,&
                             col_blk_size=col_blk_size)
        CALL cp_dbcsr_reserve_diag_blocks(pao%matrix_X)
-
-       ! init matrix_X
-       IF(pao%iw>0) WRITE(pao%iw,*) "PAO| initializing potential with random noise."
-       CALL fill_randomly(pao%matrix_X, pao%random_seed)
-       CALL cp_dbcsr_scale(pao%matrix_X, +0.1_dp)
+       CALL cp_dbcsr_set(pao%matrix_X, 0.0_dp)
     ENDIF
 
     ! calculate, normalize, and store potential terms
@@ -115,12 +111,16 @@ CONTAINS
        CALL cp_dbcsr_iterator_start(iter, pao%matrix_V_terms(kterm))
        DO WHILE (cp_dbcsr_iterator_blocks_left(iter))
           CALL cp_dbcsr_iterator_next_block(iter, arow, acol, block_V_term)
+          CALL cp_dbcsr_get_block_p(matrix=pao%matrix_X, row=arow, col=acol, block=block_X, found=found)
+          CALL cp_dbcsr_get_block_p(matrix=matrix_ks(1)%matrix, row=arow, col=acol, block=block_H, found=found)
+          CPASSERT(ASSOCIATED(block_X) .AND. ASSOCIATED(block_H))
           IF(arow /= acol) CPABORT("encountered off-diagonal block")
           iatom = arow
           CALL linpot_count_terms(pao, qs_env, iatom, nterms)
           IF(kterm <= nterms) THEN
             CALL linpot_calc_term(pao, qs_env, iatom, kterm, block_V_term)
             block_V_term = block_V_term / SQRT(SUM(block_V_term*block_V_term))
+            block_X(kterm,1) = ABS(SUM(block_V_term * block_H)) ! seems like a good initial guess
           ENDIF
        ENDDO
        CALL cp_dbcsr_iterator_stop(iter)
