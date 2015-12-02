@@ -408,39 +408,36 @@ CONTAINS
 !> \brief TODO
 !> \param pao ...
 !> \param qs_env ...
-!> \param ls_scf_env ...
 ! *****************************************************************************
-  SUBROUTINE pao_read_preopt_dm(pao, qs_env, ls_scf_env)
+  SUBROUTINE pao_read_preopt_dm(pao, qs_env)
     TYPE(pao_env_type), POINTER              :: pao
     TYPE(qs_environment_type), POINTER       :: qs_env
-    TYPE(ls_scf_env_type), TARGET            :: ls_scf_env
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pao_read_preopt_dm', &
       routineP = moduleN//':'//routineN
 
-    INTEGER                                  :: handle, ispin, nspin
+    INTEGER                                  :: handle, ispin
     REAL(KIND=dp)                            :: cs_pos
     TYPE(cp_dbcsr_p_type), DIMENSION(:), &
-      POINTER                                :: matrix_ks, matrix_s, rho_ao
+      POINTER                                :: matrix_s, rho_ao
     TYPE(cp_dbcsr_type)                      :: matrix_tmp
+    TYPE(dft_control_type), POINTER          :: dft_control
     TYPE(qs_energy_type), POINTER            :: energy
     TYPE(qs_rho_type), POINTER               :: rho
 
     CALL timeset(routineN,handle)
 
-    nspin = ls_scf_env%nspins
-
     CALL get_qs_env(qs_env,&
+                    dft_control=dft_control,&
                     matrix_s=matrix_s,&
-                    matrix_ks=matrix_ks,&
                     rho=rho,&
                     energy=energy)
 
     CALL qs_rho_get(rho, rho_ao=rho_ao)
 
-    IF(nspin/=1) CPABORT("open shell not yet implemented")
+    IF(dft_control%nspins/=1) CPABORT("open shell not yet implemented")
 
-    DO ispin=1, nspin
+    DO ispin=1, dft_control%nspins
        CALL cp_dbcsr_init(matrix_tmp) ! read into tmp-matrix to preserve sparsity of rho_ao
        CALL cp_dbcsr_binary_read(pao%preopt_dm_file, matrix_new=matrix_tmp,&
                                  distribution=cp_dbcsr_distribution(matrix_s(1)%matrix))
@@ -460,7 +457,7 @@ CONTAINS
 
     CALL timestop(handle)
 
-  END SUBROUTINE pao_read_preopt_dm 
+  END SUBROUTINE pao_read_preopt_dm
 
 
 ! *****************************************************************************
