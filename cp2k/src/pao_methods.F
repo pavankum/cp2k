@@ -23,6 +23,7 @@ MODULE pao_methods
   USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                              cp_logger_type,&
                                              cp_to_string
+  USE cp_para_types,                   ONLY: cp_para_env_type
   USE dm_ls_scf_methods,               ONLY: density_matrix_trs4,&
                                              ls_scf_init_matrix_S
   USE dm_ls_scf_qs,                    ONLY: matrix_qs_to_ls
@@ -32,6 +33,9 @@ MODULE pao_methods
                                              dp
   USE machine,                         ONLY: m_walltime
   USE mathlib,                         ONLY: diamat_all
+  USE message_passing,                 ONLY: mp_max
+  USE pao_input,                       ONLY: pao_exp_param
+  USE pao_param,                       ONLY: pao_update_AB
   USE pao_types,                       ONLY: pao_env_type
   USE particle_types,                  ONLY: particle_type
   USE qs_energy_types,                 ONLY: qs_energy_type
@@ -58,6 +62,7 @@ MODULE pao_methods
   PUBLIC :: pao_calc_trace_ph, pao_check_trace_ps
   PUBLIC :: pao_read_preopt_dm
   PUBLIC :: pao_dm_trs4, pao_calc_outer_grad_lnv
+  PUBLIC :: pao_check_grad_full
 
 CONTAINS
 
@@ -726,5 +731,105 @@ CONTAINS
 
     CALL timestop(handle)
   END SUBROUTINE pao_calc_outer_grad_lnv
+
+
+! *****************************************************************************
+!> \brief Debugging routine for checking the analytic gradient.
+!> \param pao ...
+!> \param qs_env ...
+!> \param ls_scf_env ...
+! *****************************************************************************
+  SUBROUTINE pao_check_grad_full(pao, qs_env, ls_scf_env)
+    TYPE(pao_env_type), POINTER              :: pao
+    TYPE(qs_environment_type), POINTER       :: qs_env
+    TYPE(ls_scf_env_type), TARGET            :: ls_scf_env
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'pao_check_grad_full', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: handle, i, iatom, j, natoms
+    INTEGER, DIMENSION(:), POINTER           :: blk_sizes_col, blk_sizes_row
+    LOGICAL                                  :: found
+    REAL(dp)                                 :: delta_max, energy1, energy2, &
+                                                eps, Gij_num, symm
+    REAL(dp), DIMENSION(:, :), POINTER       :: block_G, block_X, block_X0
+    TYPE(cp_para_env_type), POINTER          :: para_env
+    TYPE(ls_mstruct_type), POINTER           :: ls_mstruct
+
+    IF(pao%check_grad_full_tol<0.0_dp) RETURN ! no checking
+
+    CALL timeset(routineN,handle)
+
+    ls_mstruct => ls_scf_env%ls_mstruct
+
+    SELECT CASE(pao%parameterization)
+      CASE(pao_exp_param)
+        symm = -1.0_dp ! anti-symmetric
+      CASE DEFAULT
+        symm = 0.0_dp  ! no symmetry
+    END SELECT
+
+    CALL get_qs_env(qs_env, para_env=para_env, natom=natoms)
+
+    eps = 1.0e-5_dp
+    delta_max = 0.0_dp
+
+    blk_sizes_col => cp_dbcsr_col_block_sizes(pao%matrix_X)
+    blk_sizes_row => cp_dbcsr_row_block_sizes(pao%matrix_X)
+
+    ! can not use an iterator here, because other DBCSR routines are called within loop.
+    DO iatom=1, natoms
+       IF(pao%iw>0) WRITE(pao%iw,*) 'PAO| checking full gradient of atom ',iatom
+       CALL cp_dbcsr_get_block_p(matrix=pao%matrix_X, row=iatom, col=iatom, block=block_X, found=found)
+
+       IF(ASSOCIATED(block_X)) THEN !only one node actually has the block
+          CALL cp_dbcsr_get_block_p(matrix=pao%matrix_G, row=iatom, col=iatom, block=block_G, found=found)
+          CPASSERT(ASSOCIATED(block_G))
+          ALLOCATE(block_X0(blk_sizes_row(iatom),blk_sizes_col(iatom)))
+          block_X0 = block_X
+       ENDIF
+
+       DO i=1, blk_sizes_row(iatom)
+          DO j=1, blk_sizes_col(iatom)
+             IF(ASSOCIATED(block_X)) THEN
+                block_X = block_X0
+                block_X(i,j) = block_X(i,j) + eps
+                IF(symm/=0.0) block_X(j,i) = block_X(j,i) + symm*eps
+             ENDIF
+
+             CALL pao_update_AB(pao, ls_mstruct)
+             CALL pao_dm_trs4(qs_env, ls_scf_env)
+             CALL pao_calc_trace_PH(ls_scf_env, energy1)
+
+             IF(ASSOCIATED(block_X)) THEN
+                block_X = block_X0
+                block_X(i,j) = block_X(i,j) - eps
+                IF(symm/=0.0) block_X(j,i) = block_X(j,i) - symm*eps
+             ENDIF
+
+             CALL pao_update_AB(pao, ls_mstruct)
+             CALL pao_dm_trs4(qs_env, ls_scf_env)
+             CALL pao_calc_trace_PH(ls_scf_env, energy2)
+
+             IF(ASSOCIATED(block_X)) THEN
+                Gij_num = (energy1 - energy2) / (2.0_dp*eps)
+                delta_max = MAX(delta_max, ABS(Gij_num - block_G(i,j)))
+             ENDIF
+          ENDDO
+       ENDDO
+
+       IF(ASSOCIATED(block_X)) THEN
+          block_X = block_X0
+          DEALLOCATE(block_X0)
+       ENDIF
+    END DO
+
+    CALL mp_max(delta_max, para_env%group)
+    IF(pao%iw>0) WRITE(pao%iw,*) 'PAO| checked full gradient, max delta:', delta_max
+    IF(delta_max > pao%check_grad_full_tol)  CALL cp_abort(__LOCATION__,&
+       "Analytic and numeric gradients differ too much:"//cp_to_string(delta_max))
+
+    CALL timestop(handle)
+  END SUBROUTINE pao_check_grad_full
 
 END MODULE pao_methods

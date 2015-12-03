@@ -28,9 +28,9 @@ MODULE pao_main
                                              pao_write_restart
   USE pao_methods,                     ONLY: &
        pao_build_orthogonalizer, pao_build_selector, pao_calc_CG_beta, &
-       pao_calc_outer_grad_lnv, pao_calc_trace_ph, pao_check_trace_ps, &
-       pao_dm_trs4, pao_print_atom_info, pao_read_preopt_dm, &
-       pao_test_convergence
+       pao_calc_outer_grad_lnv, pao_calc_trace_ph, pao_check_grad_full, &
+       pao_check_trace_ps, pao_dm_trs4, pao_print_atom_info, &
+       pao_read_preopt_dm, pao_test_convergence
   USE pao_param,                       ONLY: pao_calc_grad,&
                                              pao_param_finalize,&
                                              pao_param_init,&
@@ -195,6 +195,7 @@ CONTAINS
           CALL pao_calc_outer_grad_lnv(qs_env, ls_scf_env, matrix_M)
           CALL pao_calc_grad(pao, matrix_M)
           CALL cp_dbcsr_release(matrix_M)
+          CALL pao_check_grad_full(pao, qs_env, ls_scf_env)
 
           ! determine CG mixing factor
           CALL pao_calc_CG_beta(pao, beta)
