@@ -20,6 +20,7 @@ MODULE pao_param
   USE message_passing,                 ONLY: mp_max
   USE pao_input,                       ONLY: pao_exp_param
   USE pao_param_exp,                   ONLY: pao_calc_U_exp,&
+                                             pao_param_finalize_exp,&
                                              pao_param_init_exp
   USE pao_param_linpot,                ONLY: pao_calc_U_linpot,&
                                              pao_param_finalize_linpot,&
@@ -116,7 +117,7 @@ CONTAINS
 
     SELECT CASE(pao%parameterization)
       CASE(pao_exp_param)
-        ! nothing todo, matrix_X is kept for the next MD step
+        CALL pao_param_finalize_exp(pao)
       CASE DEFAULT
         CALL pao_param_finalize_linpot(pao)
     END SELECT
