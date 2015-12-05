@@ -42,7 +42,7 @@ lcov_ver=1.11
 #gcc_ver=4.9.2
 #gcc_ver=4.9.3
 #gcc_ver=5.1.0
-gcc_ver=5.2.0
+gcc_ver=5.3.0
 make_ver=4.1
 
 # parse options
@@ -194,7 +194,7 @@ else
 fi
 
 echo "==================== Installing gcc ======================"
-if [ -f gcc-${gcc_ver}.tar.gz -o -f gcc-${gcc_ver}.zip ]; then
+if [ -f gcc-${gcc_ver}.tar.gz -o -d gcc-master ]; then
    echo "Installation already started, skipping it."
 else
    if [ "${gcc_ver}" == "master" ]; then
@@ -243,15 +243,12 @@ cat << EOF > ${INSTALLDIR}/lsan.supp
 leak:__cp_fm_types_MOD_cp_fm_write_unformatted
 # leaks related to PEXSI
 leak:PPEXSIDFTDriver
+EOF
+cat << EOF > ${INSTALLDIR}/tsan.supp
 # tsan bugs likely related to gcc
 # PR66756
 deadlock:_gfortran_st_open
 mutex:_gfortran_st_open
-# PR66761
-race:do_spin
-race:gomp_team_end
-#PR67303
-race:gomp_iter_guided_next
 # bugs related to removing/filtering blocks in DBCSR.. to be fixed
 race:__dbcsr_block_access_MOD_dbcsr_remove_block
 race:__dbcsr_operations_MOD_dbcsr_filter_anytype
@@ -284,7 +281,7 @@ else
 fi
 export CP2KINSTALLDIR=${INSTALLDIR}
 export LSAN_OPTIONS=suppressions=${INSTALLDIR}/lsan.supp
-export TSAN_OPTIONS=suppressions=${INSTALLDIR}/lsan.supp
+export TSAN_OPTIONS=suppressions=${INSTALLDIR}/tsan.supp
 export VALGRIND_OPTIONS="--suppressions=${INSTALLDIR}/valgrind.supp --max-stackframe=2168152 --error-exitcode=42"
 export CC=gcc
 export CXX=g++
@@ -415,7 +412,7 @@ else
    # helper to check if libsmm is available (uses http-redirect to find latest version)
    libsmm_exists() {
        query_url=https://www.cp2k.org/static/downloads/libsmm/$1-latest.a
-       reply_url=`curl $query_url -s -L -I -o /dev/null -w '%{url_effective}'`
+       reply_url=`python -c "import urllib2; print(urllib2.urlopen('$query_url').geturl())"`
        if [ "$query_url" != "$reply_url" ]; then
           echo $reply_url | cut -d/ -f7
        fi
@@ -452,10 +449,11 @@ if [ "$libsmm" != "" ]; then
       wget https://www.cp2k.org/static/downloads/libsmm/$libsmm
       checksum $libsmm
       cp $libsmm ${INSTALLDIR}/lib/
-      ln -s ${INSTALLDIR}/lib/$libsmm ${INSTALLDIR}/lib/libsmm_dnn.a
    fi
+   tmp=${libsmm#lib}
+   libname=${tmp%.a}
    DFLAGS="${DFLAGS} IF_VALGRIND(,-D__HAS_smm_dnn)"
-   LIBS="IF_VALGRIND(,-lsmm_dnn) ${LIBS}"
+   LIBS="IF_VALGRIND(,-l${libname}) ${LIBS}"
 fi
 
 
@@ -792,8 +790,8 @@ BASEFLAGS="${BASEFLAGS} IF_DEBUG(,\$(PROFOPT))"
 
 # Special flags for gfortran
 # https://gcc.gnu.org/onlinedocs/gfortran/Error-and-Warning-Options.html
-# we error out for these warnings
-WFLAGSERROR="-Werror=aliasing -Werror=ampersand -Werror=c-binding-type -Werror=intrinsic-shadow -Werror=intrinsics-std -Werror=line-truncation -Werror=tabs -Werror=realloc-lhs-all -Werror=target-lifetime -Werror=underflow -Werror=unused-but-set-variable -Werror=unused-variable -Werror=unused-dummy-argument -Werror=conversion -Werror=zerotrip"
+# we error out for these warnings (-Werror=uninitialized -Wno-maybe-uninitialized -> error on variables that must be used uninitialized)
+WFLAGSERROR="-Werror=aliasing -Werror=ampersand -Werror=c-binding-type -Werror=intrinsic-shadow -Werror=intrinsics-std -Werror=line-truncation -Werror=tabs -Werror=realloc-lhs-all -Werror=target-lifetime -Werror=underflow -Werror=unused-but-set-variable -Werror=unused-variable -Werror=unused-dummy-argument -Werror=conversion -Werror=zerotrip -Werror=uninitialized -Wno-maybe-uninitialized"
 # we just warn for those (that eventually might be promoted to WFLAGSERROR). It is useless to put something here with 100s of warnings.
 WFLAGSWARN="-Wuse-without-only"
 # while here we collect all other warnings, some we'll ignore
