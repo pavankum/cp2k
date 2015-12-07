@@ -163,8 +163,7 @@
     USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_cfunction,&
                                                  libxsmm_dispatch  => libxsmm_cdispatch,&
                                                  libxsmm_available => libxsmm_cavailable,&
-                                                 libxsmm_call_abc  => libxsmm_ccall_abc,&
-                                                 libxsmm_call_prf  => libxsmm_ccall_prf,&
+                                                 libxsmm_call      => libxsmm_ccall,&
                                                  libxsmm_gemm      => libxsmm_cgemm,&
                                                  LIBXSMM_PREFETCH_NONE,&
                                                  LIBXSMM_PREFETCH,&
@@ -235,12 +234,12 @@
 
                 ! condition evaluates at compile-time (PARAMETERS)
                 IF (LIBXSMM_DEFAULT_PREFETCH /= LIBXSMM_PREFETCH_NONE) THEN
-                   CALL libxsmm_call_prf(func, &
+                   CALL libxsmm_call(func, &
                         a=a_data(fa), b=b_data(fb), c=c_data(fc), &
                         ! provide locations of the next operand set
                         pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
                 ELSE
-                   CALL libxsmm_call_abc(func, &
+                   CALL libxsmm_call(func, &
                         a=a_data(fa), b=b_data(fb), c=c_data(fc))
                 ENDIF
              ENDDO
@@ -250,12 +249,12 @@
 
              ! condition evaluates at compile-time (PARAMETERS)
              IF (LIBXSMM_DEFAULT_PREFETCH /= LIBXSMM_PREFETCH_NONE) THEN
-                CALL libxsmm_call_prf(func, &
+                CALL libxsmm_call(func, &
                      a=a_data(fa), b=b_data(fb), c=c_data(fc), &
                      ! prefetch same blocks
                      pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
              ELSE
-                CALL libxsmm_call_abc(func, &
+                CALL libxsmm_call(func, &
                      a=a_data(fa), b=b_data(fb), c=c_data(fc))
              ENDIF
 
