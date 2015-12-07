@@ -163,19 +163,17 @@
     USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_sfunction,&
                                                  libxsmm_dispatch  => libxsmm_sdispatch,&
                                                  libxsmm_available => libxsmm_savailable,&
-                                                 libxsmm_call_abc  => libxsmm_scall_abc,&
-                                                 libxsmm_call_prf  => libxsmm_scall_prf,&
+                                                 libxsmm_call      => libxsmm_scall,&
                                                  libxsmm_gemm      => libxsmm_sgemm,&
-                                                 LIBXSMM_PREFETCH_DEFAULT => LIBXSMM_PREFETCH,&
-                                                 LIBXSMM_FLAGS_DEFAULT => LIBXSMM_FLAGS,&
                                                  LIBXSMM_PREFETCH_NONE,&
+                                                 LIBXSMM_PREFETCH,&
                                                  LIBXSMM_ROW_MAJOR,&
                                                  LIBXSMM_COL_MAJOR,&
                                                  LIBXSMM_MAX_MNK,&
                                                  LIBXSMM_FLAGS
 
-    INTEGER, PARAMETER :: LIBXSMM_PREFETCH = LIBXSMM_PREFETCH_DEFAULT
-    INTEGER, PARAMETER :: LIBXSMM_FLAGS = LIBXSMM_FLAGS_DEFAULT
+    INTEGER, PARAMETER :: LIBXSMM_DEFAULT_PREFETCH = LIBXSMM_PREFETCH
+    INTEGER, PARAMETER :: LIBXSMM_DEFAULT_FLAGS = LIBXSMM_FLAGS
 #endif
 
     INTEGER, INTENT(IN)                       :: stack_size
@@ -218,7 +216,7 @@
           ! try to get a function pointer from libxsmm
           CALL libxsmm_dispatch(func, &
                m=stack_descr%m, n=stack_descr%n, k=stack_descr%k, alpha=one, beta=one, &
-               flags=LIBXSMM_FLAGS, prefetch=LIBXSMM_PREFETCH)
+               flags=LIBXSMM_DEFAULT_FLAGS, prefetch=LIBXSMM_DEFAULT_PREFETCH)
 
           IF (libxsmm_available(func)) THEN
              ! load first stack entry
@@ -235,13 +233,13 @@
                 pc = params(p_c_first, sp + 1)
 
                 ! condition evaluates at compile-time (PARAMETERS)
-                IF (LIBXSMM_PREFETCH /= LIBXSMM_PREFETCH_NONE) THEN
-                   CALL libxsmm_call_prf(func, &
+                IF (LIBXSMM_DEFAULT_PREFETCH /= LIBXSMM_PREFETCH_NONE) THEN
+                   CALL libxsmm_call(func, &
                         a=a_data(fa), b=b_data(fb), c=c_data(fc), &
                         ! provide locations of the next operand set
                         pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
                 ELSE
-                   CALL libxsmm_call_abc(func, &
+                   CALL libxsmm_call(func, &
                         a=a_data(fa), b=b_data(fb), c=c_data(fc))
                 ENDIF
              ENDDO
@@ -250,13 +248,13 @@
              fa = pa; fb = pb; fc = pc
 
              ! condition evaluates at compile-time (PARAMETERS)
-             IF (LIBXSMM_PREFETCH /= LIBXSMM_PREFETCH_NONE) THEN
-                CALL libxsmm_call_prf(func, &
+             IF (LIBXSMM_DEFAULT_PREFETCH /= LIBXSMM_PREFETCH_NONE) THEN
+                CALL libxsmm_call(func, &
                      a=a_data(fa), b=b_data(fb), c=c_data(fc), &
                      ! prefetch same blocks
                      pa=a_data(pa), pb=b_data(pb), pc=c_data(pc))
              ELSE
-                CALL libxsmm_call_abc(func, a=a_data(fa), b=b_data(fb), c=c_data(fc))
+                CALL libxsmm_call(func, a=a_data(fa), b=b_data(fb), c=c_data(fc))
              ENDIF
 
              processed = .TRUE.
