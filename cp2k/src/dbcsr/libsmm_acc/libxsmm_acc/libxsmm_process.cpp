@@ -234,12 +234,11 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
 #endif
   {
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL))) || (1 < (LIBXSMM_ACC_ALIGNED_STORES))
-    LIBXSMM_ACC_ALIGNED(T tmp[LIBXSMM_ACC_MAX_RESULT_SIZE], LIBXSMM_ACC_ALIGNMENT);
+    T buffer[LIBXSMM_ACC_MAX_RESULT_SIZE];
+    T *const tmp = LIBXSMM_ACC_ALIGN_LDST(buffer);
 #endif
-    LIBXSMM_ACC_ALIGNED(U current[LIBXSMM_ACC_PARAM_COUNT], LIBXSMM_ACC_ALIGNMENT);
-    LIBXSMM_ACC_ALIGNED(U next[LIBXSMM_ACC_PARAM_COUNT], LIBXSMM_ACC_ALIGNMENT);
+    U current[LIBXSMM_ACC_PARAM_COUNT], next[LIBXSMM_ACC_PARAM_COUNT];
     U *pcur = current, *pnxt = next, i = s;
-    LIBXSMM_ACC_ASSUME_ALIGNED(pcur, LIBXSMM_ACC_ALIGNMENT);
     for (U j = 0; j < LIBXSMM_ACC_PARAM_COUNT; ++j) current[j] = stack[s+j];
 #if (defined(LIBXSMM_ACC_NLOCAL) && (1 < (LIBXSMM_ACC_NLOCAL)))
     const int end = s + std::min(static_cast<int>((LIBXSMM_ACC_NLOCAL) * N), nstacksize - s);
