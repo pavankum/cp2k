@@ -160,20 +160,22 @@
 
 #if defined(__LIBXSMM) && 0
     ! Caution: This dependency is ignored by makedep.py, because libxsmm.F is kinda empty.
-    USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_zmm_function,&
-                                                 libxsmm_dispatch  => libxsmm_zdispatch_all,&
+    USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_zfunction,&
+                                                 libxsmm_dispatch  => libxsmm_zdispatch,&
                                                  libxsmm_available => libxsmm_zavailable,&
                                                  libxsmm_call_abc  => libxsmm_zcall_abc,&
                                                  libxsmm_call_prf  => libxsmm_zcall_prf,&
-                                                 libxsmm_mm_abc    => libxsmm_zmm_abc,&
-                                                 libxsmm_mm_prf    => libxsmm_zmm_prf,&
+                                                 libxsmm_gemm      => libxsmm_zgemm,&
                                                  LIBXSMM_PREFETCH_DEFAULT => LIBXSMM_PREFETCH,&
+                                                 LIBXSMM_FLAGS_DEFAULT => LIBXSMM_FLAGS,&
                                                  LIBXSMM_PREFETCH_NONE,&
                                                  LIBXSMM_ROW_MAJOR,&
                                                  LIBXSMM_COL_MAJOR,&
                                                  LIBXSMM_MAX_MNK,&
-                                                 LIBXSMM_FLAGS,&
-                                                 LIBXSMM_JIT
+                                                 LIBXSMM_FLAGS
+
+    INTEGER, PARAMETER :: LIBXSMM_PREFETCH = LIBXSMM_PREFETCH_DEFAULT
+    INTEGER, PARAMETER :: LIBXSMM_FLAGS = LIBXSMM_FLAGS_DEFAULT
 #endif
 
     INTEGER, INTENT(IN)                       :: stack_size
@@ -199,7 +201,7 @@
     processed = .FALSE.
     used_smm = .FALSE.
 
-    CPASSERT(LIBXSMM_COL_MAJOR==1 .AND. LIBXSMM_ROW_MAJOR==0)
+    CPASSERT(LIBXSMM_COL_MAJOR/=0 .AND. LIBXSMM_ROW_MAJOR==0)
 
     ! check whether the matrix stack is homogeneous or not
     IF (stack_descr%defined_mnk) THEN
@@ -215,9 +217,8 @@
        ELSE
           ! try to get a function pointer from libxsmm
           CALL libxsmm_dispatch(func, &
-               m=stack_descr%m, n=stack_descr%n, k=stack_descr%k, &
-               alpha=one, beta=one, lda=0, ldb=0, ldc=0, &
-               flags=LIBXSMM_FLAGS,  prefetch=LIBXSMM_PREFETCH_DEFAULT)
+               m=stack_descr%m, n=stack_descr%n, k=stack_descr%k, alpha=one, beta=one, &
+               flags=LIBXSMM_FLAGS, prefetch=LIBXSMM_PREFETCH)
 
           IF (libxsmm_available(func)) THEN
              ! load first stack entry
@@ -234,7 +235,7 @@
                 pc = params(p_c_first, sp + 1)
 
                 ! condition evaluates at compile-time (PARAMETERS)
-                IF (LIBXSMM_PREFETCH_DEFAULT /= LIBXSMM_PREFETCH_NONE) THEN
+                IF (LIBXSMM_PREFETCH /= LIBXSMM_PREFETCH_NONE) THEN
                    CALL libxsmm_call_prf(func, &
                         a=a_data(fa), b=b_data(fb), c=c_data(fc), &
                         ! provide locations of the next operand set
@@ -249,7 +250,7 @@
              fa = pa; fb = pb; fc = pc
 
              ! condition evaluates at compile-time (PARAMETERS)
-             IF (LIBXSMM_PREFETCH_DEFAULT /= LIBXSMM_PREFETCH_NONE) THEN
+             IF (LIBXSMM_PREFETCH /= LIBXSMM_PREFETCH_NONE) THEN
                 CALL libxsmm_call_prf(func, &
                      a=a_data(fa), b=b_data(fb), c=c_data(fc), &
                      ! prefetch same blocks
@@ -279,8 +280,8 @@
           a_ptr(1:m,1:k) => a_data(fa:fa+(m*k))
           b_ptr(1:k,1:n) => b_data(fb:fb+(k*n))
           c_ptr(1:m,1:n) => c_data(fc:fc+(m*n))
-          CALL libxsmm_mm_abc(m=m, n=n, k=k, a=a_ptr, b=b_ptr, c=c_ptr,&
-                              flags=LIBXSMM_FLAGS, alpha=one, beta=one)
+          CALL libxsmm_gemm(m=m, n=n, k=k, a=a_ptr, b=b_ptr, c=c_ptr, &
+                            alpha=one, beta=one)
        ENDDO
     ENDIF
 
