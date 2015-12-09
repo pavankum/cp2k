@@ -79,7 +79,7 @@ template<typename T, typename U>
 class LIBXSMM_ACC_RETARGETABLE smm_type {
 private:
 #if defined(__LIBXSMM)
-  typedef libxsmm_function<T> xfunc_type;
+  typedef libxsmm_mmfunction<T> xfunc_type;
 #else
   typedef const void* xfunc_type; // dummy
 #endif

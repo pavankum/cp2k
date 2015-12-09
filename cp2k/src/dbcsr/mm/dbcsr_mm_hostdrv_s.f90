@@ -160,10 +160,10 @@
 
 #if defined(__LIBXSMM) && 1
     ! Caution: This dependency is ignored by makedep.py, because libxsmm.F is kinda empty.
-    USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_sfunction,&
-                                                 libxsmm_dispatch  => libxsmm_sdispatch,&
-                                                 libxsmm_available => libxsmm_savailable,&
-                                                 libxsmm_call      => libxsmm_scall,&
+    USE libxsmm,                           ONLY: libxsmm_function  => libxsmm_smmfunction,&
+                                                 libxsmm_dispatch  => libxsmm_smmdispatch,&
+                                                 libxsmm_available => libxsmm_smmavailable,&
+                                                 libxsmm_call      => libxsmm_smmcall,&
                                                  libxsmm_gemm      => libxsmm_sgemm,&
                                                  LIBXSMM_PREFETCH_NONE,&
                                                  LIBXSMM_PREFETCH,&
