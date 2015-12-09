@@ -72,9 +72,11 @@ LIBXSMM_ACC_EXTERN_C void xsmm_acc_abort(const char* filename, int line_number, 
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*);
 
 # if defined(__GNUC__)
-LIBXSMM_ACC_ATTRIBUTE(weak)
+LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_ATTRIBUTE(weak)
+# else
+LIBXSMM_ACC_EXTERN_C
 # endif
-LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*);
+void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*);
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver)
 {
 #if defined(MKL_ENABLE_AVX512_MIC)
