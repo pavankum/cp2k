@@ -71,7 +71,10 @@ LIBXSMM_ACC_EXTERN_C void xsmm_acc_abort(const char* filename, int line_number, 
 
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*);
 
-LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_ATTRIBUTE(weak) void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*);
+# if defined(__GNUC__)
+LIBXSMM_ACC_ATTRIBUTE(weak)
+# endif
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*);
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver)
 {
 #if defined(MKL_ENABLE_AVX512_MIC)
@@ -132,7 +135,7 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 }
 
 
-LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_ATTRIBUTE(weak) void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s)(
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_s)(
   const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize,
   const float* a, const float* b, float* c, int* efficient/*Boolean*/);
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_acc_process_mm_stack_s)(
@@ -150,7 +153,7 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_acc_process_mm_stack_s)(
 }
 
 
-LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_ATTRIBUTE(weak) void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d)(
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_mm_hostdrv_mp_xsmm_process_mm_stack_d)(
   const libxsmm_acc_stackdesc_type* descriptor, const int* params, const int* stacksize,
   const double* a, const double* b, double* c, int* efficient/*Boolean*/);
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(xsmm_acc_process_mm_stack_d)(
