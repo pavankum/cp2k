@@ -282,7 +282,7 @@ ifneq (,$(LIBXSMMROOT))
 
   DFLAGS  += -D__LIBXSMM
   IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
-  LIBS    += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/intel64/libxsmm.a
+  LIBS    += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/libxsmm.a
 endif
 
 ifneq (0,$(ACC))
