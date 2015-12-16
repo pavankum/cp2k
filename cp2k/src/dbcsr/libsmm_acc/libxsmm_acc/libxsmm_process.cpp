@@ -171,12 +171,7 @@ private:
   {
     LIBXSMM_ACC_ASSERT((LIBXSMM_MAX_MNK) >= (m * n * k));
     const xfunc_type xfunc(m, n, k, T(1)/*alpha*/, T(1)/*beta*/);
-# if (0 == LIBXSMM_JIT) // JIT disabled: check if xfunc is present
-    if (xfunc)
-# else
-    LIBXSMM_ACC_ASSERT(xfunc);
-# endif
-    {
+    if (xfunc) {
 # if (0 != LIBXSMM_PREFETCH)
       xfunc(a, b, c, pa, pb, pc);
 # else
@@ -186,11 +181,9 @@ private:
       xfunc(a, b, c);
 # endif
     }
-# if (0 == LIBXSMM_JIT)
     else {
       blasmm(m, n, k, ldc, a, b, c);
     }
-# endif
   }
 #endif
 
