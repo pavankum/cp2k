@@ -239,7 +239,7 @@ endif
 
 ifneq (,$(LIBXSMMROOT))
   ifeq (0,$(JIT))
-    LIBXSMM_MNK := " \
+    $(eval LIBXSMM_MNK := " \
       23, \
       6, \
       14 16 29, \
@@ -251,7 +251,7 @@ ifneq (,$(LIBXSMMROOT))
       16 29 55, \
       32 29 55, \
       12, \
-      4 5 7 9 13 25 26 28 32 45"
+      4 5 7 9 13 25 26 28 32 45")
   endif
   LIBXSMM_ALIGNED_STORES := 0
   LIBXSMM_PREFETCH := 0
@@ -276,7 +276,7 @@ ifneq (,$(LIBXSMMROOT))
     OUTDIR=$(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib \
     SYM=$(SYM) DBG=$(DBG) IPO=$(IPO) OFFLOAD=$(OFFLOAD) MIC=$(MIC) \
     ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) MNK="$(LIBXSMM_MNK)" \
-    M="$(LIBXSMM_M)" N="$(LIBXSMM_N)" K="$(LIBXSMM_K)" \
+    M=$(LIBXSMM_M) N=$(LIBXSMM_N) K=$(LIBXSMM_K) \
     PREFETCH=$(LIBXSMM_PREFETCH) JIT=$(JIT) \
     PRECISION=2 \
   >&2)
