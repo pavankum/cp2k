@@ -87,10 +87,8 @@ ifeq (1,$(shell echo $$((2 > $(DBG)))))
     else
       TARGET = -xMIC-AVX512
     endif
-  else ifeq (1,$(shell echo $$((2 <= $(SSE)))))
-    TARGET = -xSSE$(SSE)
-  else ifeq (1,$(SSE))
-    TARGET = -xSSE3
+  else ifneq (0,$(SSE))
+    TARGET = -xSSE4.2
   else
     TARGET = -xHost
   endif
