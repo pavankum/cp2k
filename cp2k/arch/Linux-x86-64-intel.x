@@ -74,14 +74,6 @@ ifeq (0,$(OFFLOAD))
   MIC ?= 0
 else
   ACC = 1
-  JIT = 0
-endif
-ifneq (0,$(MIC))
-  JIT = 0
-endif
-
-ifneq (0,$(SSE))
-  JIT = 0
 endif
 
 ifeq (1,$(shell echo $$((2 > $(DBG)))))
@@ -238,7 +230,7 @@ ifneq (0,$(MEMKIND))
 endif
 
 ifneq (,$(LIBXSMMROOT))
-  ifeq (0,$(JIT))
+  ifeq (1,$(shell echo $$((0==$(JIT) || 0!=$(SSE)))))
     LIBXSMM_MNK := "23, 6, 14 16 29, 14 32 29, 5 32 13 24 26, 9 32 22, 64, 78, 16 29 55, 32 29 55, 12, 4 5 7 9 13 25 26 28 32 45"
   endif
   LIBXSMM_ALIGNED_STORES := 0
