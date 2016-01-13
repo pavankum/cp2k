@@ -1,6 +1,6 @@
 # Arch file targeting Linux 64-bit using the Intel tool chain
 #
-ROOT := $(dir $(word $(words $(MAKEFILE_LIST)), $(MAKEFILE_LIST)))
+ROOTDIR = $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
 
-include $(ROOT)Linux-x86-64-intel.x
+include $(ROOTDIR)/Linux-x86-64-intel.x
 
