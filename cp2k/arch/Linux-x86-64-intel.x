@@ -54,6 +54,7 @@ BEEP ?= 1
 JIT ?= 1
 SSE ?= 0
 AVX ?= 0
+OPT ?= 2
 MPI ?= 1
 OMP ?= 1
 ACC ?= 0
@@ -61,7 +62,7 @@ OCL ?= 0
 SYM ?= 0
 DBG ?= 0
 IPO ?= 0
-MKL ?= 1
+MKL ?= 2
 MKL_DIRECT ?= 0
 MKL_STATIC ?= 1
 RECONFIGURE ?= 1
@@ -107,7 +108,7 @@ OPTFLAGS  = $(TARGET)
 #DIAG_DISABLE := $(DIAG_DISABLE),2571,3218
 
 ifeq (0,$(DBG))
-  OPTFLAGS  += -O2
+  OPTFLAGS  += -O$(OPT)
   DFLAGS    += -DNDEBUG
 
   CXXFLAGS  += -fno-alias -ansi-alias #-fp-model fast=2 #precise
@@ -256,7 +257,7 @@ ifneq (,$(LIBXSMMROOT))
     ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) MNK=$(LIBXSMM_MNK) \
     M=$(LIBXSMM_M) N=$(LIBXSMM_N) K=$(LIBXSMM_K) \
     PREFETCH=$(LIBXSMM_PREFETCH) JIT=$(JIT) \
-    PRECISION=2 PTHREAD=$(OMP) \
+    PRECISION=2 PTHREAD=$(OMP) OPT=$(OPT) \
   >&2)
 
   DFLAGS  += -D__LIBXSMM
