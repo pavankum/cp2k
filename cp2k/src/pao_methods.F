@@ -32,8 +32,7 @@ MODULE pao_methods
   USE kinds,                           ONLY: default_path_length,&
                                              dp
   USE machine,                         ONLY: m_walltime
-  USE mathlib,                         ONLY: abnormal_value,&
-                                             diamat_all
+  USE mathlib,                         ONLY: diamat_all
   USE message_passing,                 ONLY: mp_max
   USE pao_input,                       ONLY: pao_exp_param
   USE pao_param,                       ONLY: pao_update_AB
@@ -60,10 +59,10 @@ MODULE pao_methods
 
   PUBLIC :: pao_print_atom_info, pao_build_orthogonalizer, pao_build_selector
   PUBLIC :: pao_test_convergence, pao_calc_CG_beta
-  PUBLIC :: pao_calc_trace_ph, pao_check_trace_ps
+  PUBLIC :: pao_calc_energy, pao_check_trace_ps
   PUBLIC :: pao_read_preopt_dm
-  PUBLIC :: pao_dm_trs4, pao_calc_outer_grad_lnv
-  PUBLIC :: pao_check_grad_full
+  PUBLIC :: pao_calc_outer_grad_lnv
+  PUBLIC :: pao_check_grad
 
 CONTAINS
 
@@ -169,7 +168,6 @@ CONTAINS
              ENDDO
           ENDDO
        ENDDO
-
        DEALLOCATE(A, evals)
     END DO
     CALL cp_dbcsr_iterator_stop(iter)
@@ -256,14 +254,12 @@ CONTAINS
 !> \param pao ...
 !> \param ls_scf_env ...
 !> \param new_energy ...
-!> \param icycle ...
 !> \param is_converged ...
 ! *****************************************************************************
-  SUBROUTINE pao_test_convergence(pao, ls_scf_env, new_energy, icycle, is_converged)
+  SUBROUTINE pao_test_convergence(pao, ls_scf_env, new_energy, is_converged)
     TYPE(pao_env_type), POINTER              :: pao
     TYPE(ls_scf_env_type)                    :: ls_scf_env
     REAL(KIND=dp), INTENT(IN)                :: new_energy
-    INTEGER, INTENT(IN)                      :: icycle
     LOGICAL, INTENT(OUT)                     :: is_converged
 
     REAL(KIND=dp)                            :: energy_diff, loop_eps, &
@@ -281,20 +277,14 @@ CONTAINS
     norm_G = cp_dbcsr_frobenius_norm(pao%matrix_G)
     IF(pao%iw>0) WRITE(pao%iw,*) "PAO| energy:", new_energy
     IF(pao%iw>0) WRITE(pao%iw,*) "PAO| gradient norm:", norm_G
-    IF(abnormal_value(norm_G))&
-       CPABORT("PAO gradient norm is an abnormal value (NaN/Inf).")
 
     IF(pao%istep>1) THEN
        IF(pao%iw>0) WRITE(pao%iw,*) "PAO| energy improvement:", energy_diff
        ! IF(energy_diff>0.0_dp) CPWARN("PAO| energy increased")
 
+       ! convergence criterion
        loop_eps = norm_G / ls_scf_env%nelectron_total
-       IF(loop_eps < pao%eps_pao) &
-         is_converged = .TRUE.
-
-       ! safeguard against noisy gradient
-       IF(icycle > 1 .AND. pao%linesearch%step_size < pao%min_step) &
-         is_converged = .TRUE.
+       is_converged = loop_eps < pao%eps_pao
 
        ! print one-liner
        IF(pao%iw>0) WRITE (pao%iw,'(A,I6,11X,F20.9,1X,E10.3,1X,E10.3,1X,F6.3)')&
@@ -311,10 +301,12 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Conjugate gradient algorithm
 !> \param pao ...
+!> \param icycle ...
 !> \param beta ...
 ! *****************************************************************************
-  SUBROUTINE pao_calc_CG_beta(pao, beta)
+  SUBROUTINE pao_calc_CG_beta(pao, icycle, beta)
     TYPE(pao_env_type), POINTER              :: pao
+    INTEGER, INTENT(IN)                      :: icycle
     REAL(KIND=dp), INTENT(OUT)               :: beta
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pao_calc_CG_beta', &
@@ -323,9 +315,10 @@ CONTAINS
     REAL(KIND=dp)                            :: trace_G_mix, trace_G_new, &
                                                 trace_G_prev
 
-    beta = 0.0_dp !default
-
-    IF(pao%istep > pao%cg_init_steps) THEN
+    IF(icycle <= pao%cg_init_steps) THEN
+       IF(pao%iw_cg>0) WRITE(pao%iw_cg,*) "PAO|CG| warming up with steepest descent"
+       beta = 0.0_dp
+    ELSE
        CALL cp_dbcsr_trace(pao%matrix_G, pao%matrix_G, trace_G_new)
        CALL cp_dbcsr_trace(pao%matrix_G_prev, pao%matrix_G_prev, trace_G_prev)
        CALL cp_dbcsr_trace(pao%matrix_G, pao%matrix_G_prev, trace_G_mix)
@@ -349,28 +342,48 @@ CONTAINS
 
 
 ! *****************************************************************************
-!> \brief Calculate the pre-optimization energy
+!> \brief Calculate the pao energy
+!> \param pao ...
+!> \param qs_env ...
 !> \param ls_scf_env ...
 !> \param energy ...
 ! *****************************************************************************
-  SUBROUTINE pao_calc_trace_PH(ls_scf_env, energy)
+  SUBROUTINE pao_calc_energy(pao, qs_env, ls_scf_env, energy)
+    TYPE(pao_env_type), POINTER              :: pao
+    TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(ls_scf_env_type), TARGET            :: ls_scf_env
     REAL(KIND=dp), INTENT(OUT)               :: energy
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'pao_calc_trace_PH', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'pao_calc_energy', &
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: handle, ispin
-    REAL(KIND=dp)                            :: trace_PH
+    REAL(KIND=dp)                            :: penalty, trace_PH
 
     CALL timeset(routineN,handle)
+
+    ! calculate matrix U, which determines the pao basis
+    CALL pao_update_AB(pao, ls_scf_env%ls_mstruct, penalty)
+
+    ! calculat S, S_inv, S_sqrt, and S_sqrt_inv in the new pao basis
+    CALL pao_rebuild_S(qs_env, ls_scf_env)
+
+    ! calulate the density matrix P in the pao basis
+    CALL pao_dm_trs4(qs_env, ls_scf_env)
+
+    ! calculate the energy from the trace(PH) in the pao basis
     energy = 0.0_dp
     DO ispin=1, ls_scf_env%nspins
        CALL cp_dbcsr_trace(ls_scf_env%matrix_p(ispin), ls_scf_env%matrix_ks(ispin), trace_PH)
        energy = energy + trace_PH
     ENDDO
+
+    ! add penalty term
+    IF (penalty/=0.0_dp .AND. pao%iw>0) WRITE(pao%iw,*) "PAO| penalty energy:", penalty
+    energy = energy + penalty
+
     CALL timestop(handle)
-  END SUBROUTINE pao_calc_trace_PH
+  END SUBROUTINE pao_calc_energy
 
 
 ! *****************************************************************************
@@ -464,6 +477,35 @@ CONTAINS
 
 
 ! *****************************************************************************
+!> \brief Rebuilds S, S_inv, S_sqrt, and S_sqrt_inv in the pao basis
+!> \param qs_env ...
+!> \param ls_scf_env ...
+! *****************************************************************************
+  SUBROUTINE pao_rebuild_S(qs_env, ls_scf_env)
+    TYPE(qs_environment_type), POINTER       :: qs_env
+    TYPE(ls_scf_env_type), TARGET            :: ls_scf_env
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'pao_rebuild_S', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: handle
+    TYPE(cp_dbcsr_p_type), DIMENSION(:), &
+      POINTER                                :: matrix_s
+
+    CALL timeset(routineN,handle)
+
+    CALL cp_dbcsr_release(ls_scf_env%matrix_s_inv)
+    CALL cp_dbcsr_release(ls_scf_env%matrix_s_sqrt)
+    CALL cp_dbcsr_release(ls_scf_env%matrix_s_sqrt_inv)
+
+    CALL get_qs_env(qs_env, matrix_s=matrix_s)
+    CALL ls_scf_init_matrix_s(matrix_s(1)%matrix, ls_scf_env)
+
+    CALL timestop(handle)
+  END SUBROUTINE pao_rebuild_S
+
+
+! *****************************************************************************
 !> \brief Calculate density matrix using TRS4 purification
 !> \param qs_env ...
 !> \param ls_scf_env ...
@@ -481,7 +523,7 @@ CONTAINS
     LOGICAL                                  :: converged
     REAL(KIND=dp)                            :: homo_spin, lumo_spin, mu_spin
     TYPE(cp_dbcsr_p_type), DIMENSION(:), &
-      POINTER                                :: matrix_ks, matrix_s
+      POINTER                                :: matrix_ks
     TYPE(cp_logger_type), POINTER            :: logger
 
     CALL timeset(routineN,handle)
@@ -489,16 +531,7 @@ CONTAINS
     project_name = logger%iter_info%project_name
     nspin = ls_scf_env%nspins
 
-    CALL get_qs_env(qs_env,&
-                    matrix_ks=matrix_ks,&
-                    matrix_s=matrix_s)
-
-    ! rebuild S, S_inv, S_sqrt, and S_sqrt_inv in pao basis
-    CALL cp_dbcsr_release(ls_scf_env%matrix_s_inv)
-    CALL cp_dbcsr_release(ls_scf_env%matrix_s_sqrt)
-    CALL cp_dbcsr_release(ls_scf_env%matrix_s_sqrt_inv)
-    CALL ls_scf_init_matrix_s(matrix_s(1)%matrix, ls_scf_env)
-
+    CALL get_qs_env(qs_env, matrix_ks=matrix_ks)
     DO ispin=1, nspin
        CALL matrix_qs_to_ls(ls_scf_env%matrix_ks(ispin),matrix_ks(ispin)%matrix,&
                             ls_scf_env%ls_mstruct,covariant=.TRUE.)
@@ -737,24 +770,24 @@ CONTAINS
 !> \param qs_env ...
 !> \param ls_scf_env ...
 ! *****************************************************************************
-  SUBROUTINE pao_check_grad_full(pao, qs_env, ls_scf_env)
+  SUBROUTINE pao_check_grad(pao, qs_env, ls_scf_env)
     TYPE(pao_env_type), POINTER              :: pao
     TYPE(qs_environment_type), POINTER       :: qs_env
     TYPE(ls_scf_env_type), TARGET            :: ls_scf_env
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'pao_check_grad_full', &
+    CHARACTER(len=*), PARAMETER :: routineN = 'pao_check_grad', &
       routineP = moduleN//':'//routineN
 
     INTEGER                                  :: handle, i, iatom, j, natoms
     INTEGER, DIMENSION(:), POINTER           :: blk_sizes_col, blk_sizes_row
     LOGICAL                                  :: found
-    REAL(dp)                                 :: delta_max, energy1, energy2, &
-                                                eps, Gij_num, symm
-    REAL(dp), DIMENSION(:, :), POINTER       :: block_G, block_X, block_X0
+    REAL(dp)                                 :: delta, delta_max, eps, &
+                                                Gij_num, symm
+    REAL(dp), DIMENSION(:, :), POINTER       :: block_G, block_X
     TYPE(cp_para_env_type), POINTER          :: para_env
     TYPE(ls_mstruct_type), POINTER           :: ls_mstruct
 
-    IF(pao%check_grad_full_tol<0.0_dp) RETURN ! no checking
+    IF(pao%check_grad_tol<0.0_dp) RETURN ! no checking
 
     CALL timeset(routineN,handle)
 
@@ -769,7 +802,7 @@ CONTAINS
 
     CALL get_qs_env(qs_env, para_env=para_env, natom=natoms)
 
-    eps = 1.0e-5_dp
+    eps = pao%num_grad_eps
     delta_max = 0.0_dp
 
     blk_sizes_col => cp_dbcsr_col_block_sizes(pao%matrix_X)
@@ -777,57 +810,106 @@ CONTAINS
 
     ! can not use an iterator here, because other DBCSR routines are called within loop.
     DO iatom=1, natoms
-       IF(pao%iw>0) WRITE(pao%iw,*) 'PAO| checking full gradient of atom ',iatom
+       IF(pao%iw>0) WRITE(pao%iw,*) 'PAO| checking gradient of atom ',iatom
        CALL cp_dbcsr_get_block_p(matrix=pao%matrix_X, row=iatom, col=iatom, block=block_X, found=found)
 
        IF(ASSOCIATED(block_X)) THEN !only one node actually has the block
           CALL cp_dbcsr_get_block_p(matrix=pao%matrix_G, row=iatom, col=iatom, block=block_G, found=found)
           CPASSERT(ASSOCIATED(block_G))
-          ALLOCATE(block_X0(blk_sizes_row(iatom),blk_sizes_col(iatom)))
-          block_X0 = block_X
        ENDIF
 
        DO i=1, blk_sizes_row(iatom)
           DO j=1, blk_sizes_col(iatom)
+             IF(symm /= 0.0_dp .AND. j<i) CYCLE   ! symmetric matrix, skip lower triangle
+             IF(symm == -1.0_dp .AND. i==j) CYCLE ! anti-symmetric matrix, skip diagonal
+
+             SELECT CASE(pao%num_grad_order)
+              CASE(2) ! calculate derivative to 2th order
+                Gij_num =         - eval_point(block_X, i, j, -eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num + eval_point(block_X, i, j, +eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num / (2.0_dp * eps)
+
+              CASE(4) ! calculate derivative to 4th order
+                Gij_num =                  eval_point(block_X, i, j, -2_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num - 8_dp * eval_point(block_X, i, j, -1_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num + 8_dp * eval_point(block_X, i, j, +1_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num -        eval_point(block_X, i, j, +2_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num / (12.0_dp * eps)
+
+              CASE(6) ! calculate derivative to 6th order
+                Gij_num =         -  1_dp * eval_point(block_X, i, j, -3_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num +  9_dp * eval_point(block_X, i, j, -2_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num - 45_dp * eval_point(block_X, i, j, -1_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num + 45_dp * eval_point(block_X, i, j, +1_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num -  9_dp * eval_point(block_X, i, j, +2_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num +  1_dp * eval_point(block_X, i, j, +3_dp*eps, symm, pao, ls_scf_env, qs_env)
+                Gij_num = Gij_num / (60.0_dp * eps)
+
+             CASE DEFAULT
+                CPABORT("Unsupported numerical derivative order: "//cp_to_string(pao%num_grad_order))
+             END SELECT
+
              IF(ASSOCIATED(block_X)) THEN
-                block_X = block_X0
-                block_X(i,j) = block_X(i,j) + eps
-                IF(symm/=0.0) block_X(j,i) = block_X(j,i) + symm*eps
-             ENDIF
-
-             CALL pao_update_AB(pao, ls_mstruct)
-             CALL pao_dm_trs4(qs_env, ls_scf_env)
-             CALL pao_calc_trace_PH(ls_scf_env, energy1)
-
-             IF(ASSOCIATED(block_X)) THEN
-                block_X = block_X0
-                block_X(i,j) = block_X(i,j) - eps
-                IF(symm/=0.0) block_X(j,i) = block_X(j,i) - symm*eps
-             ENDIF
-
-             CALL pao_update_AB(pao, ls_mstruct)
-             CALL pao_dm_trs4(qs_env, ls_scf_env)
-             CALL pao_calc_trace_PH(ls_scf_env, energy2)
-
-             IF(ASSOCIATED(block_X)) THEN
-                Gij_num = (energy1 - energy2) / (2.0_dp*eps)
-                delta_max = MAX(delta_max, ABS(Gij_num - block_G(i,j)))
+                delta = ABS(Gij_num - block_G(i,j))
+                delta_max = MAX(delta_max, delta)
+                !WRITE (*,*) "gradient check", iatom, i, j, Gij_num, block_G(i,j), delta
              ENDIF
           ENDDO
        ENDDO
-
-       IF(ASSOCIATED(block_X)) THEN
-          block_X = block_X0
-          DEALLOCATE(block_X0)
-       ENDIF
     END DO
 
     CALL mp_max(delta_max, para_env%group)
-    IF(pao%iw>0) WRITE(pao%iw,*) 'PAO| checked full gradient, max delta:', delta_max
-    IF(delta_max > pao%check_grad_full_tol)  CALL cp_abort(__LOCATION__,&
+    IF(pao%iw>0) WRITE(pao%iw,*) 'PAO| checked gradient, max delta:', delta_max
+    IF(delta_max > pao%check_grad_tol)  CALL cp_abort(__LOCATION__,&
        "Analytic and numeric gradients differ too much:"//cp_to_string(delta_max))
 
     CALL timestop(handle)
-  END SUBROUTINE pao_check_grad_full
+  END SUBROUTINE pao_check_grad
+
+! *****************************************************************************
+!> \brief Helper routine for pao_check_grad()
+!> \param block_X ...
+!> \param i ...
+!> \param j ...
+!> \param eps ...
+!> \param symm ...
+!> \param pao ...
+!> \param ls_scf_env ...
+!> \param qs_env ...
+!> \retval energy ...
+! *****************************************************************************
+  FUNCTION eval_point(block_X, i, j, eps, symm, pao, ls_scf_env, qs_env) RESULT(energy)
+    REAL(dp), DIMENSION(:, :), POINTER       :: block_X
+    INTEGER, INTENT(IN)                      :: i, j
+    REAL(dp), INTENT(IN)                     :: eps, symm
+    TYPE(pao_env_type), POINTER              :: pao
+    TYPE(ls_scf_env_type), TARGET            :: ls_scf_env
+    TYPE(qs_environment_type), POINTER       :: qs_env
+    REAL(dp)                                 :: energy
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'eval_point', &
+      routineP = moduleN//':'//routineN
+
+    REAL(dp)                                 :: old_Xij, old_Xji
+
+    IF(ASSOCIATED(block_X)) THEN
+       old_Xij = block_X(i,j) ! backup old block_X
+       block_X(i,j) = block_X(i,j) + eps ! add pertubation
+       IF(symm/=0.0) THEN
+          old_Xji = block_X(j,i)
+          block_X(j,i) = block_X(j,i) + symm*eps
+       ENDIF
+    ENDIF
+
+    ! calculate energy
+    CALL pao_calc_energy(pao, qs_env, ls_scf_env, energy)
+
+    ! restore old block_X (in reverse order to treat diagonals properly)
+    IF(ASSOCIATED(block_X)) THEN
+       IF(symm/=0.0) block_X(j,i) = old_Xji
+       block_X(i,j) = old_Xij
+    ENDIF
+
+  END FUNCTION eval_point
 
 END MODULE pao_methods

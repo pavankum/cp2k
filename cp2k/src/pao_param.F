@@ -18,7 +18,8 @@ MODULE pao_param
   USE dm_ls_scf_types,                 ONLY: ls_mstruct_type
   USE kinds,                           ONLY: dp
   USE message_passing,                 ONLY: mp_max,&
-                                             mp_min
+                                             mp_min,&
+                                             mp_sum
   USE pao_input,                       ONLY: pao_exp_param
   USE pao_param_exp,                   ONLY: pao_calc_U_exp,&
                                              pao_param_finalize_exp,&
@@ -45,10 +46,12 @@ CONTAINS
 !> \brief Takes current matrix_X and recalculates derived matrices U, A, and B.
 !> \param pao ...
 !> \param ls_mstruct ...
+!> \param penalty ...
 ! *****************************************************************************
-  SUBROUTINE pao_update_AB(pao, ls_mstruct)
+  SUBROUTINE pao_update_AB(pao, ls_mstruct, penalty)
     TYPE(pao_env_type), POINTER              :: pao
     TYPE(ls_mstruct_type)                    :: ls_mstruct
+    REAL(dp), INTENT(INOUT)                  :: penalty
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pao_update_AB', &
       routineP = moduleN//':'//routineN
@@ -58,7 +61,7 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    CALL pao_calc_U(pao) !update matrix_U = Function of matrix_X
+    CALL pao_calc_U(pao, penalty) !update matrix_U = Function of matrix_X
 
     !update matrix_A
     CALL cp_dbcsr_init(matrix_tmp)
@@ -129,9 +132,11 @@ CONTAINS
 ! *****************************************************************************
 !> \brief Calculate new matrix U
 !> \param pao ...
+!> \param penalty ...
 ! *****************************************************************************
-  SUBROUTINE pao_calc_U(pao)
+  SUBROUTINE pao_calc_U(pao, penalty)
     TYPE(pao_env_type), POINTER              :: pao
+    REAL(dp), INTENT(INOUT)                  :: penalty
 
     CHARACTER(len=*), PARAMETER :: routineN = 'pao_calc_U', &
       routineP = moduleN//':'//routineN
@@ -145,7 +150,8 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    min_gap = 1.0_dp
+    min_gap = HUGE(dp)
+    penalty = 0.0_dp
 
     CALL cp_dbcsr_iterator_start(iter, pao%matrix_X)
     DO WHILE (cp_dbcsr_iterator_blocks_left(iter))
@@ -158,45 +164,26 @@ CONTAINS
        CALL cp_dbcsr_get_block_p(matrix=pao%matrix_U, row=iatom, col=iatom, block=block_U, found=found)
        CPASSERT(ASSOCIATED(block_U))
 
-       CALL pao_calc_U_low(pao, iatom, min_gap, block_X, block_U)
+       SELECT CASE(pao%parameterization)
+        CASE(pao_exp_param)
+          CALL pao_calc_U_exp(pao, iatom, block_X, block_U)
+        CASE DEFAULT
+          CALL pao_calc_U_linpot(pao, iatom, penalty, min_gap, block_X, block_U)
+       END SELECT
     END DO
 
     CALL cp_dbcsr_iterator_stop(iter)
 
     group = dbcsr_mp_group(dbcsr_distribution_mp(cp_dbcsr_distribution(pao%matrix_U)))
+    CALL mp_sum(penalty,group)
     CALL mp_min(min_gap,group)
-    IF(pao%iw>0) WRITE(pao%iw,*) "PAO| min_gap:", min_gap
+
+    IF(pao%iw>0 .AND. min_gap<HUGE(dp))&
+       WRITE(pao%iw,*) "PAO| min_gap:", min_gap
 
     CALL pao_assert_unitary(pao, pao%matrix_U, pao%matrix_Y)
     CALL timestop(handle)
   END SUBROUTINE pao_calc_U
-
-
-! *****************************************************************************
-!> \brief Helper routien for pao_calc_U
-!> \param pao ...
-!> \param iatom ...
-!> \param min_gap ...
-!> \param block_X ...
-!> \param block_U ...
-! *****************************************************************************
- SUBROUTINE pao_calc_U_low(pao, iatom, min_gap, block_X, block_U)
-    TYPE(pao_env_type), POINTER              :: pao
-    INTEGER, INTENT(IN)                      :: iatom
-    REAL(KIND=dp), INTENT(INOUT)             :: min_gap
-    REAL(dp), DIMENSION(:, :), POINTER       :: block_X, block_U
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'pao_calc_U_low', &
-      routineP = moduleN//':'//routineN
-
-    SELECT CASE(pao%parameterization)
-      CASE(pao_exp_param)
-        CALL pao_calc_U_exp(pao, iatom, block_X, block_U)
-      CASE DEFAULT
-        CALL pao_calc_U_linpot(pao, iatom, min_gap, block_X, block_U)
-    END SELECT
-
-  END SUBROUTINE pao_calc_U_low
 
 
 ! *****************************************************************************
@@ -214,16 +201,15 @@ CONTAINS
     INTEGER                                  :: acol, arow, group, handle, &
                                                 iatom
     LOGICAL                                  :: found
-    REAL(dp)                                 :: grad_check_max, min_gap
+    REAL(dp)                                 :: min_gap, penalty
     REAL(dp), DIMENSION(:, :), POINTER       :: block_G, block_M, block_U, &
                                                 block_X
     TYPE(cp_dbcsr_iterator)                  :: iter
 
     CALL timeset(routineN,handle)
 
-    grad_check_max = 0.0_dp
-
-    min_gap = 1.0_dp
+    min_gap = HUGE(dp)
+    penalty = 0.0_dp
 
     CALL cp_dbcsr_iterator_start(iter, pao%matrix_X)
     DO WHILE (cp_dbcsr_iterator_blocks_left(iter))
@@ -242,12 +228,8 @@ CONTAINS
          CASE(pao_exp_param)
            CALL pao_calc_U_exp(pao, iatom, block_X, block_U, block_M, block_G)
          CASE DEFAULT
-           CALL pao_calc_U_linpot(pao, iatom, min_gap, block_X, block_U, block_M, block_G)
+           CALL pao_calc_U_linpot(pao, iatom, penalty, min_gap, block_X, block_U, block_M, block_G)
        END SELECT
-
-       IF(pao%check_grad_param_tol>0.0_dp)&
-          CALL pao_check_grad_param(pao, iatom, min_gap, block_X, block_G, block_M, grad_check_max)
-
     END DO
     CALL cp_dbcsr_iterator_stop(iter)
 
@@ -255,79 +237,8 @@ CONTAINS
     CALL mp_min(min_gap,group)
     IF(pao%iw>0) WRITE(pao%iw,*) "PAO| min_gap:", min_gap
 
-    IF(pao%check_grad_param_tol>0.0_dp) THEN
-       group = dbcsr_mp_group(dbcsr_distribution_mp(cp_dbcsr_distribution(matrix_M)))
-       CALL mp_max(grad_check_max, group)
-       IF(pao%iw>0) WRITE(pao%iw,*) 'PAO| checked param gradient, max delta:', grad_check_max
-       IF(grad_check_max > pao%check_grad_param_tol)  CALL cp_abort(__LOCATION__,&
-          "Analytic and numeric gradients of parametrization differ too much:"//cp_to_string(grad_check_max))
-    ENDIF
-
     CALL timestop(handle)
   END SUBROUTINE pao_calc_grad
-
-
-! *****************************************************************************
-!> \brief Debugging routien for checking the analytic gradient.
-!> \param pao ...
-!> \param iatom ...
-!> \param min_gap ...
-!> \param block_X ...
-!> \param block_G ...
-!> \param block_M ...
-!> \param grad_check_max ...
-! *****************************************************************************
-  SUBROUTINE pao_check_grad_param(pao, iatom, min_gap, block_X, block_G, block_M, grad_check_max)
-    TYPE(pao_env_type), POINTER              :: pao
-    INTEGER, INTENT(IN)                      :: iatom
-    REAL(KIND=dp), INTENT(INOUT)             :: min_gap
-    REAL(dp), DIMENSION(:, :), POINTER       :: block_X, block_G, block_M
-    REAL(dp), INTENT(INOUT)                  :: grad_check_max
-
-    CHARACTER(len=*), PARAMETER :: routineN = 'pao_check_grad_param', &
-      routineP = moduleN//':'//routineN
-
-    INTEGER                                  :: handle, i, j, M, N
-    REAL(dp)                                 :: delta, eps, Gij_num, symm
-    REAL(dp), DIMENSION(:, :), POINTER       :: dU1, dU2, dUdX, dX
-
-    CALL timeset(routineN,handle)
-
-    N = SIZE(block_M, 1);  M = SIZE(block_M, 2)
-    ALLOCATE(dUdX(N,M), dU1(N,N), dU2(N,N))
-    ALLOCATE(dX(SIZE(block_X,1), SIZE(block_X,2)))
-
-    SELECT CASE(pao%parameterization)
-      CASE(pao_exp_param)
-        symm = -1.0_dp ! anti-symmetric
-      CASE DEFAULT
-        symm = 0.0_dp  ! no symmetry
-    END SELECT
-
-    eps = 1.0e-5_dp
-
-    DO i=1, SIZE(block_X,1)
-       DO j=1, SIZE(block_X,2)
-          dX = block_X
-          dX(i,j) = dX(i,j) + eps
-          IF(symm/=0.0) dX(j,i) = dX(j,i) + symm*eps
-          CALL pao_calc_U_low(pao, iatom, min_gap, dX, dU1)
-
-          dX = block_X
-          dX(i,j) = dX(i,j) - eps
-          IF(symm/=0.0) dX(j,i) = dX(j,i) - symm*eps
-          CALL pao_calc_U_low(pao, iatom, min_gap, dX, dU2)
-
-          dUdX = (dU1 - dU2) / (2.0_dp*eps)
-          Gij_num = SUM(block_M * dUdX)
-          delta = ABS(Gij_num - block_G(i,j))
-          grad_check_max = MAX(grad_check_max, delta)
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(dUdX, dU1, dU2, dX)
-    CALL timestop(handle)
-  END SUBROUTINE pao_check_grad_param
 
 
 ! *****************************************************************************
