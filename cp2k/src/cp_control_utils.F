@@ -22,7 +22,6 @@ MODULE cp_control_utils
                                              cp_logger_type
   USE cp_output_handling,              ONLY: cp_print_key_finished_output,&
                                              cp_print_key_unit_nr
-  USE cp_para_types,                   ONLY: cp_para_env_type
   USE cp_units,                        ONLY: cp_unit_from_cp2k
   USE input_constants,                 ONLY: &
        constant_env, do_admm_basis_projection, do_admm_blocked_projection, &
@@ -439,13 +438,11 @@ CONTAINS
 !> \brief ...
 !> \param qs_control ...
 !> \param dft_section ...
-!> \param para_env ...
 ! *****************************************************************************
-  SUBROUTINE read_mgrid_section(qs_control,dft_section,para_env)
+  SUBROUTINE read_mgrid_section(qs_control,dft_section)
 
     TYPE(qs_control_type), INTENT(INOUT)     :: qs_control
     TYPE(section_vals_type), POINTER         :: dft_section
-    TYPE(cp_para_env_type), POINTER          :: para_env
 
     CHARACTER(len=*), PARAMETER :: routineN = 'read_mgrid_section', &
       routineP = moduleN//':'//routineN
@@ -470,13 +467,7 @@ CONTAINS
     CALL section_vals_val_get(mgrid_section,"REALSPACE",l_val=qs_control%realspace_mgrids)
     CALL section_vals_val_get(mgrid_section,"REL_CUTOFF",r_val=qs_control%relative_cutoff)
     CALL section_vals_val_get(mgrid_section,"SKIP_LOAD_BALANCE_DISTRIBUTED", &
-                                 l_val=qs_control%skip_load_balance_distributed,explicit=explicit)
-    ! In the default case, we automatically switch to not optimize if the number of tasks is large,
-    ! otherwise we run in the quadratic memory bottleneck,
-    ! and in that case, the is likely not to be important anyway
-    IF (.NOT.explicit) THEN
-       IF (para_env%num_pe>1024) qs_control%skip_load_balance_distributed=.TRUE.
-    ENDIF
+                                 l_val=qs_control%skip_load_balance_distributed)
 
     ! For SE and DFTB possibly override with new defaults
     IF (qs_control%semi_empirical .OR. qs_control%dftb) THEN
