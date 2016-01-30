@@ -46,7 +46,7 @@ AR       = xiar -r
 LIBXSTREAMROOT = $(TOOLSRC)/mic/libxstream
 
 # Diagnostic message to be turned off
-DIAG_DISABLE = 8290,8291,10010,10212,11060
+DIAG_DISABLE = 8290,8291,10010,10212,10411,11060
 
 # DEFAULTS
 #
