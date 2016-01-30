@@ -89,7 +89,7 @@ ifeq (1,$(shell echo $$((2 > $(DBG)))))
       TARGET = -xMIC-AVX512
     endif
   else ifneq (0,$(SSE))
-    TARGET = -xSSE4.2
+    TARGET = -xSSE3
   else
     TARGET = -xHost
   endif
@@ -110,11 +110,11 @@ OPTFLAGS  = $(TARGET)
 ifeq (0,$(DBG))
   OPTFLAGS  += -O$(OPT)
   DFLAGS    += -DNDEBUG
-
-  CXXFLAGS  += -fno-alias -ansi-alias #-fp-model fast=2 #precise
-  CFLAGS    += -fno-alias -ansi-alias #-fp-model fast=2 #precise
-  FCFLAGS   += #-fp-model fast=2 #source
-  LDFLAGS   += #
+  # consider more accurate -fp-model (C/C++: precise, Fortran: source)
+  CXXFLAGS  += -fno-alias -ansi-alias -fp-model fast=2
+  CFLAGS    += -fno-alias -ansi-alias -fp-model fast=2
+  FCFLAGS   += -fp-model fast=2 -align array64byte
+  #LDFLAGS   += $(NULL)
 else
   OPTFLAGS  += -O0
   ifeq (2,$(DBG))
