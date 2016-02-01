@@ -70,6 +70,9 @@ LIBXSMM_ACC_EXTERN_C void xsmm_acc_abort(const char* filename, int line_number, 
 #if defined(__RECONFIGURE)
 
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int*);
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_comm_thread_load)(const int*);
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_use_mpi_rma)(const int*);
+LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_use_mpi_filtering)(const int*);
 
 # if defined(__GNUC__)
 LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_ATTRIBUTE(weak)
@@ -99,13 +102,18 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 #endif
 
   if (libxsmm_acc_private::reconfigure) {
+#if defined(__MPI_VERSION) && (3 <= __MPI_VERSION)
+    const int enable = 1;
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_use_mpi_rma)(&enable);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_use_mpi_filtering)(&enable);
+#endif
 #if defined(LIBXSMM_ACC_STACKSIZE)
     const int stacksize = LIBXSMM_ACC_STACKSIZE;
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize);
 #endif
 #if defined(LIBXSMM_ACC_COMM_THREAD_LOAD)
-    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load);
-    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_comm_thread_load) = LIBXSMM_ACC_COMM_THREAD_LOAD;
+    const int cthreadload = LIBXSMM_ACC_COMM_THREAD_LOAD;
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_comm_thread_load)(&cthreadload);
 #endif
 #if defined(LIBXSMM_ACC_MULTREC_LIMIT)
     extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
