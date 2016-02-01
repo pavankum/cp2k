@@ -373,7 +373,7 @@ ifneq (1,$(MKL))
       LIBS += -liomp5
     endif
     MIC_LDFLAGS += -offload-option,mic,ld,"-lpthread -lm"
-    LIBS += -lpthread -lm
+    LIBS += -Wl,--as-needed -lpthread -lm -Wl,--no-as-needed
   endif
 else # sequential
   DFLAGS  += -D__MKL -D__FFTSG -D__FFTW3
@@ -421,7 +421,7 @@ else # sequential
     endif
   endif
   MIC_LDFLAGS += -offload-option,mic,ld,"-lpthread -lm"
-  LIBS += -lpthread -lm
+  LIBS += -Wl,--as-needed -lpthread -lm -Wl,--no-as-needed
 endif
 
 ifeq (,$(LIBXSMMROOT))
@@ -449,7 +449,7 @@ CFLAGS    += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) $(DFLAGS) $(IFLAGS)
 FCFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) $(DFLAGS) $(IFLAGS)
 LDFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE)
 
-LIBS += -lstdc++
+LIBS += -Wl,--as-needed -lstdc++ -Wl,--no-as-needed
 ifneq (0,$(ACC))
   ifneq (0,$(OFFLOAD))
     LIBS      += $(MIC_LDFLAGS)
