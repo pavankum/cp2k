@@ -5,7 +5,7 @@ CPP      = #cpp
 AR       = xiar -r
 
 # LIBINT: configure, build, and install
-# Version 1.1.5 (tested)
+# Version 1.1.5 and 1.1.6 (tested)
 #
 # $ env \
 #   AR=xiar CC=icc CXX=icpc \
