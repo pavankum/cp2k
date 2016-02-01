@@ -103,7 +103,7 @@ CPPFLAGS  = #
 CXXFLAGS  = -std=c++0x
 CFLAGS    = #
 FCFLAGS   = -free -fpp -heap-arrays
-LDFLAGS   = #
+LDFLAGS   += #-static-intel -static-libgcc -static-libstdc++
 OPTFLAGS  = $(TARGET)
 
 # workaround for issue "cannot find address of function"
@@ -204,15 +204,15 @@ ifneq (0,$(TBBMALLOC))
   ifneq (,$(TBBROOT))
     GCC = $(notdir $(shell which gcc 2> /dev/null))
     ifneq (,$(GCC))
-      GCC_VERSION = $(shell $(GCC) --version | grep "gcc (GCC)" | sed "s/gcc (GCC) \([0-9]\+\.[0-9]\+\.[0-9]\+\).*$$/\1/")
-      GCC_VERSION_MAJOR = $(shell echo "$(VERSION)" | cut -d"." -f1)
-      GCC_VERSION_MINOR = $(shell echo "$(VERSION)" | cut -d"." -f2)
-      GCC_VERSION_PATCH = $(shell echo "$(VERSION)" | cut -d"." -f3)
+      GCC_VERSION_STRING = $(shell $(GCC) --version 2> /dev/null | head -n1 | sed "s/..* \([0-9][0-9]*\.[0-9][0-9]*\.*[0-9]*\)[ \S]*.*/\1/")
+      GCC_VERSION_MAJOR = $(shell echo "$(GCC_VERSION_STRING)" | cut -d"." -f1)
+      GCC_VERSION_MINOR = $(shell echo "$(GCC_VERSION_STRING)" | cut -d"." -f2)
+      GCC_VERSION_PATCH = $(shell echo "$(GCC_VERSION_STRING)" | cut -d"." -f3)
       TBBMALLOCLIB = $(wildcard $(TBBROOT)/lib/intel64/gcc$(GCC_VERSION_MAJOR).$(GCC_VERSION_MINOR)/libtbbmalloc_proxy.so)
     endif
     ifeq (,$(TBBMALLOCLIB))
       TBBGCCDIR = $(shell ls -1 "$(TBBROOT)/lib/intel64" | tr "\n" " " | rev | cut -d" " -f2 | rev)
-      TBBMALLOCLIB = $(wildcard $(TBBROOT)/lib/intel64/$(TBBGCCDIR)/libtbbmalloc_proxy.so)
+      TBBMALLOCLIB = $(wildcard $(TBBROOT)/lib/intel64/$(TBBGCCDIR)libtbbmalloc_proxy.so)
     endif
     ifneq (,$(TBBMALLOCLIB))
       LIBS += -L$(dir $(TBBMALLOCLIB)) -ltbbmalloc_proxy
