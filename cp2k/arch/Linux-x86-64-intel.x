@@ -77,6 +77,9 @@ else
   ACC = 1
 endif
 
+OPT1 = $(shell echo $$((1<$(OPT)?1:$(OPT))))
+OPT2 = $(shell echo $$((2<$(OPT)?2:$(OPT))))
+
 ifeq (1,$(shell echo $$((2 > $(DBG)))))
   ifeq (1,$(AVX))
     TARGET = -xAVX
@@ -96,7 +99,7 @@ ifeq (1,$(shell echo $$((2 > $(DBG)))))
 endif
 
 # initial build flags
-CPPFLAGS  = $(NULL)
+CPPFLAGS  = #
 CXXFLAGS  = -std=c++0x
 CFLAGS    = #
 FCFLAGS   = -free -fpp -heap-arrays
@@ -461,11 +464,13 @@ ifeq (1,$(shell echo $$((1 <= $(BEEP)))))
 mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
 	$(FC) -c $(FCFLAGS) -O0 $<
 qs_vxc_atom.o: qs_vxc_atom.F
-	$(FC) -c $(FCFLAGS) -O1 $<
+	$(FC) -c $(FCFLAGS) -O${OPT1} $<
 cp_fm_types.o: cp_fm_types.F
-	$(FC) -c $(FCFLAGS) -O1 $<
+	$(FC) -c $(FCFLAGS) -O${OPT1} $<
 cube_utils.o: cube_utils.F
-	$(FC) -c $(FCFLAGS) -O1 $<
+	$(FC) -c $(FCFLAGS) -O${OPT1} $<
+bibliography.o: bibliography.F
+	$(FC) -c $(FCFLAGS) -O${OPT2} $<
 ifneq (0,$(OMP))
 xc_tpss.o: xc_tpss.F
 	$(FC) -c $(filter-out -openmp,$(FCFLAGS)) $<
