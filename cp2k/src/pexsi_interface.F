@@ -257,10 +257,10 @@ CONTAINS
 !> \param outputFileIndex ...
 !> \retval cp_pexsi_plan_initialize ...
 ! *****************************************************************************
-  FUNCTION cp_pexsi_plan_initialize(comm, numProcRow, numProcCol, outputFileIndex)
+  FUNCTION cp_pexsi_plan_initialize(comm, numProcRow, numProcCol, outputFileIndex) RESULT(plan)
     INTEGER, INTENT(IN)                      :: comm, numProcRow, numProcCol, &
                                                 outputFileIndex
-    INTEGER(KIND=int_8)                      :: cp_pexsi_plan_initialize
+    INTEGER(KIND=int_8)                      :: plan
 
     CHARACTER(LEN=*), PARAMETER :: routineN = 'cp_pexsi_plan_initialize', &
       routineP = moduleN//':'//routineN
@@ -268,8 +268,7 @@ CONTAINS
 #ifdef  __LIBPEXSI
     INTEGER                                  :: info, handle
     CALL timeset(routineN,handle)
-    cp_pexsi_plan_initialize = f_ppexsi_plan_initialize(comm, numProcRow, &
-                                         numProcCol, outputFileIndex, info)
+    plan = f_ppexsi_plan_initialize(comm, numProcRow, numProcCol, outputFileIndex, info)
     IF(info .NE. 0)&
        CPABORT("Pexsi returned an error. Consider logPEXSI0 for details.")
     CALL timestop(handle)
