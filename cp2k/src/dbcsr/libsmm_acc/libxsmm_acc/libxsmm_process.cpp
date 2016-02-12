@@ -23,7 +23,8 @@
 # include <libxstream_end.h>
 #endif
 
-#if !defined(__LIBXSMM)
+#define LIBXSMM_ACC_MAX_RESULT_SIZE (LIBXSMM_ACC_MAX_M * LIBXSMM_ACC_MAX_N)
+
 LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_RETARGETABLE void LIBXSMM_ACC_FSYMBOL(dgemm)(
   const char*, const char*, const int*, const int*, const int*,
   const double*, const double*, const int*, const double*, const int*,
@@ -32,9 +33,6 @@ LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_RETARGETABLE void LIBXSMM_ACC_FSYMBOL(sgemm)(
   const char*, const char*, const int*, const int*, const int*,
   const float*, const float*, const int*, const float*, const int*,
   const float*, float*, const int*);
-#endif
-
-#define LIBXSMM_ACC_MAX_RESULT_SIZE (LIBXSMM_ACC_MAX_M * LIBXSMM_ACC_MAX_N)
 
 
 namespace libxsmm_process_private {
