@@ -555,7 +555,7 @@ if [ $ENABLE_TSAN = "__TRUE__" ] ; then
 fi
 
 # valgrind conflicts
-if [ "$ENABLE_VALGRIND" != "__TRUE__" ] ; then
+if [ "$ENABLE_VALGRIND" = "__TRUE__" ] ; then
     if [ "$with_reflapack" = "__DONTUSE__" ] ; then
         echo "reflapack is automatically installed when valgrind is enabled"
         with_reflapack="__INSTALL__"
@@ -761,12 +761,20 @@ done
 
 # setup compiler flags, leading to nice stack traces on crashes but
 # still optimised
-export CFLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
-export FFLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
-export F77FLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
-export F90FLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
-export FCFLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
-export CXXFLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
+CFLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
+FFLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
+F77FLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
+F90FLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
+FCFLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
+CXXFLAGS="-O2 -ftree-vectorize -g -fno-omit-frame-pointer -march=native -ffast-math $TSANFLAGS"
+
+export CFLAGS=$(allowed_gcc_flags $CFLAGS)
+export FFLAGS=$(allowed_gfortran_flags $FFLAGS)
+export F77FLAGS=$(allowed_gfortran_flags $F77FLAGS)
+export F90FLAGS=$(allowed_gfortran_flags $F90FLAGS)
+export FCFLAGS=$(allowed_gfortran_flags $FCFLAGS)
+export CXXFLAGS=$(allowed_gxx_flags $CXXFLAGS)
+
 export LDFLAGS="$TSANFLAGS"
 
 # get system arch information using OpenBLAS prebuild
@@ -1035,7 +1043,7 @@ compiled with it you will first need to execute at the prompt:
   source ${SETUPFILE}
 To build CP2K you should change directory:
   cd cp2k/makefiles/
-  make -j ${nprocs} ARCH=local VERSION="${arch_vers}"
+  make -j ${NPROCS} ARCH=local VERSION="${arch_vers}"
 
 arch files for GPU enabled CUDA versions are named "local_cuda.*"
 arch files for valgrind versions are named "local_valgrind.*"
