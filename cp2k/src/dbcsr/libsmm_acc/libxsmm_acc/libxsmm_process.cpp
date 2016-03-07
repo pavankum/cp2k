@@ -91,7 +91,7 @@ public:
   smm_type(U def_mnk, U m, U n, U k)
 #if defined(__LIBXSMM)
     : m_predispatched((0 != def_mnk && (LIBXSMM_MAX_MNK) >= (m * n * k))
-      ? xfunc_type(m, n, k, T(1)/*alpha*/, T(1)/*beta*/)
+      ? xfunc_type(m, n, k, T(1)/*alpha*/, T(1)/*beta*/, LIBXSMM_FLAGS, LIBXSMM_PREFETCH_AL2BL2_VIA_C)
       : xfunc_type())
     , m_function(0 != m_predispatched ? smm_type::xmm/*pre-dispatched*/
       : ((LIBXSMM_MAX_MNK) >= (m * n * k) ? smm_type::amm : smm_type::bmm))
@@ -168,7 +168,7 @@ private:
     const T* pa, const T* pb, const T* pc)
   {
     LIBXSMM_ACC_ASSERT((LIBXSMM_MAX_MNK) >= (m * n * k));
-    const xfunc_type xfunc(m, n, k, T(1)/*alpha*/, T(1)/*beta*/);
+    const xfunc_type xfunc(m, n, k, T(1)/*alpha*/, T(1)/*beta*/, LIBXSMM_FLAGS, LIBXSMM_PREFETCH_AL2BL2_VIA_C);
     if (xfunc) {
 # if (0 != LIBXSMM_PREFETCH)
       xfunc(a, b, c, pa, pb, pc);
