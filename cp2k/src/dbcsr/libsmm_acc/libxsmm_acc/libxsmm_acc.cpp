@@ -25,6 +25,7 @@
 
 #if defined(__LIBXSMM)
 namespace libxsmm_acc_private {
+  const char *const prefetch_env = getenv("CP2K_PREFETCH");
 # if defined(__RECONFIGURE)
   const char *const reconfigure_env = getenv("CP2K_RECONFIGURE");
   const bool explicit_configure = (0 != reconfigure_env && 0 != *reconfigure_env);
@@ -56,6 +57,11 @@ void process_mm_stack(const libxsmm_acc_stackdesc_type* descriptor, const int* p
 }
 
 } // namespace libxsmm_acc_private
+
+int libxsmm_acc_prefetch = (libxsmm_acc_private::prefetch_env && *libxsmm_acc_private::prefetch_env)
+  ? atoi(libxsmm_acc_private::prefetch_env)
+  /* prefetching is enabled by for LIBXSMM/JIT */
+  : 1/*default strategy*/;
 
 
 LIBXSMM_ACC_EXTERN_C void xsmm_acc_abort(const char* filename, int line_number, const char* message)

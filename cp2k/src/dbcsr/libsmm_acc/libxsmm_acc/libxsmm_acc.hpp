@@ -50,6 +50,8 @@
 # if defined(LIBXSMM_OFFLOAD_BUILD)
 #   define LIBXSMM_ACC_OFFLOAD_BUILD LIBXSMM_OFFLOAD_BUILD
 # endif
+/** Prefetch strategy used when processing an MM stack. */
+LIBXSMM_ACC_EXTERN_C int libxsmm_acc_prefetch;
 #else // defined(__LIBXSTREAM)
 # define LIBXSMM_ACC_ASSERT LIBXSTREAM_ASSERT
 # define LIBXSMM_ACC_NOT_SUPPORTED LIBXSTREAM_NOT_SUPPORTED

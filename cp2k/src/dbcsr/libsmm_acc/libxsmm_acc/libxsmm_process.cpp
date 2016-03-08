@@ -91,7 +91,18 @@ public:
   smm_type(U def_mnk, U m, U n, U k)
 #if defined(__LIBXSMM)
     : m_predispatched((0 != def_mnk && (LIBXSMM_MAX_MNK) >= (m * n * k))
-      ? xfunc_type(m, n, k, T(1)/*alpha*/, T(1)/*beta*/, LIBXSMM_FLAGS, LIBXSMM_PREFETCH_AL2BL2_VIA_C)
+      ? xfunc_type(m, n, k, T(1)/*alpha*/, T(1)/*beta*/, LIBXSMM_FLAGS,
+          (1 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2BL2_VIA_C
+        : (2 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_SIGNATURE
+        : (3 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_BL2_VIA_C
+        : (4 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2
+        : (5 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2_AHEAD
+        : (6 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2BL2_VIA_C
+        : (7 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2BL2_VIA_C_AHEAD
+        : (8 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2_JPST
+        : (9 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2BL2_VIA_C_JPST
+        : (0 >= libxsmm_acc_prefetch ? LIBXSMM_PREFETCH/*LIBXSMM/build-time*/
+        : (/*0*/LIBXSMM_PREFETCH_NONE))))))))))))
       : xfunc_type())
     , m_function(0 != m_predispatched ? smm_type::xmm/*pre-dispatched*/
       : ((LIBXSMM_MAX_MNK) >= (m * n * k) ? smm_type::amm : smm_type::bmm))
