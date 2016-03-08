@@ -87,22 +87,31 @@ private:
     const T *LIBXSMM_ACC_RESTRICT, const T *LIBXSMM_ACC_RESTRICT, T *LIBXSMM_ACC_RESTRICT,
     const T*, const T*, const T*);
 
+  static int prefetch() {
+    switch (libxsmm_acc_prefetch) {
+      case 1: return LIBXSMM_PREFETCH_AL2BL2_VIA_C;
+      case 2: return LIBXSMM_PREFETCH_SIGNATURE;
+      case 3: return LIBXSMM_PREFETCH_BL2_VIA_C;
+      case 4: return LIBXSMM_PREFETCH_AL2;
+      case 5: return LIBXSMM_PREFETCH_AL2_AHEAD;
+      case 6: return LIBXSMM_PREFETCH_AL2BL2_VIA_C;
+      case 7: return LIBXSMM_PREFETCH_AL2BL2_VIA_C_AHEAD;
+      case 8: return LIBXSMM_PREFETCH_AL2_JPST;
+      case 9: return LIBXSMM_PREFETCH_AL2BL2_VIA_C_JPST;
+      default: if (0 >= libxsmm_acc_prefetch) {
+        return LIBXSMM_PREFETCH;
+      }
+      else {
+        return LIBXSMM_PREFETCH_NONE;
+      }
+    }
+  }
+
 public:
   smm_type(U def_mnk, U m, U n, U k)
 #if defined(__LIBXSMM)
     : m_predispatched((0 != def_mnk && (LIBXSMM_MAX_MNK) >= (m * n * k))
-      ? xfunc_type(m, n, k, T(1)/*alpha*/, T(1)/*beta*/, LIBXSMM_FLAGS,
-          (1 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2BL2_VIA_C
-        : (2 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_SIGNATURE
-        : (3 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_BL2_VIA_C
-        : (4 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2
-        : (5 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2_AHEAD
-        : (6 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2BL2_VIA_C
-        : (7 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2BL2_VIA_C_AHEAD
-        : (8 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2_JPST
-        : (9 == libxsmm_acc_prefetch ? LIBXSMM_PREFETCH_AL2BL2_VIA_C_JPST
-        : (0 >= libxsmm_acc_prefetch ? LIBXSMM_PREFETCH/*LIBXSMM/build-time*/
-        : (/*0*/LIBXSMM_PREFETCH_NONE))))))))))))
+      ? xfunc_type(m, n, k, T(1)/*alpha*/, T(1)/*beta*/, LIBXSMM_FLAGS, prefetch())
       : xfunc_type())
     , m_function(0 != m_predispatched ? smm_type::xmm/*pre-dispatched*/
       : ((LIBXSMM_MAX_MNK) >= (m * n * k) ? smm_type::amm : smm_type::bmm))
@@ -164,7 +173,7 @@ private:
     const T* pa, const T* pb, const T* pc)
   {
     LIBXSMM_ACC_ASSERT(xfunc);
-# if (0 != LIBXSMM_PREFETCH)
+# if (0 != LIBXSMM_PREFETCH || 0 != LIBXSMM_JIT)
     xfunc(a, b, c, pa, pb, pc);
 # else
     LIBXSMM_ACC_UNUSED(pa);
@@ -179,9 +188,9 @@ private:
     const T* pa, const T* pb, const T* pc)
   {
     LIBXSMM_ACC_ASSERT((LIBXSMM_MAX_MNK) >= (m * n * k));
-    const xfunc_type xfunc(m, n, k, T(1)/*alpha*/, T(1)/*beta*/, LIBXSMM_FLAGS, LIBXSMM_PREFETCH_AL2BL2_VIA_C);
+    const xfunc_type xfunc(m, n, k, T(1)/*alpha*/, T(1)/*beta*/, LIBXSMM_FLAGS, prefetch());
     if (xfunc) {
-# if (0 != LIBXSMM_PREFETCH)
+# if (0 != LIBXSMM_PREFETCH || 0 != LIBXSMM_JIT)
       xfunc(a, b, c, pa, pb, pc);
 # else
       LIBXSMM_ACC_UNUSED(pa);
@@ -263,7 +272,7 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
         if (i < nstacksize) {
           LIBXSMM_ACC_ASSUME_ALIGNED(pnxt, LIBXSMM_ACC_ALIGNMENT);
           for (U j = 0; j < LIBXSMM_ACC_PARAM_COUNT; ++j) pnxt[j] = stack[i+j];
-#if defined(__LIBXSMM) && (0 != LIBXSMM_PREFETCH)
+#if defined(__LIBXSMM) && (0 != LIBXSMM_PREFETCH || 0 != LIBXSMM_JIT)
           smm(pcur[LIBXSMM_ACC_PARAM_M], pcur[LIBXSMM_ACC_PARAM_N], pcur[LIBXSMM_ACC_PARAM_K], ldc,
             a + pcur[LIBXSMM_ACC_PARAM_A] - 1, b + pcur[LIBXSMM_ACC_PARAM_B] - 1, tmp,
             LIBXSMM_PREFETCH_A(a + pnxt[LIBXSMM_ACC_PARAM_A] - 1),
