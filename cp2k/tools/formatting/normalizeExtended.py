@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
   Impose white space conventions and indentation based on scopes / subunits
 
@@ -181,7 +179,7 @@ class F90Indenter(object):
                 valid_new = True
                 scopes.append(what_new)
                 if debug:
-                    print f_line
+                    print(f_line)
                 break
 
         # check statements that continue scope
@@ -196,7 +194,7 @@ class F90Indenter(object):
                     if what == what_con:
                         valid_con = True
                         if debug:
-                            print f_line
+                            print(f_line)
                         break
 
         # check statements that end scope
@@ -211,7 +209,7 @@ class F90Indenter(object):
                     if what == what_end:
                         valid_end = True
                         if debug:
-                            print f_line
+                            print(f_line)
                         break
 
         # deal with line breaks
@@ -436,12 +434,29 @@ def inspect_ffile_format(infile, indent_size):
 
 #=========================================================================
 
-def format_single_fline(f_line, linebreak_pos, filename, line_nr):
+def format_single_fline(f_line, whitespace, linebreak_pos, filename, line_nr):
     """
     format a single Fortran line. Takes a logical Fortran line as input
     as well as the positions of the linebreaks. Filename and line_nr just
     for error messages. Imposes white space formatting and inserts linebreaks.
+    The higher whitespace, the more white space characters inserted. Right now
+    whitespace = 0, 1, 2 are supported.
     """
+
+    # define whether to put whitespaces around operators:
+    # 0: comma, semicolon
+    # 1: assignment operators
+    # 2: relational operators
+    # 3: logical operators
+    # 4: arithm. operators plus and minus  
+    if whitespace==0:
+      spacey = [0,0,0,0,0]
+    elif whitespace==1:
+      spacey = [1,1,1,1,0]
+    elif whitespace==2:
+      spacey = [1,1,1,1,1]
+    else:
+      raise NotImplementedError("unknown value for whitespace")
 
     level = 0
     lines_out = []
@@ -521,7 +536,7 @@ def format_single_fline(f_line, linebreak_pos, filename, line_nr):
         if char == ',' or char == ';':
             lhs = line_ftd[:pos + offset]
             rhs = line_ftd[pos + 1 + offset:]
-            line_ftd = lhs.rstrip(' ') + char + ' ' + rhs.lstrip(' ')
+            line_ftd = lhs.rstrip(' ') + char + ' '*spacey[0] + rhs.lstrip(' ')
             line_ftd = line_ftd.rstrip(' ')
 
         # format .NOT.
@@ -529,7 +544,7 @@ def format_single_fline(f_line, linebreak_pos, filename, line_nr):
             lhs = line_ftd[:pos + offset]
             rhs = line_ftd[pos + 5 + offset:]
             line_ftd = lhs.rstrip(
-                ' ') + line[pos:pos + 5] + ' ' + rhs.lstrip(' ')
+                ' ') + line[pos:pos + 5] + ' '*spacey[3] + rhs.lstrip(' ')
 
         # strip whitespaces from '=' and prepare assignment operator
         # formatting
@@ -550,10 +565,10 @@ def format_single_fline(f_line, linebreak_pos, filename, line_nr):
         lhs = line_ftd[:pos + offset]
         rhs = line_ftd[pos + 1 + is_pointer + offset:]
         if is_pointer:
-            assign_op = ' => '  # pointer assignment
+            assign_op = '=>'  # pointer assignment
         else:
-            assign_op = ' = '  # assignment
-        line_ftd = lhs.rstrip(' ') + assign_op + rhs.lstrip(' ')
+            assign_op = '='  # assignment
+        line_ftd = lhs.rstrip(' ') + ' '*spacey[1] + assign_op + ' '*spacey[1] + rhs.lstrip(' ')
         # offset w.r.t. unformatted line
 
     line = line_ftd
@@ -580,11 +595,11 @@ def format_single_fline(f_line, linebreak_pos, filename, line_nr):
             line_parts.append(line[str_end + 1:])
 
     # Two-sided operators
-    for lr_re in LR_OPS_RE:
+    for n_op, lr_re in enumerate(LR_OPS_RE):
         for pos, part in enumerate(line_parts):
             if not re.match(r"['\"!]", part, RE_FLAGS):  # exclude comments, strings
                 partsplit = lr_re.split(part)
-                line_parts[pos] = ' '.join(partsplit)
+                line_parts[pos] = (' '*spacey[n_op+2]).join(partsplit)
 
     line = ''.join(line_parts)
 
@@ -634,7 +649,7 @@ def format_single_fline(f_line, linebreak_pos, filename, line_nr):
 
 #=========================================================================
 
-def format_extended_ffile(infile, outfile, logFile=sys.stdout, indent_size=2, orig_filename=None):
+def format_extended_ffile(infile, outfile, logFile=sys.stdout, indent_size=2, whitespace=2, orig_filename=None):
     """
     main method to be invoked for formatting a Fortran file
     """
@@ -731,7 +746,7 @@ def format_extended_ffile(infile, outfile, logFile=sys.stdout, indent_size=2, or
                              1 for _ in range(0, len(linebreak_pos))]
 
             lines = format_single_fline(
-                f_line, linebreak_pos, orig_filename, stream.line_nr)
+                f_line, whitespace, linebreak_pos, orig_filename, stream.line_nr)
 
             # we need to insert comments in formatted lines
             for pos, (line, comment) in enumerate(zip(lines, comment_lines)):
@@ -769,7 +784,7 @@ def format_extended_ffile(infile, outfile, logFile=sys.stdout, indent_size=2, or
                               (": auto indentation and whitespace formatting failed due to 132 chars limit, "
                                "please insert line break. ***\n"))
             if debug:
-                print ' ' * ind_use + line,
+                print(' ' * ind_use + line)
         # no indentation of blank lines
         if re.search(r";\s*$", f_line, RE_FLAGS):
             do_indent = False
@@ -779,28 +794,4 @@ def format_extended_ffile(infile, outfile, logFile=sys.stdout, indent_size=2, or
         # rm subsequent blank lines
         skip_blank = is_empty and not comments
 
-#=========================================================================
-
-if __name__ == '__main__':
-    import os.path
-
-    if len(sys.argv) < 2:
-        print "usage:", sys.argv[0], " out_dir file1 [file2 ...]"
-        sys.exit(1)
-
-    outDir = sys.argv[1]
-    if not os.path.isdir(outDir):
-        print "out_dir must be a directory"
-        print "usage:", sys.argv[0], " out_dir file1 [file2 ...]"
-        sys.exit(1)
-
-    for fileName in sys.argv[2:]:
-        try:
-            print "normalizing body of", fileName
-
-            with open(fileName, 'r') as infile:
-                with open(os.path.join(outDir, os.path.basename(fileName)), 'w') as outfile:
-                    format_extended_ffile(infile, outfile)
-        except:
-            print "error for file", fileName
-            raise
+#EOF

@@ -40,19 +40,12 @@ def upcaseStringKeywords(line):
 
 def upcaseKeywords(infile,outfile,logFile=sys.stdout):
     """Writes infile to outfile with all the fortran keywords upcased"""
-    lineNr=0
-    try:
-        while 1:
-            line=infile.readline()
-            lineNr=lineNr+1
-            if not line: break
-            outfile.write(upcaseStringKeywords(line))
-    except SyntaxError, e:
-        e.lineno=lineNr
-        e.text=line
-        raise
+    while 1:
+        line=infile.readline()
+        if not line: break
+        outfile.write(upcaseStringKeywords(line))
 
-def prettifyFile(infile, normalize_use=1, normalize_extended=0, indent=2, upcase_keywords=1,
+def prettifyFile(infile, normalize_use=1, normalize_extended=0, indent=2, whitespace=2, upcase_keywords=1,
              interfaces_dir=None,replace=None,logFile=sys.stdout):
     """prettifyes the fortran source in infile into a temporary file that is
     returned. It can be the same as infile.
@@ -79,7 +72,8 @@ def prettifyFile(infile, normalize_use=1, normalize_extended=0, indent=2, upcase
         if normalize_extended: # extended needs to be done first
             tmpfile2=os.tmpfile()
             normalizeExtended.format_extended_ffile(ifile,tmpfile2,logFile=logFile,
-                                                    indent_size=indent,orig_filename=orig_filename)
+                                                    indent_size=indent,whitespace=whitespace,
+                                                    orig_filename=orig_filename)
             tmpfile2.seek(0)
             if tmpfile:
                 tmpfile.close()
@@ -87,7 +81,7 @@ def prettifyFile(infile, normalize_use=1, normalize_extended=0, indent=2, upcase
             ifile=tmpfile
         if normalize_use:
             tmpfile2=os.tmpfile()
-            normalizeFortranFile.rewriteFortranFile(ifile,tmpfile2,logFile,
+            normalizeFortranFile.rewriteFortranFile(ifile,tmpfile2,indent,logFile,
                                                     orig_filename=orig_filename)
             tmpfile2.seek(0)
             if tmpfile:
@@ -129,7 +123,8 @@ def prettifyFile(infile, normalize_use=1, normalize_extended=0, indent=2, upcase
         raise
 
 def prettfyInplace(fileName,bkDir="preprettify",normalize_use=1,
-                   normalize_extended=0,indent=2,upcase_keywords=1, interfaces_dir=None,
+                   normalize_extended=0,indent=2,whitespace=2,
+                   upcase_keywords=1, interfaces_dir=None,
                    replace=None,logFile=sys.stdout):
     """Same as prettify, but inplace, replaces only if needed"""
     if not os.path.exists(bkDir):
@@ -138,7 +133,7 @@ def prettfyInplace(fileName,bkDir="preprettify",normalize_use=1,
         raise Error("bk-dir must be a directory, was "+bkDir)
     infile=open(fileName,'r')
     outfile=prettifyFile(infile, normalize_use, normalize_extended,
-                         indent, upcase_keywords, interfaces_dir, replace)
+                         indent, whitespace, upcase_keywords, interfaces_dir, replace)
     if (infile==outfile):
         return
     infile.seek(0)
@@ -176,14 +171,15 @@ def prettfyInplace(fileName,bkDir="preprettify",normalize_use=1,
     infile.close()
     outfile.close()
 
-                   
-if __name__ == '__main__':
-    defaultsDict={'upcase':1,'normalize-use':1,'extended':0,'indent':2,'replace':1,
+def main():
+    defaultsDict={'upcase':1,'normalize-use':1,
+                  'extended':0,'indent':2, 'whitespace':2,
+                  'replace':1,
                   'interface-dir':None,
                   'backup-dir':'preprettify'}
     usageDesc=("usage:\n"+sys.argv[0]+ """
     [--[no-]upcase] [--[no-]normalize-use] [--[no-]replace]
-    [--[no-]extended] --indent=2 [--interface-dir=~/cp2k/obj/platform/target] [--help]
+    [--[no-]extended] --indent=2 --whitespace=2 [--interface-dir=~/cp2k/obj/platform/target] [--help]
     [--backup-dir=bk_dir] file1 [file2 ...]
 
     replaces file1,... with their prettified version after performing on
@@ -192,10 +188,10 @@ if __name__ == '__main__':
     If requested the replacements performed by the replacer.py script
     are also preformed.
     """+str(defaultsDict))
-    
+
     replace=None
     if "--help" in sys.argv:
-        print usageDesc
+        print(usageDesc)
         sys.exit(0)
     args=[]
     for arg in sys.argv[1:]:
@@ -203,7 +199,7 @@ if __name__ == '__main__':
         if m:
             defaultsDict[m.groups()[1]]=not m.groups()[0]
         else:
-            m=re.match(r"--(indent)=(.*)",arg)
+            m=re.match(r"--(indent|whitespace)=(.*)",arg)
             if m:
                 defaultsDict[m.groups()[0]]=int(m.groups()[1])
             else:
@@ -214,7 +210,7 @@ if __name__ == '__main__':
                 else:
                     args.append(arg)
     if len(args)<1:
-        print usageDesc
+        print(usageDesc)
     else:
         bkDir=defaultsDict['backup-dir']
         if not os.path.exists(bkDir):
@@ -224,19 +220,20 @@ if __name__ == '__main__':
             except:
                 assert(os.path.exists(bkDir))
         if not os.path.isdir(bkDir):
-            print "bk-dir must be a directory"
-            print usageDesc
+            print("bk-dir must be a directory")
+            print(usageDesc)
         else:
             failure=0
             for fileName in args:
                 if not os.path.isfile(fileName):
-                    print "file",fileName,"does not exists!"
+                    print("file",fileName,"does not exists!")
                 else:
                     try:
                         prettfyInplace(fileName,bkDir,
                                    normalize_use=defaultsDict['normalize-use'],
                                    normalize_extended=defaultsDict['extended'],
                                    indent=defaultsDict['indent'],
+                                   whitespace=defaultsDict['whitespace'],
                                    upcase_keywords=defaultsDict['upcase'],
                                    interfaces_dir=defaultsDict['interface-dir'],
                                    replace=defaultsDict['replace'])
@@ -248,3 +245,12 @@ if __name__ == '__main__':
                         sys.stdout.write('-'*60+"\n")
                         sys.stdout.write("Processing file '"+fileName+"'\n")
             sys.exit(failure>0)
+
+
+#===============================================================================
+if(__name__ == '__main__'):
+    if(len(sys.argv)==2 and sys.argv[-1]=="--selftest"):
+        pass #TODO implement selftest
+    else:
+        main()
+#EOF

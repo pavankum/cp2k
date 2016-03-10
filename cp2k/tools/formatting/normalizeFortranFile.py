@@ -1,11 +1,12 @@
-#! /usr/bin/env python
-
 import sys
 import re
 import string
 from sys import argv
-from cStringIO import StringIO
 from collections import deque
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 rUse=0
 rVar=0
@@ -16,6 +17,7 @@ useParseRe=re.compile(
 commonUsesRe=re.compile("^#include *\"([^\"]*(cp_common_uses.f90|base_uses.f90))\"")
 localNameRe=re.compile(" *(?P<localName>[a-zA-Z_0-9]+)(?: *= *> *[a-zA-Z_0-9]+)? *$")
 typeRe=re.compile(r" *(?P<type>integer(?: *\* *[0-9]+)?|logical|character(?: *\* *[0-9]+)?|real(?: *\* *[0-9]+)?|complex(?: *\* *[0-9]+)?|type) *(?P<parameters>\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\))? *(?P<attributes>(?: *, *[a-zA-Z_0-9]+(?: *\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\))?)+)? *(?P<dpnt>::)?(?P<vars>[^\n]+)\n?",re.IGNORECASE)#$
+indentSize=2
 
 class CharFilter(object):
     """
@@ -157,8 +159,8 @@ def parseRoutine(inFile):
                 subF.close()
             except:
                 import traceback
-                print "error trying to follow include ",m.group('file')
-                print "warning this might lead to the removal of used variables"
+                print("error trying to follow include ",m.group('file'))
+                print("warning this might lead to the removal of used variables")
                 traceback.print_exc()
     if jline:
         routine['begin']=lines
@@ -286,8 +288,8 @@ def parseRoutine(inFile):
                 subF.close()
             except:
                 import traceback
-                print "error trying to follow include ",m.group('file')
-                print "warning this might lead to the removal of used variables"
+                print("error trying to follow include ",m.group('file'))
+                print("warning this might lead to the removal of used variables")
                 traceback.print_exc()
         (jline,comments,lines)=stream.nextFortranLine()
     return routine
@@ -337,7 +339,7 @@ def enforceDeclDependecies(declarations):
                     for ivar2 in range(len(declarations[idecl2]['vars'])):
                         ii+=1
                         if ii>100000:
-                            raise StandardError,"could not enforce all constraints"
+                            raise Error("could not enforce all constraints")
                         m=varRe.match(declarations[idecl2]['vars'][ivar2])
                         if (ivar==0 and
                             findWord(m.group('var').lower(),typeParam)!=-1):
@@ -402,6 +404,7 @@ def writeInCols(dLine,indentCol,maxCol,indentAtt,file):
     indenting each newline with indentCol.
     The '&' of the continuation line is at maxCol.
     indentAtt is the actual intent, and the new indent is returned"""
+
     strRe=re.compile(r"('[^'\n]*'|\"[^\"\n]*\")")
     nonWordRe=re.compile(r"(\(/|/\)|[^-+a-zA-Z0-9_.])")
     maxSize=maxCol-indentCol-1
@@ -443,7 +446,7 @@ def writeCompactDeclaration(declaration,file):
         file.writelines(d['iend'])
     else:
         if len(d['vars'])>0:
-            decl = "    "+d['type']
+            decl = " "*indentSize*2+d['type']
             if d['parameters']: # do not drop empty parameter lists?
                 decl += d['parameters']
             if d['attributes']:
@@ -455,13 +458,13 @@ def writeCompactDeclaration(declaration,file):
             for var in d['vars']:
                 cur_len = sum([len(l) for l in dLine])
                 if(len(dLine) > 1 and cur_len + len(var) > 600):
-                    writeInCols(dLine,6,79,0,file)
+                    writeInCols(dLine,3*indentSize,79,0,file)
                     file.write("\n")
                     dLine = [decl]
                 if(len(dLine) > 1):
                     dLine[-1] += ", "
                 dLine.append(var)
-            writeInCols(dLine,6,79,0,file)
+            writeInCols(dLine,3*indentSize,79,0,file)
             file.write("\n")
 
 def writeExtendedDeclaration(declaration,file):
@@ -474,7 +477,7 @@ def writeExtendedDeclaration(declaration,file):
         file.writelines(d['iend'])
     else:
         dLine=[]
-        dLine.append("    "+d['type'])
+        dLine.append(" "*indentSize*2+d['type'])
         if d['parameters']: # do not drop empty parameter lists?
             dLine.append(d['parameters'])
         if d['attributes']:
@@ -482,8 +485,8 @@ def writeExtendedDeclaration(declaration,file):
                 dLine[-1:]=[dLine[-1]+", "]
                 dLine.append(a)
 
-        indentAtt=writeInCols(dLine,6,45,0,file)
-        file.write(" "*(44-indentAtt))
+        indentAtt=writeInCols(dLine,3*indentSize,41 + 2*indentSize,0,file)
+        file.write(" "*(40+2*indentSize-indentAtt))
         file.write(" :: ")
         indentAtt=48
 
@@ -492,7 +495,7 @@ def writeExtendedDeclaration(declaration,file):
             dLine.append(var+", ")
         dLine.append(d['vars'][-1])
 
-        writeInCols(dLine,48,79,indentAtt,file)
+        writeInCols(dLine,44+2*indentSize,79,indentAtt,file)
         file.write("\n")
 
 def writeDeclarations(parsedDeclarations,file):
@@ -615,7 +618,7 @@ def cleanDeclarations(routine,logFile=sys.stdout):
             if argDeclDict.has_key(arg):
                 argDecl.append(argDeclDict[arg])
             else:
-                print "warning, implicitly typed argument '",arg,"' in routine",routine['name']
+                print("warning, implicitly typed argument '",arg,"' in routine",routine['name'])
         if routine['kind'].lower()=='function':
             aDecl=argDecl[:-1]
         else:
@@ -751,7 +754,7 @@ def parseUse(inFile):
         m=useParseRe.match(jline)
         if m:
             if comments:
-                print "jline",jline,"lines",lines
+                print("jline",jline,"lines",lines)
             useAtt={'module':m.group('module'),'comments':[]}
 
             if m.group('only'):
@@ -810,18 +813,18 @@ def writeUses(modules,outFile):
 def writeUseLong(m,outFile):
     """Writes a use declaration in a nicer, but longer way"""
     if m.has_key('only'):
-        outFile.write("  USE "+m['module']+","+
+        outFile.write(indentSize*' ' + "USE "+m['module']+","+
                       string.rjust('ONLY: ',38-len(m['module'])))
         if m['only']: outFile.write(m['only'][0])
         for i in range(1,len(m['only'])):
-            outFile.write(",&\n"+string.ljust("",45)+m['only'][i])
+            outFile.write(",&\n"+string.ljust("",43+indentSize)+m['only'][i])
     else:
-        outFile.write("  USE "+m['module'])
+        outFile.write(indentSize*' ' + "USE "+m['module'])
         if m.has_key('renames') and m['renames']:
             outFile.write(","+string.ljust("",38)+
                           m['renames'][0])
             for i in range(1,len(m['renames'])):
-                outFile.write(",&\n"+string.ljust("",45)+m['renames'][i])
+                outFile.write(",&\n"+string.ljust("",43+indentSize)+m['renames'][i])
     if m['comments']:
         outFile.write("\n")
         outFile.write('\n'.join(m['comments']))
@@ -831,20 +834,20 @@ def writeUseShort(m,file):
     """Writes a use declaration in a compact way"""
     uLine=[]
     if m.has_key('only'):
-        file.write("  USE "+m['module']+","+
+        file.write(indentSize*' ' + "USE "+m['module']+","+
                    string.rjust('ONLY: &\n',40-len(m['module'])))
         for k in m['only'][:-1]:
             uLine.append(k+", ")
         uLine.append(m['only'][-1])
-        uLine[0]=" "*7+uLine[0]
+        uLine[0]=" "*(5+indentSize)+uLine[0]
     elif m.has_key('renames') and m['renames']:
-        uLine.append("  USE "+m['module']+", ")
+        uLine.append(indentSize*' ' +"USE "+m['module']+", ")
         for k in m['renames'][:-1]:
             uLine.append(k+", ")
         uLine.append(m['renames'][-1])
     else:
-        uLine.append("  USE "+m['module'])
-    writeInCols(uLine,7,79,0,file)
+        uLine.append(indentSize*' ' +"USE "+m['module'])
+    writeInCols(uLine,5+indentSize,79,0,file)
     if m['comments']:
         file.write("\n")
         file.write('\n'.join(m['comments']))
@@ -917,10 +920,14 @@ def resetModuleN(moduleName,lines):
             "  CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = '"+moduleName+"'",
             lines[i])
 
-def rewriteFortranFile(inFile,outFile,logFile=sys.stdout,orig_filename=None):
+def rewriteFortranFile(inFile,outFile,indent,logFile=sys.stdout,orig_filename=None):
     """rewrites the use statements and declarations of inFile to outFile.
     It sorts them and removes the repetitions."""
     import os.path
+
+    global indentSize
+    indentSize=indent
+
     moduleRe=re.compile(r" *(?:module|program) +(?P<moduleName>[a-zA-Z_][a-zA-Z_0-9]*) *(?:!.*)?$",
                         flags=re.IGNORECASE)
     coreLines=[]
@@ -958,7 +965,7 @@ def rewriteFortranFile(inFile,outFile,logFile=sys.stdout,orig_filename=None):
         nonStPrep=0
         for line in modulesDict['origLines']:
             if (re.search('^#',line) and not commonUsesRe.match(line)):
-                print 'noMatch',repr(line)
+                print('noMatch',repr(line))
                 nonStPrep=1
         if nonStPrep:
             logFile.write("*** use statements contains preprocessor directives, not cleaning ***\n")
@@ -996,28 +1003,4 @@ def rewriteFortranFile(inFile,outFile,logFile=sys.stdout,orig_filename=None):
         logFile.write("Processing file '"+inFile.name+"'\n")
         raise
 
-if __name__ == '__main__':
-    import os.path
-    if len(sys.argv)<2:
-        print "usage:", sys.argv[0]," out_dir file1 [file2 ...]"
-    else:
-        outDir=sys.argv[1]
-        if not os.path.isdir(outDir):
-            print "out_dir must be a directory"
-            print "usage:", sys.argv[0]," out_dir file1 [file2 ...]"
-        else:
-            for fileName in sys.argv[2:]:
-                try:
-                    print "normalizing",fileName
-                    infile=open(fileName,'r')
-                    outfile=open(os.path.join(outDir,
-                                              os.path.basename(fileName)),'w')
-                    rewriteFortranFile(infile,outfile)
-                    infile.close()
-                    outfile.close()
-                except:
-                    print "error for file", fileName
-            print "*** "*6
-            print "removedUse=",rUse
-            print "removedVar=",rVar
-                # print "done"
+#EOF
