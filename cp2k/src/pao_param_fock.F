@@ -123,7 +123,7 @@ CONTAINS
     INTEGER                                  :: handle, i, j, m, n
     LOGICAL                                  :: found
     REAL(dp)                                 :: alpha, beta, denom, diff, gap
-    REAL(dp), DIMENSION(:), POINTER          :: H_evals
+    REAL(dp), ALLOCATABLE, DIMENSION(:)      :: H_evals
     REAL(dp), DIMENSION(:, :), POINTER       :: block_N, D1, D2, H, H0, &
                                                 H_evecs, M2, M3, M4, M5, M6, &
                                                 M7, Y
@@ -149,13 +149,6 @@ CONTAINS
     ALLOCATE(H_evals(n), H_evecs(n,n))
     H_evecs = H
     CALL diamat_all(H_evecs, H_evals)
-
-    ! normalize sign of eigenvectors
-    ! The total enegies are unaffacted by this,
-    ! however pao_check_grad_param() gets confused by spontaneous sign flips.
-    DO i=1, n
-       H_evecs(:,i) =  H_evecs(:,i) * SIGN(1.0_dp, H_evecs(i,i))
-    ENDDO
 
     ! the eigenvectors of H become the rotation matrix U
     U = H_evecs
