@@ -202,7 +202,6 @@
              coef_x(3:4,1)=coef_x(3:4,1)+coef_xy(1:2,2)*pol_y(2,0,jg)
              coef_x(1:2,0)=coef_x(1:2,0)+coef_xy(1:2,3)*pol_y(1,1,jg)
              coef_x(3:4,0)=coef_x(3:4,0)+coef_xy(1:2,3)*pol_y(2,1,jg)
-          !$OMP SIMD
           DO ig=igmin,igmax
              i=map(ig,1)
              s01=0.0_dp
