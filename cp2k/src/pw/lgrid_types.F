@@ -29,11 +29,11 @@ MODULE lgrid_types
 
   TYPE lgrid_type
      INTEGER :: ldim, ref_count
-     REAL(dp), DIMENSION(:), POINTER :: r
+     REAL(dp), DIMENSION(:), POINTER CP_COMMA(CP_CONTIGUOUS) CP_CONTIGUOUS :: r
   END TYPE lgrid_type
 
   TYPE lgrid_p_type
-     TYPE(lgrid_type), POINTER :: l
+     TYPE(lgrid_type), POINTER CP_COMMA(CP_CONTIGUOUS) CP_CONTIGUOUS :: l
   END TYPE lgrid_p_type
 
 CONTAINS

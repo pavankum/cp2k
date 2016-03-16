@@ -30,15 +30,27 @@
 
 ! Macro which is calculating a single version number out of three components (major, minor, update).
 ! This is helpful when writing preprocessor conditions for code depending on the compiler version.
-#define CPFVERSION3(MAJOR, MINOR, UPDATE) (MAJOR * 10000 + MINOR * 100 + UPDATE)
+#define CP_VERSION3(MAJOR, MINOR, UPDATE) (MAJOR * 10000 + MINOR * 100 + UPDATE)
 
-! The CPCONTIGUOUS macro may (or may not) expand to the CONTIGUOUS attribute
+! The CP_CONTIGUOUS macro may (or may not) expand to the CONTIGUOUS attribute
 ! depending on whether or not the compiler supports Fortran 2008.
-#if defined(__GFORTRAN__) && (40600 <= CPFVERSION3(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__))
-# define CPCONTIGUOUS CONTIGUOUS
+#if defined(__GFORTRAN__) && (40600 <= CP_FVERSION3(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__))
+# define CP_CONTIGUOUS CONTIGUOUS
 #elif defined(__INTEL_COMPILER) && (1210 <= __INTEL_COMPILER)
-# define CPCONTIGUOUS CONTIGUOUS
+# define CP_CONTIGUOUS CONTIGUOUS
 #else
-# define CPCONTIGUOUS
+# define CP_CONTIGUOUS
 #endif
+! Represents the comma eventually needed to attach the CONTIGUOUS attribute.
+! Not used directly but eventually expanded by CP_COMMA(CP_CONTIGUOUS).
+#define CP_COMMA_CONTIGUOUS ,
+
+! Concatenate two symbols.
+#define CP_CONCATENATE_AUX(A, B) A##B
+! Concatenate two symbols but expanding the arguments first.
+#define CP_CONCATENATE(A, B) CP_CONCATENATE_AUX(A, B)
+
+! Expands to a comma eventually needed when using ATTRIB depending on
+! whether or not the ATTRIB is defined, otherwise expanded to nothing.
+#define CP_COMMA(ATTRIB) CP_CONCATENATE(CP_COMMA_, ATTRIB)
 
