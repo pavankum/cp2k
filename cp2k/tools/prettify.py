@@ -71,7 +71,8 @@ def upcaseKeywords(infile,outfile,upcase_omp,logFile=sys.stdout):
                 line=upcaseOMP(line)
         outfile.write(line)
 
-def prettifyFile(infile, normalize_use=1, reformat=0, indent=2, whitespace=2, upcase_keywords=1,
+def prettifyFile(infile, normalize_use=1, decl_linelength=100, decl_offset=50, 
+                 reformat=0, indent=2, whitespace=2, upcase_keywords=1,
                  upcase_omp=0, interfaces_dir=None,replace=None,logFile=sys.stdout):
     """prettifyes the fortran source in infile into a temporary file that is
     returned. It can be the same as infile.
@@ -115,8 +116,9 @@ def prettifyFile(infile, normalize_use=1, reformat=0, indent=2, whitespace=2, up
                 ifile=tmpfile
             if normalize_use:
                 tmpfile2=os.tmpfile()
-                normalizeFortranFile.rewriteFortranFile(ifile,tmpfile2,indent,logFile,
-                                                        orig_filename=orig_filename)
+                normalizeFortranFile.rewriteFortranFile(ifile,tmpfile2,indent,
+                                                        decl_linelength, decl_offset,
+                                                        logFile,orig_filename=orig_filename)
                 tmpfile2.seek(0)
                 if tmpfile:
                     tmpfile.close()
@@ -163,6 +165,7 @@ def prettifyFile(infile, normalize_use=1, reformat=0, indent=2, whitespace=2, up
             raise
 
 def prettfyInplace(fileName,bkDir="preprettify",normalize_use=1,
+                   decl_linelength=100, decl_offset=50,
                    reformat=0,indent=2,whitespace=2,
                    upcase_keywords=1, upcase_omp=0, interfaces_dir=None,
                    replace=None,logFile=sys.stdout):
@@ -172,8 +175,8 @@ def prettfyInplace(fileName,bkDir="preprettify",normalize_use=1,
     if not os.path.isdir(bkDir):
         raise Error("bk-dir must be a directory, was "+bkDir)
     infile=open(fileName,'r')
-    outfile=prettifyFile(infile, normalize_use, reformat,
-                         indent, whitespace, upcase_keywords, upcase_omp,
+    outfile=prettifyFile(infile, normalize_use,decl_linelength, decl_offset, 
+                         reformat, indent, whitespace, upcase_keywords, upcase_omp,
                          interfaces_dir, replace)
     if (infile==outfile):
         return
@@ -212,16 +215,17 @@ def prettfyInplace(fileName,bkDir="preprettify",normalize_use=1,
     infile.close()
     outfile.close()
 
-# FIXME: 'use' statements means not only use, but also variable declarations, add this to docu
 def main():
     # future defaults
     defaultsDict={'upcase':1,'normalize-use':1,'omp-upcase':1,
+                  'decl-linelength':100, 'decl-offset':50,
                   'reformat':1, 'indent':3, 'whitespace':1,
                   'replace':1, 'interface-dir':None,
                   'backup-dir':'preprettify'}
 
     # current defaults (FIXME: change to future defaults)
     defaultsDict={'upcase':1,'normalize-use':1,'omp-upcase':0,
+                  'decl-linelength':79, 'decl-offset':40,
                   'reformat':0, 'indent':2, 'whitespace':1,
                   'replace':1, 'interface-dir':None,
                   'backup-dir':'preprettify'}
@@ -232,19 +236,27 @@ def main():
     [--backup-dir=bk_dir] file1 [file2 ...]
 
     Auto-format F90 source file1, file2, ...:
-    - normalization of use statements (--normalize-use) (FIXME: give more detailed description)
-    - upcasing fortran keywords (--upcase)
-    - auto-indentation, auto-alignment and whitespace formatting (--reformat).
-      Amount of whitespace controlled by --whitespace = 0, 1, 2. 
-      For indenting with a relative width of n columns specify --indent=n.
-      For manual formatting of specific lines:
-      - disable auto-alignment by starting line continuation with an ampersand '&'
-      - completely disable reformatting by adding a comment '!&'
-      For manual formatting of a code block, use:
-      - start a manually formatted block with a '!&<' comment and close it with a '!&>' comment
-    - upcasing OMP directives (--omp-upcase)
-    - If requested the replacements performed by the replacer.py script are also performed (--replace) (FIXME: ???)
-    - If the interface direcory is given updates also the synopsis. (--interface-dir) (FIXME: ???)
+    --normalize-use
+             Sorting and alignment of variable declarations and USE statements, removal of unused list entries.
+             The line length of declarations is controlled by --decl-linelength=n, the offset of the variable list
+             is controlled by --decl-offset=n.
+    --upcase
+             Upcasing fortran keywords.
+    --reformat
+             Auto-indentation, auto-alignment and whitespace formatting.
+             Amount of whitespace controlled by --whitespace = 0, 1, 2.
+             For indenting with a relative width of n columns specify --indent=n.
+             For manual formatting of specific lines:
+             - disable auto-alignment by starting line continuation with an ampersand '&'.
+             - completely disable reformatting by adding a comment '!&'.
+             For manual formatting of a code block, use:
+             - start a manually formatted block with a '!&<' comment and close it with a '!&>' comment.
+    --omp-upcase
+             Upcasing OMP directives.
+    --replace
+             If requested the replacements performed by the replacer.py script are also performed. (FIXME: ???)
+    --interface-dir
+             If the interface direcory is given updates also the synopsis. (FIXME: ???)
 
     Defaults:
     """+str(defaultsDict))
@@ -259,7 +271,7 @@ def main():
         if m:
             defaultsDict[m.groups()[1]]=not m.groups()[0]
         else:
-            m=re.match(r"--(indent|whitespace)=(.*)",arg)
+            m=re.match(r"--(indent|whitespace|decl-linelength|decl-offset)=(.*)",arg)
             if m:
                 defaultsDict[m.groups()[0]]=int(m.groups()[1])
             else:
@@ -294,6 +306,8 @@ def main():
                     try:
                         prettfyInplace(fileName,bkDir,
                                    normalize_use=defaultsDict['normalize-use'],
+                                   decl_linelength=defaultsDict['decl-linelength'],
+                                   decl_offset=defaultsDict['decl-offset'],
                                    reformat=defaultsDict['reformat'],
                                    indent=defaultsDict['indent'],
                                    whitespace=defaultsDict['whitespace'],
