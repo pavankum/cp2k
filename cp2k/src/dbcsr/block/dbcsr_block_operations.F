@@ -23,8 +23,7 @@ MODULE dbcsr_block_operations
        dbcsr_get_data_p_2d_d, dbcsr_get_data_p_2d_s, dbcsr_get_data_p_2d_z, &
        dbcsr_get_data_p_c, dbcsr_get_data_p_d, dbcsr_get_data_p_s, &
        dbcsr_get_data_p_z, dbcsr_type_2d_to_1d, dbcsr_type_is_2d
-  USE dbcsr_error_handling,            ONLY: dbcsr_abort,&
-                                             dbcsr_assert,&
+  USE dbcsr_error_handling,            ONLY: dbcsr_assert,&
                                              dbcsr_caller_error,&
                                              dbcsr_failure_level,&
                                              dbcsr_fatal_level,&
@@ -302,8 +301,7 @@ CONTAINS
                src%d%c2_sp(lb_s:lb_s+row_size-1,lb2_s:lb2_s+col_size-1))
        ENDIF
     CASE default
-       CALL dbcsr_assert (.FALSE.,&
-            dbcsr_fatal_level, dbcsr_caller_error, routineN, "Incorrect data type.",__LINE__)
+       CPABORT("Incorrect data type.")
     END SELECT
   END SUBROUTINE dbcsr_block_transpose_aa
 
@@ -413,8 +411,7 @@ CONTAINS
                row_size, col_size)
        ENDIF
     CASE default
-       CALL dbcsr_assert (.FALSE.,&
-            dbcsr_fatal_level, dbcsr_caller_error, routineN, "Incorrect data type.",__LINE__)
+       CPABORT("Incorrect data type.")
     END SELECT
   END SUBROUTINE dbcsr_block_copy_aa
 
@@ -496,8 +493,7 @@ CONTAINS
        dst%d%c2_sp(lb_t:lb_t+row_size-1,lb2_t:lb2_t+col_size-1) =&
        dst%d%c2_sp(lb_t:lb_t+row_size-1,lb2_t:lb2_t+col_size-1) * scale%c_sp
     CASE default
-       CALL dbcsr_assert (.FALSE.,&
-            dbcsr_fatal_level, dbcsr_caller_error, routineN, "Incorrect data type.",__LINE__)
+       CPABORT("Incorrect data type.")
     END SELECT
     IF (careful_mod) CALL timestop(handle)
   END SUBROUTINE dbcsr_block_scale
@@ -586,9 +582,7 @@ CONTAINS
             AIMAG(dst%d%c2_sp(lb_t:lb_t+row_size-1,lb2_t:lb2_t+col_size-1)),&
             KIND=real_4)
     CASE default
-       CALL dbcsr_assert (.FALSE.,&
-            dbcsr_fatal_level, dbcsr_caller_error, routineN, &
-            "Incorrect data type.",__LINE__)
+       CPABORT("Incorrect data type.")
     END SELECT
     IF (careful_mod) CALL timestop(handle)
   END SUBROUTINE dbcsr_block_real_neg
@@ -665,9 +659,7 @@ CONTAINS
        dst%d%c2_sp(lb_t:lb_t+row_size-1,lb2_t:lb2_t+col_size-1) =&
        CONJG(dst%d%c2_sp(lb_t:lb_t+row_size-1,lb2_t:lb2_t+col_size-1))
     CASE default
-       CALL dbcsr_assert (.FALSE.,&
-            dbcsr_fatal_level, dbcsr_caller_error, routineN, &
-            "Incorrect data type.",__LINE__)
+       CPABORT("Incorrect data type.")
     END SELECT
     IF (careful_mod) CALL timestop(handle)
   END SUBROUTINE dbcsr_block_conjg
@@ -707,8 +699,7 @@ CONTAINS
        CALL dbcsr_block_transpose (area%d%c_sp,&
             row_size, col_size)
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_internal_error,&
-            routineN, "Invalid data type",__LINE__)
+       CPABORT("Invalid data type")
     END SELECT
     IF (careful_mod) &
          CALL timestop(handle)
@@ -910,8 +901,7 @@ CONTAINS
           dst%d%c2_dp(lb:ub, lb2:ub2) = src%d%c2_dp(lb_s:ub_s, lb2_s:ub2_s)
        ENDIF
     CASE default
-       CALL dbcsr_assert(.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid data type",__LINE__)
+       CPABORT("Invalid data type")
     END SELECT
   END SUBROUTINE dbcsr_data_copy_aa
 
@@ -1104,8 +1094,7 @@ CONTAINS
                                  dst_sizes(1), dst_sizes(2))
        ENDIF
     CASE default
-       CALL dbcsr_assert(.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid data type",__LINE__)
+       CPABORT("Invalid data type")
     END SELECT
     CALL timestop(handle)
   END SUBROUTINE dbcsr_data_copy_aa2
@@ -1174,8 +1163,8 @@ CONTAINS
     ENDIF
 
     IF(acc_devmem_allocated(area%d%acc_devmem)) THEN
-      IF (PRESENT(value)) CALL dbcsr_abort(routineP,__LINE__,&
-         "dbcsr_data_clear0 with value not implemented for acc_devmem")
+      IF (PRESENT(value)) &
+        CPABORT("dbcsr_data_clear0 with value not implemented for acc_devmem")
       s = dbcsr_datatype_sizeof(area%d%data_type)
       CALL acc_devmem_setzero_bytes(area%d%acc_devmem, s*lb, s*ub, area%d%memory_type%acc_stream)
     END IF
@@ -1374,8 +1363,7 @@ CONTAINS
           area%d%c2_dp(l:u, l2:u2) = CMPLX(0.0, 0.0, real_8)
        ENDIF
     CASE default
-       CALL dbcsr_assert(.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid or unsupported data type.",__LINE__)
+       CPABORT("Invalid or unsupported data type.")
     END SELECT
 
     ! CALL timestop(handle)
@@ -1539,8 +1527,7 @@ CONTAINS
                src_offset=src_o)
        ENDIF
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid data type.",__LINE__)
+       CPABORT("Invalid data type.")
     END SELECT
   END SUBROUTINE dbcsr_block_partial_copy
 
@@ -1595,8 +1582,7 @@ CONTAINS
        CALL set_block2d_diagonal (c2_dp,&
             dbcsr_get_data_p_z(diagonal), d)
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid data type!",__LINE__)
+       CPABORT("Invalid data type!")
     END SELECT
   END SUBROUTINE set_block2d_diagonal_a
 
@@ -1652,8 +1638,7 @@ CONTAINS
        c_dp => dbcsr_get_data_p_z(diagonal)
        CALL get_block2d_diagonal_z (c2_dp, c_dp, d)
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid data type!",__LINE__)
+       CPABORT("Invalid data type!")
     END SELECT
   END SUBROUTINE get_block2d_diagonal_a
 
@@ -1707,8 +1692,7 @@ CONTAINS
        CALL block_add_on_diag (&
             block_dimension, block_a%d%c2_dp, alpha_scalar%c_dp, imin, imax)
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid data type!",__LINE__)
+       CPABORT("Invalid data type!")
     END SELECT
   END SUBROUTINE block_add_on_diag_anytype
 
@@ -1764,8 +1748,7 @@ CONTAINS
     CASE (dbcsr_type_complex_8_2d)
        CALL block_add_z (block_a%d%c2_dp, block_b%d%c2_dp, n)
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid data type!",__LINE__)
+       CPABORT("Invalid data type!")
     END SELECT
   END SUBROUTINE block_add_anytype
 

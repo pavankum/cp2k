@@ -26,10 +26,8 @@ MODULE dbcsr_data_methods_low
        dbcsr_type_complex_8_2d, dbcsr_type_int_4, dbcsr_type_int_8, &
        dbcsr_type_real_4, dbcsr_type_real_4_2d, dbcsr_type_real_8, &
        dbcsr_type_real_8_2d
-  USE dbcsr_error_handling,            ONLY: dbcsr_abort,&
-                                             dbcsr_assert,&
+  USE dbcsr_error_handling,            ONLY: dbcsr_assert,&
                                              dbcsr_caller_error,&
-                                             dbcsr_failure_level,&
                                              dbcsr_fatal_level,&
                                              dbcsr_internal_error,&
                                              dbcsr_wrong_args_error
@@ -208,8 +206,7 @@ MODULE dbcsr_data_methods_low
           CALL memory_allocate(area%c2_dp, sizes=sizes, mem_type=area%memory_type)
 
        CASE default
-          CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_caller_error,&
-               routineN, "Invalid data type.",__LINE__)
+          CPABORT("Invalid data type.")
        END SELECT
 
 
@@ -276,8 +273,7 @@ MODULE dbcsr_data_methods_low
           NULLIFY (area%c2_dp)
 
        CASE default
-          CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_caller_error,&
-               routineN, "Invalid data type.",__LINE__)
+          CPABORT("Invalid data type.")
     END SELECT
 
     IF(area%memory_type%acc_devalloc) THEN
@@ -332,8 +328,7 @@ MODULE dbcsr_data_methods_low
     CASE (dbcsr_type_complex_4_2d)
        NULLIFY (area%d%c2_sp)
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_failure_level, dbcsr_caller_error,&
-            routineN, "Invalid data type.",__LINE__)
+       CPABORT("Invalid data type.")
     END SELECT
   END SUBROUTINE dbcsr_data_clear_pointer
 
@@ -400,8 +395,7 @@ MODULE dbcsr_data_methods_low
        CASE (dbcsr_type_complex_8_2d)
           valid = ASSOCIATED (area%d%c2_dp)
        CASE default
-          CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_caller_error,&
-               routineN, "Invalid data type.",__LINE__)
+          CPABORT("Invalid data type.")
     END SELECT
 
     IF (careful_mod) THEN
@@ -538,8 +532,7 @@ MODULE dbcsr_data_methods_low
           area%d%c_dp => dbcsr_get_data_p_z (pointee, bp, bp+nze-1)
        ENDIF
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_internal_error,&
-            routineN, "Invalid data type",__LINE__)
+       CPABORT("Invalid data type")
     END SELECT
     CALL dbcsr_data_set_size_referenced (area, rsize*csize)
     IF (debug_mod) THEN
@@ -596,8 +589,7 @@ MODULE dbcsr_data_methods_low
              IF (ASSOCIATED (area%d%c2_sp))&
                   data_size = SIZE (area%d%c2_sp)
           CASE default
-             CALL dbcsr_assert (.FALSE., dbcsr_failure_level, dbcsr_caller_error,&
-                  routineN, "Incorrect data type",__LINE__)
+             CPABORT("Incorrect data type")
           END SELECT
     ELSE
        CPWARN("Uninitialized data area")
@@ -722,8 +714,7 @@ MODULE dbcsr_data_methods_low
             dbcsr_fatal_level,&
             dbcsr_caller_error, routineN, "ub c_dp 2d",__LINE__)
     CASE default
-       CALL dbcsr_assert(.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            routineN, "Invalid data type", __LINE__)
+       CPABORT("Invalid data type")
     END SELECT
     CALL timestop (handle)
   END SUBROUTINE dbcsr_data_verify_bounds
@@ -769,12 +760,11 @@ MODULE dbcsr_data_methods_low
        CASE (dbcsr_type_complex_8_2d)
           area%d%c2_dp(lb(1):ub(1), lb(2):ub(2)) = 0.0_real_8
        CASE default
-          CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_caller_error,&
-               routineN, "Invalid data type.",__LINE__)
+          CPABORT("Invalid data type.")
     END SELECT
 
     IF(area%d%memory_type%acc_devalloc)&
-       CALL dbcsr_abort(routineP,__LINE__,"not yet supported for acc devmem")
+       CPABORT("not yet supported for acc devmem")
 
     IF (careful_mod) THEN
        CALL timestop(error_handle)
@@ -840,9 +830,7 @@ MODULE dbcsr_data_methods_low
                    sizes(1) = SIZE (area%d%c2_sp,1)
                    sizes(2) = SIZE (area%d%c2_sp,2)
              CASE default
-                CALL dbcsr_assert (.FALSE.,&
-                     dbcsr_fatal_level, dbcsr_caller_error,&
-                     routineN, "Incorrect data type", __LINE__)
+                CPABORT("Incorrect data type")
           END SELECT
        ENDIF
     ENDIF

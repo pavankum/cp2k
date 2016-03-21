@@ -17,7 +17,7 @@ MODULE dbcsr_error_handling
   PRIVATE
 
   ! procedures
-  PUBLIC :: dbcsr_assert, dbcsr_abort
+  PUBLIC :: dbcsr_assert
   ! parameters
   PUBLIC :: dbcsr_failure_level, dbcsr_fatal_level
   PUBLIC :: dbcsr_caller_error, dbcsr_wrong_args_error,&
@@ -62,22 +62,6 @@ MODULE dbcsr_error_handling
   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'dbcsr_error_handling'
 
 CONTAINS
-
-! *****************************************************************************
-!> \brief ...
-!> \param routine ...
-!> \param line ...
-!> \param msg ...
-!> \param[inout]
-! *****************************************************************************
-  SUBROUTINE dbcsr_abort(routine, line,  msg)
-    CHARACTER(*), INTENT(in)                 :: routine
-    INTEGER, INTENT(in)                      :: line
-    CHARACTER(*), INTENT(in)                 :: msg
-
-    CALL dbcsr_abort_low(dbcsr_fatal_level, dbcsr_internal_error, routine, msg, line)
-
-  END SUBROUTINE dbcsr_abort
 
 ! *****************************************************************************
 !> \brief ...
@@ -135,8 +119,7 @@ CONTAINS
     CASE ("NE")
        l = left .NE. right
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            "dbcsr_int_assert", "Invalid relation specified: "//rel, __LINE__)
+       CPABORT("Invalid relation specified: "//rel)
        l = .FALSE.
     END SELECT
     IF (.NOT. l) THEN
@@ -181,8 +164,7 @@ CONTAINS
     CASE ("IMP")
        l = .NOT. left .OR. right
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            "dbcsr_int_assert", "Invalid relation specified: "//rel, __LINE__)
+       CPABORT("Invalid relation specified: "//rel)
        l = .FALSE.
     END SELECT
     IF (.NOT. l) THEN
@@ -245,8 +227,7 @@ CONTAINS
     CASE ("NOT")
        l = .NOT. right
     CASE default
-       CALL dbcsr_assert (.FALSE., dbcsr_fatal_level, dbcsr_wrong_args_error,&
-            "dbcsr_int_assert", "Invalid relation specified: "//rel, __LINE__)
+       CPABORT("Invalid relation specified: "//rel)
        l = .FALSE.
     END SELECT
     IF (.NOT. l) THEN
