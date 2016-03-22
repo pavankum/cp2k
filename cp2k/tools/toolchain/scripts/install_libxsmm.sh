@@ -40,8 +40,7 @@ EOF
                     echo "libxsmm-${libxsmm_ver}.tar.gz is found"
                 else
                     download_pkg ${DOWNLOADER_FLAGS} \
-                                 -o libxsmm-${libxsmm_ver}.tar.gz \
-                                 https://github.com/hfp/libxsmm/archive/${libxsmm_ver}.tar.gz
+                                 https://www.cp2k.org/static/downloads/libxsmm-${libxsmm_ver}.tar.gz
                     tar -xzf libxsmm-${libxsmm_ver}.tar.gz
                 fi
             fi
@@ -61,6 +60,7 @@ EOF
                  FC=$FC \
                  MNK="1 4 5 6 8 9 13 16 17 22 23 24 26 32" \
                  PREFETCH=1 \
+                 PRECISION=2 \
                  PREFIX=${pkg_install_dir} \
                  > make.log 2>&1
             make -j $NPROCS \
@@ -69,6 +69,7 @@ EOF
                  FC=$FC \
                  MNK="1 4 5 6 8 9 13 16 17 22 23 24 26 32" \
                  PREFETCH=1 \
+                 PRECISION=2 \
                  PREFIX=${pkg_install_dir} \
                  install > install.log 2>&1
             cd ..
