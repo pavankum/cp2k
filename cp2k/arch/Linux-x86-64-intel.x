@@ -255,9 +255,10 @@ ifneq (,$(LIBXSMMROOT))
   ifneq (,$(filter %MIC-AVX512,$(TARGET)))
     LIBXSMM_PREFETCH := 1
   endif
+  LIBXSMM_MPSS := 0
   ifneq (0,$(MIC))
     ifneq (3,$(AVX))
-      LIBXSMM_MPSS = 1
+      LIBXSMM_MPSS := 1
     endif
   endif
   LIBXSMM_BUILD := $(shell $(MAKE) -f $(LIBXSMMROOT)/Makefile \
