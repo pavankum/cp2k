@@ -267,9 +267,7 @@ MODULE dbcsr_mm_multrec
     !
     !
     !$ NULLIFY (product_thread_dist)
-    !$ CALL dbcsr_assert (dbcsr_distribution_has_threads (product%dist),&
-    !$      dbcsr_fatal_level, dbcsr_internal_error, routineN,&
-    !$      "Missing thread distribution.", __LINE__)
+    !$ CPASSERT (dbcsr_distribution_has_threads (product%dist))
     !$ product_thread_dist => array_data (&
     !$      dbcsr_distribution_thread_dist (product%dist))
     !
