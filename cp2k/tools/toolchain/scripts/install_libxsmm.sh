@@ -40,7 +40,8 @@ EOF
                     echo "libxsmm-${libxsmm_ver}.tar.gz is found"
                 else
                     download_pkg ${DOWNLOADER_FLAGS} \
-                                 https://www.cp2k.org/static/downloads/libxsmm-${libxsmm_ver}.tar.gz
+                                 -o libxsmm-${libxsmm_ver}.tar.gz \
+                                 https://github.com/hfp/libxsmm/archive/${libxsmm_ver}.tar.gz
                     tar -xzf libxsmm-${libxsmm_ver}.tar.gz
                 fi
             fi
