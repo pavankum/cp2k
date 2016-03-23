@@ -60,7 +60,8 @@ void process_mm_stack(const libxsmm_acc_stackdesc_type* descriptor, const int* p
 
 int libxsmm_acc_prefetch = (libxsmm_acc_private::prefetch_env && *libxsmm_acc_private::prefetch_env)
   ? atoi(libxsmm_acc_private::prefetch_env)
-  : -1/*default: automatic strategy*/;
+  /* Select automatic prefetch strategy if no default prefetch was selected at build time of LIBXSMM. */
+  : (0 <= LIBXSMM_PREFETCH ? LIBXSMM_PREFETCH : -1);
 
 
 LIBXSMM_ACC_EXTERN_C void xsmm_acc_abort(const char* filename, int line_number, const char* message)
