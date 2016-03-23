@@ -89,7 +89,7 @@ private:
 
   static int prefetch() {
     switch (libxsmm_acc_prefetch) {
-      case 1: return LIBXSMM_PREFETCH_AL2BL2_VIA_C;
+      case 1: return LIBXSMM_PREFETCH_NONE;
       case 2: return LIBXSMM_PREFETCH_SIGNATURE;
       case 3: return LIBXSMM_PREFETCH_BL2_VIA_C;
       case 4: return LIBXSMM_PREFETCH_AL2;
@@ -98,12 +98,12 @@ private:
       case 7: return LIBXSMM_PREFETCH_AL2BL2_VIA_C_AHEAD;
       case 8: return LIBXSMM_PREFETCH_AL2_JPST;
       case 9: return LIBXSMM_PREFETCH_AL2BL2_VIA_C_JPST;
-      default: if (0 >= libxsmm_acc_prefetch) {
-        return LIBXSMM_PREFETCH;
-      }
-      else {
+      default:
+#if LIBXSMM_VERSION4(1, 3, 0, 8) <= LIBXSMM_VERSION4(LIBXSMM_VERSION_MAJOR, LIBXSMM_VERSION_MINOR, LIBXSMM_VERSION_UPDATE, LIBXSMM_VERSION_PATCH)
+        return LIBXSMM_PREFETCH_AUTO;
+#else
         return LIBXSMM_PREFETCH_NONE;
-      }
+#endif
     }
   }
 
