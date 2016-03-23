@@ -90,7 +90,7 @@ private:
   static int prefetch() {
     switch (libxsmm_acc_prefetch) {
       case 1: return LIBXSMM_PREFETCH_NONE;
-      case 2: return LIBXSMM_PREFETCH_SIGNATURE;
+      case 2: return 0/*LIBXSMM_PREFETCH_SIGONLY*/;
       case 3: return LIBXSMM_PREFETCH_BL2_VIA_C;
       case 4: return LIBXSMM_PREFETCH_AL2;
       case 5: return LIBXSMM_PREFETCH_AL2_AHEAD;
