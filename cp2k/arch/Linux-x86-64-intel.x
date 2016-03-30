@@ -170,7 +170,7 @@ endif
 ifneq (0,$(OMP))
   FCFLAGS   += -threads
   LDFLAGS   += -threads
-  OPTFLAGS  += -openmp
+  OPTFLAGS  += -fopenmp -override_limits
   ifneq (0,$(NESTED))
     DFLAGS += -D__NESTED_OPENMP
   endif
