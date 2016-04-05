@@ -230,11 +230,21 @@ CONTAINS
       CASE (mm_driver_xsmm)
          SELECT CASE (this%data_area%d%data_type)
          CASE (dbcsr_type_real_4)
+#if !defined(__RECONFIGURE)
             CALL xsmm_process_mm_stack_s(stack_descr, params, stack_size, &
                                          left%data_area%d%r_sp, right%data_area%d%r_sp, this%data_area%d%r_sp, used_smm)
+#else
+            CALL xsmm_acc_process_mm_stack_s(stack_descr, params, stack_size, &
+                                             left%data_area%d%r_sp, right%data_area%d%r_sp, this%data_area%d%r_sp, used_smm)
+#endif
          CASE (dbcsr_type_real_8)
+#if !defined(__RECONFIGURE)
             CALL xsmm_process_mm_stack_d(stack_descr, params, stack_size, &
                                          left%data_area%d%r_dp, right%data_area%d%r_dp, this%data_area%d%r_dp, used_smm)
+#else
+            CALL xsmm_acc_process_mm_stack_d(stack_descr, params, stack_size, &
+                                             left%data_area%d%r_dp, right%data_area%d%r_dp, this%data_area%d%r_dp, used_smm)
+#endif
          CASE (dbcsr_type_complex_4)
             CALL xsmm_process_mm_stack_c(stack_descr, params, stack_size, &
                                          left%data_area%d%c_sp, right%data_area%d%c_sp, this%data_area%d%c_sp, used_smm)
