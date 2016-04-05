@@ -472,14 +472,16 @@ def format_single_fline(f_line, whitespace, linebreak_pos, ampersand_sep, filena
     line_ftd = ''
     pos_prev = -1
     for pos, char in CharFilter(enumerate(line)):
-        is_decl = line[pos:].lstrip().startswith('::') or line[:pos].rstrip().endswith('::')
+        is_decl = line[pos:].lstrip().startswith('::') or line[
+            :pos].rstrip().endswith('::')
         if char == ' ':
-            if line_ftd and (re.search(r'[\w"]',line_ftd[-1]) or is_decl): # remove double spaces
+            # remove double spaces
+            if line_ftd and (re.search(r'[\w"]', line_ftd[-1]) or is_decl):
                 line_ftd = line_ftd + char
         else:
-            if line_ftd and line_ftd[-1]==' ' and (not re.search(r'[\w"]',char) and not is_decl):
-                line_ftd = line_ftd[:-1] # remove spaces except between words
-            line_ftd = line_ftd + line[pos_prev+1:pos+1]
+            if line_ftd and line_ftd[-1] == ' ' and (not re.search(r'[\w"]', char) and not is_decl):
+                line_ftd = line_ftd[:-1]  # remove spaces except between words
+            line_ftd = line_ftd + line[pos_prev + 1:pos + 1]
         pos_prev = pos
     line = line_ftd
 
@@ -615,8 +617,8 @@ def format_single_fline(f_line, whitespace, linebreak_pos, ampersand_sep, filena
 
     # format ':' for labels
     for newre in NEW_SCOPE_RE[0:2]:
-      if newre.search(line) and re.search(SOL_STR+r"\w+\s*:", line):
-           line = ': '.join(_.strip() for _ in line.split(':',1))
+        if newre.search(line) and re.search(SOL_STR + r"\w+\s*:", line):
+            line = ': '.join(_.strip() for _ in line.split(':', 1))
 
     if not auto_format:
         line = line_orig
@@ -706,7 +708,7 @@ def reformat_ffile(infile, outfile, logFile=sys.stdout, indent_size=2, whitespac
             has_comment = bool(comment.strip())
             sep = has_comment and not comment.strip() == line.strip()
             if line.strip():  # empty lines between linebreaks are ignored
-                comment_lines.append(' ' * sep + comment.rstrip(' \n'))
+                comment_lines.append(' ' * sep + comment.strip())
 
         orig_lines = lines
         nfl += 1
@@ -845,15 +847,21 @@ def reformat_ffile(infile, outfile, logFile=sys.stdout, indent_size=2, whitespac
                  for l in lines]  # deleting trailing whitespaces
 
         for ind, line, orig_line in zip(indent, lines, orig_lines):
+            # get actual line length excluding comment:
+            line_length = 0
+            for line_length, _ in CharFilter(enumerate(line)):
+                pass
+            line_length += 1
+
             if do_indent:
                 ind_use = ind
             else:
                 ind_use = 1
-            if ind_use + len(line) <= 133:
+            if ind_use + line_length <= 133: # 132 plus 1 newline char
                 outfile.write('!$' * is_omp_conditional + ' ' *
                               (ind_use - 2 * is_omp_conditional +
                                len(line) - len(line.lstrip(' '))) + line.lstrip(' '))
-            elif len(line) <= 133:
+            elif line_length <= 133:
                 outfile.write('!$' * is_omp_conditional + ' ' *
                               (133 - 2 * is_omp_conditional -
                                len(line.lstrip(' '))) + line.lstrip(' '))
@@ -894,7 +902,8 @@ if __name__ == '__main__':
         try:
             print("reformatting", fileName)
             infile = open(fileName, 'r')
-            outfile = open(os.path.join(outDir, os.path.basename(fileName)), 'w')
+            outfile = open(os.path.join(
+                outDir, os.path.basename(fileName)), 'w')
             reformat_ffile(infile, outfile)
         except:
             print("error for file", fileName)
