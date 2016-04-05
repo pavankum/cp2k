@@ -25,7 +25,9 @@
 
 #if defined(__LIBXSMM)
 namespace libxsmm_acc_private {
+  const char *const stacksize_env = getenv("CP2K_STACKSIZE");
   const char *const prefetch_env = getenv("CP2K_PREFETCH");
+  const char *const rma_env = getenv("CP2K_RMA");
 # if defined(__RECONFIGURE)
   const char *const reconfigure_env = getenv("CP2K_RECONFIGURE");
   const bool explicit_configure = (0 != reconfigure_env && 0 != *reconfigure_env);
@@ -107,15 +109,25 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
   LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
 #endif
 
-  if (libxsmm_acc_private::reconfigure) {
 #if defined(__MPI_VERSION) && (3 <= __MPI_VERSION)
-    const int enable = 1;
+  if (libxsmm_acc_private::rma_env && *libxsmm_acc_private::rma_env) {
+    const int enable = 0 != atoi(libxsmm_acc_private::rma_env) ? 1 : 0;
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_use_mpi_rma)(&enable);
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_use_mpi_filtering)(&enable);
+  }
 #endif
+  int stacksize = (libxsmm_acc_private::stacksize_env && *libxsmm_acc_private::stacksize_env)
+    ? atoi(libxsmm_acc_private::stacksize_env) : 0;
+
+  if (libxsmm_acc_private::reconfigure) {
+    if (0 < stacksize) {
+      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize);
+    }
 #if defined(LIBXSMM_ACC_STACKSIZE)
-    const int stacksize = LIBXSMM_ACC_STACKSIZE;
-    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize);
+    else {
+      stacksize = LIBXSMM_ACC_STACKSIZE;
+      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize);
+    }
 #endif
 #if defined(LIBXSMM_ACC_COMM_THREAD_LOAD)
     const int cthreadload = LIBXSMM_ACC_COMM_THREAD_LOAD;
@@ -147,6 +159,9 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) = LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM;
 # endif
 #endif
+  }
+  else if (0 < stacksize) {
+    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(&stacksize);
   }
 }
 
