@@ -66,10 +66,14 @@ MKL ?= 1
 MKL_DIRECT ?= 0
 MKL_STATIC ?= 1
 RECONFIGURE ?= 1
-TBBMALLOC ?= 1
 MEMKIND ?= 1
 OFFLOAD ?= 0
 NESTED ?= 0
+
+# TBB malloc proxy is enabled if TBBROOT is set
+TBBMALLOC ?= 1
+# TBB runtime compatible with oldest supported GCC
+TBBGCC_OLD ?= 1
 
 ifeq (0,$(OFFLOAD))
   MIC ?= 0
@@ -215,12 +219,18 @@ ifneq (0,$(TBBMALLOC))
       TBBMALLOCLIB = $(wildcard $(TBBROOT)/lib/intel64/gcc$(GCC_VERSION_MAJOR).$(GCC_VERSION_MINOR)/libtbbmalloc_proxy.so)
     endif
     ifeq (,$(TBBMALLOCLIB))
-      TBBGCCDIR = $(shell ls -1 "$(TBBROOT)/lib/intel64" | tr "\n" " " | rev | cut -d" " -f2 | rev)
-      TBBMALLOCLIB = $(wildcard $(TBBROOT)/lib/intel64/$(TBBGCCDIR)libtbbmalloc_proxy.so)
+      ifneq (0,$(TBBGCC_OLD))
+        TBBGCCDIR = $(shell ls -1 "$(TBBROOT)/lib/intel64" | tr "\n" " " | cut -d" " -f1)
+      else
+        TBBGCCDIR = $(shell ls -1 "$(TBBROOT)/lib/intel64" | tr "\n" " " | rev | cut -d" " -f2 | rev)
+      endif
+      TBBMALLOCLIB = $(wildcard $(TBBROOT)/lib/intel64/$(TBBGCCDIR)/libtbbmalloc_proxy.so)
     endif
     ifneq (,$(TBBMALLOCLIB))
-      LIBS += -L$(dir $(TBBMALLOCLIB)) -ltbbmalloc_proxy
-      #FCFLAGS += -heap-arrays
+      LIBS += $(TBBMALLOCLIB)
+      ifneq (1,$(TBB)) # TBB=2
+        FCFLAGS += -heap-arrays
+      endif
     endif
   endif
 else ifneq (,$(TCMALLOCROOT))
