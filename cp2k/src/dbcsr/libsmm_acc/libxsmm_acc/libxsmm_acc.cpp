@@ -45,10 +45,10 @@ namespace libxsmm_acc_private {
   }
 
   const char *const prefetch_env = getenv("CP2K_PREFETCH");
-  const char *const reconfigure_env = getenv("CP2K_RECONFIGURE");
-  const bool explicit_configure = (reconfigure_env && *reconfigure_env);
+  const char *const reconf_env = getenv("CP2K_RECONFIGURE");
+  const bool explicit_configure = (reconf_env && *reconf_env);
   const bool reconfigure = explicit_configure
-    ? (0 != atoi(reconfigure_env))
+    ? 0 != atoi(reconf_env)
 #if defined(LIBXSMM_ACC_OFFLOAD_BUILD)
     : true;
 #else
@@ -143,7 +143,9 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 {
   int myvalue = *value;
 #if defined(LIBXSMM_ACC_COMM_THREAD_LOAD)
-  if (libxsmm_acc_private::reconfigure) myvalue = LIBXSMM_ACC_COMM_THREAD_LOAD;
+  if (libxsmm_acc_private::reconfigure) {
+    myvalue = LIBXSMM_ACC_COMM_THREAD_LOAD;
+  }
 #endif
   LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_comm_thread_load)(&myvalue);
 }
@@ -158,7 +160,7 @@ void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(con
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(const int* value)
 {
   int myvalue = *value;
-  if (libxsmm_acc_private::reconfigure) {
+  if (!libxsmm_acc_private::explicit_configure || libxsmm_acc_private::reconfigure) {
     const char *const env = getenv("CP2K_STACKSIZE");
     if (env && *env) {
       myvalue = atoi(env);
@@ -182,7 +184,7 @@ void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_use_mpi_filtering
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_use_mpi_filtering)(const int* value)
 {
   int myvalue = *value;
-  if (libxsmm_acc_private::reconfigure) {
+  if (!libxsmm_acc_private::explicit_configure || libxsmm_acc_private::reconfigure) {
     const char *const env = getenv("CP2K_FILTERING");
     if (env && *env) myvalue = atoi(env);
   }
@@ -200,7 +202,7 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 {
   int myvalue = *value;
 #if defined(__MPI_VERSION) && (3 <= __MPI_VERSION)
-  if (libxsmm_acc_private::reconfigure) {
+  if (!libxsmm_acc_private::explicit_configure || libxsmm_acc_private::reconfigure) {
     const char *const env = getenv("CP2K_RMA");
     if (env && *env) myvalue = atoi(env);
   }
