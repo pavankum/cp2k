@@ -290,8 +290,11 @@ libxsmm:
 		ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) PREFETCH=$(LIBXSMM_PREFETCH) JIT=$(JIT) \
 		PTHREAD=$(OMP) OPT=$(OPT) IPO=$(IPO) TARGET=$(TARGET) SSE=$(SSE) AVX=$(AVX) \
 		SYM=$(SYM) DBG=$(DBG) MPSS=$(LIBXSMM_MPSS) OFFLOAD=$(OFFLOAD) MIC=$(MIC)
-# some translation unit (dummy) which is triggering the build
-$(SRCDIR)/base/base_uses.f90: libxsmm
+
+# some translation unit (dummy) which is (safely) triggering the LIBXSMM-(re)build
+# below hack is not exactly triggering the minimal rebuild but it's "good enough"
+$(SRCDIR)/base/base_uses.f90: $(LIBXSMM)
+	@touch $(OBJDIR)/*.o
 
 endif
 
