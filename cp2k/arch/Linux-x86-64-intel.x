@@ -279,7 +279,8 @@ ifneq (,$(LIBXSMMROOT))
   IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
   LIBS    += $(LIBXSMM)
 
-$(LIBXSMM): $(LIBXSMMROOT)/Makefile
+.PHONY: libxsmm
+libxsmm:
 	@$(MAKE) --no-print-directory -f $(LIBXSMMROOT)/Makefile \
 		INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
 		BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
@@ -289,8 +290,8 @@ $(LIBXSMM): $(LIBXSMMROOT)/Makefile
 		ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) PREFETCH=$(LIBXSMM_PREFETCH) JIT=$(JIT) \
 		PTHREAD=$(OMP) OPT=$(OPT) IPO=$(IPO) TARGET=$(TARGET) SSE=$(SSE) AVX=$(AVX) \
 		SYM=$(SYM) DBG=$(DBG) MPSS=$(LIBXSMM_MPSS) OFFLOAD=$(OFFLOAD) MIC=$(MIC)
-# some unit (dummy) which is triggering the build
-$(SRCDIR)/base/base_uses.f90: $(LIBXSMM)
+# some translation unit (dummy) which is triggering the build
+$(SRCDIR)/base/base_uses.f90: libxsmm
 
 endif
 
