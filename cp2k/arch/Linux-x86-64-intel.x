@@ -164,6 +164,8 @@ ifneq (0,$(MPI))
   #DFLAGS += -D__SCALAPACK2
   ifneq (1,$(MPI))
     DFLAGS += -D__MPI_VERSION=$(MPI)
+  else # default MPI std. version
+    DFLAGS += -D__MPI_VERSION=3
   endif
 else
   CXX = icpc
