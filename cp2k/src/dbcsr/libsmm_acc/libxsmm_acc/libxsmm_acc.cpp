@@ -49,11 +49,11 @@ namespace libxsmm_acc_private {
   const bool explicit_configure = (reconfigure_env && *reconfigure_env);
   const bool reconfigure = explicit_configure
     ? (0 != atoi(reconfigure_env))
-#   if defined(LIBXSMM_ACC_OFFLOAD_BUILD)
+#if defined(LIBXSMM_ACC_OFFLOAD_BUILD)
     : true;
-#   else
+#else
     : false;
-#   endif
+#endif
 
 } // namespace libxsmm_acc_private
 
