@@ -442,12 +442,16 @@ else # sequential
   LIBS += -Wl,--as-needed -lpthread -lm -Wl,--no-as-needed
 endif
 
-ifeq (,$(LIBXSMMROOT))
-  ifeq (,$(LIBXSTREAMROOT))
-    RECONFIGURE = 0
-  else ifeq (0,$(ACC))
-    RECONFIGURE = 0
+ifneq (,$(wildcard $(SRCDIR)/dbcsr/libsmm_acc/libxsmm_acc))
+  ifeq (,$(LIBXSMMROOT))
+    ifeq (,$(LIBXSTREAMROOT))
+      RECONFIGURE = 0
+    else ifeq (0,$(ACC))
+      RECONFIGURE = 0
+    endif
   endif
+else # this is not the CP2K/intel branch 
+  RECONFIGURE = 0
 endif
 ifneq (0,$(RECONFIGURE))
   DFLAGS  += -D__RECONFIGURE
