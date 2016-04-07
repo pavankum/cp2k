@@ -452,6 +452,10 @@ endif
 ifneq (0,$(RECONFIGURE))
   DFLAGS  += -D__RECONFIGURE
   LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_mm_driver_
+  LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_comm_thread_load_
+  LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_mm_stacksize_
+  LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_use_mpi_filtering_
+  LDFLAGS += -Wl,--wrap=dbcsr_config_mp_dbcsr_set_conf_use_mpi_rma_
   DIAG_DISABLE := $(DIAG_DISABLE),11021
 endif
 
