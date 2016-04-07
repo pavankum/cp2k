@@ -69,6 +69,7 @@ RECONFIGURE ?= 1
 MEMKIND ?= 1
 OFFLOAD ?= 0
 NESTED ?= 0
+ELPA ?= 3
 
 # TBB malloc proxy is enabled if TBBROOT is set
 TBBMALLOC ?= 1
@@ -193,11 +194,7 @@ ifneq (,$(LIBXCROOT))
 endif
 
 ifneq (,$(ELPAROOT))
-  ifeq (,$(ELPA)) # default is ELPA3
-    DFLAGS  += -D__ELPA3
-    IFLAGS  += -I$(ELPAROOT)/include/elpa/modules
-    LIBS    += $(ELPAROOT)/lib/libelpa.a
-  else ifneq (0,$(ELPA))
+  ifneq (0,$(ELPA))
     ifeq (1,$(ELPA))
       DFLAGS  += -D__ELPA
     else
@@ -205,6 +202,8 @@ ifneq (,$(ELPAROOT))
     endif
     IFLAGS  += -I$(ELPAROOT)/include/elpa/modules
     LIBS    += $(ELPAROOT)/lib/libelpa.a
+    # in case ELPA is built with OpenMP
+    LIBS    += -Wl,--as-needed -liomp5 -Wl,--no-as-needed
   endif
 endif
 
