@@ -279,8 +279,7 @@ ifneq (,$(LIBXSMMROOT))
   IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
   LIBS    += $(LIBXSMM)
 
-.PHONY: libxsmm
-libxsmm:
+$(LIBXSMM):
 	@$(MAKE) --no-print-directory -f $(LIBXSMMROOT)/Makefile \
 		INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
 		BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
@@ -292,9 +291,12 @@ libxsmm:
 		SYM=$(SYM) DBG=$(DBG) MPSS=$(LIBXSMM_MPSS) OFFLOAD=$(OFFLOAD) MIC=$(MIC)
 
 # some translation unit (dummy) which is (safely) triggering the LIBXSMM-(re)build
-# below hack is not exactly triggering the minimal rebuild but it's "good enough"
+# below hack is not triggering minimal rebuild but "good enough" (relink)
+$(SRCDIR)/base/base_uses.f90: $(LIBXSMM)
+ifneq (,$(wildcard $(LIBXSMM)))
 $(SRCDIR)/base/base_uses.f90: $(LIBXSMM)
 	@touch $(OBJDIR)/*.o
+endif
 
 endif
 
