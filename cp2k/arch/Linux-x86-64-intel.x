@@ -260,6 +260,16 @@ ifneq (,$(wildcard $(LIBSMM_LIB))) # LIBSMM successfully downloaded
 else ifneq (,$(LIBXSMMROOT))
   LIBXSMM_LIB = $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/libxsmm.a
 
+  LIBXSMM ?= 0
+  # substitute "big" xGEMM calls with LIBXSMM
+  ifneq (0,$(LIBXSMM))
+    ifneq (0,$(MKL))
+      LDFLAGS += -Wl,--wrap=mkl_sgemm_,--wrap=mkl_dgemm_
+    else # fallback (non-MKL BLAS)
+      LDFLAGS += -Wl,--wrap=sgemm_,--wrap=dgemm_
+    endif
+  endif
+
   ifeq (1,$(shell echo $$((0==$(JIT) || 1!=($(SSE)+1)))))
     LIBXSMM_MNK := "23, 6, 14 16 29, 14 32 29, 5 32 13 24 26, 9 32 22, 64, 78, 16 29 55, 32 29 55, 12, 4 5 7 9 13 25 26 28 32 45"
   endif
