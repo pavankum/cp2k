@@ -279,7 +279,7 @@ ifneq (,$(LIBXSMMROOT))
   IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
   LIBS    += $(LIBXSMM)
 
-$(LIBXSMM):
+$(LIBXSMM): .make
 	@$(MAKE) --no-print-directory -f $(LIBXSMMROOT)/Makefile \
 		INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
 		BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
@@ -289,12 +289,12 @@ $(LIBXSMM):
 		ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) PREFETCH=$(LIBXSMM_PREFETCH) JIT=$(JIT) \
 		PTHREAD=$(OMP) OPT=$(OPT) IPO=$(IPO) TARGET=$(TARGET) SSE=$(SSE) AVX=$(AVX) \
 		SYM=$(SYM) DBG=$(DBG) MPSS=$(LIBXSMM_MPSS) OFFLOAD=$(OFFLOAD) MIC=$(MIC)
+LIBXSMM_UPTODATE_CHECK := $(shell touch .make)
 
-# some translation unit (dummy) which is (safely) triggering the LIBXSMM-(re)build
+# translation unit (dummy) which allows to consider LIBXSMM as dep. in general
 # below hack is not triggering minimal rebuild but "good enough" (relink)
 $(SRCDIR)/base/base_uses.f90: $(LIBXSMM)
 ifneq (,$(wildcard $(LIBXSMM)))
-$(SRCDIR)/base/base_uses.f90: $(LIBXSMM)
 	@touch $(OBJDIR)/*.o
 endif
 
