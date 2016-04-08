@@ -35,7 +35,7 @@ AR       = xiar -r
 #
 #LIBXCROOT = $(HOME)/libxc
 
-# LIBXSMM (https://github.com/hfp/libxsmm)
+# LIBXSMM_LIB (https://github.com/hfp/libxsmm)
 #
 #LIBXSMMROOT = $(HOME)/libxsmm
 
@@ -246,8 +246,19 @@ ifneq (0,$(MEMKIND))
   endif
 endif
 
-ifneq (,$(LIBXSMMROOT))
-  LIBXSMM = $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/libxsmm.a
+# to ease performance comparison...
+LIBSMM ?= 0
+ifneq (0,$(LIBSMM))
+  LIBSMM_INSTALL := $(shell cd $(TOOLSRC)/toolchain; ./scripts/install_libsmm.sh)
+  LIBSMM_LIB = $(TOOLSRC)/toolchain/install/lib/libsmm_dnn.a
+endif
+ifneq (,$(wildcard $(LIBSMM_LIB))) # LIBSMM successfully downloaded
+  DFLAGS  += -D__HAS_smm_dnn
+  LIBS    += $(LIBSMM_LIB)
+  # turn off reconfiguration
+  RECONFIGURE = 0
+else ifneq (,$(LIBXSMMROOT))
+  LIBXSMM_LIB = $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/libxsmm.a
 
   ifeq (1,$(shell echo $$((0==$(JIT) || 1!=($(SSE)+1)))))
     LIBXSMM_MNK := "23, 6, 14 16 29, 14 32 29, 5 32 13 24 26, 9 32 22, 64, 78, 16 29 55, 32 29 55, 12, 4 5 7 9 13 25 26 28 32 45"
@@ -275,11 +286,7 @@ ifneq (,$(LIBXSMMROOT))
     endif
   endif
 
-  DFLAGS  += -D__LIBXSMM
-  IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
-  LIBS    += $(LIBXSMM)
-
-$(LIBXSMM): .make
+$(LIBXSMM_LIB): .make
 	@$(MAKE) --no-print-directory -f $(LIBXSMMROOT)/Makefile \
 		INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
 		BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
@@ -290,14 +297,16 @@ $(LIBXSMM): .make
 		PTHREAD=$(OMP) OPT=$(OPT) IPO=$(IPO) TARGET=$(TARGET) SSE=$(SSE) AVX=$(AVX) \
 		SYM=$(SYM) DBG=$(DBG) MPSS=$(LIBXSMM_MPSS) OFFLOAD=$(OFFLOAD) MIC=$(MIC)
 LIBXSMM_UPTODATE_CHECK := $(shell touch .make)
-
-# translation unit (dummy) which allows to consider LIBXSMM as dep. in general
+# translation unit (dummy) which allows to consider LIBXSMM_LIB as dep. in general
 # below hack is not triggering minimal rebuild but "good enough" (relink)
-$(SRCDIR)/base/base_uses.f90: $(LIBXSMM)
-ifneq (,$(wildcard $(LIBXSMM)))
+$(SRCDIR)/base/base_uses.f90: $(LIBXSMM_LIB)
+ifneq (,$(wildcard $(LIBXSMM_LIB)))
 	@touch $(OBJDIR)/*.o
 endif
 
+  DFLAGS  += -D__LIBXSMM
+  IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
+  LIBS    += $(LIBXSMM_LIB)
 endif
 
 ifneq (0,$(ACC))

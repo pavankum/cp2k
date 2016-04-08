@@ -233,7 +233,7 @@ CONTAINS
 #if !defined(__RECONFIGURE)
             CALL xsmm_process_mm_stack_s(stack_descr, params, stack_size, &
                                          left%data_area%d%r_sp, right%data_area%d%r_sp, this%data_area%d%r_sp, used_smm)
-#else
+#elif !defined(__HAS_smm_dnn)
             CALL xsmm_acc_process_mm_stack_s(stack_descr, params, stack_size, &
                                              left%data_area%d%r_sp, right%data_area%d%r_sp, this%data_area%d%r_sp, used_smm)
 #endif
@@ -241,7 +241,7 @@ CONTAINS
 #if !defined(__RECONFIGURE)
             CALL xsmm_process_mm_stack_d(stack_descr, params, stack_size, &
                                          left%data_area%d%r_dp, right%data_area%d%r_dp, this%data_area%d%r_dp, used_smm)
-#else
+#elif !defined(__HAS_smm_dnn)
             CALL xsmm_acc_process_mm_stack_d(stack_descr, params, stack_size, &
                                              left%data_area%d%r_dp, right%data_area%d%r_dp, this%data_area%d%r_dp, used_smm)
 #endif
