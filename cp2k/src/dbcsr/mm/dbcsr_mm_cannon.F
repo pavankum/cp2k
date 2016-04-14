@@ -554,6 +554,8 @@ CONTAINS
       INTEGER(KIND=int_8)                                :: my_flop
       LOGICAL :: ab_dense, keep_product_data, keep_sparsity, new_left, new_right, product_reindex, &
          release_tdist, use_dense_mult
+      INTEGER, SAVE :: dense_mult_default = -1
+      CHARACTER :: dense_mult_env
       REAL(KIND=dp)                                      :: cs
       TYPE(array_i1d_obj) :: dense_col_sizes, dense_k_sizes, dense_row_sizes, k_vmap, m_map, &
          n_map, old_product_col_blk_offsets, old_product_col_blk_sizes, &
@@ -706,9 +708,17 @@ CONTAINS
       IF (.NOT. array_equality(dbcsr_col_block_offsets(matrix_left), dbcsr_row_block_offsets(matrix_right))) &
          CPABORT("A cols/B rows not equal")
       !
-      ! No dense multiplication when filtering is used.
-      use_dense_mult = .NOT. PRESENT(filter_eps)
-      IF (has_acc) use_dense_mult = .FALSE.
+      IF (dense_mult_default.LT.0) THEN ! not yet discovered
+         CALL GETENV("CP2K_DENSE", dense_mult_env)
+         IF (' '.NE.dense_mult_env) THEN ! env.var is present
+            READ(dense_mult_env, "(I32)") 
+            ! avoid to re-enter this region (setup)
+            dense_mult_default = ABS(dense_mult_default)
+         ENDIF
+      ENDIF
+      !
+      ! No dense multiplication when filtering is used, or when ACC is enabled, or when default forbids it.
+      use_dense_mult = (.NOT.PRESENT(filter_eps)).AND.(.NOT.has_acc).AND.(0.NE.dense_mult_default)
       !
       ! Temporary check for RMA algorithm
       IF (has_acc .OR. new_right .OR. new_left .OR. &
@@ -728,7 +738,7 @@ CONTAINS
          IF (dbcsr_has_symmetry(matrix_left) .OR. &
              dbcsr_has_symmetry(matrix_right)) THEN
             use_dense_mult = .FALSE.
-         ELSE
+         ELSE IF (0.NE.dense_mult_default) THEN
             use_dense_mult = dbcsr_may_be_dense(matrix_left, make_dense_occ_thresh) &
                              .AND. dbcsr_may_be_dense(matrix_right, make_dense_occ_thresh)
          ENDIF
