@@ -35,9 +35,26 @@ AR       = xiar -r
 #
 #LIBXCROOT = $(HOME)/libxc
 
-# LIBXSMM_LIB (https://github.com/hfp/libxsmm)
+# LIBXSMM (https://github.com/hfp/libxsmm)
 #
-#LIBXSMMROOT = $(HOME)/libxsmm
+#LIBXSMMROOT = /path/to/libxsmm
+ifneq (0,$(LIBXSMM))
+  ifeq (,$(strip $(LIBXSMMROOT)))
+    ifneq (,$(wildcard $(CP2KHOME)/../libxsmm/Makefile))
+      LIBXSMMROOT = $(CP2KHOME)/../libxsmm
+    else ifneq (,$(wildcard $(HOME)/libxsmm/Makefile))
+      LIBXSMMROOT = $(HOME)/libxsmm
+    else ifneq (,$(wildcard $(TOOLSRC)/toolchain/build/libxsmm*/Makefile))
+      LIBXSMMROOT = $(dir $(wildcard $(TOOLSRC)/toolchain/build/libxsmm*/Makefile))
+    endif
+    ifneq (,$(strip $(LIBXSMMROOT)))
+      $(info ================================================================================)
+      $(info Automatically enabled LIBXSMM) by using LIBXSMMROOT:
+      $(info $(LIBXSMMROOT))
+      $(info ================================================================================)
+    endif
+  endif
+endif
 
 # LIBXSTREAM: cp2k/tools/mic/libxstream or https://github.com/hfp/libxstream
 # Please note that CP2K redistributes a tested version of LIBXSTREAM
@@ -258,43 +275,44 @@ ifneq (,$(wildcard $(LIBSMM_LIB))) # LIBSMM successfully downloaded
   # turn off reconfiguration
   RECONFIGURE = 0
 else ifneq (,$(LIBXSMMROOT))
-  LIBXSMM_LIB = $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/libxsmm.a
-
-  LIBXSMM ?= 0
-  # substitute "big" xGEMM calls with LIBXSMM
+  LIBXSMM ?= 1
   ifneq (0,$(LIBXSMM))
-    ifneq (0,$(MKL))
-      LDFLAGS += -Wl,--wrap=mkl_sgemm_,--wrap=mkl_dgemm_
-    else # fallback (non-MKL BLAS)
-      LDFLAGS += -Wl,--wrap=sgemm_,--wrap=dgemm_
-    endif
-  endif
+    LIBXSMM_LIB = $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/libxsmm.a
 
-  ifeq (1,$(shell echo $$((0==$(JIT) || 1!=($(SSE)+1)))))
-    LIBXSMM_MNK := "23, 6, 14 16 29, 14 32 29, 5 32 13 24 26, 9 32 22, 64, 78, 16 29 55, 32 29 55, 12, 4 5 7 9 13 25 26 28 32 45"
-  endif
-  LIBXSMM_ALIGNED_STORES := 0
-  LIBXSMM_PREFETCH := 0
-  ifneq (0,$(OMP))
-    ifneq (0,$(NESTED))
-      LIBXSMM_ALIGNED_STORES := 1
+    # substitute "big" xGEMM calls with LIBXSMM
+    ifeq (1,$(shell echo $$((1 < $(LIBXSMM)))))
+      ifneq (0,$(MKL))
+        LDFLAGS += -Wl,--wrap=mkl_sgemm_,--wrap=mkl_dgemm_
+      else # fallback (non-MKL BLAS)
+        LDFLAGS += -Wl,--wrap=sgemm_,--wrap=dgemm_
+      endif
     endif
-  endif
-  ifneq (0,$(ACC))
-    ifneq (0,$(OFFLOAD))
-      LIBXSMM_ALIGNED_STORES := 1
+
+    ifeq (1,$(shell echo $$((0==$(JIT) || 1!=($(SSE)+1)))))
+      LIBXSMM_MNK := "23, 6, 14 16 29, 14 32 29, 5 32 13 24 26, 9 32 22, 64, 78, 16 29 55, 32 29 55, 12, 4 5 7 9 13 25 26 28 32 45"
+    endif
+    LIBXSMM_ALIGNED_STORES := 0
+    LIBXSMM_PREFETCH := 0
+    ifneq (0,$(OMP))
+      ifneq (0,$(NESTED))
+        LIBXSMM_ALIGNED_STORES := 1
+      endif
+    endif
+    ifneq (0,$(ACC))
+      ifneq (0,$(OFFLOAD))
+        LIBXSMM_ALIGNED_STORES := 1
+        LIBXSMM_PREFETCH := 1
+      endif
+    endif
+    ifneq (,$(filter %MIC-AVX512,$(TARGET)))
       LIBXSMM_PREFETCH := 1
     endif
-  endif
-  ifneq (,$(filter %MIC-AVX512,$(TARGET)))
-    LIBXSMM_PREFETCH := 1
-  endif
-  LIBXSMM_MPSS := 0
-  ifneq (0,$(MIC))
-    ifneq (3,$(AVX))
-      LIBXSMM_MPSS := 1
+    LIBXSMM_MPSS := 0
+    ifneq (0,$(MIC))
+      ifneq (3,$(AVX))
+        LIBXSMM_MPSS := 1
+      endif
     endif
-  endif
 
 $(LIBXSMM_LIB): .make
 	@$(MAKE) --no-print-directory -f $(LIBXSMMROOT)/Makefile \
@@ -314,9 +332,10 @@ ifneq (,$(wildcard $(LIBXSMM_LIB)))
 	@touch $(OBJDIR)/*.o
 endif
 
-  DFLAGS  += -D__LIBXSMM
-  IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
-  LIBS    += $(LIBXSMM_LIB)
+    DFLAGS  += -D__LIBXSMM
+    IFLAGS  += -I$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include
+    LIBS    += $(LIBXSMM_LIB)
+  endif
 endif
 
 ifneq (0,$(ACC))
