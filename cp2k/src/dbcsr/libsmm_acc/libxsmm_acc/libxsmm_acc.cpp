@@ -135,21 +135,26 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
   // define stacksize as part of the MM driver config (otherwise it remains undefined)
   LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(NULL);
 
-  extern int LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default);
-  const char *const dense_mult_env = getenv("CP2K_DENSE");
-  if (dense_mult_env && *dense_mult_env) { // environment variable is present
-    LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default) = std::abs(atoi(dense_mult_env));
+  const char *const multrec_env = getenv("CP2K_MULTREC");
+  if (multrec_env && *multrec_env) { // environment variable is present
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
+    int multrec_limit = atoi(multrec_env);
+    if (0 < multrec_limit) {
+      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = multrec_limit;
+    }
+#if defined(LIBXSMM_ACC_MULTREC_LIMIT)
+    else {
+      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = LIBXSMM_ACC_MULTREC_LIMIT;
+    }
+#endif
   }
 
-  if (libxsmm_acc_private::reconfigure) {
-    if (0 > LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default)) {
-      LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default) = 0;
-    }
+  const char *const dense_mult_env = getenv("CP2K_DENSE");
+  int dense_mult = (dense_mult_env && *dense_mult_env) ? atoi(dense_mult_env) : -1;
 
-#if defined(LIBXSMM_ACC_MULTREC_LIMIT)
-    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
-    LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = LIBXSMM_ACC_MULTREC_LIMIT;
-#endif
+  if (libxsmm_acc_private::reconfigure) {
+    if (0 > dense_mult) dense_mult = 0;
+
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # if defined(LIBXSMM_ACC_ACCDRV_POSTERIOR_STREAMS)
     extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_posterior_streams);
@@ -172,6 +177,11 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_min_flop_process) = LIBXSMM_ACC_ACCDRV_MIN_NFLOPS_PERMM;
 # endif
 #endif
+  }
+
+  if (0 <= dense_mult) {
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default);
+    LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default) = dense_mult;
   }
 }
 
@@ -207,7 +217,12 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
   int myvalue = *value;
   if (!libxsmm_acc_private::explicit_configure || libxsmm_acc_private::reconfigure) {
     const char *const env = getenv("CP2K_FILTERING");
-    if (env && *env) myvalue = atoi(env);
+    if (env && *env) {
+      myvalue = atoi(env);
+    }
+    else if (libxsmm_acc_private::reconfigure) {
+      myvalue = 1;
+    }
   }
   LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_use_mpi_filtering)(&myvalue);
 }
@@ -226,7 +241,12 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
 #if defined(__MPI_VERSION) && (3 <= __MPI_VERSION)
   if (!libxsmm_acc_private::explicit_configure || libxsmm_acc_private::reconfigure) {
     const char *const env = getenv("CP2K_RMA");
-    if (env && *env) myvalue = atoi(env);
+    if (env && *env) {
+      myvalue = atoi(env);
+    }
+    else if (libxsmm_acc_private::reconfigure) {
+      myvalue = 0;
+    }
   }
 #endif
   LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_use_mpi_rma)(&myvalue);
