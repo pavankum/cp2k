@@ -107,24 +107,30 @@ LIBXSMM_ACC_EXTERN_C
 void LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int*);
 LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(const int* driver)
 {
-#if defined(MKL_ENABLE_AVX512_MIC)
+#if defined(MKL_ENABLE_AVX512_MIC) // only necessary for the version carrying KNL support for the first time
   mkl_enable_instructions(MKL_ENABLE_AVX512_MIC);
 #endif
 #if defined(__LIBXSMM)
-  // pre-generate dispatch tables for the static code
+  // eventually pre-generate dispatch tables for any static code
   libxsmm_init();
-# if defined(LIBXSMM_ACC_MM_DRIVER)
-  const int acc_driver = LIBXSMM_ACC_MM_DRIVER;
-  // make sure to reconfigure *after* the original configuration procedure ran
-  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(&acc_driver);
-# else
-  // make sure to reconfigure *after* the original configuration procedure ran
-  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
-# endif
-#else
-  // make sure to reconfigure *after* the original configuration procedure ran
-  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
 #endif
+
+#if defined(LIBXSMM_ACC_MM_DRIVER)
+  int mm_driver = LIBXSMM_ACC_MM_DRIVER;
+#else
+  LIBXSMM_ACC_ASSERT(driver);
+  int mm_driver = *driver;
+#endif
+
+  // better leave "CP2K_DRIVER" environment variable undocumented
+  // variable takes the internal literal/number representing MM driver
+  const char *const driver_env = getenv("CP2K_DRIVER");
+  if (driver_env && *driver_env) { // environment variable is present
+    mm_driver = atoi(driver_env);
+  }
+
+  // make sure to reconfigure *after* the original configuration procedure ran
+  LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(&mm_driver);
 
   // define stacksize as part of the MM driver config (otherwise it remains undefined)
   LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(NULL);
