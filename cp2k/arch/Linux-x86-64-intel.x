@@ -263,7 +263,7 @@ ifneq (0,$(MEMKIND))
   endif
 endif
 
-# to ease performance comparison...
+# Allow for LIBSMM to ease performance comparison...
 LIBSMM ?= 0
 ifneq (0,$(LIBSMM))
   LIBSMM_INSTALL := $(shell cd $(TOOLSRC)/toolchain; ./scripts/install_libsmm.sh)
@@ -272,9 +272,9 @@ endif
 ifneq (,$(wildcard $(LIBSMM_LIB))) # LIBSMM successfully downloaded
   DFLAGS  += -D__HAS_smm_dnn
   LIBS    += $(LIBSMM_LIB)
-  # turn off reconfiguration
-  RECONFIGURE = 0
-else ifneq (,$(LIBXSMMROOT))
+endif
+
+ifneq (,$(LIBXSMMROOT))
   LIBXSMM ?= 1
   ifneq (0,$(LIBXSMM))
     LIBXSMM_LIB = $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/libxsmm.a
