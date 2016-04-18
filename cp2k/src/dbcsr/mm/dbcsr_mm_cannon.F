@@ -247,6 +247,7 @@ MODULE dbcsr_mm_cannon
    REAL(kind=sp), ALLOCATABLE, DIMENSION(:), TARGET, PRIVATE :: left_max_norms, right_max_norms, &
                                                                 left_local_max_norms, right_local_max_norms
 
+   INTEGER, PRIVATE                :: dense_mult_default = -1
    INTEGER, PRIVATE                :: request_count_rows
    INTEGER, DIMENSION(8), PRIVATE  :: requests
    INTEGER, DIMENSION(4), PRIVATE  :: requests_diag
@@ -558,8 +559,6 @@ CONTAINS
       INTEGER(KIND=int_8)                                :: my_flop
       LOGICAL :: ab_dense, keep_product_data, keep_sparsity, new_left, new_right, product_reindex, &
          release_tdist, use_dense_mult
-      INTEGER, SAVE :: dense_mult_default = -1
-      CHARACTER :: dense_mult_env
       REAL(KIND=dp)                                      :: cs
       TYPE(array_i1d_obj) :: dense_col_sizes, dense_k_sizes, dense_row_sizes, k_vmap, m_map, &
          n_map, old_product_col_blk_offsets, old_product_col_blk_sizes, &
@@ -711,15 +710,6 @@ CONTAINS
          CPABORT("C/B columns not equal")
       IF (.NOT. array_equality(dbcsr_col_block_offsets(matrix_left), dbcsr_row_block_offsets(matrix_right))) &
          CPABORT("A cols/B rows not equal")
-      !
-      IF (dense_mult_default.LT.0) THEN ! not yet discovered
-         CALL GETENV("CP2K_DENSE", dense_mult_env)
-         IF (' '.NE.dense_mult_env) THEN ! env.var is present
-            READ(dense_mult_env, "(I32)") 
-            ! avoid to re-enter this region (setup)
-            dense_mult_default = ABS(dense_mult_default)
-         ENDIF
-      ENDIF
       !
       ! No dense multiplication when filtering is used, or when ACC is enabled, or when default forbids it.
       use_dense_mult = (.NOT.PRESENT(filter_eps)).AND.(.NOT.has_acc).AND.(0.NE.dense_mult_default)

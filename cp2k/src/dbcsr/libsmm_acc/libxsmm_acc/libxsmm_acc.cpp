@@ -126,10 +126,20 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
   LIBXSMM_ACC_FSYMBOL(__real_dbcsr_config_mp_dbcsr_set_conf_mm_driver)(driver);
 #endif
 
-  // define myvalue as part of the MM driver config (otherwise it remains undefined)
+  // define stacksize as part of the MM driver config (otherwise it remains undefined)
   LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_conf_mm_stacksize)(NULL);
 
+  extern int LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default);
+  const char *const dense_mult_env = getenv("CP2K_DENSE");
+  if (dense_mult_env && *dense_mult_env) { // environment variable is present
+    LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default) = std::abs(atoi(dense_mult_env));
+  }
+
   if (libxsmm_acc_private::reconfigure) {
+    if (0 > LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default)) {
+      LIBXSMM_ACC_FSYMBOL(dbcsr_mm_cannon_mp_dense_mult_default) = 0;
+    }
+
 #if defined(LIBXSMM_ACC_MULTREC_LIMIT)
     extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit);
     LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_multrec_limit) = LIBXSMM_ACC_MULTREC_LIMIT;
