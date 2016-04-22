@@ -39,6 +39,7 @@ MODULE pao_types
       INTEGER                          :: parameterization = -1
       INTEGER                          :: optimizer = -1
       INTEGER                          :: cg_init_steps = -1
+      INTEGER                          :: random_seed = -1
       CHARACTER(LEN=default_path_length) :: preopt_dm_file = ""
       CHARACTER(LEN=default_path_length) :: restart_file = ""
 

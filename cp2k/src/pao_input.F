@@ -94,6 +94,9 @@ CONTAINS
       IF (pao%iw > 0) WRITE (pao%iw, "(A,T40,A,T71,E10.1)") " PAO|", "PENALTY_STRENGTH", pao%penalty_strength
       IF (pao%penalty_strength < 0.0_dp) CPABORT("PAO: PENALTY_STRENGTH < 0")
 
+      CALL section_vals_val_get(input, "DFT%LS_SCF%PAO%SEED", i_val=pao%random_seed)
+      IF (pao%iw > 0) WRITE (pao%iw, "(A,T40,A,T71,I10)") " PAO|", "SEED", pao%random_seed
+
       CALL section_vals_val_get(input, "DFT%LS_SCF%PAO%OPTIMIZER", i_val=pao%optimizer)
       IF (pao%iw > 0) WRITE (pao%iw, "(A,T40,A,T71,A10)") " PAO|", "OPTIMIZER", id2str(pao%optimizer)
 
@@ -276,6 +279,12 @@ CONTAINS
                           description="Check if rotation matrix is unitary."// &
                           " Negative values mean don't check at all.", &
                           default_r_val=-1.0_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="SEED", &
+                          description="Random number seed for initial guess.", &
+                          default_i_val=1)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 

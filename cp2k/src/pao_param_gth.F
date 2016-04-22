@@ -34,6 +34,10 @@ MODULE pao_param_gth
                                               pao_param_finalize_fock,&
                                               pao_param_init_fock
    USE pao_types,                       ONLY: pao_env_type
+   USE parallel_rng_types,              ONLY: create_rng_stream,&
+                                              delete_rng_stream,&
+                                              next_random_number,&
+                                              rng_stream_type
    USE particle_types,                  ONLY: particle_type
    USE qs_environment_types,            ONLY: get_qs_env,&
                                               qs_environment_type
@@ -425,23 +429,65 @@ CONTAINS
    SUBROUTINE pao_param_initguess_gth(pao)
       TYPE(pao_env_type), POINTER                        :: pao
 
-      INTEGER                                            :: acol, arow
-      REAL(dp), DIMENSION(:, :), POINTER                 :: block_X
-      TYPE(cp_dbcsr_iterator)                            :: iter
+      !INTEGER                                            :: acol, arow
+      !REAL(dp), DIMENSION(:, :), POINTER                 :: block_X
+      !TYPE(cp_dbcsr_iterator)                            :: iter
 
-      CALL cp_dbcsr_iterator_start(iter, pao%matrix_X)
-      DO WHILE (cp_dbcsr_iterator_blocks_left(iter))
-         CALL cp_dbcsr_iterator_next_block(iter, arow, acol, block_X)
-         CPASSERT(arow == acol)
-         CPASSERT(SIZE(block_X, 2) == 1)
+      CALL fill_randomly(pao%matrix_X, seed=pao%random_seed)
 
-         ! a simplistic guess, which at least makes the atom visible to others
-         block_X = 0.0_dp
-         block_X(1, 1) = 0.01_dp
-      ENDDO
-      CALL cp_dbcsr_iterator_stop(iter)
+      !CALL cp_dbcsr_iterator_start(iter, pao%matrix_X)
+      !DO WHILE (cp_dbcsr_iterator_blocks_left(iter))
+      !   CALL cp_dbcsr_iterator_next_block(iter, arow, acol, block_X)
+      !   CPASSERT(arow == acol)
+      !   CPASSERT(SIZE(block_X, 2) == 1)
+      !
+      !   ! a simplistic guess, which at least makes the atom visible to others
+      !   block_X = 0.0_dp
+      !   block_X(1, 1) = 0.01_dp
+      !ENDDO
+      !CALL cp_dbcsr_iterator_stop(iter)
 
    END SUBROUTINE pao_param_initguess_gth
+
+! **************************************************************************************************
+!> \brief Fills a DBCSR matrix with random noise.
+!> \param matrix ...
+!> \param seed ...
+! **************************************************************************************************
+   SUBROUTINE fill_randomly(matrix, seed)
+      TYPE(cp_dbcsr_type)                                :: matrix
+      INTEGER                                            :: seed
+
+      CHARACTER(len=*), PARAMETER                        :: routineN = 'fill_randomly'
+
+      INTEGER                                            :: acol, arow, handle, i, j
+      REAL(dp), DIMENSION(:, :), POINTER                 :: block
+      REAL(KIND=dp), DIMENSION(3, 2)                     :: initial_seed
+      TYPE(cp_dbcsr_iterator)                            :: iter
+      TYPE(rng_stream_type), POINTER                     :: rng_stream
+
+      NULLIFY (rng_stream)
+      CALL timeset(routineN, handle)
+
+      CALL cp_dbcsr_iterator_start(iter, matrix)
+      DO WHILE (cp_dbcsr_iterator_blocks_left(iter))
+         CALL cp_dbcsr_iterator_next_block(iter, arow, acol, block)
+         ! a "unique" reproducible seed for each block
+         initial_seed(1, :) = REAL(seed*arow, KIND=dp)
+         initial_seed(2, :) = REAL(seed*acol, KIND=dp)
+         initial_seed(3, :) = REAL(seed*SIZE(block), KIND=dp)
+         CALL create_rng_stream(rng_stream, seed=initial_seed, name="pao")
+         DO i = 1, SIZE(block, 1)
+            DO j = 1, SIZE(block, 2)
+               block(i, j) = next_random_number(rng_stream)
+            ENDDO
+         ENDDO
+         CALL delete_rng_stream(rng_stream)
+      END DO
+      CALL cp_dbcsr_iterator_stop(iter)
+
+      CALL timestop(handle)
+   END SUBROUTINE fill_randomly
 
 ! **************************************************************************************************
 !> \brief Calculates potential term of the form r**lpot * Exp(-beta*r**2)
