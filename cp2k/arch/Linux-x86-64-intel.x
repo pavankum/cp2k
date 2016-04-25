@@ -178,9 +178,9 @@ ifneq (0,$(MPI))
   CC  = mpiicc
   FC  = mpiifort
   LD  = mpiifort
-  DFLAGS += -D__parallel -D__BLACS
+  DFLAGS += -D__parallel
   ifneq (0,$(SCALAPACK))
-    DFLAGS += -D__SCALAPACK
+    DFLAGS += -D__BLACS -D__SCALAPACK
     ifneq (1,$(SCALAPACK))
       DFLAGS += -D__SCALAPACK$(SCALAPACK)
     endif
