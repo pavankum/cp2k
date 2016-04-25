@@ -172,13 +172,19 @@ ifneq (0,$(SYM))
   endif
 endif
 
+SCALAPACK ?= 1
 ifneq (0,$(MPI))
   CXX = mpiicpc
   CC  = mpiicc
   FC  = mpiifort
   LD  = mpiifort
-  DFLAGS += -D__parallel -D__BLACS -D__SCALAPACK
-  #DFLAGS += -D__SCALAPACK2
+  DFLAGS += -D__parallel -D__BLACS
+  ifneq (0,$(SCALAPACK))
+    DFLAGS += -D__SCALAPACK
+    ifneq (1,$(SCALAPACK))
+      DFLAGS += -D__SCALAPACK$(SCALAPACK)
+    endif
+  endif
   ifneq (1,$(MPI))
     DFLAGS += -D__MPI_VERSION=$(MPI)
   else # default MPI std. version
