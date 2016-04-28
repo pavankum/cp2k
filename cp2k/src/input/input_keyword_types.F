@@ -853,7 +853,7 @@ CONTAINS
             WRITE (UNIT=unit_number, FMT="(A)") &
                REPEAT(" ", l3)//"<ITEM>", &
                REPEAT(" ", l4)//"<NAME>"// &
-               TRIM(ADJUSTL(keyword%enum%c_vals(i)))//"</NAME>", &
+               TRIM(ADJUSTL(substitute_special_xml_tokens(keyword%enum%c_vals(i))))//"</NAME>", &
                REPEAT(" ", l4)//"<DESCRIPTION>"// &
                TRIM(ADJUSTL(substitute_special_xml_tokens(a2s(keyword%enum%desc(i)%chars)))) &
                //"</DESCRIPTION>", REPEAT(" ", l3)//"</ITEM>"
@@ -893,7 +893,7 @@ CONTAINS
          CALL compress(string)
          WRITE (UNIT=unit_number, FMT="(A)") &
             REPEAT(" ", l1)//"<DEFAULT_VALUE>"// &
-            TRIM(ADJUSTL(string))//"</DEFAULT_VALUE>"
+            TRIM(ADJUSTL(substitute_special_xml_tokens(string)))//"</DEFAULT_VALUE>"
       END IF
 
       IF (ASSOCIATED(keyword%unit)) THEN
@@ -909,7 +909,7 @@ CONTAINS
                                  string=string)
          WRITE (UNIT=unit_number, FMT="(A)") &
             REPEAT(" ", l1)//"<LONE_KEYWORD_VALUE>"// &
-            TRIM(ADJUSTL(string))//"</LONE_KEYWORD_VALUE>"
+            TRIM(ADJUSTL(substitute_special_xml_tokens(string)))//"</LONE_KEYWORD_VALUE>"
       END IF
 
       IF (ASSOCIATED(keyword%citations)) THEN
