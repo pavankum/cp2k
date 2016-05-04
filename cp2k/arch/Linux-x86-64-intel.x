@@ -532,6 +532,7 @@ CXXFLAGS  += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) $(DFLAGS) $(IFLAGS)
 CFLAGS    += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) $(DFLAGS) $(IFLAGS)
 FCFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) $(DFLAGS) $(IFLAGS)
 LDFLAGS   += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE)
+LDFLAGS_C += $(OPTFLAGS) -diag-disable $(DIAG_DISABLE) -nofor_main
 
 LIBS += -Wl,--as-needed -lstdc++ -Wl,--no-as-needed
 ifneq (0,$(ACC))
