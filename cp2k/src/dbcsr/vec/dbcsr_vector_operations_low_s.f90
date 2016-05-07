@@ -44,6 +44,9 @@
 !> \param work_col ...
 ! **************************************************************************************************
   SUBROUTINE dbcsr_matrix_vector_mult_s(matrix, vec_in, vec_out, alpha, beta, work_row, work_col)
+#if 1 && defined(__LIBXSMM)
+    USE libxsmm ! WITHOUT ONLY because older library versions (no libxsmm_matmul) should be ignored
+#endif
     TYPE(dbcsr_obj)                          :: matrix, vec_in, vec_out
     REAL(kind=real_4)                          :: alpha, beta
     TYPE(dbcsr_obj)                          :: work_row, work_col
@@ -96,8 +99,23 @@
        prow=hash_table_get(fast_vec_col%hash_table,row)
        IF(fast_vec_col%blk_map_s(prow)%assigned_thread .NE. ithread ) CYCLE
        pcol=hash_table_get(fast_vec_row%hash_table,col)
+#if 1 && defined(__LIBXSMM)
+       IF (CP_VERSION4(1, 4, 1, 18).LE.CP_VERSION4( &
+          LIBXSMM_VERSION_MAJOR, &
+          LIBXSMM_VERSION_MINOR, &
+          LIBXSMM_VERSION_UPDATE, &
+          LIBXSMM_VERSION_PATCH)) &
+       THEN
+          libxsmm_matmul(fast_vec_col%blk_map_s(prow)%ptr, data_d, &
+                         fast_vec_row%blk_map_s(pcol)%ptr, &
+                         beta=1.0_real_4, transb='T')
+       ELSE
+#endif
        fast_vec_col%blk_map_s(prow)%ptr=fast_vec_col%blk_map_s(prow)%ptr+&
             MATMUL(data_d,TRANSPOSE(fast_vec_row%blk_map_s(pcol)%ptr))
+#if 1 && defined(__LIBXSMM)
+       END IF
+#endif
     END DO
     CALL dbcsr_iterator_stop(iter)
 !$OMP END PARALLEL
