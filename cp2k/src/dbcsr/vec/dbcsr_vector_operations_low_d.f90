@@ -106,9 +106,9 @@
           LIBXSMM_VERSION_UPDATE, &
           LIBXSMM_VERSION_PATCH)) &
        THEN
-          libxsmm_matmul(fast_vec_col%blk_map_d(prow)%ptr, data_d, &
-                         fast_vec_row%blk_map_d(pcol)%ptr, &
-                         beta=1.0_real_8, transb='T')
+          CALL libxsmm_matmul(fast_vec_col%blk_map_d(prow)%ptr, data_d, &
+                              fast_vec_row%blk_map_d(pcol)%ptr, &
+                              beta=1.0_real_8, transb='T')
        ELSE
 #endif
        fast_vec_col%blk_map_d(prow)%ptr=fast_vec_col%blk_map_d(prow)%ptr+&
