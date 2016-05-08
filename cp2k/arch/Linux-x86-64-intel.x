@@ -88,6 +88,12 @@ OFFLOAD ?= 0
 NESTED ?= 0
 ELPA ?= 3
 
+# consider more accurate -fp-model (C/C++: precise, Fortran: source)
+FPFLAGS ?= -fp-model fast=2 \
+  -fast-transcendentals \
+  -fimf-domain-exclusion=1 \
+  -complex-limited-range
+
 # TBB malloc proxy is enabled if TBBROOT is set
 TBBMALLOC ?= 1
 # TBB runtime compatible with oldest supported GCC
@@ -139,10 +145,9 @@ OPTFLAGS  = $(TARGET)
 ifeq (0,$(DBG))
   OPTFLAGS  += -O$(OPT)
   DFLAGS    += -DNDEBUG
-  # consider more accurate -fp-model (C/C++: precise, Fortran: source)
-  CXXFLAGS  += -fno-alias -ansi-alias -fp-model fast=2
-  CFLAGS    += -fno-alias -ansi-alias -fp-model fast=2
-  FCFLAGS   += -fp-model fast=2 -align array64byte
+  CXXFLAGS  += -fno-alias -ansi-alias $(FPFLAGS)
+  CFLAGS    += -fno-alias -ansi-alias $(FPFLAGS)
+  FCFLAGS   += -align array64byte     $(FPFLAGS)
   #LDFLAGS   += $(NULL)
 else
   OPTFLAGS  += -O0
