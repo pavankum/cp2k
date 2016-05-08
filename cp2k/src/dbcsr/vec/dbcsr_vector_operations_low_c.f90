@@ -100,15 +100,12 @@
        IF(fast_vec_col%blk_map_c(prow)%assigned_thread .NE. ithread ) CYCLE
        pcol=hash_table_get(fast_vec_row%hash_table,col)
 #if 0 && defined(__LIBXSMM)
-       IF (CP_VERSION4(1, 4, 1, 18).LE.CP_VERSION4( &
-          LIBXSMM_VERSION_MAJOR, &
-          LIBXSMM_VERSION_MINOR, &
-          LIBXSMM_VERSION_UPDATE, &
-          LIBXSMM_VERSION_PATCH)) &
+       IF (CP_VERSION4(1, 4, 1, 20).LE.CP_VERSION4( &
+          LIBXSMM_VERSION_MAJOR,  LIBXSMM_VERSION_MINOR, &
+          LIBXSMM_VERSION_UPDATE, LIBXSMM_VERSION_PATCH)) &
        THEN
           CALL libxsmm_matmul(fast_vec_col%blk_map_c(prow)%ptr, data_d, &
-                              fast_vec_row%blk_map_c(pcol)%ptr, &
-                              beta=CMPLX(1.0, 0.0, real_4), transb='T')
+                              fast_vec_row%blk_map_c(pcol)%ptr, transb='T')
        ELSE
 #endif
        fast_vec_col%blk_map_c(prow)%ptr=fast_vec_col%blk_map_c(prow)%ptr+&
@@ -511,6 +508,9 @@
 !> \param work_col ...
 ! **************************************************************************************************
   SUBROUTINE dbcsr_sym_matrix_vector_mult_c(matrix, vec_in, vec_out, alpha, beta, work_row, work_col)
+#if 0 && defined(__LIBXSMM)
+    USE libxsmm ! WITHOUT ONLY because older library versions (no libxsmm_matmul) should be ignored
+#endif
     TYPE(dbcsr_obj)                          :: matrix, vec_in, vec_out
     COMPLEX(kind=real_4)                          :: alpha, beta
     TYPE(dbcsr_obj)                          :: work_row, work_col
@@ -583,8 +583,21 @@
           prow=hash_table_get(fast_vec_col%hash_table,row)
           rpcol=hash_table_get(res_fast_vec_row%hash_table,col)
           IF(res_fast_vec_row%blk_map_c(rpcol)%assigned_thread .EQ. ithread .AND. row .NE. col) THEN
+#if 0 && defined(__LIBXSMM)
+             IF (CP_VERSION4(1, 4, 1, 20).LE.CP_VERSION4( &
+                LIBXSMM_VERSION_MAJOR,  LIBXSMM_VERSION_MINOR, &
+                LIBXSMM_VERSION_UPDATE, LIBXSMM_VERSION_PATCH)) &
+             THEN
+                CALL libxsmm_matmul(res_fast_vec_row%blk_map_c(rpcol)%ptr, &
+                                    fast_vec_col%blk_map_c(prow)%ptr, &
+                                    data_d, transa='T')
+             ELSE
+#endif
              res_fast_vec_row%blk_map_c(rpcol)%ptr=res_fast_vec_row%blk_map_c(rpcol)%ptr+&
                 MATMUL(TRANSPOSE(fast_vec_col%blk_map_c(prow)%ptr),data_d)
+#if 0 && defined(__LIBXSMM)
+            END IF
+#endif
           END IF
        ELSE
           rpcol=hash_table_get(res_fast_vec_col%hash_table,col)
