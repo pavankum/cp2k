@@ -205,7 +205,7 @@ endif
 ifneq (0,$(OMP))
   FCFLAGS   += -threads
   LDFLAGS   += -threads
-  OPTFLAGS  += -fopenmp -override_limits
+  OPTFLAGS  += -fopenmp -qoverride_limits
   ifneq (0,$(NESTED))
     DFLAGS += -D__NESTED_OPENMP
   endif
