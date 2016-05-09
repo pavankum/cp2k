@@ -355,20 +355,20 @@ ifneq (0,$(ACC))
   ifeq (0,$(OCL))
     DFLAGS += -D__ACC_MIC
     ifeq (0,$(OFFLOAD))
-      OPTFLAGS += -no-offload
-      LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
+      OPTFLAGS += -qno-offload
+      LDFLAGS += -qoffload-option,mic,ld,"--unresolved-symbols=ignore-all"
     else # also true if OFFLOAD is undefined
-      #OPTFLAGS += -offload=mandatory
+      #OPTFLAGS += -qoffload=mandatory
       # enable OpenMP for OFFLOAD regardless of wether OMP is enabled or not
-      MIC_CXFLAGS += -openmp -no-openmp -offload-option,mic,compiler,"-openmp"
-      MIC_CCFLAGS += -openmp -no-openmp -offload-option,mic,compiler,"-openmp"
-      MIC_FCFLAGS += -openmp -no-openmp -offload-option,mic,compiler,"-openmp"
-      MIC_LDFLAGS += -offload-option,mic,ld,"--no-undefined"
+      MIC_CXFLAGS += -qopenmp -qno-openmp -qoffload-option,mic,compiler,"-qopenmp"
+      MIC_CCFLAGS += -qopenmp -qno-openmp -qoffload-option,mic,compiler,"-qopenmp"
+      MIC_FCFLAGS += -qopenmp -qno-openmp -qoffload-option,mic,compiler,"-qopenmp"
+      MIC_LDFLAGS += -qoffload-option,mic,ld,"--no-undefined"
       DIAG_DISABLE := $(DIAG_DISABLE),10121
       ifneq (,$(ATTRIBUTE))
-        MIC_CXFLAGS += -offload-attribute-target=$(ATTRIBUTE)
-        MIC_CCFLAGS += -offload-attribute-target=$(ATTRIBUTE)
-        #MIC_FCFLAGS += -offload-attribute-target=$(ATTRIBUTE)
+        MIC_CXFLAGS += -qoffload-attribute-target=$(ATTRIBUTE)
+        MIC_CCFLAGS += -qoffload-attribute-target=$(ATTRIBUTE)
+        #MIC_FCFLAGS += -qoffload-attribute-target=$(ATTRIBUTE)
       endif
     endif
   else
@@ -377,8 +377,8 @@ ifneq (0,$(ACC))
   endif
 else
   ifeq (0,$(OFFLOAD))
-    OPTFLAGS += -no-offload
-    LDFLAGS += -offload-option,mic,ld,"--unresolved-symbols=ignore-all"
+    OPTFLAGS += -qno-offload
+    LDFLAGS += -qoffload-option,mic,ld,"--unresolved-symbols=ignore-all"
   endif
 
   # save some build time
@@ -410,15 +410,15 @@ ifneq (1,$(MKL))
     ifeq (0,$(MKL_STATIC))
       LIBS += -L$(MKLROOT)/lib/intel64
       ifneq (0,$(MPI))
-        MIC_LDFLAGS += -offload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64"
+        MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64"
         LIBS += -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64
       else
-        MIC_LDFLAGS += -offload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread"
+        MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread"
         LIBS += -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread
       endif
     else # static
       ifneq (0,$(MPI))
-        MIC_LDFLAGS += -offload-option,mic,ld," \
+        MIC_LDFLAGS += -qoffload-option,mic,ld," \
           --start-group \
             $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
             $(MKLROOT)/lib/mic/libmkl_intel_lp64.a \
@@ -435,7 +435,7 @@ ifneq (1,$(MKL))
             $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_lp64.a \
           -Wl,--end-group
       else
-        MIC_LDFLAGS += -offload-option,mic,ld," \
+        MIC_LDFLAGS += -qoffload-option,mic,ld," \
           --start-group \
             $(MKLROOT)/lib/mic/libmkl_intel_lp64.a \
             $(MKLROOT)/lib/mic/libmkl_core.a \
@@ -450,10 +450,10 @@ ifneq (1,$(MKL))
       endif
     endif
     ifeq (0,$(OMP))
-      MIC_LDFLAGS += -offload-option,mic,ld,"-liomp5"
+      MIC_LDFLAGS += -qoffload-option,mic,ld,"-liomp5"
       LIBS += -liomp5
     endif
-    MIC_LDFLAGS += -offload-option,mic,ld,"-lpthread -lm"
+    MIC_LDFLAGS += -qoffload-option,mic,ld,"-lpthread -lm"
     LIBS += -Wl,--as-needed -lpthread -lm -Wl,--no-as-needed
   endif
 else # sequential
@@ -462,15 +462,15 @@ else # sequential
   ifeq (0,$(MKL_STATIC))
     LIBS += -L$(MKLROOT)/lib/intel64
     ifneq (0,$(MPI))
-      MIC_LDFLAGS += -offload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64"
+      MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64"
       LIBS += -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64
     else
-      MIC_LDFLAGS += -offload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_intel_lp64 -lmkl_core -lmkl_sequential"
+      MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_intel_lp64 -lmkl_core -lmkl_sequential"
       LIBS += -lmkl_intel_lp64 -lmkl_core -lmkl_sequential
     endif
   else # static
     ifneq (0,$(MPI))
-      MIC_LDFLAGS += -offload-option,mic,ld," \
+      MIC_LDFLAGS += -qoffload-option,mic,ld," \
         --start-group \
           $(MKLROOT)/lib/mic/libmkl_scalapack_lp64.a \
           $(MKLROOT)/lib/mic/libmkl_intel_lp64.a \
@@ -487,7 +487,7 @@ else # sequential
           $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_lp64.a \
         -Wl,--end-group
     else
-      MIC_LDFLAGS += -offload-option,mic,ld," \
+      MIC_LDFLAGS += -qoffload-option,mic,ld," \
         --start-group \
           $(MKLROOT)/lib/mic/libmkl_intel_lp64.a \
           $(MKLROOT)/lib/mic/libmkl_core.a \
@@ -501,7 +501,7 @@ else # sequential
         -Wl,--end-group
     endif
   endif
-  MIC_LDFLAGS += -offload-option,mic,ld,"-lpthread -lm"
+  MIC_LDFLAGS += -qoffload-option,mic,ld,"-lpthread -lm"
   LIBS += -Wl,--as-needed -lpthread -lm -Wl,--no-as-needed
 endif
 
@@ -569,7 +569,7 @@ bibliography.o: bibliography.F
 	$(FC) -c $(FCFLAGS) -O${OPT2} $<
 ifneq (0,$(OMP))
 xc_tpss.o: xc_tpss.F
-	$(FC) -c $(filter-out -openmp,$(FCFLAGS)) $<
+	$(FC) -c $(filter-out -openmp -qopenmp,$(FCFLAGS)) $<
 realspace_grid_types.o: realspace_grid_types.F
 	$(FC) -c $(filter-out -heap-arrays,$(FCFLAGS)) $<
 matrix_exp.o: matrix_exp.F
@@ -579,9 +579,9 @@ cp_dbcsr_operations.o: cp_dbcsr_operations.F
 dbcsr_util.o: dbcsr_util.F
 	$(FC) -c $(filter-out -heap-arrays,$(FCFLAGS)) $<
 qs_integrate_potential_product.o: qs_integrate_potential_product.F
-	$(FC) -c $(FCFLAGS) -no-openmp $<
+	$(FC) -c $(FCFLAGS) -qno-openmp $<
 dbcsr_work_operations.o: dbcsr_work_operations.F
-	$(FC) -c $(FCFLAGS) -no-openmp $<
+	$(FC) -c $(FCFLAGS) -qno-openmp $<
 endif
 endif
 
