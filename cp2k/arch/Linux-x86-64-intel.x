@@ -553,6 +553,12 @@ endif
 ifeq (1,$(shell echo $$((1 <= $(BEEP)))))
 mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
 	$(FC) -c $(FCFLAGS) -O0 $<
+qs_dispersion_nonloc.o: qs_dispersion_nonloc.F
+	$(FC) -c $(FCFLAGS) -O${OPT1} $<
+endif
+
+# likely outdated or resolved
+ifeq (1,$(shell echo $$((2 <= $(BEEP)))))
 qs_vxc_atom.o: qs_vxc_atom.F
 	$(FC) -c $(FCFLAGS) -O${OPT1} $<
 cp_fm_types.o: cp_fm_types.F
@@ -572,11 +578,6 @@ cp_dbcsr_operations.o: cp_dbcsr_operations.F
 	$(FC) -c $(filter-out -heap-arrays,$(FCFLAGS)) $<
 dbcsr_util.o: dbcsr_util.F
 	$(FC) -c $(filter-out -heap-arrays,$(FCFLAGS)) $<
-endif
-endif
-
-ifeq (1,$(shell echo $$((2 <= $(BEEP)))))
-ifneq (0,$(OMP))
 qs_integrate_potential_product.o: qs_integrate_potential_product.F
 	$(FC) -c $(FCFLAGS) -no-openmp $<
 dbcsr_work_operations.o: dbcsr_work_operations.F
