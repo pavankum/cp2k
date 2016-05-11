@@ -6,25 +6,26 @@
     &QS
       LS_SCF
     &END QS
-    &POISSON
-      PERIODIC NONE
-      PSOLVER  MT
-    &END POISSON
+    &MGRID
+      CUTOFF 400
+      REL_CUTOFF 60
+    &END MGRID
     &LS_SCF
       MAX_SCF     25
       EPS_SCF     1.0E-8
-      EPS_FILTER  1.0E-8
+      EPS_FILTER  1.0E-20
       S_PRECONDITIONER  NONE
       REPORT_ALL_SPARSITIES OFF
       PURIFICATION_METHOD TRS4
       EXTRAPOLATION_ORDER  1
       &PAO
-        RESTART_FILE H2O_pao_rotinv-1_0.pao
-        MAX_PAO    1
-        PARAMETERIZATION ROTINV
-        &LINE_SEARCH
-          METHOD ADAPT
-        &END LINE_SEARCH
+        MAX_PAO 1
+        PARAMETERIZATION EXP
+        &MACHINE_LEARNING
+          METHOD NEURAL_NETWORK
+          TOLERANCE 0.001
+          TRAINING_FILE 2H2O_training.txt
+        &END MACHINE_LEARNING
       &END PAO
     &END
     &XC
@@ -33,39 +34,43 @@
     &END XC
   &END DFT
   &SUBSYS
-    &CELL
-      ABC 4.0 4.0 4.0
-      PERIODIC NONE
-    &END CELL
+    ! dist 3.4
     &COORD
-      ! rotated by 42 radians :-)
-      O   2.77080   -4.05878   4.1629480502
-      H   3.46436   -3.52495   4.5850871241
-      H   2.33835   -3.46159   3.5277353471
+      O  -1.464   0.099   0.300  mol1
+      H  -1.956   0.624  -0.340  mol1
+      H  -1.797  -0.799   0.206  mol1
+      O   1.838   0.154  -0.510  mol2
+      H   2.363   0.494   0.220  mol2
+      H   0.920   0.173  -0.198  mol2
     &END COORD
-    &KIND H
-      BASIS_SET DZVP-MOLOPT-SR-GTH
-      POTENTIAL GTH-PBE
-      PAO_BASIS_SIZE 4
-      &PAO_POTENTIAL
-        MAXL 0
-      &END PAO_POTENTIAL
-    &END KIND
+    &CELL
+      ABC 8.0 8.0 8.0
+    &END CELL
+    &TOPOLOGY
+      &CENTER_COORDINATES
+      &END
+    &END TOPOLOGY
     &KIND O
       BASIS_SET DZVP-MOLOPT-SR-GTH
       POTENTIAL GTH-PBE
       PAO_BASIS_SIZE 4
       &PAO_POTENTIAL
-        MAXL 1
+        BETA 0.8
+        WEIGHT 1.0
       &END PAO_POTENTIAL
     &END KIND
-    &TOPOLOGY
-       &CENTER_COORDINATES
-       &END
-    &END
+    &KIND H
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      POTENTIAL GTH-PBE
+      PAO_BASIS_SIZE 4
+      &PAO_POTENTIAL
+        BETA 0.8
+        WEIGHT 1.0
+      &END PAO_POTENTIAL
+    &END KIND
   &END SUBSYS
 &END FORCE_EVAL
 &GLOBAL
-  PROJECT H2O_pao_rotinv_restart
+  PROJECT 2H2O_dist_3.4_pao_NN
   RUN_TYPE ENERGY
 &END GLOBAL
