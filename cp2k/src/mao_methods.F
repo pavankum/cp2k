@@ -1480,6 +1480,5 @@ CONTAINS
       CALL cp_fm_struct_release(matrix_struct)
 
    END SUBROUTINE calculate_p_gamma
-! **************************************************************************************************
 
 END MODULE mao_methods
