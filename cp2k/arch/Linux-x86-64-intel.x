@@ -292,11 +292,13 @@ ifneq (,$(LIBXSMMROOT))
 
     # substitute "big" xGEMM calls with LIBXSMM
     ifeq (1,$(shell echo $$((1 < $(LIBXSMM)))))
-      ifneq (0,$(MKL))
-        LDFLAGS += -Wl,--wrap=mkl_sgemm_,--wrap=mkl_dgemm_
-      else # fallback (non-MKL BLAS)
-        LDFLAGS += -Wl,--wrap=sgemm_,--wrap=dgemm_
+      ifeq (1,$(shell echo $$((1 < $(MKL)))))
+        LIBS += $(MAINLIBDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/lib/libxsmmext.a
+        ifeq (0,$(OMP))
+          LIBS += -liomp5
+        endif
       endif
+      LDFLAGS += -Wl,--wrap=sgemm_,--wrap=dgemm_
     endif
 
     ifeq (1,$(shell echo $$((0==$(JIT) || 1!=($(SSE)+1)))))
