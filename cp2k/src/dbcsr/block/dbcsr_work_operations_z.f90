@@ -22,7 +22,8 @@
                                                 error_handler, needed_size
     INTEGER(KIND=int_8), ALLOCATABLE, &
       DIMENSION(:)                           :: keys
-    COMPLEX(kind=real_8), DIMENSION(:), POINTER           :: target_data
+    COMPLEX(kind=real_8), DIMENSION(:), POINTER &
+      CP_COMMA(CP_CONTIGUOUS) CP_CONTIGUOUS  :: target_data
     COMPLEX(kind=real_8), DIMENSION(:, :), POINTER        :: block_2d
     TYPE(btree_2d_data_z), ALLOCATABLE, &
       DIMENSION(:)                           :: values
