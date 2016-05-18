@@ -99,6 +99,11 @@ LIBXSMM_ACC_EXTERN_C int libxsmm_acc_prefetch;
 # define LIBXSMM_ACC_OPENMP
 #endif
 
+#if !defined(LIBXSMM_ACC_SORT)
+/** Disable sort at compile time */
+# define LIBXSMM_ACC_SORT
+#endif
+
 /**
  * Ensures an amortized synchronization overhead.
  * >=2: maximum number of locally processed MM
@@ -154,10 +159,15 @@ LIBXSMM_ACC_EXTERN_C int libxsmm_acc_prefetch;
 /** Must match stack_descriptor_type. */
 struct libxsmm_acc_stackdesc_type {
   int m, n, k, max_m, max_n, max_k;
-  bool defined_mnk;
+  int defined_mnk/*boolean*/;
 };
 
-enum libxsmm_acc_param_type {
+union LIBXSMM_ACC_RETARGETABLE libxsmm_acc_param_type {
+  struct component_type { int m, n, k, ia, ib, ic, s; } component;
+  int param[LIBXSMM_ACC_NPARAMS];
+};
+
+enum libxsmm_acc_params {
   LIBXSMM_ACC_PARAM_M = 0, LIBXSMM_ACC_PARAM_N = 1, LIBXSMM_ACC_PARAM_K = 2,
   LIBXSMM_ACC_PARAM_A = 3, LIBXSMM_ACC_PARAM_B = 4, LIBXSMM_ACC_PARAM_C = 5,
   LIBXSMM_ACC_PARAM_COUNT

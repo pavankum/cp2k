@@ -310,19 +310,59 @@ LIBXSMM_ACC_RETARGETABLE void work(const U *LIBXSMM_ACC_RESTRICT stack, size_t s
 }
 
 
+#if defined(LIBXSMM_ACC_SORT)
+const char *const sort_env_str = getenv("CP2K_SORT");
+const int sort_env = (sort_env_str && *sort_env_str) ? atoi(sort_env_str)
+# if defined(__LIBXSMM) && (LIBXSMM_VERSION4(1, 4, 2, 0) <= LIBXSMM_VERSION4( \
+  LIBXSMM_VERSION_MAJOR, LIBXSMM_VERSION_MINOR, LIBXSMM_VERSION_UPDATE, LIBXSMM_VERSION_PATCH))
+  : /*(LIBXSMM_X86_AVX512_MIC != libxsmm_get_target_archid() ? 0 : 1)*/0;
+# else
+  : 0;
+# endif
+
+LIBXSMM_ACC_RETARGETABLE bool less(const libxsmm_acc_param_type& a, const libxsmm_acc_param_type& b)
+{
+  return a.component.ic < b.component.ic;
+}
+
+LIBXSMM_ACC_RETARGETABLE void sort(libxsmm_acc_param_type* stack, size_t stacksize, size_t min_grain, size_t max_nbins)
+{
+  const size_t size2 = (stacksize >> 1), nbins2 = (max_nbins >> 1);
+  libxsmm_acc_param_type *const stack2 = stack + size2;
+
+  std::nth_element(stack, stack2, stack + stacksize, less);
+
+  if (min_grain < size2 && 1 < nbins2) {
+    sort(stack, size2, min_grain, nbins2);
+    sort(stack2, stacksize - size2, min_grain, nbins2);
+  }
+}
+#endif /*defined(LIBXSMM_ACC_SORT)*/
+
+
 template<size_t N, typename T, typename U>
-LIBXSMM_ACC_RETARGETABLE void context(const U* stack, const U* stacksize, const U* def_mnk,
+LIBXSMM_ACC_RETARGETABLE void context(/*const*/ U* stack, const U* stacksize, const U* def_mnk,
   const U* max_m, const U* max_n, const U* max_k, const T* a, const T* b, T* c,
   U* efficient/*Boolean*/)
 {
   const smm_type<T,U> smm(*def_mnk, *max_m, *max_n, *max_k);
+  LIBXSMM_ACC_ASSERT(LIBXSMM_ACC_NPARAMS == sizeof(libxsmm_acc_param_type));
+#if defined(LIBXSMM_ACC_SORT)
+  if (0 != sort_env) {
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_binsize);
+    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_nbins);
+    sort(reinterpret_cast<libxsmm_acc_param_type*>(stack), *stacksize,
+      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_binsize),
+      LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_nbins));
+  }
+#endif
   work<LIBXSMM_ACC_NPARAMS,T,U>(stack, *stacksize, smm, a, b, c);
   if (efficient) *efficient = static_cast<int>(smm.efficient());
 }
 
 
 template<typename T, bool Complex, typename U>
-int process(const U* stack, U stacksize, U nparams, U def_mnk,
+int process(/*const*/ U* stack, U stacksize, U nparams, U def_mnk,
   U max_m, U max_n, U max_k, const void* a_data, const void* b_data, void* c_data,
   void* stream_or_boolean)
 {
@@ -378,7 +418,7 @@ extern "C" int libsmm_acc_process(void* param_stack, int stacksize, int nparams,
 #endif
 
   if (LIBXSMM_ACC_ERROR_NONE == result) {
-    const int *const stack = static_cast<const int*>(param_stack);
+    int *const stack = static_cast<int*>(param_stack);
 
     switch(static_cast<libxsmm_acc_elem_type>(datatype)) {
       case LIBXSMM_ACC_ELEM_F32: {
