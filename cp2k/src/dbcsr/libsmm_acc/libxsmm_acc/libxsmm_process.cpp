@@ -34,6 +34,11 @@ LIBXSMM_ACC_EXTERN_C LIBXSMM_ACC_RETARGETABLE void LIBXSMM_ACC_FSYMBOL(sgemm)(
   const float*, const float*, const int*, const float*, const int*,
   const float*, float*, const int*);
 
+#if defined(LIBXSMM_ACC_SORT)
+extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_binsize);
+extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_nbins);
+#endif
+
 
 namespace libxsmm_process_private {
 
@@ -349,8 +354,6 @@ LIBXSMM_ACC_RETARGETABLE void context(/*const*/ U* stack, const U* stacksize, co
   LIBXSMM_ACC_ASSERT(LIBXSMM_ACC_NPARAMS == sizeof(libxsmm_acc_param_type));
 #if defined(LIBXSMM_ACC_SORT)
   if (0 != sort_env) {
-    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_binsize);
-    extern int LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_nbins);
     sort(reinterpret_cast<libxsmm_acc_param_type*>(stack), *stacksize,
       LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_binsize),
       LIBXSMM_ACC_FSYMBOL(dbcsr_config_mp_accdrv_binning_nbins));
