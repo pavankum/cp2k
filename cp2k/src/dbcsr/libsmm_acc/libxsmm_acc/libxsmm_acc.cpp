@@ -153,6 +153,9 @@ LIBXSMM_ACC_EXTERN_C void LIBXSMM_ACC_FSYMBOL(__wrap_dbcsr_config_mp_dbcsr_set_c
   int dense_mult = (dense_mult_env && *dense_mult_env) ? atoi(dense_mult_env) : -1;
 
   if (libxsmm_acc_private::reconfigure) {
+#if defined(__TBBMALLOC)
+    scalable_allocation_mode(TBBMALLOC_USE_HUGE_PAGES, 1);
+#endif
     if (0 > dense_mult) dense_mult = 0;
 
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)

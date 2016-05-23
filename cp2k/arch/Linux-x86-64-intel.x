@@ -256,6 +256,7 @@ ifneq (0,$(TBBMALLOC))
       TBBMALLOCLIB = $(wildcard $(TBBROOT)/lib/intel64/$(TBBGCCDIR)/libtbbmalloc_proxy.so)
     endif
     ifneq (,$(TBBMALLOCLIB))
+      DFLAGS += -D__TBBMALLOC
       LIBS += $(TBBMALLOCLIB)
       ifneq (1,$(TBB)) # TBB=2
         FCFLAGS += -heap-arrays
