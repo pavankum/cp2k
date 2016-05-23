@@ -262,7 +262,7 @@ ifneq (0,$(TBBMALLOC))
       IFLAGS += -I$(TBBROOT)/include
       DFLAGS += -D__TBBMALLOC
       LIBS += $(TBBMALLOCLIB)
-      ifneq (1,$(TBB)) # TBB=2
+      ifneq (1,$(TBBMALLOC)) # TBBMALLOC=2
         FCFLAGS += -heap-arrays
       endif
     endif
