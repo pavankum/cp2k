@@ -150,31 +150,34 @@ ifeq (0,$(DBG))
   FCFLAGS   += -align array64byte     $(FPFLAGS)
   #LDFLAGS   += $(NULL)
 else
-  OPTFLAGS  += -O0
+  OPTFLAGS += -O0
+  CXXFLAGS := -debug $(CXXFLAGS)
+  CFLAGS := -debug $(CFLAGS)
+  FCFLAGS := -debug $(FCFLAGS)
   ifeq (2,$(DBG))
-    FCFLAGS   += -fpe0 # debugging NaNs
+    FCFLAGS += -fpe0 # debugging NaNs
   endif
   SYM = $(DBG)
-endif
-
-ifneq (0,$(IPO))
-  OPTFLAGS += -ipo-separate
-else ifeq (0,$(IPO))
-  LDFLAGS += -no-ipo
 endif
 
 ifneq (0,$(SYM))
   DFLAGS += -D__USE_CP2K_TRACE
   OPTFLAGS  += -traceback
   ifneq (1,$(SYM))
-    CXXFLAGS := -g3 -gdwarf-2 -debug $(CXXFLAGS)
-    CFLAGS := -g3 -gdwarf-2 -debug $(CFLAGS)
-    FCFLAGS := -g -debug $(FCFLAGS)
+    CXXFLAGS := -ggdb3 $(CXXFLAGS)
+    CFLAGS := -ggdb3 $(CFLAGS)
+    FCFLAGS := -ggdb3 $(FCFLAGS)
   else
-    CXXFLAGS := -g -debug $(CXXFLAGS)
-    CFLAGS := -g -debug $(CFLAGS)
-    FCFLAGS := -g -debug $(FCFLAGS)
+    CXXFLAGS := -g $(CXXFLAGS)
+    CFLAGS := -g $(CFLAGS)
+    FCFLAGS := -g $(FCFLAGS)
   endif
+endif
+
+ifneq (0,$(IPO))
+  OPTFLAGS += -ipo-separate
+else ifeq (0,$(IPO))
+  LDFLAGS += -no-ipo
 endif
 
 SCALAPACK ?= 1
