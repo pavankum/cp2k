@@ -259,7 +259,7 @@ ifneq (0,$(TBBMALLOC))
       TBBMALLOCLIB = $(wildcard $(TBBROOT)/lib/intel64/$(TBBGCCDIR)/libtbbmalloc_proxy.so)
     endif
     ifneq (,$(TBBMALLOCLIB))
-      IFLAGS += -I$($(TBBROOT)/include
+      IFLAGS += -I$(TBBROOT)/include
       DFLAGS += -D__TBBMALLOC
       LIBS += $(TBBMALLOCLIB)
       ifneq (1,$(TBB)) # TBB=2
