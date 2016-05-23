@@ -12,14 +12,21 @@
 
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # include <libxstream_begin.h>
+#elif defined(LIBXSMM_OFFLOAD_TARGET)
+# pragma offload_attribute(push,target(LIBXSMM_OFFLOAD_TARGET))
 #endif
 #include <iostream>
 #include <cstdlib>
 #if defined(__MKL) || defined(MKL_DIRECT_CALL_SEQ) || defined(MKL_DIRECT_CALL)
 # include <mkl_service.h>
 #endif
+#if defined(__TBBMALLOC)
+# include <tbb/scalable_allocator.h>
+#endif
 #if defined(__ACC) && defined(__ACC_MIC) && defined(__DBCSR_ACC) && defined(__LIBXSTREAM)
 # include <libxstream_end.h>
+#elif defined(LIBXSMM_OFFLOAD_TARGET)
+# pragma offload_attribute(pop)
 #endif
 
 
