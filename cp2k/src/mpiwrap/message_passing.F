@@ -48,7 +48,7 @@ MODULE message_passing
 ! USE mpi, ONLY: mpi_wtime
 ! constants
 ! USE mpi, ONLY: MPI_DOUBLE_PRECISION, MPI_DOUBLE_COMPLEX, MPI_REAL, MPI_COMPLEX, MPI_ANY_TAG,&
-!                MPI_ANY_SOURCE, MPI_COMM_NULL, MPI_REQUEST_NULL, MPI_WIN_NULL, MPI_STATUS_SIZE, MPI_STATUS_IGNORE,&
+!                MPI_ANY_SOURCE, MPI_COMM_NULL, MPI_REQUEST_NULL, MPI_WIN_NULL, MPI_STATUS_SIZE, MPI_STATUS_IGNORE, MPI_STATUSES_IGNORE, &
 !                MPI_ADDRESS_KIND, MPI_OFFSET_KIND, MPI_MODE_CREATE, MPI_MODE_RDONLY, MPI_MODE_WRONLY,&
 !                MPI_MODE_RDWR, MPI_MODE_EXCL, MPI_COMM_SELF, MPI_COMM_WORLD, MPI_THREAD_FUNNELED,&
 !                MPI_ERRORS_RETURN, MPI_SUCCESS, MPI_MAX_PROCESSOR_NAME, MPI_MAX_ERROR_STRING, MPI_IDENT,&
@@ -1563,30 +1563,23 @@ CONTAINS
 !>      see isendrecv
 ! **************************************************************************************************
    SUBROUTINE mp_wait(request)
-      INTEGER, INTENT(inout)                   :: request
+      INTEGER, INTENT(inout)                             :: request
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'mp_wait', &
-                                     routineP = moduleN//':'//routineN
+      CHARACTER(len=*), PARAMETER :: routineN = 'mp_wait', routineP = moduleN//':'//routineN
 
-      INTEGER                                  :: handle, ierr
-#if defined(__parallel)
-     !INTEGER, ALLOCATABLE, DIMENSION(:)       :: status
-#endif
+      INTEGER                                            :: handle, ierr
 
       ierr = 0
       CALL mp_timeset(routineN, handle)
 
 #if defined(__parallel)
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       t_start = m_walltime()
 
       CALL mpi_wait(request, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr /= 0) CALL mp_stop(ierr, "mpi_wait @ mp_wait")
 
       t_end = m_walltime()
       CALL add_perf(perf_id=9, count=1, time=t_end-t_start)
-     !DEALLOCATE (status)
 #else
       MARK_USED(request)
 #endif
@@ -1611,24 +1604,21 @@ CONTAINS
       INTEGER                                  :: handle, ierr
 #if defined(__parallel)
       INTEGER                                  :: count
-     !INTEGER, ALLOCATABLE, DIMENSION(:, :)    :: status
+      INTEGER, ALLOCATABLE, DIMENSION(:, :)    :: status
 #endif
 
       ierr = 0
       CALL mp_timeset(routineN, handle)
 
 #if defined(__parallel)
-      count = SIZE(requests)
-     !ALLOCATE (status(MPI_STATUS_SIZE, count))
       t_start = m_walltime()
-
-      CALL mpi_waitall(count, requests, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
+      count = SIZE(requests)
+      ALLOCATE (status(MPI_STATUS_SIZE, count))
+      CALL mpi_waitall_internal(count, requests, status, ierr) ! MPI_STATUSES_IGNORE openmpi workaround
       IF (ierr /= 0) CALL mp_stop(ierr, "mpi_waitall @ mp_waitall_1")
-
+      DEALLOCATE (status)
       t_end = m_walltime()
       CALL add_perf(perf_id=9, count=1, time=t_end-t_start)
-     !DEALLOCATE (status)
 #else
       MARK_USED(requests)
 #endif
@@ -1651,7 +1641,7 @@ CONTAINS
       INTEGER                                  :: handle, ierr
 #if defined(__parallel)
       INTEGER                                  :: count
-     !INTEGER, ALLOCATABLE, DIMENSION(:, :)    :: status
+      INTEGER, ALLOCATABLE, DIMENSION(:, :)    :: status
 #endif
 
       ierr = 0
@@ -1659,16 +1649,15 @@ CONTAINS
 
 #if defined(__parallel)
       count = SIZE(requests)
-     !ALLOCATE (status(MPI_STATUS_SIZE, count))
       t_start = m_walltime()
+      ALLOCATE (status(MPI_STATUS_SIZE, count))
 
-      CALL mpi_waitall_internal(count, requests, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
+      CALL mpi_waitall_internal(count, requests, status, ierr) ! MPI_STATUSES_IGNORE openmpi workaround
       IF (ierr /= 0) CALL mp_stop(ierr, "mpi_waitall @ mp_waitall_2")
+      DEALLOCATE (status)
 
       t_end = m_walltime()
       CALL add_perf(perf_id=9, count=1, time=t_end-t_start)
-     !DEALLOCATE (status)
 #else
       MARK_USED(requests)
 #endif
@@ -1715,7 +1704,6 @@ CONTAINS
       INTEGER                                  :: handle, ierr
 #if defined(__parallel)
       INTEGER                                  :: count
-     !INTEGER                                  :: status(MPI_STATUS_SIZE)
 #endif
 
       ierr = 0
@@ -1726,7 +1714,6 @@ CONTAINS
       t_start = m_walltime()
 
       CALL mpi_waitany(count, requests, completed, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr /= 0) CALL mp_stop(ierr, "mpi_waitany @ mp_waitany")
 
       t_end = m_walltime()
@@ -1762,11 +1749,9 @@ CONTAINS
 
 #if defined(__parallel)
       CALL mpi_test(requests(1), flag, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr /= 0) CALL mp_stop(ierr, "mpi_testall @ mp_testall_t2")
       !
       CALL mpi_test(requests(2), flag1, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr /= 0) CALL mp_stop(ierr, "mpi_testall @ mp_testall_t2")
       !
       flag = flag .AND. flag1
@@ -1795,7 +1780,6 @@ CONTAINS
       INTEGER                                  :: ierr
 #if defined(__parallel)
       INTEGER                                  :: completed_l, count
-     !INTEGER                                  :: status(MPI_STATUS_SIZE)
       LOGICAL                                  :: flag_l
 #endif
 
@@ -1805,7 +1789,6 @@ CONTAINS
       count = SIZE(requests)
 
       CALL mpi_testany_internal(count, requests, completed_l, flag_l, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr /= 0) CALL mp_stop(ierr, "mpi_testany_1 @ mp_testany")
 
       IF (PRESENT(completed)) completed = completed_l
@@ -1837,7 +1820,6 @@ CONTAINS
       INTEGER                                  :: ierr
 #if defined(__parallel)
       INTEGER                                  :: completed_l, count
-     !INTEGER                                  :: status(MPI_STATUS_SIZE)
       LOGICAL                                  :: flag_l
 #endif
 
@@ -1847,7 +1829,6 @@ CONTAINS
       count = SIZE(requests)
 
       CALL mpi_testany_internal(count, requests, completed_l, flag_l, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr /= 0) CALL mp_stop(ierr, "mpi_testany_2 @ mp_testany")
 
       IF (PRESENT(completed)) completed = completed_l
@@ -2874,16 +2855,12 @@ CONTAINS
 
 #if defined(__parallel)
       INTEGER                                    :: ierr, msg_len
-     !INTEGER, ALLOCATABLE, DIMENSION(:)         :: status
 
       msg_len = SIZE(msg)
       IF (PRESENT(msglen)) msg_len = msglen
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       CALL MPI_FILE_WRITE_AT(fh, offset, msg, msg_len, MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr .NE. 0) &
          CPABORT("mpi_file_write_at_chv @ "//routineN)
-     !DEALLOCATE (status)
 #else
       MARK_USED(msglen)
       WRITE (UNIT=fh, POS=offset+1) msg
@@ -2906,14 +2883,10 @@ CONTAINS
 
 #if defined(__parallel)
       INTEGER                                    :: ierr
-     !INTEGER, ALLOCATABLE, DIMENSION(:)         :: status
 
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       CALL MPI_FILE_WRITE_AT(fh, offset, msg, LEN(msg), MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr .NE. 0) &
          CPABORT("mpi_file_write_at_ch @ "//routineN)
-     !DEALLOCATE (status)
 #else
       WRITE (UNIT=fh, POS=offset+1) msg
 #endif
@@ -2940,16 +2913,12 @@ CONTAINS
 
 #if defined(__parallel)
       INTEGER                                    :: ierr, msg_len
-     !INTEGER, ALLOCATABLE, DIMENSION(:)         :: status
 
       msg_len = SIZE(msg)
       IF (PRESENT(msglen)) msg_len = msglen
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       CALL MPI_FILE_WRITE_AT_ALL(fh, offset, msg, msg_len, MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr .NE. 0) &
          CPABORT("mpi_file_write_at_all_chv @ "//routineN)
-     !DEALLOCATE (status)
 #else
       MARK_USED(msglen)
       WRITE (UNIT=fh, POS=offset+1) msg
@@ -2972,14 +2941,10 @@ CONTAINS
 
 #if defined(__parallel)
       INTEGER                                    :: ierr
-     !INTEGER, ALLOCATABLE, DIMENSION(:)         :: status
 
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       CALL MPI_FILE_WRITE_AT_ALL(fh, offset, msg, LEN(msg), MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr .NE. 0) &
          CPABORT("mpi_file_write_at_all_ch @ "//routineN)
-     !DEALLOCATE (status)
 #else
       WRITE (UNIT=fh, POS=offset+1) msg
 #endif
@@ -3007,16 +2972,12 @@ CONTAINS
 
 #if defined(__parallel)
       INTEGER                                    :: ierr, msg_len
-     !INTEGER, ALLOCATABLE, DIMENSION(:)         :: status
 
       msg_len = SIZE(msg)
       IF (PRESENT(msglen)) msg_len = msglen
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       CALL MPI_FILE_READ_AT(fh, offset, msg, msg_len, MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr .NE. 0) &
          CPABORT("mpi_file_read_at_chv @ "//routineN)
-     !DEALLOCATE (status)
 #else
       MARK_USED(msglen)
       READ (UNIT=fh, POS=offset+1) msg
@@ -3039,14 +3000,10 @@ CONTAINS
 
 #if defined(__parallel)
       INTEGER                                    :: ierr
-     !INTEGER, ALLOCATABLE, DIMENSION(:)         :: status
 
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       CALL MPI_FILE_READ_AT(fh, offset, msg, LEN(msg), MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr .NE. 0) &
          CPABORT("mpi_file_read_at_ch @ "//routineN)
-     !DEALLOCATE (status)
 #else
       READ (UNIT=fh, POS=offset+1) msg
 #endif
@@ -3073,16 +3030,12 @@ CONTAINS
 
 #if defined(__parallel)
       INTEGER                                    :: ierr, msg_len
-     !INTEGER, ALLOCATABLE, DIMENSION(:)         :: status
 
       msg_len = SIZE(msg)
       IF (PRESENT(msglen)) msg_len = msglen
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       CALL MPI_FILE_READ_AT_ALL(fh, offset, msg, msg_len, MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr .NE. 0) &
          CPABORT("mpi_file_read_at_all_chv @ "//routineN)
-     !DEALLOCATE (status)
 #else
       MARK_USED(msglen)
       READ (UNIT=fh, POS=offset+1) msg
@@ -3105,14 +3058,10 @@ CONTAINS
 
 #if defined(__parallel)
       INTEGER                                    :: ierr
-     !INTEGER, ALLOCATABLE, DIMENSION(:)         :: status
 
-     !ALLOCATE (status(MPI_STATUS_SIZE))
       CALL MPI_FILE_READ_AT_ALL(fh, offset, msg, LEN(msg), MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
-      ! we do not check the status
       IF (ierr .NE. 0) &
          CPABORT("mpi_file_read_at_all_ch @ "//routineN)
-     !DEALLOCATE (status)
 #else
       READ (UNIT=fh, POS=offset+1) msg
 #endif
@@ -3472,8 +3421,6 @@ CONTAINS
 
       INTEGER :: I, ierr, ierror, itask, itests, J, jtask, left, nbufmax, &
                  ncount, Ngrid, Nloc, nprocs, Ntot, partner, right, taskid
-      ! we do not check the status
-     !INTEGER :: status(MPI_STATUS_SIZE)
       INTEGER, ALLOCATABLE, DIMENSION(:)       :: rcount, rdispl, scount, sdispl
       LOGICAL                                  :: ionode
       REAL(KIND=dp)                            :: maxdiff, res, res2, res3, t1, &
