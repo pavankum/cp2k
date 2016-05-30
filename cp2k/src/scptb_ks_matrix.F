@@ -909,7 +909,7 @@ CONTAINS
          CALL apply_scp_vector(cvec, cw, cself, cpol, cp, qs_env, scptb_control%do_ewald, &
                                calculate_forces=.FALSE.)
          rhom1 = scp_dot(cw, cw)
-         IF (SQRT(rhom1) < epsrel) EXIT
+         IF (rhom1 < (epsrel * epsrel)) EXIT
          CALL scp_vector_copy(cvec, cval(mpos)%vec)
          CALL scp_vector_copy(cw, cres(mpos)%vec)
          IF (mdiis > 100) THEN

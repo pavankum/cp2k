@@ -266,7 +266,8 @@ CONTAINS
       REAL(KIND=dp), DIMENSION(:), POINTER               :: dp_grid, x0
       INTEGER, INTENT(IN)                                :: ndw
 
-      INTEGER                                            :: i, id, iter, j, k, nacc, ntrials, pnt
+      INTEGER                                            :: i, id, iter, j, k, pnt
+      INTEGER                                            :: nacc, ntrials, max_ntrust
       INTEGER, ALLOCATABLE, DIMENSION(:, :)              :: history
       INTEGER, DIMENSION(:), POINTER                     :: pos, pos0
       INTEGER, DIMENSION(ndim)                           :: Dpos, ntrust
@@ -343,7 +344,8 @@ CONTAINS
             DO i = 1, nacc
                Dpos = pos-history(:, i)
                norm_dx = DOT_PRODUCT(Dpos, Dpos)
-               IF ((SQRT(REAL(norm_dx, KIND=dp)) <= MAXVAL(ntrust)) .OR. (fes(pnt) < 1.0E-3_dp)) THEN
+               max_ntrust = MAXVAL(ntrust)
+               IF (norm_dx <= REAL(max_ntrust * max_ntrust, KIND=dp)) .OR. (fes(pnt) < 1.0E-3_dp)) THEN
                   do_save = .FALSE.
                   EXIT
                END IF
@@ -539,7 +541,7 @@ CONTAINS
             xx = pos(:, irep)-pos_old(:, irep)
             diff = diff+DOT_PRODUCT(xx, xx)
          END DO
-         IF (SQRT(diff) <= 0.001_dp) THEN
+         IF (diff <= (0.001_dp * 0.001_dp)) THEN
             converged = .TRUE.
          END IF
          pos_old = pos

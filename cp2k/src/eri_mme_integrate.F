@@ -163,7 +163,7 @@ CONTAINS
             R_rad = exp_radius(l_max, alpha_R, lattice_sum_prec, prefac_screening, epsin=R_res)
 
             ! G radius should not be larger than cutoff
-            IF (G_rad .GT. SQRT(2.0*param%cutoff)) THEN
+            IF ((G_rad * G_rad) .GT. (2.0 * param%cutoff)) THEN
                G_rad = SQRT(2.0*param%cutoff)
             ENDIF
 

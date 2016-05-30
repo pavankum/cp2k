@@ -500,7 +500,7 @@ CONTAINS
          IF (abnormal_value(conv)) &
             CPABORT("conv is an abnormal value (NaN/Inf).")
 
-         IF (conv < SQRT(threshold)) THEN
+         IF ((conv * conv) < threshold) THEN
             IF (PRESENT(converged)) converged = .TRUE.
             EXIT
          ENDIF

@@ -1702,7 +1702,7 @@ CONTAINS
           ! If requested and the system is not periodic, subtract the angular velocity
           CALL compute_rcom(particles%els,is_fixed,rcom)
           CALL compute_vang(particles%els,is_fixed,rcom,vang)
-          IF (SQRT(DOT_PRODUCT(vang,vang))>angvel_tol) THEN
+          IF (DOT_PRODUCT(vang, vang) > (angvel_tol * angvel_tol)) THEN
              CALL subtract_vang(particles%els,is_fixed,rcom,vang)
 
              ! Rescale velocities after removal

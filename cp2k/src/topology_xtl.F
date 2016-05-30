@@ -265,7 +265,7 @@ CONTAINS
                DO jj = 1, natom
                   r2 = atom_info%r(1:3, jj)
                   r = pbc(r1-r2, cell)
-                  IF (SQRT(DOT_PRODUCT(r, r)) <= threshold) THEN
+                  IF (DOT_PRODUCT(r, r) <= (threshold * threshold)) THEN
                      check = .FALSE.
                      EXIT
                   END IF

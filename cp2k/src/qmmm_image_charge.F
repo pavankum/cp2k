@@ -289,7 +289,7 @@ CONTAINS
          z = MATMUL(qs_env%image_matrix, r)
          rsnew = DOT_PRODUCT(r, z)
          iter_steps = iter_steps+1
-         IF (SQRT(rsnew) < 1.0E-08) THEN
+         IF (rsnew < (1.0E-08 * 1.0E-08)) THEN
             CALL pw_release(auxpot_Ad_rspace%pw)
             EXIT
          END IF

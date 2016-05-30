@@ -1813,7 +1813,7 @@ CONTAINS
                   ENDDO
 
                   IF (ifind .EQ. 0) THEN
-                     IF (SQRT(DOT_PRODUCT(r, r)) .LT. gauge_atom_radius) THEN
+                     IF (DOT_PRODUCT(r, r) .LT. (gauge_atom_radius * gauge_atom_radius)) THEN
                         WRITE (*, *) 'error atom too close'
                         WRITE (*, *) 'iatom', iatom
                         WRITE (*, *) 'box_center', box_center
