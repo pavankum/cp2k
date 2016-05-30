@@ -345,7 +345,7 @@ CONTAINS
                Dpos = pos-history(:, i)
                norm_dx = DOT_PRODUCT(Dpos, Dpos)
                max_ntrust = MAXVAL(ntrust)
-               IF (norm_dx <= REAL(max_ntrust * max_ntrust, KIND=dp)) .OR. (fes(pnt) < 1.0E-3_dp)) THEN
+               IF ((norm_dx <= REAL(max_ntrust * max_ntrust, KIND=dp)) .OR. (fes(pnt) < 1.0E-3_dp)) THEN
                   do_save = .FALSE.
                   EXIT
                END IF
