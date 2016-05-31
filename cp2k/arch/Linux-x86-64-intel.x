@@ -47,12 +47,6 @@ ifneq (0,$(LIBXSMM))
     else ifneq (,$(wildcard $(TOOLSRC)/toolchain/build/libxsmm*/Makefile))
       LIBXSMMROOT = $(dir $(wildcard $(TOOLSRC)/toolchain/build/libxsmm*/Makefile))
     endif
-    ifneq (,$(strip $(LIBXSMMROOT)))
-      $(info ================================================================================)
-      $(info Automatically enabled LIBXSMM $(shell $(LIBXSMMROOT)/scripts/libxsmm_utilities.py 2> /dev/null))
-      $(info LIBXSMMROOT=$(LIBXSMMROOT))
-      $(info ================================================================================)
-    endif
   endif
 endif
 
@@ -339,6 +333,10 @@ ifneq (,$(LIBXSMMROOT))
     endif
 
 $(LIBXSMM_LIB): .state
+	$(info ================================================================================)
+	$(info Automatically enabled LIBXSMM $(shell $(LIBXSMMROOT)/scripts/libxsmm_utilities.py 2> /dev/null))
+	$(info LIBXSMMROOT=$(LIBXSMMROOT))
+	$(info ================================================================================)
 	@$(MAKE) --no-print-directory -f $(LIBXSMMROOT)/Makefile \
 		INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
 		BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
