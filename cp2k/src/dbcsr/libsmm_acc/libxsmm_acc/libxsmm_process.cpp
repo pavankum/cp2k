@@ -351,7 +351,7 @@ LIBXSMM_ACC_RETARGETABLE void context(/*const*/ U* stack, const U* stacksize, co
   U* efficient/*Boolean*/)
 {
   const smm_type<T,U> smm(*def_mnk, *max_m, *max_n, *max_k);
-  LIBXSMM_ACC_ASSERT(LIBXSMM_ACC_NPARAMS == sizeof(libxsmm_acc_param_type));
+  LIBXSMM_ACC_ASSERT(((LIBXSMM_ACC_NPARAMS) * sizeof(int)) == sizeof(libxsmm_acc_param_type));
 #if defined(LIBXSMM_ACC_SORT)
   if (0 != sort_env) {
     sort(reinterpret_cast<libxsmm_acc_param_type*>(stack), *stacksize,
