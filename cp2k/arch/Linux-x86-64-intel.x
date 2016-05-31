@@ -134,8 +134,10 @@ endif
 CPPFLAGS  = #
 CXXFLAGS  = -std=c++0x
 CFLAGS    = #
-FCFLAGS   = -free -fpp #-heap-arrays
-LDFLAGS   += #-static-intel -static-libgcc -static-libstdc++
+FCFLAGS   = -free -fpp
+# heap-array threshold is set to 50% of the default OMP stacksize
+FCFLAGS  += -heap-arrays 4096
+LDFLAGS  += #-static-intel -static-libgcc -static-libstdc++
 OPTFLAGS  = $(TARGET)
 
 # workaround for issue "cannot find address of function"
