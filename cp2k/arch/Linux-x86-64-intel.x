@@ -49,8 +49,8 @@ ifneq (0,$(LIBXSMM))
     endif
     ifneq (,$(strip $(LIBXSMMROOT)))
       $(info ================================================================================)
-      $(info Automatically enabled LIBXSMM) by using LIBXSMMROOT:
-      $(info $(LIBXSMMROOT))
+      $(info Automatically enabled LIBXSMM $(shell $(LIBXSMMROOT)/scripts/libxsmm_utilities.py 2> /dev/null))
+      $(info LIBXSMMROOT=$(LIBXSMMROOT))
       $(info ================================================================================)
     endif
   endif
