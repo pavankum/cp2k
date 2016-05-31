@@ -338,7 +338,7 @@ ifneq (,$(LIBXSMMROOT))
       endif
     endif
 
-$(LIBXSMM_LIB): .make
+$(LIBXSMM_LIB): .state
 	@$(MAKE) --no-print-directory -f $(LIBXSMMROOT)/Makefile \
 		INCDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/include \
 		BLDDIR=$(MAINOBJDIR)/$(ARCH)/$(ONEVERSION)/libxsmm/build \
@@ -348,7 +348,7 @@ $(LIBXSMM_LIB): .make
 		ALIGNED_STORES=$(LIBXSMM_ALIGNED_STORES) PREFETCH=$(LIBXSMM_PREFETCH) JIT=$(JIT) \
 		PTHREAD=$(OMP) OPT=$(OPT) IPO=$(IPO) TARGET=$(TARGET) SSE=$(SSE) AVX=$(AVX) \
 		SYM=$(SYM) DBG=$(DBG) MPSS=$(LIBXSMM_MPSS) OFFLOAD=$(OFFLOAD) MIC=$(MIC)
-LIBXSMM_UPTODATE_CHECK := $(shell touch .make)
+LIBXSMM_UPTODATE_CHECK := $(shell touch .state)
 # translation unit (dummy) which allows to consider LIBXSMM_LIB as dep. in general
 # below hack is not triggering minimal rebuild but "good enough" (relink)
 $(SRCDIR)/base/base_uses.f90: $(LIBXSMM_LIB)
