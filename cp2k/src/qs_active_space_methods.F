@@ -134,7 +134,7 @@ MODULE qs_active_space_methods
 
    CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'qs_active_space_methods'
 
-   PUBLIC ::  active_space_main
+   PUBLIC ::  active_space_main, update_active_space
 
 ! **************************************************************************************************
 
@@ -1735,8 +1735,8 @@ CONTAINS
          CALL mp_sum(ks_ref, eri%mp_group)
          !
          eeri = 0.5_dp*SUM(ks_ref*p_mat)
-         ks_mat(1:norb, 1:norb) = ks_mat(1:norb, 1:norb)+ks_ref(1:norb, 1:norb)
          esub = eref-SUM(ks_mat(1:norb, 1:norb)*p_mat(1:norb, 1:norb))+eeri
+         ks_mat(1:norb, 1:norb) = ks_mat(1:norb, 1:norb)-ks_ref(1:norb, 1:norb)
          !
          active_space_env%energy_inactive = esub
          !
