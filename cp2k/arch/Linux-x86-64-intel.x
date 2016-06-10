@@ -73,7 +73,6 @@ OCL ?= 0
 SYM ?= 0
 DBG ?= 0
 IPO ?= 0
-MKL ?= 1
 MKL_DIRECT ?= 0
 MKL_STATIC ?= 1
 RECONFIGURE ?= 1
@@ -81,6 +80,14 @@ MEMKIND ?= 1
 OFFLOAD ?= 0
 NESTED ?= 0
 ELPA ?= 3
+
+ifneq (0,$(OMP))
+  MKL ?= 2
+else ifneq (0,$(MPI))
+  MKL ?= 1
+else
+  MKL ?= 2
+endif
 
 # consider more accurate -fp-model (C/C++: precise, Fortran: source)
 FPFLAGS ?= -fp-model fast=2 \
@@ -187,6 +194,13 @@ ifneq (0,$(MPI))
     DFLAGS += -D__BLACS -D__SCALAPACK
     ifneq (1,$(SCALAPACK))
       DFLAGS += -D__SCALAPACK$(SCALAPACK)
+    endif
+    ifneq (1,$(SCALAPACK))
+      SCALAPACKLIB=mkl_scalapack_lp64
+    else
+      SCALAPACKDIR = $(HOME)/scalapack-2.0.2
+      SCALAPACKLIB = scalapack
+      LIBS += -L$(SCALAPACKDIR)
     endif
   endif
   ifneq (1,$(MPI))
@@ -565,19 +579,19 @@ ifeq (1,$(shell echo $$((1 <= $(BEEP)))))
 mp2_optimize_ri_basis.o: mp2_optimize_ri_basis.F
 	$(FC) -c $(FCFLAGS) -O0 $<
 qs_dispersion_nonloc.o: qs_dispersion_nonloc.F
-	$(FC) -c $(FCFLAGS) -O${OPT1} $<
+	$(FC) -c $(FCFLAGS) -O$(OPT1) $<
 endif
 
 # likely outdated or resolved
 ifeq (1,$(shell echo $$((2 <= $(BEEP)))))
 qs_vxc_atom.o: qs_vxc_atom.F
-	$(FC) -c $(FCFLAGS) -O${OPT1} $<
+	$(FC) -c $(FCFLAGS) -O$(OPT1) $<
 cp_fm_types.o: cp_fm_types.F
-	$(FC) -c $(FCFLAGS) -O${OPT1} $<
+	$(FC) -c $(FCFLAGS) -O$(OPT1) $<
 cube_utils.o: cube_utils.F
-	$(FC) -c $(FCFLAGS) -O${OPT1} $<
+	$(FC) -c $(FCFLAGS) -O$(OPT1) $<
 bibliography.o: bibliography.F
-	$(FC) -c $(FCFLAGS) -O${OPT2} $<
+	$(FC) -c $(FCFLAGS) -O$(OPT2) $<
 ifneq (0,$(OMP))
 xc_tpss.o: xc_tpss.F
 	$(FC) -c $(filter-out -openmp -qopenmp,$(FCFLAGS)) $<
