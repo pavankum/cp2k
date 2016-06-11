@@ -195,9 +195,9 @@ ifneq (0,$(MPI))
     ifneq (1,$(SCALAPACK))
       DFLAGS += -D__SCALAPACK$(SCALAPACK)
     endif
-    ifneq (1,$(SCALAPACK))
+    ifeq (1,$(SCALAPACK))
       SCALAPACKDIR = $(MKLROOT)/lib/intel64
-      SCALAPACKLIB=mkl_scalapack_lp64
+      SCALAPACKLIB = mkl_scalapack_lp64
     else
       SCALAPACKDIR = $(HOME)/scalapack-2.0.2
       SCALAPACKLIB = scalapack
