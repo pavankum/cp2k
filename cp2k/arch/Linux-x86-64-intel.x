@@ -196,6 +196,7 @@ ifneq (0,$(MPI))
       DFLAGS += -D__SCALAPACK$(SCALAPACK)
     endif
     ifneq (1,$(SCALAPACK))
+      SCALAPACKDIR = $(MKLROOT)/lib/intel64
       SCALAPACKLIB=mkl_scalapack_lp64
     else
       SCALAPACKDIR = $(HOME)/scalapack-2.0.2
@@ -435,8 +436,8 @@ ifneq (1,$(MKL))
     ifeq (0,$(MKL_STATIC))
       LIBS += -L$(MKLROOT)/lib/intel64
       ifneq (0,$(MPI))
-        MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64"
-        LIBS += -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64
+        MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -l$(SCALAPACKLIB) -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64"
+        LIBS += -l$(SCALAPACKLIB) -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lmkl_blacs_intelmpi_lp64
       else
         MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread"
         LIBS += -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread
@@ -453,7 +454,7 @@ ifneq (1,$(MKL))
           --end-group"
         LIBS += \
           -Wl,--start-group \
-            $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a \
+            $(SCALAPACKDIR)/lib$(SCALAPACKLIB).a \
             $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a \
             $(MKLROOT)/lib/intel64/libmkl_core.a \
             $(MKLROOT)/lib/intel64/libmkl_intel_thread.a \
@@ -488,7 +489,7 @@ else # sequential
     LIBS += -L$(MKLROOT)/lib/intel64
     ifneq (0,$(MPI))
       MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64"
-      LIBS += -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64
+      LIBS += -l$(SCALAPACKLIB) -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_lp64
     else
       MIC_LDFLAGS += -qoffload-option,mic,ld,"-L$(MKLROOT)/lib/mic -lmkl_intel_lp64 -lmkl_core -lmkl_sequential"
       LIBS += -lmkl_intel_lp64 -lmkl_core -lmkl_sequential
@@ -505,7 +506,7 @@ else # sequential
         --end-group"
       LIBS += \
         -Wl,--start-group \
-          $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a \
+          $(SCALAPACKDIR)/lib$(SCALAPACKLIB).a \
           $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a \
           $(MKLROOT)/lib/intel64/libmkl_core.a \
           $(MKLROOT)/lib/intel64/libmkl_sequential.a \
